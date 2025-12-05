@@ -1,0 +1,53 @@
+/**
+ * Exports an array of objects to a CSV file.
+ * 
+ * @param data Array of objects to export
+ * @param headers Array of objects defining the headers and keys. 
+ *                Example: [{ label: 'Name', key: 'name' }, { label: 'Email', key: 'email' }]
+ * @param filename Name of the file to download (without extension)
+ */
+export const exportToCSV = (data: any[], headers: { label: string; key: string | ((item: any) => any) }[], filename: string) => {
+    if (!data || !data.length) {
+        alert("Aucune donnée à exporter");
+        return;
+    }
+
+    const csvRows = [];
+
+    // Add headers
+    const headerLabels = headers.map(h => h.label);
+    csvRows.push(headerLabels.join(','));
+
+    // Add data
+    for (const row of data) {
+        const values = headers.map(header => {
+            let val;
+            if (typeof header.key === 'function') {
+                val = header.key(row);
+            } else {
+                // Handle nested properties (e.g., 'user.name')
+                val = header.key.split('.').reduce((obj, key) => (obj && obj[key] !== 'undefined') ? obj[key] : null, row);
+            }
+
+            // Escape quotes and wrap in quotes if necessary
+            const stringVal = val === null || val === undefined ? '' : String(val);
+            const escaped = stringVal.replace(/"/g, '""');
+            return `"${escaped}"`;
+        });
+        csvRows.push(values.join(','));
+    }
+
+    // Create blob and download
+    const csvString = csvRows.join('\n');
+    // Add BOM (Byte Order Mark) for Excel compatibility
+    const blob = new Blob(["\uFEFF" + csvString], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `${filename}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};

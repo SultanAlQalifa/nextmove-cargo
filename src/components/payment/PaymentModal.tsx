@@ -1,0 +1,379 @@
+import { useState, useEffect } from 'react';
+import { X, CreditCard, Smartphone, CheckCircle, AlertCircle, Loader2, Tag } from 'lucide-react';
+import { paymentService } from '../../services/paymentService';
+import { couponService, Coupon } from '../../services/couponService';
+
+interface PaymentModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    onSuccess: () => void;
+    planName: string;
+    amount: number;
+    currency: string;
+    allowedMethods?: PaymentMethod[];
+}
+
+type PaymentMethod = 'wave' | 'om' | 'card';
+
+export default function PaymentModal({ isOpen, onClose, onSuccess, planName, amount, currency, allowedMethods = ['wave', 'om', 'card'] }: PaymentModalProps) {
+    const [step, setStep] = useState<'method' | 'processing' | 'success' | 'error'>('method');
+    const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
+    const [phoneNumber, setPhoneNumber] = useState('');
+    const [error, setError] = useState('');
+
+    // Coupon State
+    const [couponCode, setCouponCode] = useState('');
+    const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
+    const [couponError, setCouponError] = useState('');
+    const [verifyingCoupon, setVerifyingCoupon] = useState(false);
+
+    useEffect(() => {
+        if (isOpen) {
+            setStep('method');
+            // Auto-select if there's only one method
+            if (allowedMethods.length === 1) {
+                setSelectedMethod(allowedMethods[0]);
+            } else {
+                setSelectedMethod(null);
+            }
+            setPhoneNumber('');
+            setError('');
+            setCouponCode('');
+            setAppliedCoupon(null);
+            setCouponError('');
+        }
+    }, [isOpen, allowedMethods]);
+
+    // Calculate Discount
+    const discountAmount = appliedCoupon
+        ? (appliedCoupon.discount_type === 'percentage'
+            ? (amount * appliedCoupon.discount_value / 100)
+            : appliedCoupon.discount_value)
+        : 0;
+
+    // Ensure discount doesn't exceed total
+    const finalDiscount = Math.min(discountAmount, amount);
+    const discountedAmount = Math.max(0, amount - finalDiscount);
+
+    // Fee Constants
+    const TRANSACTION_FEE_PERCENT = 0.01; // 1%
+    const VAT_PERCENT = 0.18; // 18%
+
+    const fees = discountedAmount * TRANSACTION_FEE_PERCENT;
+    const subtotal = discountedAmount + fees;
+    const vat = subtotal * VAT_PERCENT;
+    const totalAmount = Math.round(subtotal + vat);
+
+    const handleApplyCoupon = async () => {
+        if (!couponCode.trim()) return;
+        setVerifyingCoupon(true);
+        setCouponError('');
+        setAppliedCoupon(null);
+
+        try {
+            const coupon = await couponService.validateCoupon(couponCode, { type: 'subscription' });
+
+            // Check usage limit relative to amount if needed, though validateCoupon handles general checks
+            // Could add min_order_amount check here
+            if (coupon.min_order_amount && amount < coupon.min_order_amount) {
+                throw new Error(`Montant minimum requis : ${coupon.min_order_amount} ${currency}`);
+            }
+
+            setAppliedCoupon(coupon);
+        } catch (err: any) {
+            setCouponError(err.message || 'Code invalide');
+        } finally {
+            setVerifyingCoupon(false);
+        }
+    };
+
+    const handlePayment = async () => {
+        if (!selectedMethod) return;
+
+        if ((selectedMethod === 'wave' || selectedMethod === 'om') && !phoneNumber) {
+            setError('Veuillez entrer votre numéro de téléphone');
+            return;
+        }
+
+        setStep('processing');
+        setError('');
+
+        try {
+            // Need to pass coupon info to backend if storing usage
+            // For now assuming backend handles or we just track payment amount
+
+            if (selectedMethod === 'wave') {
+                // 1. Initialize Payment with Total Amount
+                const { transaction_id, wave_launch_url } = await paymentService.initializeWavePayment(totalAmount, currency);
+
+                // 2. Redirect user to Wave to pay
+                if (wave_launch_url) {
+                    window.open(wave_launch_url, '_blank'); // Open in new tab to keep app open
+                } else {
+                    throw new Error('Erreur: URL de paiement Wave manquante');
+                }
+
+                // 3. Verify Payment (Polling)
+                const verification = await paymentService.verifyWavePayment(transaction_id);
+
+                if (verification.status === 'succeeded') {
+                    // Important: If coupon used, we should increment its usage here
+                    if (appliedCoupon) {
+                        // Ideally call an endpoint to record usage. 
+                        // For MVP, we presume the backend hook or separate call handles this.
+                        // Or simple update usage count for now (client-side unsafe but acceptable for MVP demo)
+                        await couponService.updateCoupon(appliedCoupon.id, { usage_count: appliedCoupon.usage_count + 1 });
+                    }
+
+                    setStep('success');
+                    setTimeout(() => {
+                        onSuccess();
+                        onClose();
+                    }, 2000);
+                } else {
+                    throw new Error('Paiement non validé');
+                }
+            } else {
+                // Other methods (OM, Card) - still simulated
+                setTimeout(async () => {
+                    if (Math.random() > 0.1) {
+                        if (appliedCoupon) {
+                            await couponService.updateCoupon(appliedCoupon.id, { usage_count: appliedCoupon.usage_count + 1 });
+                        }
+
+                        setStep('success');
+                        setTimeout(() => {
+                            onSuccess();
+                            onClose();
+                        }, 2000);
+                    } else {
+                        setStep('error');
+                        setError('Le paiement a échoué. Veuillez réessayer.');
+                    }
+                }, 2000);
+            }
+        } catch (err: any) {
+            console.error('Payment error:', err);
+            setStep('error');
+            setError(err.message || err.error_description || 'Une erreur est survenue lors du paiement.');
+        }
+    };
+
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-xl flex flex-col max-h-[90vh]">
+                {/* Header */}
+                <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+                    <div>
+                        <h3 className="font-bold text-gray-900">Paiement Sécurisé</h3>
+                        <p className="text-xs text-gray-500">Abonnement {planName}</p>
+                    </div>
+                    <button onClick={onClose} className="p-2 hover:bg-gray-200 rounded-full transition-colors">
+                        <X className="w-5 h-5 text-gray-500" />
+                    </button>
+                </div>
+
+                {/* Content */}
+                <div className="p-6 overflow-y-auto">
+                    {step === 'method' && (
+                        <div className="space-y-6">
+                            {/* Amount Breakdown */}
+                            <div className="bg-gray-50 p-4 rounded-xl space-y-2">
+                                <div className="flex justify-between text-sm text-gray-600">
+                                    <span>Montant HT</span>
+                                    <span>{amount.toLocaleString()} {currency}</span>
+                                </div>
+
+                                {/* Coupon Section */}
+                                <div className="py-2 border-y border-gray-200 my-2">
+                                    {!appliedCoupon ? (
+                                        <div className="space-y-2">
+                                            <div className="flex gap-2">
+                                                <input
+                                                    type="text"
+                                                    value={couponCode}
+                                                    onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                                                    placeholder="Code Promo"
+                                                    className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-primary uppercase"
+                                                />
+                                                <button
+                                                    onClick={handleApplyCoupon}
+                                                    disabled={!couponCode || verifyingCoupon}
+                                                    className="px-3 py-2 bg-gray-900 text-white text-xs font-bold rounded-lg hover:bg-gray-800 disabled:opacity-50"
+                                                >
+                                                    {verifyingCoupon ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Appliquer'}
+                                                </button>
+                                            </div>
+                                            {couponError && <p className="text-xs text-red-500">{couponError}</p>}
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-center justify-between text-sm text-green-600 bg-green-50 p-2 rounded-lg">
+                                            <span className="flex items-center gap-1 font-medium">
+                                                <Tag className="w-3 h-3" /> {appliedCoupon.code}
+                                            </span>
+                                            <div className="flex items-center gap-2">
+                                                <span>-{finalDiscount.toLocaleString()} {currency}</span>
+                                                <button onClick={() => setAppliedCoupon(null)} className="text-gray-400 hover:text-red-500">
+                                                    <X className="w-3 h-3" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="flex justify-between text-sm text-gray-600">
+                                    <span>Frais de transaction (1%)</span>
+                                    <span>{fees.toLocaleString()} {currency}</span>
+                                </div>
+                                <div className="flex justify-between text-sm text-gray-600">
+                                    <span>TVA (18%)</span>
+                                    <span>{vat.toLocaleString()} {currency}</span>
+                                </div>
+                                <div className="border-t border-gray-200 pt-2 flex justify-between font-bold text-lg text-primary">
+                                    <span>Total à payer</span>
+                                    <span>{totalAmount.toLocaleString()} {currency}</span>
+                                </div>
+                            </div>
+
+                            <div className="space-y-3">
+                                <p className="text-sm font-medium text-gray-700">Choisir un moyen de paiement</p>
+
+                                {allowedMethods.includes('wave') && (
+                                    <button
+                                        onClick={() => setSelectedMethod('wave')}
+                                        className={`w-full p-4 rounded-xl border flex items-center gap-4 transition-all ${selectedMethod === 'wave' ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'}`}
+                                    >
+                                        <div className="w-10 h-10 rounded-lg bg-[#1dc4ff] flex items-center justify-center text-white font-bold text-xs">
+                                            Wave
+                                        </div>
+                                        <div className="text-left flex-1">
+                                            <p className="font-medium text-gray-900">Wave Mobile Money</p>
+                                            <p className="text-xs text-gray-500">Paiement rapide via QR ou numéro</p>
+                                        </div>
+                                        <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${selectedMethod === 'wave' ? 'border-primary bg-primary' : 'border-gray-300'}`}>
+                                            {selectedMethod === 'wave' && <div className="w-2 h-2 bg-white rounded-full" />}
+                                        </div>
+                                    </button>
+                                )}
+
+                                {allowedMethods.includes('om') && (
+                                    <button
+                                        onClick={() => setSelectedMethod('om')}
+                                        className={`w-full p-4 rounded-xl border flex items-center gap-4 transition-all ${selectedMethod === 'om' ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'}`}
+                                    >
+                                        <div className="w-10 h-10 rounded-lg bg-[#ff7900] flex items-center justify-center text-white font-bold text-xs">
+                                            OM
+                                        </div>
+                                        <div className="text-left flex-1">
+                                            <p className="font-medium text-gray-900">Orange Money</p>
+                                            <p className="text-xs text-gray-500">Paiement via code #144#</p>
+                                        </div>
+                                        <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${selectedMethod === 'om' ? 'border-primary bg-primary' : 'border-gray-300'}`}>
+                                            {selectedMethod === 'om' && <div className="w-2 h-2 bg-white rounded-full" />}
+                                        </div>
+                                    </button>
+                                )}
+
+                                {allowedMethods.includes('card') && (
+                                    <button
+                                        onClick={() => setSelectedMethod('card')}
+                                        className={`w-full p-4 rounded-xl border flex items-center gap-4 transition-all ${selectedMethod === 'card' ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'}`}
+                                    >
+                                        <div className="w-10 h-10 rounded-lg bg-gray-900 flex items-center justify-center text-white">
+                                            <CreditCard className="w-5 h-5" />
+                                        </div>
+                                        <div className="text-left flex-1">
+                                            <p className="font-medium text-gray-900">Carte Bancaire</p>
+                                            <p className="text-xs text-gray-500">Visa, Mastercard</p>
+                                        </div>
+                                        <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${selectedMethod === 'card' ? 'border-primary bg-primary' : 'border-gray-300'}`}>
+                                            {selectedMethod === 'card' && <div className="w-2 h-2 bg-white rounded-full" />}
+                                        </div>
+                                    </button>
+                                )}
+                            </div>
+
+                            {(selectedMethod === 'wave' || selectedMethod === 'om') && (
+                                <div className="animate-in slide-in-from-top-2 duration-200">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Numéro de téléphone</label>
+                                    <div className="relative">
+                                        <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                        <input
+                                            type="tel"
+                                            value={phoneNumber}
+                                            onChange={(e) => setPhoneNumber(e.target.value)}
+                                            placeholder="77 000 00 00"
+                                            className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            {error && (
+                                <div className="p-3 bg-red-50 text-red-600 rounded-lg text-sm flex items-center gap-2">
+                                    <AlertCircle className="w-4 h-4" />
+                                    {error}
+                                </div>
+                            )}
+
+                            <button
+                                onClick={handlePayment}
+                                disabled={!selectedMethod}
+                                className="w-full py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-primary/20"
+                            >
+                                Payer {totalAmount.toLocaleString()} {currency}
+                            </button>
+                        </div>
+                    )}
+
+                    {step === 'processing' && (
+                        <div className="flex flex-col items-center justify-center py-8 text-center space-y-4">
+                            <div className="relative">
+                                <div className="w-16 h-16 border-4 border-gray-100 border-t-primary rounded-full animate-spin"></div>
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <CreditCard className="w-6 h-6 text-primary" />
+                                </div>
+                            </div>
+                            <div>
+                                <h4 className="font-bold text-gray-900 text-lg">Traitement en cours...</h4>
+                                <p className="text-gray-500 text-sm mt-1">Veuillez valider le paiement sur votre téléphone si nécessaire.</p>
+                            </div>
+                        </div>
+                    )}
+
+                    {step === 'success' && (
+                        <div className="flex flex-col items-center justify-center py-8 text-center space-y-4 animate-in zoom-in duration-300">
+                            <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-2">
+                                <CheckCircle className="w-8 h-8" />
+                            </div>
+                            <div>
+                                <h4 className="font-bold text-gray-900 text-lg">Paiement Réussi !</h4>
+                                <p className="text-gray-500 text-sm mt-1">Votre abonnement a été activé avec succès.</p>
+                            </div>
+                        </div>
+                    )}
+
+                    {step === 'error' && (
+                        <div className="flex flex-col items-center justify-center py-8 text-center space-y-4 animate-in zoom-in duration-300">
+                            <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-2">
+                                <AlertCircle className="w-8 h-8" />
+                            </div>
+                            <div>
+                                <h4 className="font-bold text-gray-900 text-lg">Échec du paiement</h4>
+                                <p className="text-gray-500 text-sm mt-1">{error}</p>
+                            </div>
+                            <button
+                                onClick={() => setStep('method')}
+                                className="px-6 py-2 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors"
+                            >
+                                Réessayer
+                            </button>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+}

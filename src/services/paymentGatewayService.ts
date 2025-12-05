@@ -1,0 +1,123 @@
+import { supabase } from '../lib/supabase';
+
+export interface PaymentGateway {
+    id: string;
+    name: string;
+    provider: 'wave' | 'payoneer';
+    is_active: boolean;
+    is_test_mode: boolean;
+    config: {
+        public_key?: string;
+        secret_key?: string;
+        merchant_id?: string;
+        webhook_secret?: string;
+    };
+    supported_currencies: string[];
+    transaction_fee_percent: number;
+}
+
+export const paymentGatewayService = {
+    getGateways: async (): Promise<PaymentGateway[]> => {
+        const { data, error } = await supabase
+            .from('payment_gateways')
+            .select('*')
+            .order('name');
+
+        if (error) throw error;
+
+        const gateways = (data || []).map(mapDbGatewayToApp);
+
+        // Fallback: If no Wave gateway exists, add a default one (mock/client-side)
+        if (!gateways.find(g => g.provider === 'wave')) {
+            gateways.push({
+                id: 'wave-default',
+                name: 'Wave',
+                provider: 'wave',
+                is_active: true,
+                is_test_mode: true,
+                config: {
+                    merchant_id: '',
+                    secret_key: ''
+                },
+                supported_currencies: ['XOF'],
+                transaction_fee_percent: 1
+            });
+        }
+
+        return gateways;
+    },
+
+    updateGateway: async (id: string, data: Partial<PaymentGateway>): Promise<PaymentGateway> => {
+        const dbUpdates = mapAppGatewayToDb(data);
+
+        if (id === 'wave-default') {
+            // Create new gateway
+            const { data: newGateway, error } = await supabase
+                .from('payment_gateways')
+                .insert([{
+                    ...dbUpdates,
+                    name: 'Wave',
+                    provider: 'wave',
+                    is_active: true
+                }])
+                .select()
+                .single();
+
+            if (error) throw error;
+            return mapDbGatewayToApp(newGateway);
+        }
+
+        const { data: updated, error } = await supabase
+            .from('payment_gateways')
+            .update(dbUpdates)
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) throw error;
+        return mapDbGatewayToApp(updated);
+    },
+
+    toggleGateway: async (id: string): Promise<void> => {
+        // First get current status
+        const { data: current, error: fetchError } = await supabase
+            .from('payment_gateways')
+            .select('is_active')
+            .eq('id', id)
+            .single();
+
+        if (fetchError) throw fetchError;
+
+        const { error } = await supabase
+            .from('payment_gateways')
+            .update({ is_active: !current.is_active })
+            .eq('id', id);
+
+        if (error) throw error;
+    }
+};
+
+function mapDbGatewayToApp(dbRecord: any): PaymentGateway {
+    return {
+        id: dbRecord.id,
+        name: dbRecord.name,
+        provider: dbRecord.provider,
+        is_active: dbRecord.is_active,
+        is_test_mode: dbRecord.is_test_mode,
+        config: dbRecord.config || {},
+        supported_currencies: dbRecord.supported_currencies || [],
+        transaction_fee_percent: dbRecord.transaction_fee_percent
+    };
+}
+
+function mapAppGatewayToDb(appGateway: any): any {
+    const dbGateway: any = {};
+    if (appGateway.name !== undefined) dbGateway.name = appGateway.name;
+    if (appGateway.provider !== undefined) dbGateway.provider = appGateway.provider;
+    if (appGateway.is_active !== undefined) dbGateway.is_active = appGateway.is_active;
+    if (appGateway.is_test_mode !== undefined) dbGateway.is_test_mode = appGateway.is_test_mode;
+    if (appGateway.config !== undefined) dbGateway.config = appGateway.config;
+    if (appGateway.supported_currencies !== undefined) dbGateway.supported_currencies = appGateway.supported_currencies;
+    if (appGateway.transaction_fee_percent !== undefined) dbGateway.transaction_fee_percent = appGateway.transaction_fee_percent;
+    return dbGateway;
+}
