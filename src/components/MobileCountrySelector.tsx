@@ -7,7 +7,7 @@ import { setUserLocale, LocaleConfig } from '../utils/localeDetection';
 const popularCountries: { code: string; name: string; flag: string; language: string; currency: string }[] = [
     // French-speaking (Africa & Europe)
     { code: 'SN', name: 'Sénégal', flag: '🇸🇳', language: 'fr', currency: 'XOF' },
-    { code: 'CI', name: 'Côte d\'Ivoire', flag: '🇨🇮', language: 'fr', currency: 'XOF' },
+    { code: 'CI', name: "Côte d'Ivoire", flag: '🇨🇮', language: 'fr', currency: 'XOF' },
     { code: 'ML', name: 'Mali', flag: '🇲🇱', language: 'fr', currency: 'XOF' },
     { code: 'FR', name: 'France', flag: '🇫🇷', language: 'fr', currency: 'EUR' },
 
@@ -27,7 +27,7 @@ const popularCountries: { code: string; name: string; flag: string; language: st
     { code: 'MX', name: 'México', flag: '🇲🇽', language: 'es', currency: 'MXN' },
 ];
 
-export default function CountrySelector() {
+export default function MobileCountrySelector() {
     const [isOpen, setIsOpen] = useState(false);
     const { language, currency, countryCode, setLanguage, setCurrency, setCountryCode } = useCurrency();
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -42,7 +42,6 @@ export default function CountrySelector() {
                 setIsOpen(false);
             }
         }
-
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
@@ -54,7 +53,6 @@ export default function CountrySelector() {
             currency: country.currency,
             countryCode: country.code
         };
-
         setUserLocale(newLocale);
         setLanguage(country.language);
         setCurrency(country.currency);
@@ -92,9 +90,7 @@ export default function CountrySelector() {
                     <div className="fixed inset-0 bg-white z-50 p-4 overflow-y-auto">
                         <div className="flex justify-between items-center mb-4">
                             <h2 className="text-lg font-semibold">Select Country</h2>
-                            <button onClick={() => setIsOpen(false)} className="text-gray-600">
-                                ✕
-                            </button>
+                            <button onClick={() => setIsOpen(false)} className="text-gray-600">✕</button>
                         </div>
                         {popularCountries.map((country) => (
                             <button

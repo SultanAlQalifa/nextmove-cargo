@@ -40,7 +40,7 @@ import {
 } from 'lucide-react';
 
 import NotificationBell from '../common/NotificationBell';
-import CountrySelector from '../CountrySelector';
+import MobileCountrySelector from '../MobileCountrySelector';
 import ChatWidget from '../common/ChatWidget';
 
 interface NavItem {
@@ -604,7 +604,7 @@ export default function DashboardLayout() {
                             <Link to="/privacy" className="hover:text-primary transition-colors">{t('footer.privacy')}</Link>
                         </div>
                         <p>{settings?.footer?.rights || '© 2025 NextMove Cargo. All rights reserved.'}</p>
-                        <CountrySelector />
+                        <MobileCountrySelector />
                     </footer>
                 </main>
             </div>

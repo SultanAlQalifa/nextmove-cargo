@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { useBranding } from '../contexts/BrandingContext';
 import { useTheme } from '../contexts/ThemeContext';
-import CountrySelector from './CountrySelector';
+import MobileCountrySelector from './MobileCountrySelector';
 import { Sun, Moon, LogOut, LayoutDashboard, User, ChevronDown, Settings } from 'lucide-react';
 
 export default function Layout() {
@@ -54,7 +54,7 @@ export default function Layout() {
                         </button>
 
                         <div className="hidden md:block">
-                            <CountrySelector />
+                            <MobileCountrySelector />
                         </div>
 
                         {(!user || profile?.role === 'client') && (
