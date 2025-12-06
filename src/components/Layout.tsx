@@ -281,6 +281,24 @@ export default function Layout() {
                         <div className="mt-4 flex justify-center">
                             <MobileCountrySelector />
                         </div>
+                        <div className="mt-4 flex flex-col items-center gap-2">
+                            <span className="text-xs text-gray-500 font-mono">v0.1.0</span>
+                            <button
+                                onClick={() => {
+                                    if ('serviceWorker' in navigator) {
+                                        navigator.serviceWorker.getRegistrations().then(registrations => {
+                                            for (let registration of registrations) {
+                                                registration.unregister();
+                                            }
+                                        });
+                                    }
+                                    window.location.reload();
+                                }}
+                                className="text-xs text-primary hover:text-primary/80 underline decoration-dashed"
+                            >
+                                Forcer la mise à jour
+                            </button>
+                        </div>
                     </div>
                 </div>
             </footer>
