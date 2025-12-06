@@ -50,7 +50,7 @@ export default function Layout() {
                     {/* Subtle Gradient Overlay - Show only when scrolled */}
                     <div className={`absolute inset-0 bg-gradient-to-r from-white/40 via-transparent to-white/40 pointer-events-none transition-opacity duration-500 ${isScrolled ? 'opacity-100' : 'opacity-0'}`} />
 
-                    <Link to="/" className="flex items-center gap-3 group relative z-10">
+                    <Link to="/" className="flex items-center space-x-3 group relative px-2">
                         {settings?.logo_url ? (
                             <div className="flex items-center text-lg sm:text-2xl font-bold tracking-tight">
                                 <span className="text-primary group-hover:scale-105 transition-transform duration-300">NextMove</span>
