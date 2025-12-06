@@ -38,19 +38,13 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
                     setCountryCodeState(savedLocale.countryCode);
                     i18n.changeLanguage(savedLocale.language);
                 } else {
-                    // Fallback to system settings if available, otherwise detect
-                    if (settings?.regionalization) {
-                        setCurrencyState(settings.regionalization.default_currency);
-                        setLanguageState(settings.regionalization.default_language);
-                        // We might want to map timezone to country code or just keep default
-                        i18n.changeLanguage(settings.regionalization.default_language);
-                    } else {
-                        const localeConfig = await detectUserLocale();
-                        setCurrencyState(localeConfig.currency);
-                        setLanguageState(localeConfig.language);
-                        setCountryCodeState(localeConfig.countryCode);
-                        i18n.changeLanguage(localeConfig.language);
-                    }
+                    // Force default currency to XOF and language to French
+                    setCurrencyState('XOF');
+                    setLanguageState('fr');
+                    setCountryCodeState('SN');
+                    i18n.changeLanguage('fr');
+                    // Also persist this default locale
+                    setUserLocale({ currency: 'XOF', language: 'fr', countryCode: 'SN' });
                 }
             } catch (error) {
                 console.error('Error initializing locale:', error);
