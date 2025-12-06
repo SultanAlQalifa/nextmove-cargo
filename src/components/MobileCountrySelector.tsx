@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Globe, ChevronDown } from 'lucide-react';
 import { useCurrency } from '../contexts/CurrencyContext';
 import { setUserLocale, LocaleConfig } from '../utils/localeDetection';
@@ -87,30 +88,33 @@ export default function MobileCountrySelector() {
             {isOpen && (
                 isMobile ? (
                     // Mobile overlay
-                    <div className="fixed inset-0 bg-white z-50 p-4 overflow-y-auto">
-                        <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-lg font-semibold">Select Country</h2>
-                            <button onClick={() => setIsOpen(false)} className="text-gray-600">✕</button>
-                        </div>
-                        {popularCountries.map((country) => (
-                            <button
-                                key={country.code}
-                                onClick={() => handleCountrySelect(country)}
-                                className={`w-full px-3 py-2 flex items-center gap-3 hover:bg-gray-50 transition-colors ${country.code === countryCode ? 'bg-blue-50' : ''}`}
-                            >
-                                <span className="text-2xl">{country.flag}</span>
-                                <div className="flex-1 text-left">
-                                    <p className="text-sm font-medium text-gray-900">{country.name}</p>
-                                    <p className="text-xs text-gray-500">
-                                        {country.language.toUpperCase()} • {country.currency}
-                                    </p>
-                                </div>
-                                {country.code === countryCode && (
-                                    <div className="w-2 h-2 rounded-full bg-primary" />
-                                )}
-                            </button>
-                        ))}
-                    </div>
+                    createPortal(
+                        <div className="fixed inset-0 bg-white z-[9999] p-4 overflow-y-auto">
+                            <div className="flex justify-between items-center mb-4">
+                                <h2 className="text-lg font-semibold">Select Country</h2>
+                                <button onClick={() => setIsOpen(false)} className="text-gray-600">✕</button>
+                            </div>
+                            {popularCountries.map((country) => (
+                                <button
+                                    key={country.code}
+                                    onClick={() => handleCountrySelect(country)}
+                                    className={`w-full px-3 py-2 flex items-center gap-3 hover:bg-gray-50 transition-colors ${country.code === countryCode ? 'bg-blue-50' : ''}`}
+                                >
+                                    <span className="text-2xl">{country.flag}</span>
+                                    <div className="flex-1 text-left">
+                                        <p className="text-sm font-medium text-gray-900">{country.name}</p>
+                                        <p className="text-xs text-gray-500">
+                                            {country.language.toUpperCase()} • {country.currency}
+                                        </p>
+                                    </div>
+                                    {country.code === countryCode && (
+                                        <div className="w-2 h-2 rounded-full bg-primary" />
+                                    )}
+                                </button>
+                            ))}
+                        </div>,
+                        document.body
+                    )
                 ) : (
                     // Desktop dropdown
                     <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50 max-h-96 overflow-y-auto">
