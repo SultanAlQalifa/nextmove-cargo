@@ -38,8 +38,6 @@ export default function Register() {
     const roles = [
         { id: 'client', icon: User, label: t('auth.roles.client') },
         { id: 'forwarder', icon: Anchor, label: t('auth.roles.forwarder') },
-        { id: 'supplier', icon: Package, label: t('auth.roles.supplier') },
-        { id: 'driver', icon: Truck, label: t('auth.roles.driver') },
     ];
 
     const handleRegister = async (e: React.FormEvent) => {
