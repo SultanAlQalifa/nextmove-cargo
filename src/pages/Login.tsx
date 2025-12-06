@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
 
 import { useBranding } from '../contexts/BrandingContext';
+import GoogleLoginButton from '../components/auth/GoogleLoginButton';
 
 export default function Login() {
     const { t } = useTranslation();
@@ -265,6 +266,18 @@ export default function Login() {
                                         </div>
                                     </div>
                                 )}
+
+                                <div className="space-y-4">
+                                    <GoogleLoginButton />
+                                    <div className="relative">
+                                        <div className="absolute inset-0 flex items-center">
+                                            <div className="w-full border-t border-slate-200 dark:border-slate-800"></div>
+                                        </div>
+                                        <div className="relative flex justify-center text-sm">
+                                            <span className="px-2 bg-white dark:bg-slate-900 text-slate-500">Ou continuer avec</span>
+                                        </div>
+                                    </div>
+                                </div>
 
                                 <div className="space-y-2">
                                     <label htmlFor="email" className="block text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">

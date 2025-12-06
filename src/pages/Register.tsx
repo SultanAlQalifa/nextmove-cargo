@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { Mail, Lock, User, Truck, Package, Anchor, ArrowRight, Loader2, CheckCircle2 } from 'lucide-react';
+import GoogleLoginButton from '../components/auth/GoogleLoginButton';
 
 export default function Register() {
     const { t } = useTranslation();
@@ -238,6 +239,18 @@ export default function Register() {
                                         </div>
                                     </div>
                                 )}
+
+                                <div className="space-y-4">
+                                    <GoogleLoginButton text="S'inscrire avec Google" />
+                                    <div className="relative">
+                                        <div className="absolute inset-0 flex items-center">
+                                            <div className="w-full border-t border-slate-200 dark:border-slate-800"></div>
+                                        </div>
+                                        <div className="relative flex justify-center text-sm">
+                                            <span className="px-2 bg-white dark:bg-slate-900 text-slate-500">Ou s'inscrire avec email</span>
+                                        </div>
+                                    </div>
+                                </div>
 
                                 {/* Role Selection Cards */}
                                 <div>
