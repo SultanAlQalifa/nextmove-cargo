@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import PageHeader from '../../../components/common/PageHeader';
-import { Palette, Upload, Layout, Type, Save, RotateCcw, Image as ImageIcon, Star, ShieldCheck, CheckCircle, ArrowRight, Globe, Smartphone, FileText } from 'lucide-react';
+import { Palette, Upload, Layout, Type, Save, RotateCcw, Image as ImageIcon, Star, ShieldCheck, CheckCircle, ArrowRight, Globe, Smartphone, FileText, Share2, Facebook, Twitter, Instagram, Linkedin, Youtube, Video } from 'lucide-react';
 import { brandingService, BrandingSettings } from '../../../services/brandingService';
 import { storageService } from '../../../services/storageService';
 import { useBranding } from '../../../contexts/BrandingContext';
@@ -102,6 +102,7 @@ export default function AdminBranding() {
         { id: 'testimonials', label: 'Témoignages', icon: Star },
         { id: 'cta', label: 'Appel à l\'action', icon: ArrowRight },
         { id: 'footer', label: 'Pied de page', icon: Globe },
+        { id: 'social', label: 'Réseaux Sociaux', icon: Share2 },
         { id: 'pages', label: 'Pages', icon: FileText },
         { id: 'pwa', label: 'PWA & Mobile', icon: Smartphone },
     ];
@@ -763,6 +764,88 @@ export default function AdminBranding() {
                                         value={settings.footer?.rights || ''}
                                         onChange={(e) => handleChange('footer.rights', e.target.value)}
                                         className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'social' && (
+                        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                            <h3 className="text-lg font-bold text-gray-900 mb-6">Réseaux Sociaux</h3>
+                            <p className="text-sm text-gray-500 mb-6">Ajoutez les liens vers vos profils sociaux pour les afficher dans le pied de page.</p>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+                                        <Facebook className="w-4 h-4 text-blue-600" /> Facebook
+                                    </label>
+                                    <input
+                                        type="url"
+                                        value={settings.social_media?.facebook || ''}
+                                        onChange={(e) => handleChange('social_media.facebook', e.target.value)}
+                                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                                        placeholder="https://facebook.com/votrepage"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+                                        <Twitter className="w-4 h-4 text-sky-400" /> Twitter / X
+                                    </label>
+                                    <input
+                                        type="url"
+                                        value={settings.social_media?.twitter || ''}
+                                        onChange={(e) => handleChange('social_media.twitter', e.target.value)}
+                                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                                        placeholder="https://twitter.com/votrecompte"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+                                        <Instagram className="w-4 h-4 text-pink-600" /> Instagram
+                                    </label>
+                                    <input
+                                        type="url"
+                                        value={settings.social_media?.instagram || ''}
+                                        onChange={(e) => handleChange('social_media.instagram', e.target.value)}
+                                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                                        placeholder="https://instagram.com/votrecompte"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+                                        <Linkedin className="w-4 h-4 text-blue-700" /> LinkedIn
+                                    </label>
+                                    <input
+                                        type="url"
+                                        value={settings.social_media?.linkedin || ''}
+                                        onChange={(e) => handleChange('social_media.linkedin', e.target.value)}
+                                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                                        placeholder="https://linkedin.com/company/votrepage"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+                                        <Video className="w-4 h-4 text-black" /> TikTok
+                                    </label>
+                                    <input
+                                        type="url"
+                                        value={settings.social_media?.tiktok || ''}
+                                        onChange={(e) => handleChange('social_media.tiktok', e.target.value)}
+                                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                                        placeholder="https://tiktok.com/@votrecompte"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+                                        <Youtube className="w-4 h-4 text-red-600" /> YouTube
+                                    </label>
+                                    <input
+                                        type="url"
+                                        value={settings.social_media?.youtube || ''}
+                                        onChange={(e) => handleChange('social_media.youtube', e.target.value)}
+                                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                                        placeholder="https://youtube.com/c/votrechaine"
                                     />
                                 </div>
                             </div>

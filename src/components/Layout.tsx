@@ -6,7 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useBranding } from '../contexts/BrandingContext';
 import { useTheme } from '../contexts/ThemeContext';
 import MobileCountrySelector from './MobileCountrySelector';
-import { Sun, Moon, LogOut, LayoutDashboard, User, ChevronDown, Settings } from 'lucide-react';
+import { Sun, Moon, LogOut, LayoutDashboard, User, ChevronDown, Settings, Facebook, Twitter, Instagram, Linkedin, Youtube, Video } from 'lucide-react';
 
 export default function Layout() {
     const { t } = useTranslation();

@@ -112,6 +112,14 @@ export interface BrandingSettings {
         theme_color: string;
         background_color: string;
     };
+    social_media: {
+        facebook: string;
+        twitter: string;
+        instagram: string;
+        linkedin: string;
+        tiktok: string;
+        youtube: string;
+    };
 }
 
 const DEFAULT_BRANDING: BrandingSettings = {
@@ -225,6 +233,14 @@ const DEFAULT_BRANDING: BrandingSettings = {
         short_name: 'NextMove',
         theme_color: '#1e40af',
         background_color: '#ffffff'
+    },
+    social_media: {
+        facebook: '',
+        twitter: '',
+        instagram: '',
+        linkedin: '',
+        tiktok: '',
+        youtube: ''
     }
 };
 
@@ -263,6 +279,7 @@ export const brandingService = {
                 contact: { ...DEFAULT_BRANDING.pages.contact, ...(dbSettings.pages?.contact || {}) },
                 privacy: { ...DEFAULT_BRANDING.pages.privacy, ...(dbSettings.pages?.privacy || {}) },
             },
+            social_media: { ...DEFAULT_BRANDING.social_media, ...(dbSettings.social_media || {}) },
         };
     },
 
