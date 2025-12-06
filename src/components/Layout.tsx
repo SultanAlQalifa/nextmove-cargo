@@ -53,7 +53,7 @@ export default function Layout() {
                             )}
                         </button>
 
-                        <div className="hidden md:block">
+                        <div>
                             <MobileCountrySelector />
                         </div>
 
@@ -240,6 +240,9 @@ export default function Layout() {
                     </div>
                     <div className="border-t border-gray-800 pt-8 text-center text-gray-400">
                         <p>&copy; 2025 {settings?.platform_name || 'NextMove Cargo'}. {settings?.footer?.rights || 'All rights reserved.'}</p>
+                        <div className="mt-4 flex justify-center">
+                            <MobileCountrySelector />
+                        </div>
                     </div>
                 </div>
             </footer>
