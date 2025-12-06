@@ -120,6 +120,13 @@ export interface BrandingSettings {
         tiktok: string;
         youtube: string;
     };
+    seo: {
+        meta_title_template: string;
+        default_title: string;
+        default_description: string;
+        default_keywords: string;
+        og_image: string;
+    };
 }
 
 const DEFAULT_BRANDING: BrandingSettings = {
@@ -241,6 +248,13 @@ const DEFAULT_BRANDING: BrandingSettings = {
         linkedin: '',
         tiktok: '',
         youtube: ''
+    },
+    seo: {
+        meta_title_template: '%s | NextMove Cargo',
+        default_title: 'NextMove Cargo - Solution Logistique Chine-Afrique',
+        default_description: 'NextMove Cargo simplifie vos importations de la Chine vers l\'Afrique. Transport maritime, aérien et services de paiement sécurisé.',
+        default_keywords: 'import chine afrique, transitaire chine, cargo sénégal, groupage maritime, paiement fournisseur chine',
+        og_image: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80'
     }
 };
 
@@ -280,6 +294,7 @@ export const brandingService = {
                 privacy: { ...DEFAULT_BRANDING.pages.privacy, ...(dbSettings.pages?.privacy || {}) },
             },
             social_media: { ...DEFAULT_BRANDING.social_media, ...(dbSettings.social_media || {}) },
+            seo: { ...DEFAULT_BRANDING.seo, ...(dbSettings.seo || {}) },
         };
     },
 

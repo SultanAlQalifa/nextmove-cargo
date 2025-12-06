@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import PageHeader from '../../../components/common/PageHeader';
-import { Palette, Upload, Layout, Type, Save, RotateCcw, Image as ImageIcon, Star, ShieldCheck, CheckCircle, ArrowRight, Globe, Smartphone, FileText, Share2, Facebook, Twitter, Instagram, Linkedin, Youtube, Video } from 'lucide-react';
+import { Palette, Upload, Layout, Type, Save, RotateCcw, Image as ImageIcon, Star, ShieldCheck, CheckCircle, ArrowRight, Globe, Smartphone, FileText, Share2, Facebook, Twitter, Instagram, Linkedin, Youtube, Video, Search } from 'lucide-react';
 import { brandingService, BrandingSettings } from '../../../services/brandingService';
 import { storageService } from '../../../services/storageService';
 import { useBranding } from '../../../contexts/BrandingContext';
@@ -103,6 +103,7 @@ export default function AdminBranding() {
         { id: 'cta', label: 'Appel à l\'action', icon: ArrowRight },
         { id: 'footer', label: 'Pied de page', icon: Globe },
         { id: 'social', label: 'Réseaux Sociaux', icon: Share2 },
+        { id: 'seo', label: 'Référencement (SEO)', icon: Search },
         { id: 'pages', label: 'Pages', icon: FileText },
         { id: 'pwa', label: 'PWA & Mobile', icon: Smartphone },
     ];
@@ -852,6 +853,86 @@ export default function AdminBranding() {
                         </div>
                     )}
 
+
+
+                    {activeTab === 'seo' && (
+                        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                            <h3 className="text-lg font-bold text-gray-900 mb-6">Référencement Naturel (SEO)</h3>
+                            <p className="text-sm text-gray-500 mb-6">Optimisez votre visibilité sur les moteurs de recherche et les réseaux sociaux.</p>
+
+                            <div className="space-y-6">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Modèle de Titre</label>
+                                    <input
+                                        type="text"
+                                        value={settings.seo?.meta_title_template || ''}
+                                        onChange={(e) => handleChange('seo.meta_title_template', e.target.value)}
+                                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                                        placeholder="%s | NextMove Cargo"
+                                    />
+                                    <p className="mt-1 text-xs text-gray-500">%s sera remplacé par le titre de la page actuelle.</p>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Titre par défaut (Site Name)</label>
+                                    <input
+                                        type="text"
+                                        value={settings.seo?.default_title || ''}
+                                        onChange={(e) => handleChange('seo.default_title', e.target.value)}
+                                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Description par défaut</label>
+                                    <textarea
+                                        value={settings.seo?.default_description || ''}
+                                        onChange={(e) => handleChange('seo.default_description', e.target.value)}
+                                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all h-24 resize-none"
+                                    />
+                                    <p className="mt-1 text-xs text-gray-500">150-160 caractères recommandés.</p>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Mots-clés par défaut</label>
+                                    <input
+                                        type="text"
+                                        value={settings.seo?.default_keywords || ''}
+                                        onChange={(e) => handleChange('seo.default_keywords', e.target.value)}
+                                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                                        placeholder="logistique, transport, chine, afrique..."
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Image de partage (OG Image)</label>
+                                    <div className="flex items-start gap-4">
+                                        <div className="w-48 h-28 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-center overflow-hidden">
+                                            {settings.seo?.og_image ? (
+                                                <img src={settings.seo.og_image} alt="OG Image" className="max-w-full max-h-full object-cover" />
+                                            ) : (
+                                                <span className="text-xs text-gray-400">Aucune image</span>
+                                            )}
+                                        </div>
+                                        <div className="flex-1">
+                                            <input
+                                                type="file"
+                                                id="og-image-upload"
+                                                className="hidden"
+                                                accept="image/*"
+                                                onChange={(e) => e.target.files?.[0] && handleFileUpload('seo.og_image', e.target.files[0])}
+                                            />
+                                            <label
+                                                htmlFor="og-image-upload"
+                                                className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer text-sm font-medium text-gray-700 shadow-sm"
+                                            >
+                                                <Upload className="w-4 h-4" />
+                                                Changer l'image
+                                            </label>
+                                            <p className="mt-1 text-xs text-gray-500">JPG, PNG (1200x630px recommandé pour Facebook/Twitter)</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {activeTab === 'pwa' && (
                         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                             <h3 className="text-lg font-bold text-gray-900 mb-6">Paramètres PWA (Progressive Web App)</h3>
@@ -1110,6 +1191,6 @@ export default function AdminBranding() {
                     )}
                 </div>
             </div>
-        </div>
+        </div >
     );
 }

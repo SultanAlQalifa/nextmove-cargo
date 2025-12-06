@@ -7,6 +7,7 @@ import { useBranding } from '../contexts/BrandingContext';
 import { useTheme } from '../contexts/ThemeContext';
 import MobileCountrySelector from './MobileCountrySelector';
 import { Sun, Moon, LogOut, LayoutDashboard, User, ChevronDown, Settings, Facebook, Twitter, Instagram, Linkedin, Youtube, Video } from 'lucide-react';
+import SEOHead from './seo/SEOHead';
 
 export default function Layout() {
     const { t } = useTranslation();
@@ -32,6 +33,7 @@ export default function Layout() {
 
     return (
         <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+            <SEOHead />
             {/* Ultra-Premium Fixed Floating Navbar */}
             <div className={`fixed top-0 left-0 right-0 z-50 px-2 sm:px-6 lg:px-8 pt-4 pb-2 pointer-events-none transition-all duration-300 ${isScrolled ? 'pt-2' : 'pt-4'}`}>
                 <header
