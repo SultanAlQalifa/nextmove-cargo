@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Outlet, Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -14,7 +14,16 @@ export default function Layout() {
     const { settings } = useBranding();
     const { theme, toggleTheme } = useTheme();
     const [userMenuOpen, setUserMenuOpen] = useState(false);
+    const [isScrolled, setIsScrolled] = useState(false);
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const handleScroll = () => {
+            setIsScrolled(window.scrollY > 10);
+        };
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
     const handleLogout = async () => {
         await signOut();
@@ -24,11 +33,20 @@ export default function Layout() {
     return (
         <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
             {/* Ultra-Premium Fixed Floating Navbar */}
-            <div className="fixed top-0 left-0 right-0 z-50 px-2 sm:px-6 lg:px-8 pt-4 pb-2 pointer-events-none">
-                <header className="bg-white/70 backdrop-blur-2xl border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-2xl h-16 flex items-center justify-between px-3 sm:px-6 transition-all duration-500 hover:bg-white/80 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:border-white/60 pointer-events-auto max-w-7xl mx-auto w-full relative">
+            <div className={`fixed top-0 left-0 right-0 z-50 px-2 sm:px-6 lg:px-8 pt-4 pb-2 pointer-events-none transition-all duration-300 ${isScrolled ? 'pt-2' : 'pt-4'}`}>
+                <header
+                    className={`
+                        rounded-2xl h-16 flex items-center justify-between px-3 sm:px-6 
+                        transition-all duration-500 pointer-events-auto max-w-7xl mx-auto w-full relative
+                        ${isScrolled
+                            ? 'bg-white/70 backdrop-blur-2xl border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:bg-white/80 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:border-white/60'
+                            : 'bg-transparent border-transparent shadow-none'
+                        }
+                    `}
+                >
 
-                    {/* Subtle Gradient Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-white/40 via-transparent to-white/40 pointer-events-none" />
+                    {/* Subtle Gradient Overlay - Show only when scrolled */}
+                    <div className={`absolute inset-0 bg-gradient-to-r from-white/40 via-transparent to-white/40 pointer-events-none transition-opacity duration-500 ${isScrolled ? 'opacity-100' : 'opacity-0'}`} />
 
                     <Link to="/" className="flex items-center gap-3 group relative z-10">
                         {settings?.logo_url ? (
