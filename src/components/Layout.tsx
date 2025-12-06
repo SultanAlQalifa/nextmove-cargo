@@ -1,4 +1,6 @@
+
 import { useState, useEffect } from 'react';
+import PWAInstallPrompt from './common/PWAInstallPrompt';
 import { createPortal } from 'react-dom';
 import { Outlet, Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -35,16 +37,17 @@ export default function Layout() {
         <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
             <SEOHead />
             {/* Ultra-Premium Fixed Floating Navbar */}
+            <PWAInstallPrompt />
             <div className={`fixed top-0 left-0 right-0 z-50 px-2 sm:px-6 lg:px-8 pt-4 pb-2 pointer-events-none transition-all duration-300 ${isScrolled ? 'pt-2' : 'pt-4'}`}>
                 <header
                     className={`
-                        rounded-2xl h-16 flex items-center justify-between px-3 sm:px-6 
+                        rounded-2xl h-16 flex items-center justify-between px-3 sm:px-6
                         transition-all duration-500 pointer-events-auto max-w-7xl mx-auto w-full relative
                         ${isScrolled
                             ? 'bg-white/70 backdrop-blur-2xl border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:bg-white/80 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:border-white/60'
                             : 'bg-transparent border-transparent shadow-none'
                         }
-                    `}
+`}
                 >
 
                     {/* Subtle Gradient Overlay - Show only when scrolled */}
@@ -123,7 +126,7 @@ export default function Layout() {
                                     </div>
 
                                     <div className="bg-gray-50 rounded-full p-1 group-hover/profile:bg-primary/10 group-hover/profile:text-primary transition-colors shadow-sm">
-                                        <ChevronDown className={`w-3 h-3 text-gray-400 transition-transform duration-300 ${userMenuOpen ? 'rotate-180' : ''}`} />
+                                        <ChevronDown className={`w - 3 h - 3 text - gray - 400 transition - transform duration - 300 ${userMenuOpen ? 'rotate-180' : ''} `} />
                                     </div>
                                 </button>
 
@@ -188,7 +191,7 @@ export default function Layout() {
                                     onClick={() => setUserMenuOpen(!userMenuOpen)}
                                     className="sm:hidden p-2 rounded-xl text-gray-600 hover:bg-gray-100"
                                 >
-                                    <ChevronDown className={`w-6 h-6 transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} />
+                                    <ChevronDown className={`w - 6 h - 6 transition - transform ${userMenuOpen ? 'rotate-180' : ''} `} />
                                 </button>
                             </>
                         )}
