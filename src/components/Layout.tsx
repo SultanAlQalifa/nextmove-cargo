@@ -24,20 +24,20 @@ export default function Layout() {
     return (
         <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
             {/* Ultra-Premium Fixed Floating Navbar */}
-            <div className="fixed top-0 left-0 right-0 z-50 px-4 sm:px-6 lg:px-8 pt-4 pb-2 pointer-events-none">
-                <header className="bg-white/70 backdrop-blur-2xl border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-2xl h-16 flex items-center justify-between px-6 transition-all duration-500 hover:bg-white/80 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:border-white/60 pointer-events-auto max-w-7xl mx-auto w-full relative">
+            <div className="fixed top-0 left-0 right-0 z-50 px-2 sm:px-6 lg:px-8 pt-4 pb-2 pointer-events-none">
+                <header className="bg-white/70 backdrop-blur-2xl border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-2xl h-16 flex items-center justify-between px-3 sm:px-6 transition-all duration-500 hover:bg-white/80 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:border-white/60 pointer-events-auto max-w-7xl mx-auto w-full relative">
 
                     {/* Subtle Gradient Overlay */}
                     <div className="absolute inset-0 bg-gradient-to-r from-white/40 via-transparent to-white/40 pointer-events-none" />
 
                     <Link to="/" className="flex items-center gap-3 group relative z-10">
                         {settings?.logo_url ? (
-                            <div className="flex items-center text-2xl font-bold tracking-tight">
+                            <div className="flex items-center text-lg sm:text-2xl font-bold tracking-tight">
                                 <span className="text-primary group-hover:scale-105 transition-transform duration-300">NextMove</span>
                                 <span className="text-secondary ml-1 group-hover:translate-x-1 transition-transform duration-300">Cargo</span>
                             </div>
                         ) : (
-                            <span className="text-2xl font-bold text-primary">NextMove</span>
+                            <span className="text-lg sm:text-2xl font-bold text-primary">NextMove</span>
                         )}
                     </Link>
 
