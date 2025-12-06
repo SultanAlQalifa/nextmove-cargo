@@ -111,6 +111,7 @@ export interface BrandingSettings {
         short_name: string;
         theme_color: string;
         background_color: string;
+        icon_url: string;
     };
     social_media: {
         facebook: string;
@@ -239,7 +240,8 @@ const DEFAULT_BRANDING: BrandingSettings = {
         name: 'NextMove Cargo',
         short_name: 'NextMove',
         theme_color: '#1e40af',
-        background_color: '#ffffff'
+        background_color: '#ffffff',
+        icon_url: ''
     },
     social_media: {
         facebook: '',

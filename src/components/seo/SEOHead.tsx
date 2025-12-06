@@ -51,6 +51,14 @@ export default function SEOHead({ title, description, keywords, image, url }: SE
             <meta name="twitter:title" content={pageTitle} />
             <meta name="twitter:description" content={metaDesc} />
             <meta name="twitter:image" content={metaImage} />
+
+            {/* PWA / Branding Icons */}
+            {settings?.pwa?.icon_url && (
+                <>
+                    <link rel="icon" type="image/png" href={settings.pwa.icon_url} />
+                    <link rel="apple-touch-icon" href={settings.pwa.icon_url} />
+                </>
+            )}
         </Helmet>
     );
 }

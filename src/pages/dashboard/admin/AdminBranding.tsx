@@ -962,6 +962,39 @@ export default function AdminBranding() {
                                     </div>
                                 </div>
 
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Icône de l'application</label>
+                                    <div className="flex items-start gap-4">
+                                        <div className="w-24 h-24 bg-gray-50 rounded-2xl border border-gray-200 flex items-center justify-center overflow-hidden shrink-0">
+                                            {settings.pwa?.icon_url ? (
+                                                <img src={settings.pwa.icon_url} alt="App Icon" className="w-full h-full object-cover" />
+                                            ) : (
+                                                <Smartphone className="w-8 h-8 text-gray-300" />
+                                            )}
+                                        </div>
+                                        <div className="flex-1">
+                                            <input
+                                                type="file"
+                                                id="pwa-icon-upload"
+                                                className="hidden"
+                                                accept="image/png,image/jpeg"
+                                                onChange={(e) => e.target.files?.[0] && handleFileUpload('pwa.icon_url', e.target.files[0])}
+                                            />
+                                            <label
+                                                htmlFor="pwa-icon-upload"
+                                                className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer text-sm font-medium text-gray-700 shadow-sm"
+                                            >
+                                                <Upload className="w-4 h-4" />
+                                                Changer l'icône
+                                            </label>
+                                            <p className="mt-2 text-xs text-gray-500">
+                                                Format recommandé : PNG carré (512x512px).<br />
+                                                Cette image sera utilisée pour l'icône sur l'écran d'accueil et les favoris.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-2">Couleur du Thème</label>
