@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Outlet, Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
@@ -174,38 +175,46 @@ export default function Layout() {
                     </nav>
 
                     {/* Mobile Menu Overlay */}
-                    {!user && userMenuOpen && (
-                        <div className="absolute top-full right-0 mt-2 w-full max-w-xs bg-white rounded-2xl shadow-xl border border-gray-100 p-4 flex flex-col gap-2 sm:hidden animate-in fade-in slide-in-from-top-2">
-                            <Link
-                                to="/calculator"
-                                onClick={() => setUserMenuOpen(false)}
-                                className="px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 font-medium"
+                    {!user && userMenuOpen && createPortal(
+                        <div className="fixed inset-0 z-[9998] bg-black/20 backdrop-blur-sm" onClick={() => setUserMenuOpen(false)}>
+                            <div
+                                onClick={(e) => e.stopPropagation()}
+                                className="absolute top-24 right-4 w-[calc(100%-2rem)] max-w-xs bg-white rounded-2xl shadow-2xl border border-gray-100/50 p-4 flex flex-col gap-2 animate-in fade-in slide-in-from-top-2 duration-200"
                             >
-                                {t('calculator')}
-                            </Link>
-                            <Link
-                                to="/become-forwarder"
-                                onClick={() => setUserMenuOpen(false)}
-                                className="px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 font-medium"
-                            >
-                                Devenir Transitaire
-                            </Link>
-                            <div className="h-px bg-gray-100 my-1" />
-                            <Link
-                                to="/login"
-                                onClick={() => setUserMenuOpen(false)}
-                                className="px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 font-medium"
-                            >
-                                {t('login')}
-                            </Link>
-                            <Link
-                                to="/register"
-                                onClick={() => setUserMenuOpen(false)}
-                                className="px-4 py-3 rounded-xl bg-primary text-white font-bold text-center"
-                            >
-                                {t('getStarted')}
-                            </Link>
-                        </div>
+                                <Link
+                                    to="/calculator"
+                                    onClick={() => setUserMenuOpen(false)}
+                                    className="px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 font-medium flex items-center gap-3 transition-colors"
+                                >
+                                    <span className="p-2 bg-gray-100 rounded-lg text-gray-500"><LayoutDashboard className="w-4 h-4" /></span>
+                                    {t('calculator')}
+                                </Link>
+                                <Link
+                                    to="/become-forwarder"
+                                    onClick={() => setUserMenuOpen(false)}
+                                    className="px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 font-medium flex items-center gap-3 transition-colors"
+                                >
+                                    <span className="p-2 bg-gray-100 rounded-lg text-gray-500"><User className="w-4 h-4" /></span>
+                                    Devenir Transitaire
+                                </Link>
+                                <div className="h-px bg-gray-100 my-1" />
+                                <Link
+                                    to="/login"
+                                    onClick={() => setUserMenuOpen(false)}
+                                    className="px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 font-medium text-center border border-gray-200"
+                                >
+                                    {t('login')}
+                                </Link>
+                                <Link
+                                    to="/register"
+                                    onClick={() => setUserMenuOpen(false)}
+                                    className="px-4 py-3 rounded-xl bg-primary text-white font-bold text-center shadow-lg shadow-primary/30"
+                                >
+                                    {t('getStarted')}
+                                </Link>
+                            </div>
+                        </div>,
+                        document.body
                     )}
                 </header>
             </div>

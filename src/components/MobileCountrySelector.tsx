@@ -64,7 +64,7 @@ export default function MobileCountrySelector() {
     // Detect mobile view
     const [isMobile, setIsMobile] = useState<boolean>(false);
     useEffect(() => {
-        const checkMobile = () => setIsMobile(window.innerWidth < 640);
+        const checkMobile = () => setIsMobile(window.innerWidth < 1024);
         checkMobile();
         window.addEventListener('resize', checkMobile);
         return () => window.removeEventListener('resize', checkMobile);
