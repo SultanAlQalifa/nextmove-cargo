@@ -484,6 +484,8 @@ export default function DashboardLayout() {
 
                             <div className="h-10 w-px bg-gradient-to-b from-transparent via-gray-300/50 dark:via-gray-600/50 to-transparent mx-2 hidden sm:block"></div>
 
+                            <MobileCountrySelector />
+
                             {/* Theme Toggle */}
                             <button
                                 onClick={toggleTheme}
@@ -604,7 +606,7 @@ export default function DashboardLayout() {
                             <Link to="/privacy" className="hover:text-primary transition-colors">{t('footer.privacy')}</Link>
                         </div>
                         <p>{settings?.footer?.rights || '© 2025 NextMove Cargo. All rights reserved.'}</p>
-                        <MobileCountrySelector />
+
                     </footer>
                 </main>
             </div>

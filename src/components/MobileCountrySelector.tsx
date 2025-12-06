@@ -74,15 +74,15 @@ export default function MobileCountrySelector() {
         <div className="relative" ref={dropdownRef}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-gray-100 transition-colors"
+                className="flex items-center gap-2 px-3 py-2 rounded-2xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 aria-label="Select country and language"
             >
-                <Globe size={18} className="text-gray-600" />
+                <Globe size={18} className="text-gray-600 dark:text-gray-400" />
                 <span className="text-xl">{currentCountry.flag}</span>
-                <span className="text-sm font-medium text-gray-700 hidden sm:inline">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-200 hidden sm:inline">
                     {currency}
                 </span>
-                <ChevronDown size={16} className={`text-gray-600 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown size={16} className={`text-gray-600 dark:text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>
 
             {isOpen && (
