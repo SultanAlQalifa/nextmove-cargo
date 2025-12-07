@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import PWAInstallPrompt from './common/PWAInstallPrompt';
+import InstallGuideModal from './common/InstallGuideModal';
 import { createPortal } from 'react-dom';
 import { Outlet, Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -18,6 +19,7 @@ export default function Layout() {
     const { theme, toggleTheme } = useTheme();
     const [userMenuOpen, setUserMenuOpen] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
+    const [showInstallGuide, setShowInstallGuide] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -297,14 +299,25 @@ export default function Layout() {
                                     }
                                     window.location.reload();
                                 }}
-                                className="text-xs text-primary hover:text-primary/80 underline decoration-dashed"
                             >
                                 Forcer la mise à jour
+                            </button>
+
+                            <button
+                                onClick={() => setShowInstallGuide(true)}
+                                className="text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 underline mt-1"
+                            >
+                                Comment installer l'app ?
                             </button>
                         </div>
                     </div>
                 </div>
             </footer>
+
+            <InstallGuideModal
+                isOpen={showInstallGuide}
+                onClose={() => setShowInstallGuide(false)}
+            />
         </div>
     );
 }

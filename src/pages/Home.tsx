@@ -17,11 +17,12 @@ export default function Home() {
     const { user, loading: authLoading } = useAuth();
     const navigate = useNavigate();
 
-    useEffect(() => {
-        if (!authLoading && user) {
-            navigate('/dashboard');
-        }
-    }, [user, authLoading, navigate]);
+    // Auto-redirect removed to allow access to Landing Page via Logo
+    // useEffect(() => {
+    //     if (!authLoading && user) {
+    //         navigate('/dashboard');
+    //     }
+    // }, [user, authLoading, navigate]);
 
     if (loading || !branding) {
         return (

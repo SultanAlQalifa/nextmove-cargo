@@ -36,7 +36,8 @@ import {
     Sun,
     Moon,
     Globe,
-    Star
+    Star,
+    Mail
 } from 'lucide-react';
 
 import NotificationBell from '../common/NotificationBell';
@@ -186,6 +187,7 @@ export default function DashboardLayout() {
                         { name: t('dashboard.menu.users'), path: '/dashboard/admin/users', icon: User },
                         { name: t('dashboard.menu.forwarders'), path: '/dashboard/admin/forwarders', icon: Truck },
                         { name: t('dashboard.menu.personnelAndRoles'), path: '/dashboard/admin/personnel', icon: User },
+                        { name: 'Emails', path: '/dashboard/admin/emails', icon: Mail },
                     ]
                 },
                 {

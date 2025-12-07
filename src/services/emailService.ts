@@ -9,6 +9,61 @@ interface EmailData {
 
 export const emailService = {
     /**
+     * Queue an admin email to be sent (Database Queue Pattern)
+     */
+    async queueAdminEmail(data: {
+        subject: string;
+        body: string;
+        recipient_group: 'all' | 'clients' | 'forwarders' | 'specific';
+        recipient_emails?: string[];
+        attachments?: { name: string; path: string; fullPath: string; publicUrl: string; type: string; size: number }[];
+    }) {
+        const { data: user } = await supabase.auth.getUser();
+        if (!user.user) throw new Error('Not authenticated');
+
+        const { data: result, error } = await supabase
+            .from('email_queue')
+            .insert({
+                ...data,
+                sender_id: user.user.id,
+                status: 'pending'
+            })
+            .select()
+            .single();
+
+        if (error) throw error;
+        return result;
+    },
+
+    /**
+     * Get history of sent admin emails
+     */
+    async getAdminEmailHistory() {
+        const { data, error } = await supabase
+            .from('email_queue')
+            .select(`
+                *,
+                sender:sender_id(full_name, email)
+            `)
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        return data;
+    },
+
+    /**
+     * Delete an email from history
+     */
+    async deleteAdminEmail(id: string) {
+        const { error } = await supabase
+            .from('email_queue')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw error;
+    },
+
+    /**
      * Send an email using the Supabase Edge Function
      */
     sendEmail: async (data: EmailData): Promise<{ success: boolean; error?: any }> => {

@@ -12,6 +12,7 @@ export interface Role {
     description: string;
     permissions: string[]; // Permission IDs
     is_system?: boolean; // Cannot be deleted if true
+    role_family?: 'admin' | 'forwarder' | 'client'; // The base family this role belongs to
 }
 
 export interface StaffMember {
@@ -57,9 +58,9 @@ const PERMISSIONS: Permission[] = [
 ];
 
 
-export type RoleFamily = 'admin' | 'forwarder' | 'client' | 'custom';
+export type RoleFamilyType = 'admin' | 'forwarder' | 'client' | 'custom'; // Custom is UI only now, effectively maps to one of the 3
 
-export const ROLE_FAMILIES: Record<RoleFamily, { label: string; permissions: string[] }> = {
+export const ROLE_FAMILIES: Record<RoleFamilyType, { label: string; permissions: string[] }> = {
     admin: {
         label: 'Administrateur',
         permissions: [
@@ -186,8 +187,17 @@ export const personnelService = {
             }
         });
 
-        if (error) throw new Error(error.message || 'Error creating user');
+        if (error) {
+            console.error('Edge Function Error:', error);
+            throw new Error(error.message || 'Error creating user');
+        }
+
+        console.log('Edge Function Response:', data);
         if (data.error) throw new Error(data.error);
+        if (data.emailError) {
+            const errMsg = typeof data.emailError === 'object' ? JSON.stringify(data.emailError) : data.emailError;
+            throw new Error(`Utilisateur créé mais échec de l'envoi email: ${errMsg}`);
+        }
 
         // Return the created staff member structure
         return {

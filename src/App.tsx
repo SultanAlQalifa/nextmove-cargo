@@ -81,6 +81,7 @@ const AdminCoupons = lazy(() => import('./pages/dashboard/admin/AdminCoupons'));
 const AdminGroupage = lazy(() => import('./pages/dashboard/admin/AdminGroupage'));
 const AdminLocations = lazy(() => import('./pages/dashboard/admin/AdminLocations'));
 const AdminPackageTypes = lazy(() => import('./pages/dashboard/admin/AdminPackageTypes'));
+const AdminEmails = lazy(() => import('./pages/dashboard/admin/AdminEmails'));
 
 
 import './i18n';
@@ -197,6 +198,7 @@ function App() {
                                                                 <Route path="admin/locations" element={<AdminLocations />} />
                                                                 <Route path="admin/package-types" element={<AdminPackageTypes />} />
                                                                 <Route path="admin/platform-rates" element={<AdminPlatformRates />} />
+                                                                <Route path="admin/emails" element={<AdminEmails />} />
                                                             </Route>
 
                                                             {/* Driver routes */}

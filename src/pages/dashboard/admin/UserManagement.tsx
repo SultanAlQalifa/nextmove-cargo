@@ -348,25 +348,27 @@ export default function UserManagement() {
                                                     >
                                                         <User className="w-4 h-4" /> Voir profil
                                                     </button>
-                                                    <button
-                                                        onClick={async () => {
-                                                            if (confirm(`Promouvoir ${user.name} en Transitaire ?`)) {
-                                                                try {
-                                                                    const { profileService } = await import('../../../services/profileService');
-                                                                    await profileService.upgradeToForwarder(user.id);
-                                                                    await fetchUsers();
-                                                                    success('Utilisateur promu transitaire avec succès !');
-                                                                } catch (err) {
-                                                                    console.error(err);
-                                                                    toastError('Erreur lors de la mise à jour.');
+                                                    {user.role === 'Client' && (
+                                                        <button
+                                                            onClick={async () => {
+                                                                if (confirm(`Promouvoir ${user.name} en Transitaire ?`)) {
+                                                                    try {
+                                                                        const { profileService } = await import('../../../services/profileService');
+                                                                        await profileService.upgradeToForwarder(user.id);
+                                                                        await fetchUsers();
+                                                                        success('Utilisateur promu transitaire avec succès !');
+                                                                    } catch (err) {
+                                                                        console.error(err);
+                                                                        toastError('Erreur lors de la mise à jour.');
+                                                                    }
                                                                 }
-                                                            }
-                                                            setActiveMenu(null);
-                                                        }}
-                                                        className="w-full text-left px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 flex items-center gap-2"
-                                                    >
-                                                        <Shield className="w-4 h-4" /> Promouvoir Transitaire
-                                                    </button>
+                                                                setActiveMenu(null);
+                                                            }}
+                                                            className="w-full text-left px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 flex items-center gap-2"
+                                                        >
+                                                            <Shield className="w-4 h-4" /> Promouvoir Transitaire
+                                                        </button>
+                                                    )}
                                                     <button
                                                         onClick={async () => {
                                                             if (confirm(`Supprimer définitivement ${user.name} ?`)) {

@@ -106,5 +106,30 @@ export const storageService = {
         }
 
         return data.signedUrl;
+    },
+
+    /**
+     * Upload an attachment for emails
+     */
+    async uploadEmailAttachment(file: File): Promise<{ path: string; fullPath: string; publicUrl: string }> {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
+        const filePath = `${fileName}`;
+
+        const { data, error } = await supabase.storage
+            .from('email-attachments')
+            .upload(filePath, file);
+
+        if (error) throw error;
+
+        const { data: { publicUrl } } = supabase.storage
+            .from('email-attachments')
+            .getPublicUrl(filePath);
+
+        return {
+            path: filePath,
+            fullPath: data.path,
+            publicUrl
+        };
     }
 };
