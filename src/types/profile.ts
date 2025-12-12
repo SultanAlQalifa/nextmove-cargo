@@ -21,6 +21,7 @@ export interface Profile {
     address?: string;
     country?: string;
     avatar_url?: string;
+    website_url?: string;
     friendly_id?: string;
     account_status?: "active" | "suspended" | "inactive" | "banned";
     // Specific fields

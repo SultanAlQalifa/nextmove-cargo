@@ -156,6 +156,7 @@ export default function ForwarderSettings() {
           full_name: userProfile.full_name,
           phone: userProfile.phone,
           company_name: userProfile.company_name,
+          website_url: userProfile.website_url,
           transport_modes: userProfile.transport_modes || [],
         });
 
@@ -512,6 +513,26 @@ export default function ForwarderSettings() {
                         className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                         placeholder="Nom de votre société"
                         aria-label="Nom de l'entreprise"
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Site Internet
+                    </label>
+                    <div className="relative">
+                      <div className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 font-bold flex items-center justify-center text-xs">W</div>
+                      <input
+                        type="url"
+                        value={userProfile.website_url || ""}
+                        onChange={(e) =>
+                          setUserProfile({
+                            ...userProfile,
+                            website_url: e.target.value,
+                          })
+                        }
+                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                        placeholder="https://www.mon-site.com"
+                        aria-label="Site Internet"
                       />
                     </div>
                   </div>

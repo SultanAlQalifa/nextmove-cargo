@@ -19,11 +19,15 @@ export interface ForwarderProfile {
   joined_at: string;
   isFeatured?: boolean;
   isPromoted?: boolean;
+  website_url?: string;
+  avatar_url?: string;
 }
 
 export interface ForwarderOption {
   id: string;
   name: string;
+  website_url?: string;
+  logo?: string;
 }
 
 export const forwarderService = {
@@ -53,7 +57,7 @@ export const forwarderService = {
   getAllActiveForwarders: async (): Promise<ForwarderOption[]> => {
     const { data, error } = await supabase
       .from("profiles")
-      .select("id, company_name, full_name")
+      .select("id, company_name, full_name, website_url, avatar_url")
       .eq("role", "forwarder")
       .eq("account_status", "active")
       .order("company_name");
@@ -63,6 +67,8 @@ export const forwarderService = {
     return (data || []).map((f) => ({
       id: f.id,
       name: f.company_name || f.full_name || "Transitaire Inconnu",
+      website_url: f.website_url,
+      logo: f.avatar_url,
     }));
   },
 
@@ -329,5 +335,7 @@ function mapDbForwarderToApp(dbRecord: any): ForwarderProfile {
     joined_at: dbRecord.created_at,
     isFeatured: dbRecord.is_featured,
     isPromoted: dbRecord.is_promoted,
+    website_url: dbRecord.website_url,
+    avatar_url: dbRecord.avatar_url,
   };
 }

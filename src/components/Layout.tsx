@@ -25,6 +25,7 @@ import {
   Package,
 } from "lucide-react";
 import SEOHead from "./seo/SEOHead";
+import NewsTicker from "./common/NewsTicker";
 
 export default function Layout() {
   const { t } = useTranslation();
@@ -61,11 +62,10 @@ export default function Layout() {
           className={`
                         rounded-2xl h-16 flex items-center justify-between px-3 sm:px-6
                         transition-all duration-500 pointer-events-auto max-w-7xl mx-auto w-full relative
-                        ${
-                          isScrolled
-                            ? "bg-white/70 backdrop-blur-2xl border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:bg-white/80 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:border-white/60"
-                            : "bg-transparent border-transparent shadow-none"
-                        }
+                        ${isScrolled
+              ? "bg-white/70 backdrop-blur-2xl border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:bg-white/80 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:border-white/60"
+              : "bg-transparent border-transparent shadow-none"
+            }
 `}
         >
           {/* Subtle Gradient Overlay - Show only when scrolled */}
@@ -316,7 +316,7 @@ export default function Layout() {
         </header>
       </div>
 
-      <main className="flex-grow pt-24">
+      <main className="flex-grow pt-24 pb-12">
         <Outlet />
       </main>
 
@@ -437,6 +437,8 @@ export default function Layout() {
         isOpen={showInstallGuide}
         onClose={() => setShowInstallGuide(false)}
       />
+
+      <NewsTicker />
     </div>
   );
 }

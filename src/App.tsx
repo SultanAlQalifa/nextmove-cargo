@@ -15,7 +15,11 @@ const Register = lazy(() => import("./pages/Register"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const About = lazy(() => import("./pages/About"));
 const Contact = lazy(() => import("./pages/Contact"));
-const Privacy = lazy(() => import("./pages/Privacy"));
+// const Privacy = lazy(() => import("./pages/Privacy")); // Deprecated
+const PrivacyPolicy = lazy(() => import("./pages/legal/PrivacyPolicy"));
+const TermsOfService = lazy(() => import("./pages/legal/TermsOfService"));
+const BlogIndex = lazy(() => import("./pages/blog/BlogIndex"));
+const BlogPost = lazy(() => import("./pages/blog/BlogPost"));
 const BecomeForwarder = lazy(() => import("./pages/BecomeForwarder"));
 const ClientDashboard = lazy(() => import("./pages/dashboard/ClientDashboard"));
 const ForwarderDashboard = lazy(
@@ -137,6 +141,9 @@ const ForwarderAddresses = lazy(
 
 const ReferralDashboard = lazy(
   () => import("./pages/dashboard/ReferralDashboard"),
+);
+const LoyaltyDashboard = lazy(
+  () => import("./pages/dashboard/client/Loyalty"),
 );
 
 const UserManagement = lazy(
@@ -262,7 +269,13 @@ function App() {
                                   />
                                   <Route path="about" element={<About />} />
                                   <Route path="contact" element={<Contact />} />
-                                  <Route path="privacy" element={<Privacy />} />
+                                  {/* Legal & Content Routes */}
+                                  <Route path="privacy" element={<PrivacyPolicy />} />
+                                  <Route path="legal/privacy" element={<PrivacyPolicy />} />
+                                  <Route path="legal/terms" element={<TermsOfService />} />
+                                  <Route path="blog" element={<BlogIndex />} />
+                                  <Route path="blog/:id" element={<BlogPost />} />
+
                                   <Route
                                     path="become-forwarder"
                                     element={<BecomeForwarder />}
@@ -349,6 +362,10 @@ function App() {
                                       <Route
                                         path="client/referrals"
                                         element={<ReferralDashboard />}
+                                      />
+                                      <Route
+                                        path="client/loyalty"
+                                        element={<LoyaltyDashboard />}
                                       />
                                       <Route
                                         path="upgrade"

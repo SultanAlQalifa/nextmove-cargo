@@ -87,6 +87,10 @@ export default function UpgradeToPro() {
     },
   ];
 
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
+
+  const filteredPlans = plans.filter(p => p.billing_cycle === billingCycle);
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-gray-950 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
@@ -98,7 +102,7 @@ export default function UpgradeToPro() {
           Retour
         </button>
 
-        <div className="text-center mb-16">
+        <div className="text-center mb-10">
           <h1 className="text-4xl font-bold text-slate-900 dark:text-white mb-4">
             Passez au niveau supérieur
           </h1>
@@ -108,13 +112,34 @@ export default function UpgradeToPro() {
           </p>
         </div>
 
+        {/* Billing Toggle */}
+        <div className="flex justify-center mb-12">
+          <div className="bg-slate-100 dark:bg-slate-800 p-1 rounded-xl flex items-center relative">
+            <button
+              onClick={() => setBillingCycle("monthly")}
+              className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all relative z-10 ${billingCycle === "monthly" ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm" : "text-slate-500 hover:text-slate-900 dark:hover:text-slate-300"}`}
+            >
+              Mensuel
+            </button>
+            <button
+              onClick={() => setBillingCycle("yearly")}
+              className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all relative z-10 flex items-center gap-2 ${billingCycle === "yearly" ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm" : "text-slate-500 hover:text-slate-900 dark:hover:text-slate-300"}`}
+            >
+              Annuel
+              <span className="bg-green-100 text-green-700 text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap">
+                -2 mois offerts
+              </span>
+            </button>
+          </div>
+        </div>
+
         {loading ? (
           <div className="flex justify-center py-24">
             <Loader2 className="w-12 h-12 animate-spin text-blue-600" />
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
-            {plans.map((plan) => {
+            {filteredPlans.map((plan) => {
               const isPro = plan.name.toLowerCase().includes("pro");
               const isUpgradingThis = upgrading === plan.id;
 
@@ -132,7 +157,7 @@ export default function UpgradeToPro() {
                   <div className="p-8 flex-1">
                     <div className="mb-6">
                       <h3 className="text-2xl font-bold text-slate-900 dark:text-white">
-                        {plan.name}
+                        {plan.name.replace(" Annuel", "")}
                       </h3>
                       <p className="text-slate-500 dark:text-slate-400 mt-2 min-h-[48px]">
                         {plan.description}
@@ -152,6 +177,11 @@ export default function UpgradeToPro() {
                           /{plan.billing_cycle === "monthly" ? "mois" : "an"}
                         </span>
                       </div>
+                      {billingCycle === 'yearly' && (
+                        <div className="mt-2 text-xs text-green-600 font-bold">
+                          Facturé {new Intl.NumberFormat("fr-XO", { style: "currency", currency: plan.currency, maximumFractionDigits: 0 }).format(plan.price)} par an
+                        </div>
+                      )}
                     </div>
 
                     <div className="space-y-8">
@@ -213,11 +243,10 @@ export default function UpgradeToPro() {
                     <button
                       onClick={() => handleUpgrade(plan.id)}
                       disabled={upgrading !== null}
-                      className={`w-full py-4 px-6 text-center font-bold rounded-xl transition-all shadow-lg flex items-center justify-center ${
-                        isPro
+                      className={`w-full py-4 px-6 text-center font-bold rounded-xl transition-all shadow-lg flex items-center justify-center ${isPro
                           ? "bg-blue-600 text-white hover:bg-blue-500 shadow-blue-600/30"
                           : "bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 shadow-slate-900/10"
-                      } ${upgrading !== null ? "opacity-50 cursor-not-allowed" : ""}`}
+                        } ${upgrading !== null ? "opacity-50 cursor-not-allowed" : ""}`}
                     >
                       {isUpgradingThis ? (
                         <>

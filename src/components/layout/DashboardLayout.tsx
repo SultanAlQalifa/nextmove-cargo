@@ -40,6 +40,7 @@ import {
   Sliders,
   Tag,
   Calculator,
+  Crown,
   ChevronLeft,
   ChevronRight,
   Home,
@@ -53,8 +54,8 @@ import {
   AlertCircle,
   MoreVertical,
 } from "lucide-react";
-import SantaSleighAnimation from "../common/SantaSleighAnimation";
 import { Zap } from "lucide-react";
+import NewsTicker from "../common/NewsTicker";
 
 import NotificationBell from "../common/NotificationBell";
 import MobileCountrySelector from "../MobileCountrySelector";
@@ -120,6 +121,11 @@ export default function DashboardLayout() {
               name: "Parrainage",
               path: "/dashboard/client/referrals",
               icon: Gift,
+            },
+            {
+              name: "Fidélité",
+              path: "/dashboard/client/loyalty",
+              icon: Crown,
             },
           ],
         },
@@ -594,7 +600,6 @@ export default function DashboardLayout() {
   return (
     <div className="h-screen overflow-hidden bg-slate-50 dark:bg-dark-bg flex transition-colors duration-300">
       <CalculatorModal />
-      <SantaSleighAnimation />
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div
@@ -1016,7 +1021,7 @@ export default function DashboardLayout() {
         </div>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-x-hidden overflow-y-auto w-full max-w-full custom-scrollbar relative z-0">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto w-full max-w-full custom-scrollbar relative z-0 pb-12">
           <div className="container mx-auto px-6 py-8">
             <Outlet />
           </div>
@@ -1027,6 +1032,8 @@ export default function DashboardLayout() {
             <ChatWidget />
           </div>
         )}
+
+        <NewsTicker />
       </div>
     </div>
   );

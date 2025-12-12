@@ -23,6 +23,7 @@ import { useCurrency } from "../contexts/CurrencyContext";
 import { formatLargeNumber } from "../utils/currencyFormatter";
 import { useBranding } from "../contexts/BrandingContext";
 import MarketplaceShowcase from "../components/home/MarketplaceShowcase";
+import CEOSection from "../components/home/CEOSection";
 import FounderPackModal from "../components/marketing/FounderPackModal";
 
 import { useAuth } from "../contexts/AuthContext";
@@ -279,6 +280,9 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      {/* CEO's Word Section */}
+      <CEOSection />
 
       {/* Marketplace Showcase Section */}
       <MarketplaceShowcase />
