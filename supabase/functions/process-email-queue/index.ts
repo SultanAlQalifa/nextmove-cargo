@@ -21,7 +21,7 @@ interface EmailQueueRecord {
     sender_id: string;
 }
 
-serve(async (req) => {
+serve(async (req: Request) => {
     if (req.method === "OPTIONS") {
         return new Response("ok", { headers: corsHeaders });
     }
@@ -47,15 +47,50 @@ serve(async (req) => {
             .eq('id', record.id);
 
         // 4. Fetch SMTP and Branding Settings
-        const { data: settingsData } = await supabaseAdmin
+        // We fetch branding from public settings
+        const { data: brandingData } = await supabaseAdmin
             .from('system_settings')
-            .select('key, value')
-            .in('key', ['email', 'branding']);
+            .select('value')
+            .eq('key', 'branding')
+            .single();
 
-        const settingsMap: any = {};
-        settingsData?.forEach((item: any) => {
-            settingsMap[item.key] = item.value;
-        });
+        // We fetch sensitive email config from private secrets
+        const { data: emailData } = await supabaseAdmin
+            .from('system_secrets')
+            .select('value')
+            .eq('key', 'email')
+            .single();
+
+        interface SystemSettings {
+            email?: {
+                smtp_host?: string;
+                smtp_port?: number;
+                smtp_user?: string;
+                smtp_pass?: string;
+                from_name?: string;
+                from_email?: string;
+            };
+            branding?: {
+                logo_url?: string;
+                platform_name?: string;
+                pages?: {
+                    contact?: {
+                        address?: string;
+                        email?: string;
+                    };
+                };
+                social_media?: {
+                    facebook?: string;
+                    linkedin?: string;
+                    instagram?: string;
+                };
+            };
+        }
+
+        const settingsMap: SystemSettings = {
+            branding: brandingData?.value,
+            email: emailData?.value
+        };
 
         const smtpConfig = settingsMap.email;
         const branding = settingsMap.branding || {};
@@ -94,7 +129,7 @@ serve(async (req) => {
             const { data: profiles, error: profileError } = await query;
             if (profileError) throw profileError;
 
-            targetEmails = profiles.map(p => p.email).filter(e => e); // Filter nulls
+            targetEmails = profiles.map((p: any) => p.email).filter((e: any) => e); // Filter nulls
         }
 
         // Deduplicate
@@ -290,8 +325,9 @@ serve(async (req) => {
             status: 200,
         });
 
-    } catch (error: any) {
-        console.error("Error processing queue:", error);
+    } catch (error: unknown) {
+        const err = error as Error;
+        console.error("Error processing queue:", err);
 
         // Try to update DB with error
         try {
@@ -299,11 +335,11 @@ serve(async (req) => {
             const record = payload.record || payload;
             if (record?.id) {
                 const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-                await supabaseAdmin.from('email_queue').update({ status: 'failed', error_message: error.message }).eq('id', record.id);
+                await supabaseAdmin.from('email_queue').update({ status: 'failed', error_message: err.message }).eq('id', record.id);
             }
         } catch { }
 
-        return new Response(JSON.stringify({ error: error.message }), {
+        return new Response(JSON.stringify({ error: err.message }), {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
             status: 500,
         });

@@ -6,7 +6,7 @@ const corsHeaders = {
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-serve(async (req) => {
+serve(async (req: Request) => {
     if (req.method === 'OPTIONS') {
         return new Response('ok', { headers: corsHeaders })
     }
@@ -46,7 +46,7 @@ serve(async (req) => {
         }
 
         // 2. Get request body
-        const { email, password, fullName, role, metadata } = await req.json()
+        const { email, password, fullName, role, metadata, transport_modes, referral_code_used } = await req.json()
 
         if (!email || !password || !role) {
             return new Response(JSON.stringify({ error: 'Missing required fields' }), {
@@ -65,31 +65,40 @@ serve(async (req) => {
         let baseRole = 'admin'; // Default fallback
         let staffRoleId = role; // Default assumption: input role is a UUID
 
-        if (role === 'client') {
+        // SECURITY: Privilege Escalation Prevention
+        // If the creator is a FORWARDER, they can ONLY create CLIENTS.
+        if (profile.role === 'forwarder') {
+            console.log('Security Enforcement: Requester is Forwarder. Forcing new user role to "client".');
             baseRole = 'client';
             staffRoleId = null;
-        } else if (role === 'forwarder') {
-            baseRole = 'forwarder';
-            staffRoleId = null;
         } else {
-            // It is a specific Staff Role ID (UUID/Slug)
-            // 1. Try to fetch the role definition to get its family
-            const { data: roleDef } = await supabaseAdmin
-                .from('staff_roles')
-                .select('role_family')
-                .eq('id', role)
-                .single();
-
-            if (roleDef?.role_family) {
-                // If the role has an explicit family defined (e.g. 'admin', 'forwarder', 'client')
-                // We usage THAT as the base role.
-                baseRole = roleDef.role_family;
+            // Logic for Admins/System
+            if (role === 'client') {
+                baseRole = 'client';
+                staffRoleId = null;
+            } else if (role === 'forwarder') {
+                baseRole = 'forwarder';
+                staffRoleId = null;
             } else {
-                // Fallback Logic (if column missing or empty)
-                if (metadata?.forwarder_id) {
-                    baseRole = 'forwarder';
+                // It is a specific Staff Role ID (UUID/Slug)
+                // 1. Try to fetch the role definition to get its family
+                const { data: roleDef } = await supabaseAdmin
+                    .from('staff_roles')
+                    .select('role_family')
+                    .eq('id', role)
+                    .single();
+
+                if (roleDef?.role_family) {
+                    // If the role has an explicit family defined (e.g. 'admin', 'forwarder', 'client')
+                    // We usage THAT as the base role.
+                    baseRole = roleDef.role_family;
                 } else {
-                    baseRole = 'admin';
+                    // Fallback Logic (if column missing or empty)
+                    if (metadata?.forwarder_id) {
+                        baseRole = 'forwarder';
+                    } else {
+                        baseRole = 'admin';
+                    }
                 }
             }
         }
@@ -111,6 +120,24 @@ serve(async (req) => {
             throw new Error(`Auth error: ${createError.message || createError.msg || JSON.stringify(createError)}`);
         }
 
+
+        // 3.5 Prepare Referral Data
+        const normalizedName = fullName.replace(/[^a-zA-Z]/g, '').toUpperCase();
+        const namePrefix = normalizedName.length >= 3 ? normalizedName.substring(0, 3) : (normalizedName + "USR").substring(0, 3);
+        const randomSuffix = Math.random().toString(36).substring(2, 7).toUpperCase();
+        const newReferralCode = `${namePrefix}${randomSuffix}`;
+
+        let referrerId = null;
+        if (typeof referral_code_used === 'string' && referral_code_used.trim().length > 0) {
+            const { data: referrer } = await supabaseAdmin
+                .from('profiles')
+                .select('id')
+                .eq('referral_code', referral_code_used.trim().toUpperCase())
+                .single();
+            if (referrer) {
+                referrerId = referrer.id;
+            }
+        }
 
         // 4. Profile Creation / Update
         // The trigger 'on_auth_user_created' SHOULD create the profile automatically.
@@ -135,7 +162,10 @@ serve(async (req) => {
                     avatar_url: '',
                     staff_role_id: staffRoleId, // Correctly set to NULL if client/base-forwarder
                     forwarder_id: metadata?.forwarder_id,
-                    account_status: 'active'
+                    transport_modes: transport_modes || [],
+                    account_status: 'active',
+                    referral_code: newReferralCode,
+                    referred_by: referrerId
                 });
 
             if (manualProfileError) {
@@ -143,7 +173,7 @@ serve(async (req) => {
                 throw new Error(`Profile creation failed: ${manualProfileError.message}`);
             }
         } else {
-            // Profile exists (trigger worked), so we just UPDATE it with the specific staff role
+            // Profile exists (trigger worked), so we just UPDATE it with the specific staff role and referral info
             console.log('Profile created by trigger. Updating additional fields.');
             const { error: profileUpdateError } = await supabaseAdmin
                 .from('profiles')
@@ -151,13 +181,59 @@ serve(async (req) => {
                     role: baseRole, // Ensure the base role is correct (trigger might have defaulted differently)
                     staff_role_id: staffRoleId, // The actual staff role UUID or NULL
                     forwarder_id: metadata?.forwarder_id,
-                    account_status: 'active'
+                    transport_modes: transport_modes || [],
+                    account_status: 'active',
+                    referral_code: newReferralCode, // Ensure code is set even if trigger missed it (trigger has logic but this is safer)
+                    referred_by: referrerId
                 })
                 .eq('id', newUser.user!.id);
 
             if (profileUpdateError) {
                 console.error('Error updating profile:', profileUpdateError);
                 throw new Error(`Profile update error: ${profileUpdateError.message}`);
+            }
+        }
+
+        // 4.5 Create Referral Record if applicable
+        if (referrerId) {
+            // Fetch system settings for referral points
+            let pointsToAward = 100; // default
+            try {
+                const { data: settingsData } = await supabaseAdmin
+                    .from('system_settings')
+                    .select('value')
+                    .eq('key', 'referral')
+                    .single();
+
+                if (settingsData?.value?.points_per_referral) {
+                    pointsToAward = Number(settingsData.value.points_per_referral);
+                }
+            } catch (err) {
+                console.warn('Could not fetch referral settings, using default 100:', err);
+            }
+
+            const { error: referralError } = await supabaseAdmin
+                .from('referrals')
+                .insert({
+                    referrer_id: referrerId,
+                    referred_id: newUser.user!.id,
+                    status: 'pending',
+                    points_earned: pointsToAward
+                });
+
+            if (referralError) {
+                console.error('Error creating referral record:', referralError);
+                // Non-critical error, don't fail the user creation
+            } else {
+                // Update referrer's total points immediately (optional, or wait for validation)
+                // For now, we just record the potential points. 
+                // If you want to award them immediately:
+                /*
+                await supabaseAdmin.rpc('increment_referral_points', { 
+                   user_id: referrerId, 
+                   points: pointsToAward 
+                });
+                */
             }
         }
 
@@ -226,9 +302,10 @@ serve(async (req) => {
                 status: 200,
             }
         )
-    } catch (error: any) {
-        console.error('Create user error:', error);
-        const errorMessage = error?.message || error?.msg || JSON.stringify(error);
+    } catch (error: unknown) {
+        const err = error as Error | { message: string, msg?: string };
+        console.error('Create user error:', err);
+        const errorMessage = (err as any)?.message || (err as any)?.msg || JSON.stringify(err);
         return new Response(JSON.stringify({ error: errorMessage }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
             status: 200, // Return 200 so UI can parse the 'error' field

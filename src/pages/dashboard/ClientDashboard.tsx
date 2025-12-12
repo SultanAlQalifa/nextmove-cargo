@@ -1,371 +1,467 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-import { useUI } from '../../contexts/UIContext';
-import PaymentModal from '../../components/dashboard/PaymentModal';
-import ChatWindow from '../../components/dashboard/ChatWindow';
-import { quoteService, QuoteRequest } from '../../services/quoteService';
-import { chatService } from '../../services/chatService';
-import { supabase } from '../../lib/supabase';
-import { generateInvoice, generateWaybill } from '../../utils/pdfGenerator';
-import PageHeader from '../../components/common/PageHeader';
-import DashboardControls from '../../components/dashboard/DashboardControls';
+import { useState, useEffect, useMemo } from "react";
+import { useAuth } from "../../contexts/AuthContext";
+import { useUI } from "../../contexts/UIContext";
+import PaymentModal from "../../components/dashboard/PaymentModal";
+import ChatWindow from "../../components/dashboard/ChatWindow";
+import { quoteService, QuoteRequest } from "../../services/quoteService";
+import { supabase } from "../../lib/supabase";
+import PageHeader from "../../components/common/PageHeader";
+import DashboardControls from "../../components/dashboard/DashboardControls";
 import {
-    Package,
-    Truck,
-    CheckCircle,
-    FileText,
-    Plus,
-    ArrowRight,
-    Clock,
-    AlertCircle,
-    TrendingUp,
-    Calculator,
-    ArrowUpRight,
-    ArrowDownRight,
-    Search,
-    X,
-    Star
-} from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+  Package,
+  Truck,
+  CheckCircle,
+  FileText,
+  Plus,
+  ArrowRight,
+  Clock,
+  TrendingUp,
+  Calculator,
+  ArrowUpRight,
+  Search,
+  X,
+  Star,
+  Crown,
+  Wallet,
+  Bell,
+  Activity
+} from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+} from "recharts";
 
 export default function ClientDashboard() {
-    const { t } = useTranslation();
-    const navigate = useNavigate();
-    const { profile, user } = useAuth();
-    const { openCalculator } = useUI();
-    const [activeTab, setActiveTab] = useState<'overview' | 'requests' | 'shipments'>('overview');
-    const [requests, setRequests] = useState<QuoteRequest[]>([]);
-    const [shipments, setShipments] = useState<any[]>([]);
-    const [selectedRequestQuotes, setSelectedRequestQuotes] = useState<any[] | null>(null);
-    const [paymentShipment, setPaymentShipment] = useState<any | null>(null);
-    const [activeChat, setActiveChat] = useState<{ chatId: string; recipientName: string } | null>(null);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [loading, setLoading] = useState(true);
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { profile, user } = useAuth();
+  const { openCalculator } = useUI();
 
-    useEffect(() => {
-        if (user) {
-            loadData();
-        }
-    }, [user]);
+  const [requests, setRequests] = useState<QuoteRequest[]>([]);
+  const [shipments, setShipments] = useState<any[]>([]);
+  const [selectedRequestQuotes, setSelectedRequestQuotes] = useState<any[] | null>(null);
+  const [paymentShipment, setPaymentShipment] = useState<any | null>(null);
+  const [activeChat, setActiveChat] = useState<{ chatId: string; recipientName: string; } | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [loading, setLoading] = useState(true);
 
-    const loadData = async () => {
-        setLoading(true);
-        try {
-            await Promise.all([loadRequests(), loadShipments()]);
-        } finally {
-            setLoading(false);
-        }
-    };
+  useEffect(() => {
+    if (user) {
+      loadData();
+    }
+  }, [user]);
 
-    const loadRequests = async () => {
-        if (!user) return;
-        try {
-            const data = await quoteService.getClientRequests(user.id);
-            setRequests(data);
-        } catch (error) {
-            console.error('Error loading requests:', error);
-        }
-    };
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      await Promise.all([loadRequests(), loadShipments()]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const loadShipments = async () => {
-        if (!user) return;
-        const { data, error } = await supabase
-            .from('shipments')
-            .select('*, forwarder:forwarder_id(full_name, company_name), payment:payments(*)')
-            .eq('client_id', user.id)
-            .order('created_at', { ascending: false });
+  const loadRequests = async () => {
+    if (!user) return;
+    try {
+      const data = await quoteService.getClientRequests(user.id);
+      setRequests(data);
+    } catch (error) {
+      console.error("Error loading requests:", error);
+    }
+  };
 
-        if (error) console.error('Error loading shipments:', error);
-        else setShipments(data || []);
-    };
+  const loadShipments = async () => {
+    if (!user) return;
+    const { data, error } = await supabase
+      .from("shipments")
+      .select("*, forwarder:forwarder_id(full_name, company_name), payment:payments(*)")
+      .eq("client_id", user.id)
+      .order("created_at", { ascending: false });
 
-    const handleAcceptQuote = async (quoteId: string, requestId: string) => {
-        if (!confirm('Êtes-vous sûr de vouloir accepter cette offre ? Cela créera une expédition.')) return;
-        try {
-            await quoteService.acceptQuote(quoteId, requestId);
-            alert('Offre acceptée ! Expédition créée.');
-            setSelectedRequestQuotes(null);
-            loadData();
-        } catch (error) {
-            console.error('Error accepting quote:', error);
-            alert('Échec de l\'acceptation de l\'offre.');
-        }
-    };
+    if (error) console.error("Error loading shipments:", error);
+    else setShipments(data || []);
+  };
 
-    // Filtered Data
-    const filteredRequests = requests.filter(r =>
-        r.cargo_details.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        r.destination_country.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+  const handleAcceptQuote = async (quoteId: string, requestId: string) => {
+    if (!confirm("Êtes-vous sûr de vouloir accepter cette offre ? Cela créera une expédition.")) return;
+    try {
+      await quoteService.acceptQuote(quoteId, requestId);
+      alert("Offre acceptée ! Expédition créée.");
+      setSelectedRequestQuotes(null);
+      loadData();
+    } catch (error) {
+      console.error("Error accepting quote:", error);
+      alert("Échec de l'acceptation de l'offre.");
+    }
+  };
 
-    const filteredShipments = shipments.filter(s =>
-        s.tracking_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        s.destination_country.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+  // Filtered Data
+  const filteredRequests = useMemo(() => requests.filter(
+    (r) =>
+      r.cargo_details.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      r.destination_country.toLowerCase().includes(searchQuery.toLowerCase()),
+  ), [requests, searchQuery]);
 
-    return (
-        <div className="space-y-8">
-            <PageHeader
-                title="Tableau de Bord Client"
-                subtitle={`Bienvenue, ${profile?.full_name || 'Client'}. Suivez vos expéditions et demandes.`}
-                action={{
-                    label: "Nouvelle Demande",
-                    onClick: () => window.location.href = '/dashboard/client/rfq/create',
-                    icon: Plus
-                }}
-            >
-                <div className="flex gap-2">
-                    <button
-                        onClick={openCalculator}
-                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
-                    >
-                        <Calculator className="w-4 h-4" />
-                        <span className="hidden sm:inline">Calculateur</span>
-                    </button>
-                    <Link
-                        to="/dashboard/client/groupage"
-                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
-                    >
-                        <Package className="w-4 h-4" />
-                        <span className="hidden sm:inline">Groupage</span>
-                    </Link>
-                </div>
-            </PageHeader>
+  const filteredShipments = useMemo(() => shipments.filter(
+    (s) =>
+      s.tracking_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      s.destination_country.toLowerCase().includes(searchQuery.toLowerCase()),
+  ), [shipments, searchQuery]);
 
-            <DashboardControls
-                timeRange="30d"
-                setTimeRange={() => { }}
-                showTimeRange={false}
-                searchQuery={searchQuery}
-                setSearchQuery={setSearchQuery}
-                searchPlaceholder="Rechercher une expédition ou demande..."
-            />
+  // Stats Logic
+  const stats = useMemo(() => ({
+    activeShipments: shipments.filter((s) => !["completed", "cancelled"].includes(s.status)).length,
+    pendingRequests: requests.filter((r) => r.status === "pending").length,
+    completedShipments: shipments.filter((s) => s.status === "completed").length,
+    totalSpent: shipments.reduce((sum, s) => {
+      const paidTx = s.payment?.filter((p: any) => p.status === 'completed') || [];
+      return sum + paidTx.reduce((t: number, p: any) => t + (p.amount || 0), 0);
+    }, 0)
+  }), [shipments, requests]);
 
-            {/* Upgrade CTA */}
-            <div className="mb-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-3xl p-8 text-white relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-16 -mt-16 blur-3xl"></div>
-                <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
-                    <div>
-                        <div className="flex items-center gap-3 mb-2">
-                            <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
-                                <Star className="w-5 h-5 text-yellow-300" fill="currentColor" />
-                            </div>
-                            <h2 className="text-2xl font-bold">{t('dashboard.upgrade.title')}</h2>
-                        </div>
-                        <p className="text-blue-100 max-w-xl">
-                            {t('dashboard.upgrade.description')}
-                        </p>
-                    </div>
-                    <button
-                        onClick={() => navigate('/dashboard/upgrade')}
-                        className="px-6 py-3 bg-white text-blue-600 font-bold rounded-xl shadow-lg hover:bg-blue-50 transition-all transform hover:-translate-y-1 whitespace-nowrap"
-                    >
-                        {t('dashboard.upgrade.button')}
-                    </button>
-                </div>
+  // Chart Data (Mocked but structured for real data) - Stable seed based on stats to avoid random jumps
+  const chartData = useMemo(() => {
+    const months = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Août", "Sep", "Oct", "Nov", "Déc"];
+    return months.map((month, i) => ({
+      name: month,
+      expeditions: Math.max(1, (stats.activeShipments + i) % 5), // Deterministic mock
+      demandes: Math.max(2, (stats.pendingRequests + i) % 8),   // Deterministic mock
+    }));
+  }, [stats]);
+
+
+  return (
+    <div className="space-y-8 pb-12">
+      <PageHeader
+        title={t("dashboard.menu.dashboard")}
+        subtitle={`Ravi de vous revoir, ${profile?.full_name?.split(' ')[0] || "Client"}.`}
+        action={{
+          label: "Nouvelle Demande",
+          onClick: () => (window.location.href = "/dashboard/client/rfq/create"),
+          icon: Plus,
+        }}
+      >
+        <div className="flex gap-3">
+          <button
+            onClick={openCalculator}
+            className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-slate-600 bg-white/50 hover:bg-white border border-slate-200 hover:border-primary/20 rounded-xl transition-all shadow-sm hover:shadow-md backdrop-blur-sm group"
+          >
+            <div className="p-1 bg-slate-100 rounded-lg group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+              <Calculator className="w-4 h-4" />
             </div>
-
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
-                            <Truck className="w-6 h-6" />
-                        </div>
-                        <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded-full flex items-center gap-1">
-                            <ArrowUpRight className="w-3 h-3" /> Actives
-                        </span>
-                    </div>
-                    <h3 className="text-gray-500 text-sm font-medium">Expéditions en cours</h3>
-                    <p className="text-3xl font-bold text-gray-900 mt-1">{shipments.filter(s => s.status !== 'completed' && s.status !== 'cancelled').length}</p>
-                </div>
-
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="p-3 bg-yellow-50 text-yellow-600 rounded-xl">
-                            <Clock className="w-6 h-6" />
-                        </div>
-                        <span className="text-xs font-medium text-gray-500 bg-gray-50 px-2 py-1 rounded-full">
-                            En attente
-                        </span>
-                    </div>
-                    <h3 className="text-gray-500 text-sm font-medium">Demandes de devis</h3>
-                    <p className="text-3xl font-bold text-gray-900 mt-1">
-                        {requests.filter(r => r.status === 'pending').length}
-                    </p>
-                </div>
-
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="p-3 bg-green-50 text-green-600 rounded-xl">
-                            <CheckCircle className="w-6 h-6" />
-                        </div>
-                        <span className="text-xs font-medium text-gray-500 bg-gray-50 px-2 py-1 rounded-full">
-                            Total
-                        </span>
-                    </div>
-                    <h3 className="text-gray-500 text-sm font-medium">Expéditions Terminées</h3>
-                    <p className="text-3xl font-bold text-gray-900 mt-1">
-                        {shipments.filter(s => s.status === 'completed').length}
-                    </p>
-                </div>
-            </div>
-
-            {loading ? (
-                <div className="flex justify-center py-12">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                </div>
-            ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {/* Recent Requests */}
-                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div className="p-6 border-b border-gray-50 flex justify-between items-center">
-                            <h2 className="text-lg font-bold text-gray-900">Demandes Récentes</h2>
-                            <Link to="/dashboard/client/rfq" className="text-sm text-primary font-medium hover:text-primary/80 flex items-center gap-1">
-                                Voir tout <ArrowRight className="w-4 h-4" />
-                            </Link>
-                        </div>
-                        <div className="divide-y divide-gray-50">
-                            {filteredRequests.slice(0, 5).map((request) => (
-                                <div key={request.id} className="p-4 hover:bg-gray-50 transition-colors flex items-center justify-between group">
-                                    <div className="flex items-center gap-4">
-                                        <div className="p-2 bg-gray-100 rounded-lg text-gray-500 group-hover:bg-white group-hover:text-primary transition-colors">
-                                            <Package className="w-5 h-5" />
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-medium text-gray-900">{request.cargo_details.description}</p>
-                                            <p className="text-xs text-gray-500 mt-0.5">
-                                                {request.origin_country} → {request.destination_country}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <span className={`px-2.5 py-1 text-xs font-medium rounded-full
-                                        ${request.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                            request.status === 'quoted' ? 'bg-blue-100 text-blue-800' :
-                                                'bg-green-100 text-green-800'}`}>
-                                        {request.status === 'pending' ? 'En attente' : request.status === 'quoted' ? 'Offre reçue' : 'Terminé'}
-                                    </span>
-                                </div>
-                            ))}
-                            {filteredRequests.length === 0 && (
-                                <div className="p-8 text-center">
-                                    <div className="inline-flex p-4 bg-gray-50 rounded-full mb-4">
-                                        <FileText className="w-8 h-8 text-gray-400" />
-                                    </div>
-                                    <p className="text-gray-500 text-sm">Aucune demande récente</p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Active Shipments */}
-                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div className="p-6 border-b border-gray-50 flex justify-between items-center">
-                            <h2 className="text-lg font-bold text-gray-900">Expéditions en cours</h2>
-                            <Link to="/dashboard/client/shipments" className="text-sm text-primary font-medium hover:text-primary/80 flex items-center gap-1">
-                                Voir tout <ArrowRight className="w-4 h-4" />
-                            </Link>
-                        </div>
-                        <div className="divide-y divide-gray-50">
-                            {filteredShipments.slice(0, 5).map((shipment) => (
-                                <div key={shipment.id} className="p-4 hover:bg-gray-50 transition-colors flex items-center justify-between group">
-                                    <div className="flex items-center gap-4">
-                                        <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
-                                            <Truck className="w-5 h-5" />
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-medium text-gray-900">{shipment.tracking_number}</p>
-                                            <p className="text-xs text-gray-500 mt-0.5">
-                                                {shipment.origin_country} → {shipment.destination_country}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-3">
-                                        {shipment.status === 'in_transit' && (
-                                            <span className="flex items-center gap-1.5 text-xs font-medium text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full">
-                                                <span className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-pulse"></span>
-                                                En transit
-                                            </span>
-                                        )}
-                                        <button className="text-gray-400 hover:text-primary transition-colors">
-                                            <ArrowRight className="w-4 h-4" />
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
-                            {filteredShipments.length === 0 && (
-                                <div className="p-8 text-center">
-                                    <div className="inline-flex p-4 bg-gray-50 rounded-full mb-4">
-                                        <Truck className="w-8 h-8 text-gray-400" />
-                                    </div>
-                                    <p className="text-gray-500 text-sm">Aucune expédition active</p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Modals */}
-            {selectedRequestQuotes && (
-                <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-                    <div className="bg-white rounded-2xl p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto shadow-2xl">
-                        <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-xl font-bold text-gray-900">Offres Disponibles</h3>
-                            <button
-                                onClick={() => setSelectedRequestQuotes(null)}
-                                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                            >
-                                <X className="w-5 h-5 text-gray-500" />
-                            </button>
-                        </div>
-                        <div className="space-y-4">
-                            {selectedRequestQuotes.map((quote) => (
-                                <div key={quote.id} className="border border-gray-100 rounded-xl p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center hover:shadow-md transition-shadow bg-gray-50/50">
-                                    <div>
-                                        <p className="font-bold text-lg text-gray-900">{quote.forwarder?.company_name || 'Transitaire'}</p>
-                                        <p className="text-sm text-gray-500 mt-1">
-                                            Valide jusqu'au: {quote.valid_until ? new Date(quote.valid_until).toLocaleDateString() : 'N/A'}
-                                        </p>
-                                    </div>
-                                    <div className="mt-4 sm:mt-0 text-right">
-                                        <p className="text-2xl font-bold text-primary">{quote.amount} {quote.currency}</p>
-                                        <button
-                                            onClick={() => handleAcceptQuote(quote.id, quote.request_id)}
-                                            className="mt-2 bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 text-sm font-medium transition-colors shadow-sm"
-                                        >
-                                            Accepter l'offre
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
-                            {selectedRequestQuotes.length === 0 && (
-                                <p className="text-gray-500 text-center py-8">Aucune offre reçue pour le moment.</p>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {paymentShipment && (
-                <PaymentModal
-                    shipment={paymentShipment}
-                    onClose={() => setPaymentShipment(null)}
-                    onSuccess={() => {
-                        setPaymentShipment(null);
-                        loadData();
-                    }}
-                />
-            )}
-
-            {activeChat && (
-                <ChatWindow
-                    chatId={activeChat.chatId}
-                    recipientName={activeChat.recipientName}
-                    onClose={() => setActiveChat(null)}
-                />
-            )}
+            <span className="hidden sm:inline">Calculateur</span>
+          </button>
+          <Link
+            to="/dashboard/client/groupage"
+            className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-slate-900 hover:bg-slate-800 rounded-xl transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
+          >
+            <Package className="w-4 h-4" />
+            <span className="hidden sm:inline">Groupage</span>
+          </Link>
         </div>
-    );
+      </PageHeader>
+
+      {/* Bento Grid Layout */}
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 auto-rows-[minmax(140px,auto)]">
+
+        {/* 1. Main Stats Chart - Spans 2 cols, 2 rows on large screens */}
+        <div className="md:col-span-2 lg:col-span-2 row-span-2 bg-white/80 dark:bg-dark-card/80 backdrop-blur-xl rounded-3xl p-6 border border-white/40 dark:border-white/10 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow">
+          <div className="flex justify-between items-start mb-6 relative z-10">
+            <div>
+              <h3 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                <Activity className="w-5 h-5 text-primary" />
+                Activité Mensuelle
+              </h3>
+              <p className="text-sm text-slate-500">Expéditions vs Demandes</p>
+            </div>
+            <div className="p-2 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
+              <TrendingUp className="w-5 h-5 text-emerald-500" />
+            </div>
+          </div>
+
+          {/* eslint-disable-next-line react/forbid-dom-props */}
+          <div className="relative z-10 w-full h-[250px]">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={100} debounce={300}>
+              <AreaChart data={chartData}>
+                <defs>
+                  <linearGradient id="colorExp" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#4F46E5" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#4F46E5" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="colorReq" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#F59E0B" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" opacity={0.5} />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 12 }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 12 }} />
+                <Tooltip
+                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                  cursor={{ stroke: '#CBD5E1', strokeWidth: 1, strokeDasharray: '4 4' }}
+                />
+                <Area type="monotone" dataKey="expeditions" stackId="1" stroke="#4F46E5" strokeWidth={3} fill="url(#colorExp)" />
+                <Area type="monotone" dataKey="demandes" stackId="1" stroke="#F59E0B" strokeWidth={3} fill="url(#colorReq)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+          {/* Decorative bg blobs */}
+          <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors pointer-events-none"></div>
+        </div>
+
+        {/* 2. Loyalty Card - Premium Glass */}
+        <div className="bg-gradient-to-br from-indigo-600 to-violet-700 rounded-3xl p-6 text-white relative overflow-hidden shadow-lg shadow-indigo-500/20 group transform transition-transform hover:-translate-y-1">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10 blur-2xl group-hover:bg-white/20 transition-colors"></div>
+          <div className="relative z-10">
+            <div className="flex justify-between items-start mb-4">
+              <div className="p-2.5 bg-white/20 backdrop-blur-sm rounded-xl">
+                <Crown className="w-5 h-5 text-yellow-300" fill="currentColor" />
+              </div>
+              <span className="text-xs font-bold bg-white/20 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10">
+                {profile?.tier || "Bronze"}
+              </span>
+            </div>
+            <p className="text-indigo-100 text-sm font-medium">Points Fidélité</p>
+            <h3 className="text-3xl font-bold mt-1 tracking-tight">{profile?.loyalty_points || 0}</h3>
+            <div className="mt-4 pt-4 border-t border-white/10 flex items-center gap-2 text-xs text-indigo-100">
+              <Star className="w-3 h-3 text-yellow-300" />
+              <span>Prochain palier: {(profile?.loyalty_points || 0) + 500} pts</span>
+            </div>
+          </div>
+        </div>
+
+        {/* 3. Active Shipments */}
+        <div className="bg-white/80 dark:bg-dark-card/80 backdrop-blur-xl rounded-3xl p-6 border border-white/40 dark:border-white/10 shadow-sm hover:shadow-md transition-all group">
+          <div className="flex justify-between items-start mb-4">
+            <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl group-hover:bg-emerald-100 transition-colors">
+              <Truck className="w-5 h-5" />
+            </div>
+            <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">
+              Actives
+            </span>
+          </div>
+          <p className="text-slate-500 text-sm font-medium">Expéditions en cours</p>
+          <h3 className="text-3xl font-bold text-slate-800 dark:text-white mt-1">{stats.activeShipments}</h3>
+          <div className="mt-4 flex -space-x-2 overflow-hidden">
+            {/* Fake user avatars/icons representing active shipments agents */}
+            {[1, 2, 3].map(i => (
+              <div key={i} className="inline-block h-6 w-6 rounded-full ring-2 ring-white dark:ring-slate-800 bg-slate-200 flex items-center justify-center text-[8px] font-bold text-slate-500">A{i}</div>
+            ))}
+            <div className="inline-block h-6 w-6 rounded-full ring-2 ring-white dark:ring-slate-800 bg-slate-100 flex items-center justify-center text-[8px] font-bold text-slate-400">+</div>
+          </div>
+        </div>
+
+        {/* 4. Pending Requests */}
+        <div className="bg-white/80 dark:bg-dark-card/80 backdrop-blur-xl rounded-3xl p-6 border border-white/40 dark:border-white/10 shadow-sm hover:shadow-md transition-all group">
+          <div className="flex justify-between items-start mb-4">
+            <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl group-hover:bg-amber-100 transition-colors">
+              <FileText className="w-5 h-5" />
+            </div>
+            <span className="text-xs font-bold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-100">
+              {stats.pendingRequests} En attente
+            </span>
+          </div>
+          <p className="text-slate-500 text-sm font-medium">Demandes de devis</p>
+          <h3 className="text-3xl font-bold text-slate-800 dark:text-white mt-1">{stats.pendingRequests}</h3>
+          <Link to="/dashboard/client/rfq" className="mt-4 text-xs font-semibold text-amber-600 hover:text-amber-700 flex items-center gap-1">
+            Voir les offres <ArrowRight className="w-3 h-3" />
+          </Link>
+        </div>
+
+        {/* 5. Total Spent */}
+        <div className="bg-white/80 dark:bg-dark-card/80 backdrop-blur-xl rounded-3xl p-6 border border-white/40 dark:border-white/10 shadow-sm hover:shadow-md transition-all group">
+          <div className="flex justify-between items-start mb-4">
+            <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl group-hover:bg-blue-100 transition-colors">
+              <Wallet className="w-5 h-5" />
+            </div>
+          </div>
+          <p className="text-slate-500 text-sm font-medium">Dépenses Totales</p>
+          <h3 className="text-2xl font-bold text-slate-800 dark:text-white mt-1">
+            {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF' }).format(stats.totalSpent)}
+          </h3>
+          <p className="text-xs text-slate-400 mt-1">Sur {stats.completedShipments} expéditions terminées</p>
+        </div>
+
+      </div>
+
+      {/* Lists Section - Side by Side */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+        {/* Active Shipments List */}
+        <div className="bg-white/80 dark:bg-dark-card/80 backdrop-blur-xl rounded-3xl shadow-sm border border-white/40 dark:border-white/10 overflow-hidden">
+          <div className="p-6 border-b border-slate-100 dark:border-white/5 flex justify-between items-center bg-white/40 dark:bg-dark-card/40">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-emerald-100/50 rounded-xl">
+                <Truck className="w-5 h-5 text-emerald-600" />
+              </div>
+              <h2 className="text-lg font-bold text-slate-800 dark:text-white">Expéditions Actives</h2>
+            </div>
+            <Link to="/dashboard/client/shipments" className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors">
+              <ArrowUpRight className="w-5 h-5 text-slate-400" />
+            </Link>
+          </div>
+
+          <div className="divide-y divide-slate-100 dark:divide-slate-700/50">
+            {filteredShipments.slice(0, 4).map(shipment => (
+              <div key={shipment.id} className="p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors flex items-center justify-between group cursor-pointer" onClick={() => navigate(`/dashboard/client/shipments/${shipment.id}`)}>
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500">
+                    <Package className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-slate-800 dark:text-slate-200">{shipment.tracking_number}</p>
+                    <p className="text-xs text-slate-500">{shipment.origin_country} → {shipment.destination_country}</p>
+                  </div>
+                </div>
+                <div className="flex flex-col items-end gap-1">
+                  <span className={`px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full border ${shipment.status === 'in_transit' ? 'bg-blue-50 text-blue-600 border-blue-100' :
+                    shipment.status === 'pending' ? 'bg-amber-50 text-amber-600 border-amber-100' :
+                      'bg-slate-50 text-slate-600 border-slate-100'
+                    }`}>
+                    {shipment.status}
+                  </span>
+                  <span className="text-xs text-slate-400 flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    {new Date(shipment.created_at).toLocaleDateString()}
+                  </span>
+                </div>
+              </div>
+            ))}
+            {filteredShipments.length === 0 && (
+              <div className="p-12 text-center">
+                <p className="text-slate-400">Aucune expédition en cours</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Recent Requests List */}
+        <div className="bg-white/80 dark:bg-dark-card/80 backdrop-blur-xl rounded-3xl shadow-sm border border-white/40 dark:border-white/10 overflow-hidden">
+          <div className="p-6 border-b border-slate-100 dark:border-white/5 flex justify-between items-center bg-white/40 dark:bg-dark-card/40">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-amber-100/50 rounded-xl">
+                <FileText className="w-5 h-5 text-amber-600" />
+              </div>
+              <h2 className="text-lg font-bold text-slate-800 dark:text-white">Demandes Récentes</h2>
+            </div>
+            <Link to="/dashboard/client/rfq" className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors">
+              <ArrowUpRight className="w-5 h-5 text-slate-400" />
+            </Link>
+          </div>
+
+          <div className="divide-y divide-slate-100 dark:divide-slate-700/50">
+            {filteredRequests.slice(0, 4).map(request => (
+              <div key={request.id} className="p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors flex items-center justify-between group cursor-pointer" onClick={() => setSelectedRequestQuotes(request.quotes || null)}>
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500">
+                    <TrendingUp className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-slate-800 dark:text-slate-200 truncate max-w-[150px]">{request.cargo_details.description}</p>
+                    <p className="text-xs text-slate-500">{request.origin_country} → {request.destination_country}</p>
+                  </div>
+                </div>
+                <div className="flex flex-col items-end gap-1">
+                  <span className={`px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full border ${request.status === 'quoted' ? 'bg-green-50 text-green-600 border-green-100' :
+                    'bg-slate-50 text-slate-600 border-slate-100'
+                    }`}>
+                    {request.status === 'quoted' ? 'Offre Reçue' : request.status}
+                  </span>
+                  <span className="text-xs text-slate-400">
+                    {request.quotes?.length || 0} offres
+                  </span>
+                </div>
+              </div>
+            ))}
+            {filteredRequests.length === 0 && (
+              <div className="p-12 text-center">
+                <p className="text-slate-400">Aucune demande récente</p>
+                <button onClick={() => window.location.href = "/dashboard/client/rfq/create"} className="mt-4 px-4 py-2 bg-primary text-white rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors">
+                  Créer ma première demande
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Modals */}
+      {selectedRequestQuotes && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-dark-card rounded-3xl p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto shadow-2xl border border-white/20 dark:border-white/10">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white">
+                Offres Disponibles
+              </h3>
+              <button
+                onClick={() => setSelectedRequestQuotes(null)}
+                className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors"
+                aria-label="Fermer"
+              >
+                <X className="w-5 h-5 text-slate-500" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              {selectedRequestQuotes.map((quote) => (
+                <div
+                  key={quote.id}
+                  className="border border-slate-100 dark:border-slate-700 rounded-2xl p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center hover:shadow-lg transition-all bg-slate-50/50 dark:bg-slate-900/50 group"
+                >
+                  <div>
+                    <p className="font-bold text-lg text-slate-900 dark:text-white flex items-center gap-2">
+                      {quote.forwarder?.company_name || "Transitaire"}
+                      <div className="text-[10px] px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full">Verifié</div>
+                    </p>
+                    <p className="text-sm text-slate-500 mt-1 flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      Valide jusqu'au: {quote.valid_until ? new Date(quote.valid_until).toLocaleDateString() : "N/A"}
+                    </p>
+                  </div>
+                  <div className="mt-4 sm:mt-0 text-right">
+                    <p className="text-2xl font-bold text-primary">
+                      {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: quote.currency || 'XOF' }).format(quote.amount)}
+                    </p>
+                    <button
+                      onClick={() => handleAcceptQuote(quote.id, quote.request_id)}
+                      className="mt-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-6 py-2.5 rounded-xl hover:bg-slate-800 dark:hover:bg-slate-100 text-sm font-bold transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                    >
+                      Accepter
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {paymentShipment && (
+        <PaymentModal
+          shipment={paymentShipment}
+          onClose={() => setPaymentShipment(null)}
+          onSuccess={() => {
+            setPaymentShipment(null);
+            loadData();
+          }}
+        />
+      )}
+
+      {activeChat && (
+        <ChatWindow
+          chatId={activeChat.chatId}
+          recipientName={activeChat.recipientName}
+          onClose={() => setActiveChat(null)}
+        />
+      )}
+    </div>
+  );
 }

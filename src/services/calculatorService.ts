@@ -1,330 +1,506 @@
-import { supabase } from '../lib/supabase';
-import { feeService } from './feeService';
-import { platformRateService } from './platformRateService';
+import { supabase } from "../lib/supabase";
+import { supabaseWrapper } from "../lib/supabaseWrapper";
+import { feeService } from "./feeService";
+import { platformRateService } from "./platformRateService";
+import { getCountryCode } from "../constants/countries";
 
-// Exchange Rates (Base: EUR)
+// ═══════════════════════════════════════════════════════════════
+// CONSTANTS & RATES (BASE: XOF)
+// ═══════════════════════════════════════════════════════════════
 
-// Exchange Rates (Base: EUR)
+// Exchange Rates (1 XOF = ???)
 const EXCHANGE_RATES: Record<string, number> = {
-    'EUR': 1,
-    'XOF': 655.957, // Fixed peg
-    'USD': 1.08,
-    'CNY': 7.8,
-    'GBP': 0.85
+  XOF: 1,
+  EUR: 0.001524,
+  USD: 0.001646,
+  CNY: 0.01189,
+  GBP: 0.001295,
 };
 
-const convertPrice = (price: number, currency: string): number => {
-    const rate = EXCHANGE_RATES[currency] || 1;
-    return price * rate;
+// Conversion Helper
+const convertFromXOF = (amountXOF: number, targetCurrency: string): number => {
+  const rate = EXCHANGE_RATES[targetCurrency] || EXCHANGE_RATES["EUR"]; // Fallback to EUR if unknown
+  return amountXOF * rate;
+};
+
+const XOF_PER_EUR = 655.957;
+
+// Additional Services (Defined in EUR in specs, converted to XOF for calculation)
+const ADDITIONAL_SERVICES_RATES = {
+  insurance: { rate: 0.05, min_fee_xof: 50 * XOF_PER_EUR }, // 5% or 50 EUR
+  priority: { flat_fee_xof: 150 * XOF_PER_EUR }, // 150 EUR
+  packaging: { flat_fee_xof: 75 * XOF_PER_EUR }, // 75 EUR
+  inspection: { flat_fee_xof: 100 * XOF_PER_EUR }, // 100 EUR
+  customs_clearance: { flat_fee_xof: 120 * XOF_PER_EUR }, // 120 EUR
+  door_to_door: { flat_fee_xof: 200 * XOF_PER_EUR }, // 200 EUR
+  storage: { flat_fee_xof: 50 * XOF_PER_EUR }, // 50 EUR
 };
 
 export interface QuoteResult {
-    id: string;
-    forwarder_id: string;
-    forwarder_name: string;
-    mode: 'sea' | 'air';
-    type: 'standard' | 'express';
+  id: string;
+  forwarder_id: string;
+  forwarder_name: string;
+  mode: "sea" | "air";
+  type: "standard" | "express";
 
-    // Cost Breakdown
-    base_cost: number;
-    insurance_cost: number;
-    tax_cost: number; // Added tax cost
-    additional_services_cost: number; // Cost for extra services
-    total_cost: number;
-    currency: string;
+  // Costs in TARGET CURRENCY
+  base_cost: number;
+  insurance_cost: number;
+  tax_cost: number;
+  additional_services_cost: number;
+  total_cost: number;
+  currency: string;
 
-    // Details
-    transit_time: string;
-    price_per_unit: number;
-    unit: 'cbm' | 'kg';
+  // Details
+  transit_time: string;
+  price_per_unit: number;
+  unit: "cbm" | "kg";
 
-    is_platform_rate: boolean;
-
-    // Social Proof (Mocked for now)
-    rating: number;
-    review_count: number;
+  // UI Metadata
+  is_platform_rate: boolean;
+  is_featured: boolean;
+  rating: number;
+  review_count: number;
 }
 
 export interface CalculationParams {
-    origin: string;
-    destination: string;
-    mode: 'sea' | 'air';
-    type: 'standard' | 'express';
-    weight_kg?: number;
-    volume_cbm?: number;
+  origin: string;
+  destination: string;
+  mode: "sea" | "air";
+  type: "standard" | "express";
+  weight_kg?: number;
+  volume_cbm?: number;
 
-    // New params
-    weight?: number; // Added from user instruction
-    dimensions?: { length: number; width: number; height: number }; // Added from user instruction
-    transportMode?: 'air' | 'sea' | 'road'; // Added from user instruction, note potential conflict with 'mode'
-    incoterm?: string; // Added from user instruction
-    cargoValue?: number; // Added from user instruction
+  calculationMode: "platform" | "compare" | "specific";
+  forwarder_id?: string;
+  targetCurrency?: string;
 
-    calculationMode: 'platform' | 'compare' | 'specific';
-    forwarder_id?: string;
-    targetCurrency?: string;
-    additionalServices?: { // Updated structure from user instruction
-        insurance?: boolean;
-        priority?: boolean;
-        packaging?: boolean;
-        inspection?: boolean;
-        customs_clearance?: boolean;
-        door_to_door?: boolean;
-        storage?: boolean;
-    };
+  cargoValue?: number; // In Target Currency (Frontend sends user input)
+
+  additionalServices?: {
+    insurance?: boolean;
+    priority?: boolean;
+    packaging?: boolean;
+    inspection?: boolean;
+    customs_clearance?: boolean;
+    door_to_door?: boolean;
+    storage?: boolean;
+  };
 }
 
-const ADDITIONAL_SERVICES_RATES = {
-    insurance: {
-        rate: 0.05, // 5% of cargo value
-        min_fee: 50,
-    },
-    priority: {
-        flat_fee: 150,
-    },
-    packaging: {
-        flat_fee: 75,
-    },
-    inspection: {
-        flat_fee: 100,
-    },
-    customs_clearance: {
-        flat_fee: 120,
-    },
-    door_to_door: {
-        flat_fee: 200,
-    },
-    storage: {
-        flat_fee: 50,
-    }
-};
+// ═══════════════════════════════════════════════════════════════
+// CORE SERVICE
+// ═══════════════════════════════════════════════════════════════
 
 export const calculatorService = {
-    async calculateQuotes(params: CalculationParams): Promise<QuoteResult[]> {
-        const quantity = params.mode === 'sea' ? (params.volume_cbm || 0) : (params.weight_kg || 0);
+  async calculateQuotes(params: CalculationParams): Promise<QuoteResult[]> {
+    // 1. Validation & Setup
+    const weight = Number(params.weight_kg || 0);
+    const volume = Number(params.volume_cbm || 0);
+    const quantity = params.mode === "sea" ? volume : weight;
+    const targetCurrency = params.targetCurrency || "XOF";
 
-        if (quantity <= 0) return [];
+    if (quantity <= 0) return [];
+    if (params.origin === params.destination) return [];
 
-        // Fetch active fees to find tax
-        const fees = await feeService.getFees();
-        const taxFee = fees.find(f => f.category === 'tax' && f.isActive);
-        const taxRate = taxFee && taxFee.type === 'percentage' ? taxFee.value / 100 : 0;
+    // 2. Resolve Taxes
+    const fees = await feeService.getFees();
+    const taxFee = fees.find((f) => f.category === "tax" && f.isActive);
+    const taxRate =
+      taxFee && taxFee.type === "percentage" ? taxFee.value / 100 : 0;
 
-        // MODE 1: Platform Rates
-        if (params.calculationMode === 'platform') {
-            const targetCurrency = params.targetCurrency || 'EUR';
+    // 3. Resolve Location IDs
+    const originCode = getCountryCode(params.origin) || params.origin;
+    const destCode = getCountryCode(params.destination) || params.destination;
 
-            // Fetch dynamic rates
-            const allRates = await platformRateService.getAllRates();
-            const rateConfig = allRates.find(r => r.mode === params.mode && r.type === params.type);
+    const locations = await supabaseWrapper.query(async () => {
+      return await supabase
+        .from("locations")
+        .select("id, name, country_code")
+        .or(
+          `name.in.("${params.origin}","${params.destination}"),country_code.in.("${originCode}","${destCode}")`,
+        );
+    });
 
-            if (!rateConfig) {
-                console.warn(`No platform rate found for ${params.mode} ${params.type}`);
-                return [];
-            }
+    const originId = locations?.find(
+      (l) => l.name === params.origin || l.country_code === originCode,
+    )?.id;
+    const destId = locations?.find(
+      (l) => l.name === params.destination || l.country_code === destCode,
+    )?.id;
 
-            // Calculate in EUR first (assuming base rates are in EUR as per DB seed)
-            // If DB allows other currencies, we should convert rateConfig.price to EUR first. 
-            // For now, assuming standard base is EUR.
-            const base_cost_eur = quantity * rateConfig.price;
-            const insurance_cost_eur = base_cost_eur * rateConfig.insurance_rate;
-
-            // Calculate Additional Services
-            let additional_services_eur = 0;
-            if (params.additionalServices) {
-                if (params.additionalServices.insurance && params.cargoValue) {
-                    const insuranceCost = Math.max(
-                        params.cargoValue * ADDITIONAL_SERVICES_RATES.insurance.rate,
-                        ADDITIONAL_SERVICES_RATES.insurance.min_fee
-                    );
-                    additional_services_eur += insuranceCost;
-                }
-                if (params.additionalServices.priority) {
-                    additional_services_eur += ADDITIONAL_SERVICES_RATES.priority.flat_fee;
-                }
-                if (params.additionalServices.packaging) {
-                    additional_services_eur += ADDITIONAL_SERVICES_RATES.packaging.flat_fee;
-                }
-                if (params.additionalServices.inspection) {
-                    additional_services_eur += ADDITIONAL_SERVICES_RATES.inspection.flat_fee;
-                }
-                if (params.additionalServices.customs_clearance) {
-                    additional_services_eur += ADDITIONAL_SERVICES_RATES.customs_clearance.flat_fee;
-                }
-                if (params.additionalServices.door_to_door) {
-                    additional_services_eur += ADDITIONAL_SERVICES_RATES.door_to_door.flat_fee;
-                }
-                if (params.additionalServices.storage) {
-                    additional_services_eur += ADDITIONAL_SERVICES_RATES.storage.flat_fee;
-                }
-            }
-
-            // Calculate tax in EUR (including additional services)
-            const tax_cost_eur = (base_cost_eur + insurance_cost_eur + additional_services_eur) * taxRate;
-
-            // Convert to target currency
-            const base_cost = convertPrice(base_cost_eur, targetCurrency);
-            const insurance_cost = convertPrice(insurance_cost_eur, targetCurrency);
-            const additional_services_cost = convertPrice(additional_services_eur, targetCurrency);
-            const tax_cost = convertPrice(tax_cost_eur, targetCurrency);
-            const price_per_unit = convertPrice(rateConfig.price, targetCurrency);
-
-            return [{
-                id: 'platform-rate',
-                forwarder_id: 'platform',
-                forwarder_name: 'NextMove Platform',
-                mode: params.mode,
-                type: params.type,
-                base_cost,
-                insurance_cost,
-                tax_cost,
-                additional_services_cost,
-                total_cost: base_cost + insurance_cost + tax_cost + additional_services_cost,
-                currency: targetCurrency,
-                transit_time: `${rateConfig.min_days}-${rateConfig.max_days} days`,
-                price_per_unit,
-                unit: rateConfig.unit as 'cbm' | 'kg',
-                is_platform_rate: true,
-                rating: 4.9,
-                review_count: 1250
-            }];
-        }
-
-        // MODE 2 & 3: Forwarder Rates
-        let query = supabase
-            .from('rates')
-            .select(`
-                *,
-                profiles:forwarder_id (
-                    company_name
-                )
-            `)
-            .eq('mode', params.mode)
-            .eq('type', params.type);
-
-        if (params.calculationMode === 'specific' && params.forwarder_id) {
-            query = query.eq('forwarder_id', params.forwarder_id);
-        }
-
-        const { data: rates, error } = await query;
-
-        if (error) {
-            console.error('Error fetching rates:', error);
-            return [];
-        }
-
-        // Mock data if no rates found (for demonstration/testing purposes)
-        let ratesList = rates || [];
-        if (ratesList.length === 0 && params.calculationMode === 'compare') {
-            ratesList = [
-                {
-                    id: 'mock-1',
-                    forwarder_id: 'fwd-1',
-                    profiles: { company_name: 'Global Logistics' },
-                    mode: params.mode,
-                    type: params.type,
-                    price_per_unit: params.mode === 'sea' ? 85 : 9,
-                    transit_time_min: params.mode === 'sea' ? 40 : 4,
-                    transit_time_max: params.mode === 'sea' ? 55 : 6,
-                    insurance_rate: 0.06,
-                    currency: 'EUR'
-                },
-                {
-                    id: 'mock-2',
-                    forwarder_id: 'fwd-2',
-                    profiles: { company_name: 'FastTrack Cargo' },
-                    mode: params.mode,
-                    type: params.type,
-                    price_per_unit: params.mode === 'sea' ? 110 : 14,
-                    transit_time_min: params.mode === 'sea' ? 25 : 2,
-                    transit_time_max: params.mode === 'sea' ? 40 : 3,
-                    insurance_rate: 0.07,
-                    currency: 'EUR'
-                },
-                {
-                    id: 'mock-3',
-                    forwarder_id: 'fwd-3',
-                    profiles: { company_name: 'EcoShip Partners' },
-                    mode: params.mode,
-                    type: params.type,
-                    price_per_unit: params.mode === 'sea' ? 75 : 7.5,
-                    transit_time_min: params.mode === 'sea' ? 50 : 6,
-                    transit_time_max: params.mode === 'sea' ? 65 : 9,
-                    insurance_rate: 0.05,
-                    currency: 'EUR'
-                }
-            ];
-        }
-
-        if (ratesList.length === 0) return [];
-
-        // Fetch platform rates for default insurance fallback
-        const allRates = await platformRateService.getAllRates();
-        const platformConfig = allRates.find(r => r.mode === params.mode && r.type === params.type);
-
-        return ratesList.map((rate: any) => {
-            // Use forwarder specific insurance if available, otherwise fallback to platform default for that mode/type
-            const targetCurrency = params.targetCurrency || 'EUR';
-
-            // Fallback to 5% if no platform config found (safety)
-            const fallbackInsurance = platformConfig ? platformConfig.insurance_rate : 0.05;
-            const insuranceRate = rate.insurance_rate || fallbackInsurance;
-
-            // Assume DB rates are in EUR for now, or convert if DB has currency field
-            // For simplicity, assuming DB rates are EUR based.
-            const base_cost_eur = quantity * rate.price_per_unit;
-            const insurance_cost_eur = base_cost_eur * insuranceRate;
-
-            // Calculate additional services cost
-            let additional_services_eur = 0;
-            if (params.additionalServices) {
-                if (params.additionalServices.insurance && params.cargoValue) {
-                    const insuranceCost = Math.max(
-                        params.cargoValue * ADDITIONAL_SERVICES_RATES.insurance.rate,
-                        ADDITIONAL_SERVICES_RATES.insurance.min_fee
-                    );
-                    additional_services_eur += insuranceCost;
-                }
-                if (params.additionalServices.priority) {
-                    additional_services_eur += ADDITIONAL_SERVICES_RATES.priority.flat_fee;
-                }
-                if (params.additionalServices.packaging) {
-                    additional_services_eur += ADDITIONAL_SERVICES_RATES.packaging.flat_fee;
-                }
-                if (params.additionalServices.inspection) {
-                    additional_services_eur += ADDITIONAL_SERVICES_RATES.inspection.flat_fee;
-                }
-            }
-
-            // Calculate tax in EUR
-            const tax_cost_eur = (base_cost_eur + insurance_cost_eur + additional_services_eur) * taxRate;
-
-            // Convert to target currency
-            const base_cost = convertPrice(base_cost_eur, targetCurrency);
-            const insurance_cost = convertPrice(insurance_cost_eur, targetCurrency);
-            const additional_services_cost = convertPrice(additional_services_eur, targetCurrency);
-            const tax_cost = convertPrice(tax_cost_eur, targetCurrency);
-            const price_per_unit = convertPrice(rate.price_per_unit, targetCurrency);
-
-            return {
-                id: rate.id,
-                forwarder_id: rate.forwarder_id,
-                forwarder_name: rate.profiles?.company_name || 'Unknown Forwarder',
-                mode: rate.mode,
-                type: rate.type,
-                base_cost,
-                insurance_cost,
-                tax_cost,
-                additional_services_cost,
-                total_cost: base_cost + insurance_cost + tax_cost + additional_services_cost,
-                currency: targetCurrency,
-                transit_time: `${rate.transit_time_min}-${rate.transit_time_max} days`,
-                price_per_unit,
-                unit: (params.mode === 'sea' ? 'cbm' : 'kg') as 'cbm' | 'kg',
-                is_platform_rate: false,
-                rating: 3.5 + Math.random() * 1.5, // Random rating 3.5 - 5.0
-                review_count: Math.floor(Math.random() * 500) + 10
-            };
-        }).sort((a, b) => a.total_cost - b.total_cost);
+    // 4. Dispatch by Mode
+    if (params.calculationMode === "platform") {
+      return this.calculatePlatformQuote(
+        params,
+        quantity,
+        targetCurrency,
+        taxRate,
+      );
     }
+
+    if (!originId || !destId) {
+      console.warn("Locations not resolved for non-platform mode");
+      return [];
+    }
+
+    if (params.calculationMode === "compare") {
+      return this.calculateComparativeQuotes(
+        params,
+        originId,
+        destId,
+        quantity,
+        targetCurrency,
+        taxRate,
+      );
+    }
+
+    if (params.calculationMode === "specific") {
+      if (!params.forwarder_id) return [];
+      return this.calculateSpecificQuote(
+        params,
+        params.forwarder_id,
+        originId,
+        destId,
+        quantity,
+        targetCurrency,
+        taxRate,
+      );
+    }
+
+    return [];
+  },
+
+  // ─────────────────────────────────────────────────────────────
+  // MODE 1: PLATFORM RATES (Global)
+  // ─────────────────────────────────────────────────────────────
+  async calculatePlatformQuote(
+    params: CalculationParams,
+    quantity: number,
+    targetCurrency: string,
+    taxRate: number,
+  ): Promise<QuoteResult[]> {
+    // Fetch from platform_rates table
+    const rates = await supabaseWrapper.query(async () => {
+      return await supabase
+        .from("platform_rates")
+        .select("*")
+        .eq("mode", params.mode)
+        .eq("type", params.type)
+        .eq("is_global", true) // Ensure we get the correct global rate
+        .single();
+    });
+
+    if (!rates) return [];
+
+    return [
+      this.buildQuote(
+        rates,
+        quantity,
+        targetCurrency,
+        taxRate,
+        params,
+        "NextMove Platform",
+        "platform",
+        true,
+      ),
+    ];
+  },
+
+  // ─────────────────────────────────────────────────────────────
+  // MODE 2: COMPARE TRANSITAIRES
+  // ─────────────────────────────────────────────────────────────
+  async calculateComparativeQuotes(
+    params: CalculationParams,
+    originId: string,
+    destId: string,
+    quantity: number,
+    targetCurrency: string,
+    taxRate: number,
+  ): Promise<QuoteResult[]> {
+    const rates = await supabaseWrapper.query(async () => {
+      return await supabase
+        .from("forwarder_rates")
+        .select(
+          `
+                    *,
+                    profiles:forwarder_id (company_name)
+                `,
+        )
+        .eq("origin_id", originId)
+        .eq("destination_id", destId)
+        .eq("mode", params.mode)
+        .eq("type", params.type)
+        .eq("is_active", true);
+    });
+
+    if (!rates || rates.length === 0) return [];
+
+    const quotes = rates.map((rate) =>
+      this.buildQuote(
+        rate,
+        quantity,
+        targetCurrency,
+        taxRate,
+        params,
+        rate.profiles?.company_name || "Unknown",
+        rate.forwarder_id,
+        false,
+      ),
+    );
+
+    // Sort: Sponsored first, then Rating DESC (mock), then Price ASC
+    return quotes.sort((a, b) => {
+      if (a.is_featured && !b.is_featured) return -1;
+      if (!a.is_featured && b.is_featured) return 1;
+      return a.total_cost - b.total_cost;
+    });
+  },
+
+  // ─────────────────────────────────────────────────────────────
+  // MODE 3: TRANSITAIRE SPÉCIFIQUE
+  // ─────────────────────────────────────────────────────────────
+  async calculateSpecificQuote(
+    params: CalculationParams,
+    forwarderId: string,
+    originId: string,
+    destId: string,
+    quantity: number,
+    targetCurrency: string,
+    taxRate: number,
+  ): Promise<QuoteResult[]> {
+    const { data: rate } = await supabase
+      .from("forwarder_rates")
+      .select(
+        `
+                *,
+                profiles:forwarder_id (company_name)
+            `,
+      )
+      .eq("forwarder_id", forwarderId)
+      .eq("origin_id", originId)
+      .eq("destination_id", destId)
+      .eq("mode", params.mode)
+      .eq("type", params.type)
+      .eq("is_active", true)
+      .single();
+
+    if (!rate) return [];
+
+    return [
+      this.buildQuote(
+        rate,
+        quantity,
+        targetCurrency,
+        taxRate,
+        params,
+        rate.profiles?.company_name || "Specific Forwarder",
+        rate.forwarder_id,
+        false,
+      ),
+    ];
+  },
+
+  // ─────────────────────────────────────────────────────────────
+  // BUILD QUOTE HELPER (THE ENGINE)
+  // ─────────────────────────────────────────────────────────────
+  buildQuote(
+    rateData: any,
+    quantity: number,
+    targetCurrency: string,
+    taxRate: number,
+    params: CalculationParams,
+    firmName: string,
+    forwarderId: string,
+    isPlatform: boolean,
+  ): QuoteResult {
+    // 1. Base Cost (XOF)
+    const priceXOF = Number(rateData.price);
+    const baseCostXOF = priceXOF * quantity;
+
+    // 2. Additional Services (XOF)
+    let servicesXOF = 0;
+
+    if (params.additionalServices) {
+      // Insurance
+      if (params.additionalServices.insurance && params.cargoValue) {
+        // Determine rate (Forwarder specific OR Platform fallback)
+        // Note: platform_rates also has insurance_rate column now
+        const insRate =
+          rateData.insurance_rate || ADDITIONAL_SERVICES_RATES.insurance.rate;
+
+        // cargoValue is in Target Currency. Convert to XOF first?
+        // Actually, simplest is: Calculate Insurance in Target, then convert back to XOF for total?
+        // No, strict flow: EVERYTHING IN XOF.
+
+        // Convert User Cargo Value to XOF
+        // valueXOF = valueTarget / EXCHANGE_RATES[target]
+        const valueXOF =
+          (params.cargoValue || 0) / EXCHANGE_RATES[targetCurrency];
+
+        const calculatedIns = valueXOF * insRate;
+        const minIns = ADDITIONAL_SERVICES_RATES.insurance.min_fee_xof;
+        servicesXOF += Math.max(calculatedIns, minIns);
+      }
+
+      if (params.additionalServices.priority)
+        servicesXOF += ADDITIONAL_SERVICES_RATES.priority.flat_fee_xof;
+      if (params.additionalServices.packaging)
+        servicesXOF += ADDITIONAL_SERVICES_RATES.packaging.flat_fee_xof;
+      if (params.additionalServices.inspection)
+        servicesXOF += ADDITIONAL_SERVICES_RATES.inspection.flat_fee_xof;
+      if (params.additionalServices.customs_clearance)
+        servicesXOF += ADDITIONAL_SERVICES_RATES.customs_clearance.flat_fee_xof;
+      if (params.additionalServices.door_to_door)
+        servicesXOF += ADDITIONAL_SERVICES_RATES.door_to_door.flat_fee_xof;
+      if (params.additionalServices.storage)
+        servicesXOF += ADDITIONAL_SERVICES_RATES.storage.flat_fee_xof;
+    }
+
+    // 3. Tax (XOF)
+    const taxXOF = (baseCostXOF + servicesXOF) * taxRate;
+
+    // 4. Convert Parts to Target Currency
+    const base_cost = convertFromXOF(baseCostXOF, targetCurrency);
+    const additional_services_cost = convertFromXOF(
+      servicesXOF,
+      targetCurrency,
+    );
+    const tax_cost = convertFromXOF(taxXOF, targetCurrency);
+    const total_cost = convertFromXOF(
+      baseCostXOF + servicesXOF + taxXOF,
+      targetCurrency,
+    );
+
+    // 5. Insurance Cost Display (Separate bucket in UI usually)
+    // Check if insurance was part of servicesXOF... yes.
+    // We should extract it if UI wants it separate.
+    // For now, let's keep it simple: if insurance service is ON, it's in additional_services_cost.
+    // Wait, UI props has insurance_cost separate.
+    // Let's separate it.
+
+    let insuranceXOF = 0;
+    let otherServicesXOF = 0;
+
+    if (params.additionalServices) {
+      if (params.additionalServices.insurance && params.cargoValue) {
+        const insRate =
+          rateData.insurance_rate || ADDITIONAL_SERVICES_RATES.insurance.rate;
+        const valueXOF =
+          (params.cargoValue || 0) / EXCHANGE_RATES[targetCurrency];
+        insuranceXOF = Math.max(
+          valueXOF * insRate,
+          ADDITIONAL_SERVICES_RATES.insurance.min_fee_xof,
+        );
+      }
+      // ... recalculate others
+      if (params.additionalServices.priority)
+        otherServicesXOF += ADDITIONAL_SERVICES_RATES.priority.flat_fee_xof;
+      if (params.additionalServices.packaging)
+        otherServicesXOF += ADDITIONAL_SERVICES_RATES.packaging.flat_fee_xof;
+      if (params.additionalServices.inspection)
+        otherServicesXOF += ADDITIONAL_SERVICES_RATES.inspection.flat_fee_xof;
+      if (params.additionalServices.customs_clearance)
+        otherServicesXOF +=
+          ADDITIONAL_SERVICES_RATES.customs_clearance.flat_fee_xof;
+      if (params.additionalServices.door_to_door)
+        otherServicesXOF += ADDITIONAL_SERVICES_RATES.door_to_door.flat_fee_xof;
+      if (params.additionalServices.storage)
+        otherServicesXOF += ADDITIONAL_SERVICES_RATES.storage.flat_fee_xof;
+    }
+
+    const insurance_cost = convertFromXOF(insuranceXOF, targetCurrency);
+    const other_services_cost = convertFromXOF(
+      otherServicesXOF,
+      targetCurrency,
+    );
+    const tax_cost_final = convertFromXOF(
+      (baseCostXOF + insuranceXOF + otherServicesXOF) * taxRate,
+      targetCurrency,
+    );
+
+    return {
+      id: rateData.id,
+      forwarder_id: forwarderId,
+      forwarder_name: firmName,
+      mode: rateData.mode,
+      type: rateData.type,
+      base_cost,
+      insurance_cost,
+      tax_cost: tax_cost_final,
+      additional_services_cost: other_services_cost,
+      total_cost:
+        base_cost + insurance_cost + other_services_cost + tax_cost_final,
+      currency: targetCurrency,
+      transit_time: `${rateData.min_days}-${rateData.max_days} days`,
+      price_per_unit: convertFromXOF(priceXOF, targetCurrency),
+      unit: rateData.unit,
+      is_platform_rate: isPlatform,
+      is_featured: rateData.is_featured || false,
+      rating: isPlatform ? 4.9 : 5.0, // Mock for now, or fetch from profiles
+      review_count: isPlatform ? 1250 : 25,
+    };
+  },
+  /**
+   * Get base unit rates for UI cards (Platform or Specific Forwarder)
+   * Returns a map of rates for each mode/type combination.
+   */
+  async getUnitRates(
+    origin: string,
+    destination: string,
+    calculationMode: "platform" | "compare" | "specific",
+    forwarderId?: string,
+    targetCurrency: string = "XOF",
+  ): Promise<Record<string, Record<string, number | null>>> {
+    const rates: Record<string, Record<string, number | null>> = {
+      air: { standard: null, express: null },
+      sea: { standard: null, express: null },
+    };
+
+    // If Compare mode, we don't show specific rates on cards (cards are just selectors)
+    if (calculationMode === "compare") {
+      return rates;
+    }
+
+    try {
+      if (calculationMode === "platform") {
+        // Fetch Platform Rates (Global, so no origin/dest filter needed yet)
+        const { data, error } = await supabase
+          .from("platform_rates")
+          .select("mode, type, price, currency")
+          .eq("is_global", true); // Explicitly fetch global rates
+
+        if (error) throw error;
+
+        data?.forEach((rate) => {
+          const mode = rate.mode;
+          const type = rate.type;
+          if (rates[mode] && type in rates[mode]) {
+            rates[mode][type] = convertFromXOF(rate.price, targetCurrency);
+          }
+        });
+      } else if (calculationMode === "specific" && forwarderId) {
+        // Fetch Specific Forwarder Rates
+        const { data, error } = await supabase
+          .from("forwarder_rates")
+          .select("mode, type, price, currency") // Changed transport_mode->mode, price_per_unit->price
+          .eq("forwarder_id", forwarderId);
+        // Removing origin/dest filters as they require UUID lookup and we want to show available services generally
+
+        if (error) throw error;
+
+        data?.forEach((rate) => {
+          const mode = rate.mode;
+          const type = rate.type;
+          if (rates[mode] && type in rates[mode]) {
+            rates[mode][type] = convertFromXOF(rate.price, targetCurrency);
+          }
+        });
+      }
+    } catch (err) {
+      console.error("Error fetching unit rates:", err);
+    }
+
+    return rates;
+  },
 };

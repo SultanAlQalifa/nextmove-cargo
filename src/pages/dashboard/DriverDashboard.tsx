@@ -1,404 +1,489 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-import { useCurrency } from '../../contexts/CurrencyContext';
-import { shipmentService } from '../../services/shipmentService';
-import { supabase } from '../../lib/supabase';
-import PageHeader from '../../components/common/PageHeader';
-import DashboardControls from '../../components/dashboard/DashboardControls';
+import { useState, useEffect } from "react";
+import { useAuth } from "../../contexts/AuthContext";
+import { useCurrency } from "../../contexts/CurrencyContext";
+import { shipmentService } from "../../services/shipmentService";
+import { supabase } from "../../lib/supabase";
+import PageHeader from "../../components/common/PageHeader";
+import DashboardControls from "../../components/dashboard/DashboardControls";
+import QRScannerModal from "../../components/common/QRScannerModal";
 import {
-    Truck,
-    MapPin,
-    CheckCircle,
-    Camera,
-    Navigation,
-    Package,
-    Clock,
-    ChevronRight,
-    Plus,
-    ArrowUpRight,
-    ArrowDownRight,
-    Star,
-    X
-} from 'lucide-react';
+  Truck,
+  MapPin,
+  CheckCircle,
+  Camera,
+  Navigation,
+  Package,
+  Clock,
+  ChevronRight,
+  Plus,
+  ArrowUpRight,
+  ArrowDownRight,
+  Star,
+  X,
+} from "lucide-react";
 
 export default function DriverDashboard() {
-    const { user } = useAuth();
-    const { currency } = useCurrency();
+  const { user } = useAuth();
+  const { currency } = useCurrency();
 
-    const [shipments, setShipments] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [selectedShipment, setSelectedShipment] = useState<any | null>(null);
-    const [podForm, setPodForm] = useState({
-        recipient_name: '',
-        notes: '',
-        photo: null as File | null
-    });
-    const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
-    const [simulating, setSimulating] = useState(false);
-    const [searchQuery, setSearchQuery] = useState('');
+  const [shipments, setShipments] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedShipment, setSelectedShipment] = useState<any | null>(null);
+  const [podForm, setPodForm] = useState({
+    recipient_name: "",
+    notes: "",
+    photo: null as File | null,
+  });
+  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(
+    null,
+  );
+  const [simulating, setSimulating] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
 
-    useEffect(() => {
-        if (user) loadShipments();
-    }, [user]);
+  useEffect(() => {
+    if (user) loadShipments();
+  }, [user]);
 
-    const loadShipments = async () => {
-        try {
-            const data = await shipmentService.getShipmentsForDriver(user!.id);
-            setShipments(data || []);
-        } catch (error) {
-            console.error('Error loading shipments:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
+  const loadShipments = async () => {
+    try {
+      const data = await shipmentService.getShipmentsForDriver(user!.id);
+      setShipments(data || []);
+    } catch (error) {
+      console.error("Error loading shipments:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const simulateMission = async () => {
-        if (!user) return;
-        setSimulating(true);
-        try {
-            const { error } = await supabase.from('shipments').insert({
-                tracking_number: 'TRK-' + Math.floor(Math.random() * 1000000),
-                client_id: user.id,
-                forwarder_id: user.id,
-                driver_id: user.id,
-                origin_country: 'China',
-                destination_country: 'Senegal',
-                status: 'in_transit',
-                transport_mode: 'sea',
-                service_type: 'standard',
-                package_type: 'box',
-                weight_kg: 50,
-                volume_cbm: 0.5,
-                price: 150000,
-                currency: currency || 'XOF',
-                created_at: new Date().toISOString()
-            });
+  const simulateMission = async () => {
+    if (!user) return;
+    setSimulating(true);
+    try {
+      const { error } = await supabase.from("shipments").insert({
+        tracking_number: "TRK-" + Math.floor(Math.random() * 1000000),
+        client_id: user.id,
+        forwarder_id: user.id,
+        driver_id: user.id,
+        origin_country: "China",
+        destination_country: "Senegal",
+        status: "in_transit",
+        transport_mode: "sea",
+        service_type: "standard",
+        package_type: "box",
+        weight_kg: 50,
+        volume_cbm: 0.5,
+        price: 150000,
+        currency: currency || "XOF",
+        created_at: new Date().toISOString(),
+      });
 
-            if (error) throw error;
-            await loadShipments();
-            alert('Mission de test générée avec succès !');
-        } catch (error: any) {
-            console.error('Error simulating mission:', error);
-            alert(`Erreur: ${error.message}`);
-        } finally {
-            setSimulating(false);
-        }
-    };
+      if (error) throw error;
+      await loadShipments();
+      alert("Mission de test générée avec succès !");
+    } catch (error: any) {
+      console.error("Error simulating mission:", error);
+      alert(`Erreur: ${error.message}`);
+    } finally {
+      setSimulating(false);
+    }
+  };
 
-    const handleGeolocation = () => {
-        if ('geolocation' in navigator) {
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    setLocation({
-                        lat: position.coords.latitude,
-                        lng: position.coords.longitude
-                    });
-                    alert('Localisation capturée avec succès !');
-                },
-                (error) => {
-                    console.error('Error getting location:', error);
-                    alert('Impossible de récupérer la localisation.');
-                }
-            );
-        } else {
-            alert('Géolocalisation non supportée.');
-        }
-    };
+  const handleGeolocation = () => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
+          alert("Localisation capturée avec succès !");
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+          alert("Impossible de récupérer la localisation.");
+        },
+      );
+    } else {
+      alert("Géolocalisation non supportée.");
+    }
+  };
 
-    const handleSubmitPOD = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!selectedShipment || !location) {
-            alert('Veuillez d\'abord capturer la localisation.');
-            return;
-        }
+  const handleSubmitPOD = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedShipment || !location) {
+      alert("Veuillez d'abord capturer la localisation.");
+      return;
+    }
 
-        try {
-            const mockPhotoUrl = 'https://via.placeholder.com/300';
-            await shipmentService.submitPOD({
-                shipment_id: selectedShipment.id,
-                photo_urls: [mockPhotoUrl],
-                recipient_name: podForm.recipient_name,
-                delivered_at: new Date().toISOString(),
-                latitude: location.lat,
-                longitude: location.lng,
-                driver_notes: podForm.notes
-            });
+    try {
+      await shipmentService.submitPOD({
+        shipment_id: selectedShipment.id,
+        photo_urls: [], // No mock photo
+        recipient_name: podForm.recipient_name,
+        delivered_at: new Date().toISOString(),
+        latitude: location.lat,
+        longitude: location.lng,
+        driver_notes: podForm.notes,
+      });
 
-            alert('POD soumis avec succès !');
-            setSelectedShipment(null);
-            loadShipments();
-        } catch (error) {
-            console.error('Error submitting POD:', error);
-            alert('Échec de la soumission du POD.');
-        }
-    };
+      alert("POD soumis avec succès !");
+      setSelectedShipment(null);
+      loadShipments();
+    } catch (error) {
+      console.error("Error submitting POD:", error);
+      alert("Échec de la soumission du POD.");
+    }
+  };
 
-    // Stats
-    const activeDeliveries = shipments.filter(s => s.status === 'in_transit').length;
-    const completedDeliveries = shipments.filter(s => s.status === 'delivered').length;
+  // Stats
+  const activeDeliveries = shipments.filter(
+    (s) => s.status === "in_transit",
+  ).length;
+  const completedDeliveries = shipments.filter(
+    (s) => s.status === "delivered",
+  ).length;
 
-    // Filter shipments
-    const filteredShipments = shipments.filter(s =>
-        s.tracking_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        s.destination_country.toLowerCase().includes(searchQuery.toLowerCase())
+  const handleScanResult = (decodedText: string) => {
+    // decodedText is expected to be the tracking number
+    const found = shipments.find(
+      (s) =>
+        s.tracking_number === decodedText ||
+        decodedText.includes(s.tracking_number),
     );
+    if (found) {
+      setSelectedShipment(found);
+      // alert(`Colis trouvé: ${found.tracking_number}`);
+    } else {
+      alert(`Aucun colis trouvé pour le code: ${decodedText}`);
+    }
+  };
 
-    return (
-        <div className="space-y-8">
-            <PageHeader
-                title="Tableau de Bord Chauffeur"
-                subtitle="Gérez vos livraisons et preuves de livraison."
-                action={{
-                    label: simulating ? "Génération..." : "Simuler Mission",
-                    onClick: simulateMission,
-                    icon: Plus,
-                    disabled: simulating
-                }}
-            />
+  // Filter shipments
+  const filteredShipments = shipments.filter(
+    (s) =>
+      s.tracking_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      s.destination_country.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
 
-            <DashboardControls
-                timeRange="30d"
-                setTimeRange={() => { }}
-                showTimeRange={false}
-                searchQuery={searchQuery}
-                setSearchQuery={setSearchQuery}
-                searchPlaceholder="Rechercher une livraison..."
-            />
+  return (
+    <div className="space-y-8">
+      <PageHeader
+        title="Tableau de Bord Chauffeur"
+        subtitle="Gérez vos livraisons et preuves de livraison."
+        action={{
+          label: "Scanner un Colis",
+          onClick: () => setIsScannerOpen(true),
+          icon: Camera,
+        }}
+      />
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
-                            <Truck className="w-6 h-6" />
-                        </div>
-                        <span className="text-xs font-medium px-2 py-1 rounded-full flex items-center gap-1 text-green-600 bg-green-50">
-                            <ArrowUpRight className="w-3 h-3" /> En cours
-                        </span>
+      <DashboardControls
+        timeRange="30d"
+        setTimeRange={() => {}}
+        showTimeRange={false}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        searchPlaceholder="Rechercher une livraison..."
+      />
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
+              <Truck className="w-6 h-6" />
+            </div>
+            <span className="text-xs font-medium px-2 py-1 rounded-full flex items-center gap-1 text-green-600 bg-green-50">
+              <ArrowUpRight className="w-3 h-3" /> En cours
+            </span>
+          </div>
+          <h3 className="text-gray-500 text-sm font-medium">
+            Livraisons Actives
+          </h3>
+          <p className="text-3xl font-bold text-gray-900 mt-1">
+            {activeDeliveries}
+          </p>
+        </div>
+
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-3 bg-green-50 text-green-600 rounded-xl">
+              <CheckCircle className="w-6 h-6" />
+            </div>
+            <span className="text-xs font-medium px-2 py-1 rounded-full flex items-center gap-1 text-green-600 bg-green-50">
+              <ArrowUpRight className="w-3 h-3" /> Aujourd'hui
+            </span>
+          </div>
+          <h3 className="text-gray-500 text-sm font-medium">Livrées</h3>
+          <p className="text-3xl font-bold text-gray-900 mt-1">
+            {completedDeliveries}
+          </p>
+        </div>
+
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-3 bg-yellow-50 text-yellow-600 rounded-xl">
+              <Star className="w-6 h-6" />
+            </div>
+            <span className="text-xs font-medium px-2 py-1 rounded-full flex items-center gap-1 text-green-600 bg-green-50">
+              <ArrowUpRight className="w-3 h-3" /> Top
+            </span>
+          </div>
+          <h3 className="text-gray-500 text-sm font-medium">Note Moyenne</h3>
+          <p className="text-3xl font-bold text-gray-900 mt-1">4.9</p>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="flex justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      ) : selectedShipment ? (
+        // POD Form View
+        <div className="bg-white shadow-sm rounded-2xl border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
+          <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+            <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+              <Package className="w-5 h-5 text-primary" />
+              Confirmation de Livraison (POD)
+            </h2>
+            <button
+              onClick={() => setSelectedShipment(null)}
+              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+              aria-label="Fermer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          <div className="p-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Shipment Info */}
+            <div className="lg:col-span-1 space-y-6">
+              <div className="bg-blue-50 p-5 rounded-2xl border border-blue-100">
+                <p className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-3">
+                  Détails Expédition
+                </p>
+                <p className="text-2xl font-bold text-gray-900 mb-4">
+                  {selectedShipment.tracking_number}
+                </p>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 text-sm text-gray-700">
+                    <div className="p-2 bg-white rounded-lg shadow-sm text-blue-500">
+                      <MapPin className="w-4 h-4" />
                     </div>
-                    <h3 className="text-gray-500 text-sm font-medium">Livraisons Actives</h3>
-                    <p className="text-3xl font-bold text-gray-900 mt-1">{activeDeliveries}</p>
-                </div>
-
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="p-3 bg-green-50 text-green-600 rounded-xl">
-                            <CheckCircle className="w-6 h-6" />
-                        </div>
-                        <span className="text-xs font-medium px-2 py-1 rounded-full flex items-center gap-1 text-green-600 bg-green-50">
-                            <ArrowUpRight className="w-3 h-3" /> Aujourd'hui
-                        </span>
+                    <span className="font-medium">
+                      {selectedShipment.destination_country}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3 text-sm text-gray-700">
+                    <div className="p-2 bg-white rounded-lg shadow-sm text-blue-500">
+                      <Package className="w-4 h-4" />
                     </div>
-                    <h3 className="text-gray-500 text-sm font-medium">Livrées</h3>
-                    <p className="text-3xl font-bold text-gray-900 mt-1">{completedDeliveries}</p>
+                    <span className="font-medium">
+                      {selectedShipment.package_type} •{" "}
+                      {selectedShipment.weight_kg}kg
+                    </span>
+                  </div>
                 </div>
+              </div>
 
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="p-3 bg-yellow-50 text-yellow-600 rounded-xl">
-                            <Star className="w-6 h-6" />
-                        </div>
-                        <span className="text-xs font-medium px-2 py-1 rounded-full flex items-center gap-1 text-green-600 bg-green-50">
-                            <ArrowUpRight className="w-3 h-3" /> Top
-                        </span>
-                    </div>
-                    <h3 className="text-gray-500 text-sm font-medium">Note Moyenne</h3>
-                    <p className="text-3xl font-bold text-gray-900 mt-1">4.9</p>
+              <div className="border border-gray-100 rounded-2xl p-5">
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">
+                  Client
+                </p>
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center font-bold text-gray-500 text-lg">
+                    {selectedShipment.client?.full_name?.[0] || "C"}
+                  </div>
+                  <div>
+                    <p className="font-bold text-gray-900">
+                      {selectedShipment.client?.full_name || "Client Inconnu"}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {selectedShipment.client?.phone || "N/A"}
+                    </p>
+                  </div>
                 </div>
+              </div>
             </div>
 
-            {loading ? (
-                <div className="flex justify-center py-12">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            {/* Form */}
+            <div className="lg:col-span-2">
+              <form onSubmit={handleSubmitPOD} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                      Nom du réceptionnaire
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      className="w-full rounded-xl border-gray-200 bg-gray-50 focus:bg-white focus:border-primary focus:ring-primary py-3 px-4 transition-all"
+                      placeholder="Qui reçoit le colis ?"
+                      value={podForm.recipient_name}
+                      onChange={(e) =>
+                        setPodForm({
+                          ...podForm,
+                          recipient_name: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                      Géolocalisation
+                    </label>
+                    <button
+                      type="button"
+                      onClick={handleGeolocation}
+                      className={`w-full flex items-center justify-center gap-2 px-4 py-3 border border-transparent text-sm font-bold rounded-xl shadow-sm text-white transition-all transform active:scale-95 ${location ? "bg-green-600 hover:bg-green-700" : "bg-blue-600 hover:bg-blue-700"}`}
+                    >
+                      {location ? (
+                        <CheckCircle size={18} />
+                      ) : (
+                        <Navigation size={18} />
+                      )}
+                      {location ? "Position Validée" : "Capturer Position GPS"}
+                    </button>
+                  </div>
                 </div>
-            ) : selectedShipment ? (
-                // POD Form View
-                <div className="bg-white shadow-sm rounded-2xl border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
-                    <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                        <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                            <Package className="w-5 h-5 text-primary" />
-                            Confirmation de Livraison (POD)
-                        </h2>
-                        <button
-                            onClick={() => setSelectedShipment(null)}
-                            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
-                        >
-                            <X className="w-5 h-5" />
-                        </button>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    Photo de preuve
+                  </label>
+                  <div className="mt-1 flex justify-center px-6 pt-8 pb-8 border-2 border-gray-200 border-dashed rounded-2xl hover:bg-gray-50 transition-colors cursor-pointer group">
+                    <div className="space-y-2 text-center">
+                      <div className="mx-auto w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center group-hover:bg-white group-hover:shadow-sm transition-all">
+                        <Camera className="h-6 w-6 text-gray-400 group-hover:text-primary" />
+                      </div>
+                      <div className="flex text-sm text-gray-600 justify-center">
+                        <span className="relative font-medium text-primary hover:text-blue-500">
+                          Prendre une photo
+                        </span>
+                        <p className="pl-1">ou glisser-déposer</p>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        PNG, JPG jusqu'à 10MB
+                      </p>
                     </div>
-
-                    <div className="p-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        {/* Shipment Info */}
-                        <div className="lg:col-span-1 space-y-6">
-                            <div className="bg-blue-50 p-5 rounded-2xl border border-blue-100">
-                                <p className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-3">Détails Expédition</p>
-                                <p className="text-2xl font-bold text-gray-900 mb-4">{selectedShipment.tracking_number}</p>
-                                <div className="space-y-3">
-                                    <div className="flex items-center gap-3 text-sm text-gray-700">
-                                        <div className="p-2 bg-white rounded-lg shadow-sm text-blue-500">
-                                            <MapPin className="w-4 h-4" />
-                                        </div>
-                                        <span className="font-medium">{selectedShipment.destination_country}</span>
-                                    </div>
-                                    <div className="flex items-center gap-3 text-sm text-gray-700">
-                                        <div className="p-2 bg-white rounded-lg shadow-sm text-blue-500">
-                                            <Package className="w-4 h-4" />
-                                        </div>
-                                        <span className="font-medium">{selectedShipment.package_type} • {selectedShipment.weight_kg}kg</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="border border-gray-100 rounded-2xl p-5">
-                                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">Client</p>
-                                <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center font-bold text-gray-500 text-lg">
-                                        {selectedShipment.client?.full_name?.[0] || 'C'}
-                                    </div>
-                                    <div>
-                                        <p className="font-bold text-gray-900">{selectedShipment.client?.full_name || 'Client Inconnu'}</p>
-                                        <p className="text-sm text-gray-500">{selectedShipment.client?.phone || 'N/A'}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Form */}
-                        <div className="lg:col-span-2">
-                            <form onSubmit={handleSubmitPOD} className="space-y-6">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Nom du réceptionnaire</label>
-                                        <input
-                                            type="text"
-                                            required
-                                            className="w-full rounded-xl border-gray-200 bg-gray-50 focus:bg-white focus:border-primary focus:ring-primary py-3 px-4 transition-all"
-                                            placeholder="Qui reçoit le colis ?"
-                                            value={podForm.recipient_name}
-                                            onChange={e => setPodForm({ ...podForm, recipient_name: e.target.value })}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Géolocalisation</label>
-                                        <button
-                                            type="button"
-                                            onClick={handleGeolocation}
-                                            className={`w-full flex items-center justify-center gap-2 px-4 py-3 border border-transparent text-sm font-bold rounded-xl shadow-sm text-white transition-all transform active:scale-95 ${location ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'}`}
-                                        >
-                                            {location ? <CheckCircle size={18} /> : <Navigation size={18} />}
-                                            {location ? 'Position Validée' : 'Capturer Position GPS'}
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Photo de preuve</label>
-                                    <div className="mt-1 flex justify-center px-6 pt-8 pb-8 border-2 border-gray-200 border-dashed rounded-2xl hover:bg-gray-50 transition-colors cursor-pointer group">
-                                        <div className="space-y-2 text-center">
-                                            <div className="mx-auto w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center group-hover:bg-white group-hover:shadow-sm transition-all">
-                                                <Camera className="h-6 w-6 text-gray-400 group-hover:text-primary" />
-                                            </div>
-                                            <div className="flex text-sm text-gray-600 justify-center">
-                                                <span className="relative font-medium text-primary hover:text-blue-500">
-                                                    Prendre une photo
-                                                </span>
-                                                <p className="pl-1">ou glisser-déposer</p>
-                                            </div>
-                                            <p className="text-xs text-gray-500">PNG, JPG jusqu'à 10MB</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Notes / Signature</label>
-                                    <textarea
-                                        rows={3}
-                                        className="w-full rounded-xl border-gray-200 bg-gray-50 focus:bg-white focus:border-primary focus:ring-primary py-3 px-4 transition-all"
-                                        placeholder="Commentaires sur la livraison..."
-                                        value={podForm.notes}
-                                        onChange={e => setPodForm({ ...podForm, notes: e.target.value })}
-                                    />
-                                </div>
-
-                                <div className="pt-4 border-t border-gray-100">
-                                    <button
-                                        type="submit"
-                                        className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-primary/30 text-sm font-bold text-white bg-primary hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all transform hover:-translate-y-0.5"
-                                    >
-                                        Valider la Livraison
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
+                  </div>
                 </div>
-            ) : (
-                // Shipment List View
-                <div className="bg-white shadow-sm rounded-2xl border border-gray-100 overflow-hidden">
-                    <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-                        <h3 className="text-lg font-bold text-gray-900">Missions en cours</h3>
-                    </div>
 
-                    {filteredShipments.length === 0 ? (
-                        <div className="p-12 text-center">
-                            <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <Package className="w-8 h-8 text-gray-400" />
-                            </div>
-                            <h3 className="text-lg font-medium text-gray-900">Aucune mission trouvée</h3>
-                            <p className="text-gray-500 mt-2 mb-6">
-                                {searchQuery ? "Aucun résultat pour votre recherche." : "Vous n'avez pas de livraison assignée pour le moment."}
-                            </p>
-                            {!searchQuery && (
-                                <button
-                                    onClick={simulateMission}
-                                    className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 shadow-sm text-sm font-medium rounded-xl text-gray-700 bg-white hover:bg-gray-50 transition-colors"
-                                >
-                                    <Plus className="w-4 h-4" />
-                                    Générer une mission de test
-                                </button>
-                            )}
-                        </div>
-                    ) : (
-                        <div className="divide-y divide-gray-100">
-                            {filteredShipments.map((shipment) => (
-                                <div key={shipment.id} className="group hover:bg-gray-50/50 transition-colors p-4 sm:px-6">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-4">
-                                            <div className="p-3 bg-blue-50 text-blue-600 rounded-xl group-hover:bg-white group-hover:shadow-sm transition-all">
-                                                <Truck className="w-6 h-6" />
-                                            </div>
-                                            <div>
-                                                <div className="flex items-center gap-2">
-                                                    <p className="text-sm font-bold text-gray-900">{shipment.tracking_number}</p>
-                                                    <span className="px-2 py-0.5 rounded-full bg-gray-100 text-xs font-medium text-gray-600">
-                                                        {shipment.transport_mode === 'sea' ? 'Maritime' : 'Aérien'}
-                                                    </span>
-                                                </div>
-                                                <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
-                                                    <span className="flex items-center gap-1">
-                                                        <MapPin className="w-3 h-3" /> {shipment.destination_country}
-                                                    </span>
-                                                    <span className="flex items-center gap-1">
-                                                        <Clock className="w-3 h-3" /> {new Date(shipment.created_at).toLocaleDateString()}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <button
-                                            onClick={() => setSelectedShipment(shipment)}
-                                            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-primary bg-primary/5 rounded-lg hover:bg-primary/10 transition-colors"
-                                        >
-                                            Gérer
-                                            <ChevronRight className="w-4 h-4" />
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    Notes / Signature
+                  </label>
+                  <textarea
+                    rows={3}
+                    className="w-full rounded-xl border-gray-200 bg-gray-50 focus:bg-white focus:border-primary focus:ring-primary py-3 px-4 transition-all"
+                    placeholder="Commentaires sur la livraison..."
+                    value={podForm.notes}
+                    onChange={(e) =>
+                      setPodForm({ ...podForm, notes: e.target.value })
+                    }
+                  />
                 </div>
-            )}
+
+                <div className="pt-4 border-t border-gray-100">
+                  <button
+                    type="submit"
+                    className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-primary/30 text-sm font-bold text-white bg-primary hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all transform hover:-translate-y-0.5"
+                  >
+                    Valider la Livraison
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
         </div>
-    );
+      ) : (
+        // Shipment List View
+        <div className="bg-white shadow-sm rounded-2xl border border-gray-100 overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+            <h3 className="text-lg font-bold text-gray-900">
+              Missions en cours
+            </h3>
+          </div>
+
+          {filteredShipments.length === 0 ? (
+            <div className="p-12 text-center">
+              <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Package className="w-8 h-8 text-gray-400" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900">
+                Aucune mission trouvée
+              </h3>
+              <p className="text-gray-500 mt-2 mb-6">
+                {searchQuery
+                  ? "Aucun résultat pour votre recherche."
+                  : "Vous n'avez pas de livraison assignée pour le moment."}
+              </p>
+              {!searchQuery && (
+                <button
+                  onClick={simulateMission}
+                  className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 shadow-sm text-sm font-medium rounded-xl text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+                >
+                  <Plus className="w-4 h-4" />
+                  Générer une mission de test
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-100">
+              {filteredShipments.map((shipment) => (
+                <div
+                  key={shipment.id}
+                  className="group hover:bg-gray-50/50 transition-colors p-4 sm:px-6"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="p-3 bg-blue-50 text-blue-600 rounded-xl group-hover:bg-white group-hover:shadow-sm transition-all">
+                        <Truck className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-bold text-gray-900">
+                            {shipment.tracking_number}
+                          </p>
+                          <span className="px-2 py-0.5 rounded-full bg-gray-100 text-xs font-medium text-gray-600">
+                            {shipment.transport_mode === "sea"
+                              ? "Maritime"
+                              : "Aérien"}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
+                          <span className="flex items-center gap-1">
+                            <MapPin className="w-3 h-3" />{" "}
+                            {shipment.destination_country}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />{" "}
+                            {new Date(shipment.created_at).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => setSelectedShipment(shipment)}
+                      className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-primary bg-primary/5 rounded-lg hover:bg-primary/10 transition-colors"
+                    >
+                      Gérer
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+      <QRScannerModal
+        isOpen={isScannerOpen}
+        onClose={() => setIsScannerOpen(false)}
+        onScan={handleScanResult}
+      />
+    </div>
+  );
 }

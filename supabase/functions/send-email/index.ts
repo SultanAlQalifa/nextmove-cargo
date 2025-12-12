@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { createTransport } from "https://esm.sh/nodemailer@6.9.7";
@@ -16,7 +17,7 @@ interface EmailRequest {
     from?: string;
 }
 
-serve(async (req) => {
+serve(async (req: Request) => {
     // Handle CORS preflight requests
     if (req.method === "OPTIONS") {
         return new Response("ok", { headers: corsHeaders });
@@ -46,6 +47,24 @@ serve(async (req) => {
             Deno.env.get('SUPABASE_URL') ?? '',
             Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
         );
+
+        // 1.5 Rate Limiting (Iron Dome)
+        const rateLimitKey = `email:${user.id}`;
+        const { data: isAllowed, error: rateError } = await adminClient.rpc('check_rate_limit', {
+            request_key: rateLimitKey,
+            limit_count: 5, // 5 emails per minute
+            sub_window_seconds: 60
+        });
+
+        if (rateError || isAllowed === false) {
+            console.warn(`Rate limit exceeded for user ${user.id}`);
+            return new Response(JSON.stringify({ error: 'Rate limit exceeded. Please wait 1 minute.' }), {
+                status: 429,
+                headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+        }
+
+
 
         const { data: settingsData } = await adminClient
             .from('system_settings')

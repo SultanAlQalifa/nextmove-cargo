@@ -43,6 +43,25 @@ serve(async (req: Request) => {
             })
         }
 
+        // 1.5 Rate Limiting
+        const clientIp = req.headers.get("x-forwarded-for") || "unknown";
+        const rateLimitKey = `checkout:${clientIp}`;
+
+        // Use RPC to check limit (10 attempts per minute per IP)
+        const { data: isAllowed, error: rateError } = await supabase.rpc('check_rate_limit', {
+            request_key: rateLimitKey,
+            limit_count: 10,
+            sub_window_seconds: 60
+        });
+
+        if (rateError || isAllowed === false) {
+            console.warn(`Payment Rate limit exceeded for IP ${clientIp}`);
+            return new Response(JSON.stringify({ error: 'Too many payment attempts. Please wait 1 minute.' }), {
+                status: 429,
+                headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+        }
+
         const { amount, currency, client_reference, error_url, success_url } = await req.json()
 
         if (!amount || !currency || !client_reference) {

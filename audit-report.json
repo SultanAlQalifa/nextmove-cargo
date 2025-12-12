@@ -1,0 +1,23 @@
+{
+  "timestamp": "2025-12-10T12:18:10.236Z",
+  "typescript": {
+    "errors": 1,
+    "warnings": 0
+  },
+  "eslint": {
+    "errors": 0,
+    "warnings": 0
+  },
+  "tests": {
+    "passed": "Tests not yet configured",
+    "failed": 0
+  },
+  "dependencies": {
+    "outdated": [],
+    "vulnerable": []
+  },
+  "console": {
+    "errors": [],
+    "warnings": []
+  }
+}

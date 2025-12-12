@@ -4,7 +4,7 @@
 
 @layer base {
   body {
-    @apply bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 transition-colors duration-200;
+    @apply bg-gray-50 text-gray-900 dark:bg-dark-bg dark:text-gray-100 transition-colors duration-200;
   }
 }
 
@@ -15,5 +15,32 @@
 
   .toggle-checkbox:checked+.toggle-label {
     @apply bg-primary;
+  }
+
+  .glass {
+    @apply bg-white/70 backdrop-blur-xl border border-white/20 shadow-xl;
+  }
+
+  .glass-dark {
+    @apply dark:bg-dark-card/70 dark:backdrop-blur-xl dark:border-white/10 dark:shadow-2xl dark:shadow-black/20;
+  }
+
+  .card-hover {
+    @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-lg;
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+
+    /* IE and Edge */
+    @supports (scrollbar-width: none) {
+      scrollbar-width: none;
+    }
   }
 }
