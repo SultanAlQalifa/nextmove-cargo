@@ -874,7 +874,6 @@ export default function DashboardLayout() {
 
             {/* Right Actions - Premium Glass Buttons */}
             <div className="flex items-center gap-3 relative z-10">
-              <NotificationBell />
 
               {/* Theme Toggle */}
               <button
