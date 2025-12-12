@@ -18,11 +18,13 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react";
+import { useBranding } from "../contexts/BrandingContext";
 import GoogleLoginButton from "../components/auth/GoogleLoginButton";
 import PhoneInputWithCountry from "../components/auth/PhoneInputWithCountry";
 
 export default function Register() {
   const { t } = useTranslation();
+  const { settings } = useBranding();
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
 
