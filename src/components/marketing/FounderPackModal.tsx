@@ -12,12 +12,9 @@ export default function FounderPackModal() {
     }, []);
 
     const checkSettings = async () => {
-        // Check local storage for dismissal
-        const dismissed = localStorage.getItem('founder_pack_dismissed');
-        const searchParams = new URLSearchParams(window.location.search);
-        const forceShow = searchParams.get('test_popup') === 'true';
-
-        if (dismissed && !forceShow) return;
+        // User requested popup to show every visit, so we removed the localStorage check
+        // const dismissed = localStorage.getItem('founder_pack_dismissed');
+        // if (dismissed) return;
 
         try {
             // Fetch settings from singleton table
@@ -40,7 +37,8 @@ export default function FounderPackModal() {
 
     const handleDismiss = () => {
         setIsOpen(false);
-        localStorage.setItem('founder_pack_dismissed', 'true');
+        // Do not save dismissal to localStorage as per user request
+        // localStorage.setItem('founder_pack_dismissed', 'true');
     };
 
     const handleCTA = () => {
