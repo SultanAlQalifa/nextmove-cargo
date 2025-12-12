@@ -83,20 +83,24 @@ export default function MobileCountrySelector() {
   }, []);
 
   const handleCountrySelect = (country: (typeof popularCountries)[0]) => {
-    // Update locale configuration
+    // Show feedback immediately
+    const btn = document.getElementById(`country-btn-${country.code}`);
+    if (btn) btn.innerText = "Chargement...";
+
+    // Update locale configuration in LocalStorage
     const newLocale: LocaleConfig = {
       language: country.language,
       currency: country.currency,
       countryCode: country.code,
     };
-    setUserLocale(newLocale);
-    setLanguage(country.language);
-    setCurrency(country.currency);
-    setCountryCode(country.code);
-    setIsOpen(false);
 
-    // Force reload to ensure all components (date pickers, etc) update correctly
-    window.location.reload();
+    // Force write to storage
+    setUserLocale(newLocale);
+
+    // Hard reload to ensure fresh state
+    setTimeout(() => {
+      window.location.href = window.location.href;
+    }, 50);
   };
 
   // Detect mobile view
@@ -145,20 +149,21 @@ export default function MobileCountrySelector() {
               {popularCountries.map((country) => (
                 <button
                   key={country.code}
+                  id={`country-btn-${country.code}`}
                   onClick={() => handleCountrySelect(country)}
-                  className={`w-full px-3 py-2 flex items-center gap-3 hover:bg-gray-50 transition-colors ${country.code === countryCode ? "bg-blue-50" : ""}`}
+                  className={`w-full px-4 py-4 flex items-center gap-4 hover:bg-gray-50 active:bg-blue-50 transition-colors border-b border-gray-50 last:border-0 ${country.code === countryCode ? "bg-blue-50/50" : ""}`}
                 >
-                  <span className="text-2xl">{country.flag}</span>
+                  <span className="text-3xl">{country.flag}</span>
                   <div className="flex-1 text-left">
-                    <p className="text-sm font-medium text-gray-900">
+                    <p className="text-base font-bold text-gray-900">
                       {country.name}
                     </p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-gray-500 font-medium">
                       {country.language.toUpperCase()} • {country.currency}
                     </p>
                   </div>
                   {country.code === countryCode && (
-                    <div className="w-2 h-2 rounded-full bg-primary" />
+                    <div className="w-3 h-3 rounded-full bg-primary shadow-sm" />
                   )}
                 </button>
               ))}
