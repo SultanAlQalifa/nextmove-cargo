@@ -1,6 +1,7 @@
 import { Crown, Star, Gift, TrendingUp, History } from "lucide-react";
 import PageHeader from "../../../components/common/PageHeader";
 import { useAuth } from "../../../contexts/AuthContext";
+import { supabase } from "../../../lib/supabase";
 
 export default function LoyaltyDashboard() {
     const { profile } = useAuth();
@@ -54,10 +55,47 @@ export default function LoyaltyDashboard() {
 
             {/* Benefits Grid */}
             <div className="grid md:grid-cols-3 gap-6">
-                <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <Gift className="w-24 h-24 text-purple-500" />
+                    </div>
                     <Gift className="w-8 h-8 text-purple-500 mb-4" />
-                    <h3 className="font-bold text-lg mb-2">Récompenses</h3>
-                    <p className="text-slate-500 text-sm">Échangez vos points contre des réductions directes sur vos factures de transport.</p>
+                    <h3 className="font-bold text-lg mb-2">Convertir mes points</h3>
+                    <p className="text-slate-500 text-sm mb-6">Échangez vos points contre du crédit portefeuille (1 pt = 10 FCFA).</p>
+                    <button
+                        onClick={async () => {
+                            const amount = prompt("Combien de points souhaitez-vous convertir ?");
+                            if (!amount) return;
+
+                            const pointsToConvert = parseInt(amount);
+                            if (isNaN(pointsToConvert) || pointsToConvert <= 0) {
+                                alert("Veuillez entrer un nombre valide.");
+                                return;
+                            }
+
+                            if (pointsToConvert > points) {
+                                alert("Solde de points insuffisant.");
+                                return;
+                            }
+
+                            try {
+                                const { data, error } = await supabase.rpc('exchange_loyalty_points', {
+                                    points_to_exchange: pointsToConvert
+                                });
+
+                                if (error) throw error;
+
+                                alert(`Succès ! ${pointsToConvert} points convertis en ${pointsToConvert * 10} FCFA.`);
+                                window.location.reload(); // Simple reload to refresh points/wallet
+                            } catch (error: any) {
+                                console.error('Error converting points:', error);
+                                alert("Erreur lors de la conversion: " + error.message);
+                            }
+                        }}
+                        className="w-full py-2 bg-purple-50 text-purple-600 font-bold rounded-xl text-sm hover:bg-purple-100 transition-colors"
+                    >
+                        Convertir maintenant
+                    </button>
                 </div>
                 <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
                     <TrendingUp className="w-8 h-8 text-emerald-500 mb-4" />

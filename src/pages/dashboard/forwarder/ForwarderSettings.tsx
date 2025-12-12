@@ -513,6 +513,7 @@ export default function ForwarderSettings() {
                         className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                         placeholder="Nom de votre société"
                         aria-label="Nom de l'entreprise"
+                      />
                     </div>
                   </div>
                   <div className="space-y-2">

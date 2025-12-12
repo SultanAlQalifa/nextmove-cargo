@@ -15,9 +15,9 @@ export default function CEOSection() {
                             <div className="absolute inset-0 bg-primary/20 group-hover:bg-transparent transition-colors duration-500 z-10"></div>
                             {/* Note: Placeholder image - User needs to provide actual photo */}
                             <img
-                                src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=800"
-                                alt="PDG NextMove Cargo"
-                                className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
+                                src="/assets/ceo.jpg"
+                                alt="Cheikh Abdoul Khadre Djeylani Djitte - PDG NextMove Cargo"
+                                className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 object-top"
                             />
                             <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-black/80 to-transparent z-20">
                                 <h3 className="text-2xl font-bold text-white">Cheikh Abdoul Khadre Djeylani Djitte</h3>
@@ -36,15 +36,15 @@ export default function CEOSection() {
                                 </div>
 
                                 <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white leading-tight">
-                                    "Réinventer la logistique pour l'Afrique de demain."
+                                    "Bâtir les ponts logistiques de demain."
                                 </h2>
 
-                                <p className="text-lg text-slate-600 dark:text-slate-300 leading-relaxed">
-                                    Chez NextMove Cargo, notre vision dépasse le simple transport de marchandises. Nous bâtissons des ponts numériques entre l'Europe, l'Asie et l'Afrique pour permettre à chaque entrepreneur, chaque commerçant et chaque particulier de prospérer sans frontières.
+                                <p className="text-lg text-slate-600 dark:text-slate-300 leading-relaxed italic">
+                                    "Bienvenue chez NextMove Cargo. Notre mission dépasse le simple transport : nous brisons les barrières pour libérer le potentiel commercial de l'Afrique. Vitesse, sécurité et transparence ne sont pas des options, ce sont nos fondations."
                                 </p>
 
                                 <p className="text-base text-slate-500 dark:text-slate-400">
-                                    Notre engagement est simple : transparence totale, rapidité inégalée et une sécurité absolue. Bienvenue dans la nouvelle ère de la logistique.
+                                    Ensemble, connectons les marchés et créons de nouvelles opportunités sans frontières. Merci de votre confiance.
                                 </p>
 
                                 <div className="pt-6">
