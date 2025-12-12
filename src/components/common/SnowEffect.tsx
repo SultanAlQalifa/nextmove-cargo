@@ -11,22 +11,20 @@ export default function SnowEffect() {
     return (
         // eslint-disable-next-line react-dom/no-unsafe-style-property
         <div className="fixed inset-0 pointer-events-none z-[9999] overflow-hidden" aria-hidden="true">
-            {snowflakes.map((i) => {
-                // eslint-disable-next-line
-                return (
-                    <div
-                        key={i}
-                        className="absolute top-[-10px] bg-white rounded-full opacity-80 animate-snow"
-                        style={{
-                            left: `${Math.random() * 100}%`,
-                            animationDuration: `${Math.random() * 10 + 10}s`, // Slower for snow
-                            animationDelay: `${Math.random() * 10}s`,
-                            width: `${Math.random() * 6 + 2}px`,
-                            height: `${Math.random() * 6 + 2}px`,
-                        }}
-                    />
-                );
-            })}
+            {snowflakes.map((i) => (
+                // eslint-disable-next-line react/forbid-dom-props
+                <div
+                    key={i}
+                    className="absolute top-[-10px] bg-white rounded-full opacity-80 animate-snow"
+                    style={{
+                        left: `${Math.random() * 100}%`,
+                        animationDuration: `${Math.random() * 10 + 10}s`, // Slower for snow
+                        animationDelay: `${Math.random() * 10}s`,
+                        width: `${Math.random() * 6 + 2}px`,
+                        height: `${Math.random() * 6 + 2}px`,
+                    }}
+                />
+            ))}
         </div>
     );
 }

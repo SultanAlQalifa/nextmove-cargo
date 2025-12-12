@@ -14,7 +14,10 @@ export default function FounderPackModal() {
     const checkSettings = async () => {
         // Check local storage for dismissal
         const dismissed = localStorage.getItem('founder_pack_dismissed');
-        if (dismissed) return;
+        const searchParams = new URLSearchParams(window.location.search);
+        const forceShow = searchParams.get('test_popup') === 'true';
+
+        if (dismissed && !forceShow) return;
 
         try {
             // Fetch settings from singleton table
