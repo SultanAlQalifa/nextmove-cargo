@@ -151,7 +151,7 @@ export default function AdminReferrals() {
               : "Exporter",
           icon: activeTab === "config" ? Check : Download,
           onClick:
-            activeTab === "config" ? saveSettings : undefined,
+            activeTab === "config" ? saveSettings : () => { },
           disabled: saving,
         }}
       />
@@ -161,8 +161,8 @@ export default function AdminReferrals() {
         <button
           onClick={() => setActiveTab("overview")}
           className={`pb-3 px-4 text-sm font-medium transition-colors relative ${activeTab === "overview"
-              ? "text-primary border-b-2 border-primary"
-              : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            ? "text-primary border-b-2 border-primary"
+            : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
             }`}
         >
           Vue d'ensemble
@@ -170,8 +170,8 @@ export default function AdminReferrals() {
         <button
           onClick={() => setActiveTab("config")}
           className={`pb-3 px-4 text-sm font-medium transition-colors relative ${activeTab === "config"
-              ? "text-primary border-b-2 border-primary"
-              : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            ? "text-primary border-b-2 border-primary"
+            : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
             }`}
         >
           Configuration & Règles

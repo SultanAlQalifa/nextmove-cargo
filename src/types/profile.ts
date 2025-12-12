@@ -21,6 +21,8 @@ export interface Profile {
     address?: string;
     country?: string;
     avatar_url?: string;
+    friendly_id?: string;
+    account_status?: "active" | "suspended" | "inactive" | "banned";
     // Specific fields
     transport_modes?: string[];
     kyc_status?: "pending" | "approved" | "rejected" | "verified";

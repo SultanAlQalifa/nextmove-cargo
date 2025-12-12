@@ -50,7 +50,10 @@ import {
   Mail,
   Wallet,
   Building2,
+  AlertCircle,
+  MoreVertical,
 } from "lucide-react";
+import SantaHat from "../common/SantaHat";
 import { Zap } from "lucide-react";
 
 import NotificationBell from "../common/NotificationBell";
@@ -614,8 +617,9 @@ export default function DashboardLayout() {
         >
           <Link
             to="/"
-            className="flex items-center gap-3 group overflow-hidden"
+            className="flex items-center gap-3 group overflow-hidden relative"
           >
+            <SantaHat className="left-0 -top-2 rotate-[-15deg]" />
             {settings?.logo_url ? (
               <div className="flex items-center text-2xl font-bold tracking-tight">
                 <span className="text-primary">N</span>

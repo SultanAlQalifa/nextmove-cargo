@@ -6,6 +6,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Layout from "./components/Layout";
 import DashboardLayout from "./components/layout/DashboardLayout";
 import ScrollToTop from "./components/ScrollToTop";
+import SnowEffect from "./components/common/SnowEffect";
 
 // Lazy load pages
 const Home = lazy(() => import("./pages/Home"));
@@ -204,6 +205,7 @@ import "./i18n";
 import { SettingsProvider } from "./contexts/SettingsContext";
 import { ChatProvider } from "./contexts/ChatContext";
 import { BrandingProvider } from "./contexts/BrandingContext";
+import { FeatureProvider } from "./contexts/FeatureContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { UIProvider } from "./contexts/UIContext";
 import { ToastProvider } from "./contexts/ToastContext";
@@ -216,406 +218,411 @@ function App() {
       <ThemeProvider>
         <CurrencyProvider>
           <BrandingProvider>
-            <ToastProvider>
-              <AuthProvider>
-                <ChatProvider>
-                  <NotificationProvider>
-                    <UIProvider>
-                      <Router
-                        future={{
-                          v7_startTransition: true,
-                          v7_relativeSplatPath: true,
-                        }}
-                      >
-                        <ScrollToTop />
-                        <Suspense
-                          fallback={
-                            <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-gray-900">
-                              <LoadingSpinner size="lg" />
-                            </div>
-                          }
-                        >
-                          <Routes>
-                            {/* Public routes with main layout */}
-                            <Route path="/" element={<Layout />}>
-                              <Route index element={<Home />} />
-                              <Route path="login" element={<Login />} />
-                              <Route path="register" element={<Register />} />
-                              <Route
-                                path="calculator"
-                                element={<CalculatorPage />}
-                              />
-                              <Route
-                                path="supplier-request"
-                                element={<SupplierQuoteRequest />}
-                              />
-                              <Route path="debug-auth" element={<DebugAuth />} />
+            <FeatureProvider>
+              <ToastProvider>
+                <AuthProvider>
+                  <ChatProvider>
+                    <SnowEffect />
+                    <Suspense fallback={<LoadingSpinner />}>
+                      <NotificationProvider>
+                        <UIProvider>
+                          <Router
+                            future={{
+                              v7_startTransition: true,
+                              v7_relativeSplatPath: true,
+                            }}
+                          >
+                            <ScrollToTop />
+                            <Suspense
+                              fallback={
+                                <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-gray-900">
+                                  <LoadingSpinner size="lg" />
+                                </div>
+                              }
+                            >
+                              <Routes>
+                                {/* Public routes with main layout */}
+                                <Route path="/" element={<Layout />}>
+                                  <Route index element={<Home />} />
+                                  <Route path="login" element={<Login />} />
+                                  <Route path="register" element={<Register />} />
+                                  <Route
+                                    path="calculator"
+                                    element={<CalculatorPage />}
+                                  />
+                                  <Route
+                                    path="supplier-request"
+                                    element={<SupplierQuoteRequest />}
+                                  />
+                                  <Route path="debug-auth" element={<DebugAuth />} />
 
-                              <Route
-                                path="reset-password"
-                                element={<ResetPassword />}
-                              />
-                              <Route path="about" element={<About />} />
-                              <Route path="contact" element={<Contact />} />
-                              <Route path="privacy" element={<Privacy />} />
-                              <Route
-                                path="become-forwarder"
-                                element={<BecomeForwarder />}
-                              />
-                              {/* Public Tracking Route */}
-                              <Route path="tracking" element={<TrackingPage />} />
-                              <Route
-                                path="tracking/:code"
-                                element={<TrackingPage />}
-                              />
-                            </Route>
-
-                            {/* Dashboard routes with sidebar layout */}
-                            <Route element={<ProtectedRoute />}>
-                              <Route
-                                path="dashboard"
-                                element={<DashboardLayout />}
-                              >
-                                {/* Dashboard redirect */}
-                                <Route index element={<DashboardRedirect />} />
-                                <Route
-                                  path="notifications"
-                                  element={<NotificationsPage />}
-                                />
-
-                                {/* Client routes */}
-                                <Route
-                                  element={
-                                    <ProtectedRoute allowedRoles={["client"]} />
-                                  }
-                                >
                                   <Route
-                                    path="client"
-                                    element={<ClientDashboard />}
+                                    path="reset-password"
+                                    element={<ResetPassword />}
                                   />
+                                  <Route path="about" element={<About />} />
+                                  <Route path="contact" element={<Contact />} />
+                                  <Route path="privacy" element={<Privacy />} />
                                   <Route
-                                    path="client/rfq"
-                                    element={<ClientRFQList />}
+                                    path="become-forwarder"
+                                    element={<BecomeForwarder />}
                                   />
+                                  {/* Public Tracking Route */}
+                                  <Route path="tracking" element={<TrackingPage />} />
                                   <Route
-                                    path="client/groupage"
-                                    element={<ClientGroupage />}
-                                  />
-                                  <Route
-                                    path="client/rfq/create"
-                                    element={<CreateRFQForm />}
-                                  />
-                                  <Route
-                                    path="client/rfq/:id"
-                                    element={<RFQDetail />}
-                                  />
-                                  <Route
-                                    path="client/shipments"
-                                    element={<ClientShipments />}
-                                  />
-                                  <Route
-                                    path="client/shipments/:id"
-                                    element={<ClientShipmentDetail />}
-                                  />
-                                  <Route
-                                    path="client/payments"
-                                    element={<ClientPayments />}
-                                  />
-                                  <Route
-                                    path="client/wallet"
-                                    element={<ClientWallet />}
-                                  />
-                                  <Route
-                                    path="client/messages"
-                                    element={<ClientMessages />}
-                                  />
-                                  <Route
-                                    path="client/support"
-                                    element={<ClientSupport />}
-                                  />
-                                  <Route
-                                    path="client/settings"
-                                    element={<ClientSettings />}
-                                  />
-                                  <Route
-                                    path="client/documents"
-                                    element={<DocumentCenter />}
-                                  />
-                                  <Route
-                                    path="client/referrals"
-                                    element={<ReferralDashboard />}
-                                  />
-                                  <Route
-                                    path="upgrade"
-                                    element={<UpgradeToPro />}
+                                    path="tracking/:code"
+                                    element={<TrackingPage />}
                                   />
                                 </Route>
 
-                                {/* Forwarder routes */}
-                                <Route
-                                  element={
-                                    <ProtectedRoute
-                                      allowedRoles={["forwarder"]}
+                                {/* Dashboard routes with sidebar layout */}
+                                <Route element={<ProtectedRoute />}>
+                                  <Route
+                                    path="dashboard"
+                                    element={<DashboardLayout />}
+                                  >
+                                    {/* Dashboard redirect */}
+                                    <Route index element={<DashboardRedirect />} />
+                                    <Route
+                                      path="notifications"
+                                      element={<NotificationsPage />}
                                     />
-                                  }
-                                >
-                                  <Route
-                                    path="forwarder"
-                                    element={<ForwarderDashboard />}
-                                  />
-                                  <Route
-                                    path="forwarder/rfq"
-                                    element={<AvailableRFQs />}
-                                  />
-                                  <Route
-                                    path="forwarder/groupage"
-                                    element={<ForwarderGroupage />}
-                                  />
-                                  <Route
-                                    path="forwarder/rfq/available"
-                                    element={<AvailableRFQs />}
-                                  />
-                                  <Route
-                                    path="forwarder/rfq/:id/offer"
-                                    element={<CreateOfferForm />}
-                                  />
-                                  <Route
-                                    path="forwarder/offers"
-                                    element={<ForwarderOffers />}
-                                  />
-                                  <Route
-                                    path="forwarder/shipments"
-                                    element={<ForwarderShipments />}
-                                  />
-                                  <Route
-                                    path="forwarder/shipments/:id"
-                                    element={<ShipmentDetail />}
-                                  />
-                                  <Route
-                                    path="forwarder/documents"
-                                    element={<DocumentCenter />}
-                                  />
-                                  <Route
-                                    path="forwarder/messages"
-                                    element={<ForwarderMessages />}
-                                  />
-                                  <Route
-                                    path="forwarder/pod"
-                                    element={<ForwarderPOD />}
-                                  />
-                                  <Route
-                                    path="forwarder/personnel"
-                                    element={<ForwarderPersonnel />}
-                                  />
-                                  <Route
-                                    path="forwarder/rates"
-                                    element={<ForwarderRates />}
-                                  />
-                                  <Route
-                                    path="forwarder/clients"
-                                    element={<ForwarderClients />}
-                                  />
-                                  <Route
-                                    path="forwarder/wallet"
-                                    element={<ClientWallet />}
-                                  />
-                                  <Route
-                                    path="forwarder/payments"
-                                    element={<ForwarderPayments />}
-                                  />
-                                  <Route
-                                    path="forwarder/fund-calls"
-                                    element={<ForwarderFundCalls />}
-                                  />
-                                  <Route
-                                    path="forwarder/coupons"
-                                    element={<ForwarderCoupons />}
-                                  />
-                                  <Route
-                                    path="forwarder/subscription"
-                                    element={<ForwarderSubscription />}
-                                  />
-                                  <Route
-                                    path="forwarder/support"
-                                    element={<ForwarderSupport />}
-                                  />
-                                  <Route
-                                    path="forwarder/settings"
-                                    element={<ForwarderSettings />}
-                                  />
-                                  <Route
-                                    path="forwarder/kyc"
-                                    element={<ForwarderKYC />}
-                                  />
-                                  <Route
-                                    path="forwarder/referrals"
-                                    element={<ReferralDashboard />}
-                                  />
-                                  <Route
-                                    path="forwarder/automations"
-                                    element={<ForwarderAutomations />}
-                                  />
-                                  <Route
-                                    path="forwarder/addresses"
-                                    element={<ForwarderAddresses />}
-                                  />
-                                </Route>
 
-                                {/* Admin routes */}
-                                <Route
-                                  element={
-                                    <ProtectedRoute
-                                      allowedRoles={["admin", "super-admin"]}
-                                    />
-                                  }
-                                >
-                                  <Route
-                                    path="admin"
-                                    element={<AdminDashboard />}
-                                  />
-                                  <Route
-                                    path="admin/users"
-                                    element={<UserManagement />}
-                                  />
-                                  <Route
-                                    path="admin/rfq"
-                                    element={<AdminRFQList />}
-                                  />
-                                  <Route
-                                    path="admin/groupage"
-                                    element={<AdminGroupage />}
-                                  />
-                                  <Route
-                                    path="admin/shipments"
-                                    element={<AdminShipments />}
-                                  />
-                                  <Route
-                                    path="admin/payments"
-                                    element={<AdminPayments />}
-                                  />
-                                  <Route
-                                    path="admin/coupons"
-                                    element={<AdminCoupons />}
-                                  />
-                                  <Route
-                                    path="admin/subscriptions"
-                                    element={<AdminSubscriptions />}
-                                  />
-                                  <Route
-                                    path="admin/settings"
-                                    element={<AdminSettings />}
-                                  />
-                                  <Route
-                                    path="admin/branding"
-                                    element={<AdminBranding />}
-                                  />
-                                  <Route
-                                    path="admin/payment-gateway"
-                                    element={<AdminPaymentGateway />}
-                                  />
-                                  <Route
-                                    path="admin/fund-calls"
-                                    element={<AdminFundCalls />}
-                                  />
-                                  <Route
-                                    path="admin/pod"
-                                    element={<AdminPOD />}
-                                  />
-                                  <Route
-                                    path="admin/personnel"
-                                    element={<AdminPersonnel />}
-                                  />
-                                  <Route
-                                    path="admin/forwarders"
-                                    element={<AdminForwarders />}
-                                  />
-                                  <Route
-                                    path="admin/clients"
-                                    element={<AdminClients />}
-                                  />
-                                  <Route
-                                    path="admin/fees"
-                                    element={<AdminFees />}
-                                  />
-                                  <Route
-                                    path="admin/features"
-                                    element={<AdminFeatures />}
-                                  />
-                                  <Route
-                                    path="admin/support"
-                                    element={<AdminSupport />}
-                                  />
-                                  <Route
-                                    path="admin/messages"
-                                    element={<AdminMessages />}
-                                  />
-                                  <Route
-                                    path="admin/locations"
-                                    element={<AdminLocations />}
-                                  />
-                                  <Route
-                                    path="admin/package-types"
-                                    element={<AdminPackageTypes />}
-                                  />
-                                  <Route
-                                    path="admin/platform-rates"
-                                    element={<AdminPlatformRates />}
-                                  />
-                                  <Route
-                                    path="admin/emails"
-                                    element={<AdminEmails />}
-                                  />
-                                  <Route
-                                    path="admin/referrals"
-                                    element={<AdminReferrals />}
-                                  />
-                                  <Route
-                                    path="admin/security"
-                                    element={<AdminSecurity />}
-                                  />
-                                </Route>
+                                    {/* Client routes */}
+                                    <Route
+                                      element={
+                                        <ProtectedRoute allowedRoles={["client"]} />
+                                      }
+                                    >
+                                      <Route
+                                        path="client"
+                                        element={<ClientDashboard />}
+                                      />
+                                      <Route
+                                        path="client/rfq"
+                                        element={<ClientRFQList />}
+                                      />
+                                      <Route
+                                        path="client/groupage"
+                                        element={<ClientGroupage />}
+                                      />
+                                      <Route
+                                        path="client/rfq/create"
+                                        element={<CreateRFQForm />}
+                                      />
+                                      <Route
+                                        path="client/rfq/:id"
+                                        element={<RFQDetail />}
+                                      />
+                                      <Route
+                                        path="client/shipments"
+                                        element={<ClientShipments />}
+                                      />
+                                      <Route
+                                        path="client/shipments/:id"
+                                        element={<ClientShipmentDetail />}
+                                      />
+                                      <Route
+                                        path="client/payments"
+                                        element={<ClientPayments />}
+                                      />
+                                      <Route
+                                        path="client/wallet"
+                                        element={<ClientWallet />}
+                                      />
+                                      <Route
+                                        path="client/messages"
+                                        element={<ClientMessages />}
+                                      />
+                                      <Route
+                                        path="client/support"
+                                        element={<ClientSupport />}
+                                      />
+                                      <Route
+                                        path="client/settings"
+                                        element={<ClientSettings />}
+                                      />
+                                      <Route
+                                        path="client/documents"
+                                        element={<DocumentCenter />}
+                                      />
+                                      <Route
+                                        path="client/referrals"
+                                        element={<ReferralDashboard />}
+                                      />
+                                      <Route
+                                        path="upgrade"
+                                        element={<UpgradeToPro />}
+                                      />
+                                    </Route>
 
-                                {/* Driver routes */}
-                                <Route
-                                  element={
-                                    <ProtectedRoute allowedRoles={["driver"]} />
-                                  }
-                                >
-                                  <Route
-                                    path="driver"
-                                    element={<DriverDashboard />}
-                                  />
-                                  <Route
-                                    path="driver/settings"
-                                    element={<DriverSettings />}
-                                  />
-                                  <Route
-                                    path="driver/support"
-                                    element={<DriverSupport />}
-                                  />
-                                  <Route
-                                    path="driver/messages"
-                                    element={<DriverMessages />}
-                                  />
-                                  <Route
-                                    path="driver/payments"
-                                    element={<DriverPayments />}
-                                  />
-                                  <Route
-                                    path="driver/pod"
-                                    element={<DriverPOD />}
-                                  />
+                                    {/* Forwarder routes */}
+                                    <Route
+                                      element={
+                                        <ProtectedRoute
+                                          allowedRoles={["forwarder"]}
+                                        />
+                                      }
+                                    >
+                                      <Route
+                                        path="forwarder"
+                                        element={<ForwarderDashboard />}
+                                      />
+                                      <Route
+                                        path="forwarder/rfq"
+                                        element={<AvailableRFQs />}
+                                      />
+                                      <Route
+                                        path="forwarder/groupage"
+                                        element={<ForwarderGroupage />}
+                                      />
+                                      <Route
+                                        path="forwarder/rfq/available"
+                                        element={<AvailableRFQs />}
+                                      />
+                                      <Route
+                                        path="forwarder/rfq/:id/offer"
+                                        element={<CreateOfferForm />}
+                                      />
+                                      <Route
+                                        path="forwarder/offers"
+                                        element={<ForwarderOffers />}
+                                      />
+                                      <Route
+                                        path="forwarder/shipments"
+                                        element={<ForwarderShipments />}
+                                      />
+                                      <Route
+                                        path="forwarder/shipments/:id"
+                                        element={<ShipmentDetail />}
+                                      />
+                                      <Route
+                                        path="forwarder/documents"
+                                        element={<DocumentCenter />}
+                                      />
+                                      <Route
+                                        path="forwarder/messages"
+                                        element={<ForwarderMessages />}
+                                      />
+                                      <Route
+                                        path="forwarder/pod"
+                                        element={<ForwarderPOD />}
+                                      />
+                                      <Route
+                                        path="forwarder/personnel"
+                                        element={<ForwarderPersonnel />}
+                                      />
+                                      <Route
+                                        path="forwarder/rates"
+                                        element={<ForwarderRates />}
+                                      />
+                                      <Route
+                                        path="forwarder/clients"
+                                        element={<ForwarderClients />}
+                                      />
+                                      <Route
+                                        path="forwarder/wallet"
+                                        element={<ClientWallet />}
+                                      />
+                                      <Route
+                                        path="forwarder/payments"
+                                        element={<ForwarderPayments />}
+                                      />
+                                      <Route
+                                        path="forwarder/fund-calls"
+                                        element={<ForwarderFundCalls />}
+                                      />
+                                      <Route
+                                        path="forwarder/coupons"
+                                        element={<ForwarderCoupons />}
+                                      />
+                                      <Route
+                                        path="forwarder/subscription"
+                                        element={<ForwarderSubscription />}
+                                      />
+                                      <Route
+                                        path="forwarder/support"
+                                        element={<ForwarderSupport />}
+                                      />
+                                      <Route
+                                        path="forwarder/settings"
+                                        element={<ForwarderSettings />}
+                                      />
+                                      <Route
+                                        path="forwarder/kyc"
+                                        element={<ForwarderKYC />}
+                                      />
+                                      <Route
+                                        path="forwarder/referrals"
+                                        element={<ReferralDashboard />}
+                                      />
+                                      <Route
+                                        path="forwarder/automations"
+                                        element={<ForwarderAutomations />}
+                                      />
+                                      <Route
+                                        path="forwarder/addresses"
+                                        element={<ForwarderAddresses />}
+                                      />
+                                    </Route>
+
+                                    {/* Admin routes */}
+                                    <Route
+                                      element={
+                                        <ProtectedRoute
+                                          allowedRoles={["admin", "super-admin"]}
+                                        />
+                                      }
+                                    >
+                                      <Route
+                                        path="admin"
+                                        element={<AdminDashboard />}
+                                      />
+                                      <Route
+                                        path="admin/users"
+                                        element={<UserManagement />}
+                                      />
+                                      <Route
+                                        path="admin/rfq"
+                                        element={<AdminRFQList />}
+                                      />
+                                      <Route
+                                        path="admin/groupage"
+                                        element={<AdminGroupage />}
+                                      />
+                                      <Route
+                                        path="admin/shipments"
+                                        element={<AdminShipments />}
+                                      />
+                                      <Route
+                                        path="admin/payments"
+                                        element={<AdminPayments />}
+                                      />
+                                      <Route
+                                        path="admin/coupons"
+                                        element={<AdminCoupons />}
+                                      />
+                                      <Route
+                                        path="admin/subscriptions"
+                                        element={<AdminSubscriptions />}
+                                      />
+                                      <Route
+                                        path="admin/settings"
+                                        element={<AdminSettings />}
+                                      />
+                                      <Route
+                                        path="admin/branding"
+                                        element={<AdminBranding />}
+                                      />
+                                      <Route
+                                        path="admin/payment-gateway"
+                                        element={<AdminPaymentGateway />}
+                                      />
+                                      <Route
+                                        path="admin/fund-calls"
+                                        element={<AdminFundCalls />}
+                                      />
+                                      <Route
+                                        path="admin/pod"
+                                        element={<AdminPOD />}
+                                      />
+                                      <Route
+                                        path="admin/personnel"
+                                        element={<AdminPersonnel />}
+                                      />
+                                      <Route
+                                        path="admin/forwarders"
+                                        element={<AdminForwarders />}
+                                      />
+                                      <Route
+                                        path="admin/clients"
+                                        element={<AdminClients />}
+                                      />
+                                      <Route
+                                        path="admin/fees"
+                                        element={<AdminFees />}
+                                      />
+                                      <Route
+                                        path="admin/features"
+                                        element={<AdminFeatures />}
+                                      />
+                                      <Route
+                                        path="admin/support"
+                                        element={<AdminSupport />}
+                                      />
+                                      <Route
+                                        path="admin/messages"
+                                        element={<AdminMessages />}
+                                      />
+                                      <Route
+                                        path="admin/locations"
+                                        element={<AdminLocations />}
+                                      />
+                                      <Route
+                                        path="admin/package-types"
+                                        element={<AdminPackageTypes />}
+                                      />
+                                      <Route
+                                        path="admin/platform-rates"
+                                        element={<AdminPlatformRates />}
+                                      />
+                                      <Route
+                                        path="admin/emails"
+                                        element={<AdminEmails />}
+                                      />
+                                      <Route
+                                        path="admin/referrals"
+                                        element={<AdminReferrals />}
+                                      />
+                                      <Route
+                                        path="admin/security"
+                                        element={<AdminSecurity />}
+                                      />
+                                    </Route>
+
+                                    {/* Driver routes */}
+                                    <Route
+                                      element={
+                                        <ProtectedRoute allowedRoles={["driver"]} />
+                                      }
+                                    >
+                                      <Route
+                                        path="driver"
+                                        element={<DriverDashboard />}
+                                      />
+                                      <Route
+                                        path="driver/settings"
+                                        element={<DriverSettings />}
+                                      />
+                                      <Route
+                                        path="driver/support"
+                                        element={<DriverSupport />}
+                                      />
+                                      <Route
+                                        path="driver/messages"
+                                        element={<DriverMessages />}
+                                      />
+                                      <Route
+                                        path="driver/payments"
+                                        element={<DriverPayments />}
+                                      />
+                                      <Route
+                                        path="driver/pod"
+                                        element={<DriverPOD />}
+                                      />
+                                    </Route>
+                                  </Route>
                                 </Route>
-                              </Route>
-                            </Route>
-                          </Routes>
-                        </Suspense>
-                      </Router>
-                    </UIProvider>
-                  </NotificationProvider>
-                </ChatProvider>
-              </AuthProvider>
-            </ToastProvider>
+                              </Routes>
+                            </Suspense>
+                          </Router>
+                        </UIProvider>
+                      </NotificationProvider>
+                    </Suspense>
+                  </ChatProvider>
+                </AuthProvider>
+              </ToastProvider>
+            </FeatureProvider>
           </BrandingProvider>
         </CurrencyProvider>
       </ThemeProvider>
