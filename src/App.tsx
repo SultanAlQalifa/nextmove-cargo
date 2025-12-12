@@ -207,6 +207,9 @@ const AdminReferrals = lazy(
 const AdminSecurity = lazy(
   () => import("./pages/dashboard/admin/AdminSecurity"),
 );
+const AdminWallet = lazy(
+  () => import("./pages/dashboard/admin/AdminWallet"),
+);
 
 import "./i18n";
 import { SettingsProvider } from "./contexts/SettingsContext";
@@ -594,6 +597,10 @@ function App() {
                                       <Route
                                         path="admin/security"
                                         element={<AdminSecurity />}
+                                      />
+                                      <Route
+                                        path="admin/wallet"
+                                        element={<AdminWallet />}
                                       />
                                     </Route>
 

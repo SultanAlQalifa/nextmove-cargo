@@ -113,18 +113,7 @@ export default function DashboardLayout() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isOffline, setIsOffline] = useState(!navigator.onLine); // NEW: Offline State
 
-  useEffect(() => {
-    // 1. Realtime Notifications Subscription
-    if (user) {
-      const subscription = notificationService.subscribeToNotifications((payload) => {
-        const newNotif = payload.new as Notification;
-        if (newNotif.user_id === user.id) {
-          showNotification(newNotif.title, newNotif.message, 'info');
-        }
-      });
-      return () => subscription.unsubscribe();
-    }
-  }, [user]);
+
 
   useEffect(() => {
     // 2. Offline Mode Detection
@@ -483,6 +472,11 @@ export default function DashboardLayout() {
               name: t("dashboard.menu.payments"),
               path: "/dashboard/admin/payments",
               icon: CreditCard,
+            },
+            {
+              name: "Portefeuilles",
+              path: "/dashboard/admin/wallet",
+              icon: Wallet,
             },
             {
               name: t("dashboard.menu.fundCalls"),

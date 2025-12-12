@@ -92,6 +92,9 @@ export default function AdminSecurity() {
     if (oldData && !newData)
       return <span className="text-red-600">Deleted Record</span>;
 
+    // If both are missing or newData is not an object, nothing to show
+    if (!newData || typeof newData !== "object") return null;
+
     const changes: string[] = [];
     // Simple comparison for demo. Ideally use a deep diff util.
     Object.keys(newData).forEach((key) => {
