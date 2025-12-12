@@ -30,7 +30,6 @@ export default function CreateOfferForm() {
   const [formData, setFormData] = useState<Partial<CreateOfferData>>({
     base_price: 0,
     insurance_price: 0,
-    customs_clearance_price: 0,
     door_to_door_price: 0,
     packaging_price: 0,
     storage_price: 0,
@@ -136,7 +135,6 @@ export default function CreateOfferForm() {
     const {
       base_price = 0,
       insurance_price = 0,
-      customs_clearance_price = 0,
       door_to_door_price = 0,
       packaging_price = 0,
       storage_price = 0,
@@ -145,7 +143,6 @@ export default function CreateOfferForm() {
     return (
       base_price +
       insurance_price +
-      customs_clearance_price +
       door_to_door_price +
       packaging_price +
       storage_price +

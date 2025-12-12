@@ -10,13 +10,17 @@ export interface FeeConfig {
   description?: string;
   isActive: boolean;
   category:
-    | "insurance"
-    | "guarantee"
-    | "management"
-    | "storage"
-    | "penalty"
-    | "tax"
-    | "other";
+  | "insurance"
+  | "guarantee"
+  | "management"
+  | "storage"
+  | "penalty"
+  | "tax"
+  | "packaging"
+  | "priority"
+  | "inspection"
+  | "door_to_door"
+  | "other";
   target: "client" | "forwarder";
   isRecurring?: boolean;
   gracePeriodHours?: number;

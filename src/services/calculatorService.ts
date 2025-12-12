@@ -1,7 +1,6 @@
 import { supabase } from "../lib/supabase";
 import { supabaseWrapper } from "../lib/supabaseWrapper";
-import { feeService } from "./feeService";
-import { platformRateService } from "./platformRateService";
+import { feeService, FeeConfig } from "./feeService";
 import { getCountryCode } from "../constants/countries";
 
 // ═══════════════════════════════════════════════════════════════
@@ -23,17 +22,28 @@ const convertFromXOF = (amountXOF: number, targetCurrency: string): number => {
   return amountXOF * rate;
 };
 
-const XOF_PER_EUR = 655.957;
+// Helper: Resolve dynamic fee cost
+const resolveFeeCost = (
+  fees: FeeConfig[],
+  category: string,
+  baseAmountXOF: number = 0
+): number => {
+  const fee = fees.find((f) => f.category === category && f.isActive);
+  if (!fee) return 0;
 
-// Additional Services (Defined in EUR in specs, converted to XOF for calculation)
-const ADDITIONAL_SERVICES_RATES = {
-  insurance: { rate: 0.05, min_fee_xof: 50 * XOF_PER_EUR }, // 5% or 50 EUR
-  priority: { flat_fee_xof: 150 * XOF_PER_EUR }, // 150 EUR
-  packaging: { flat_fee_xof: 75 * XOF_PER_EUR }, // 75 EUR
-  inspection: { flat_fee_xof: 100 * XOF_PER_EUR }, // 100 EUR
-  customs_clearance: { flat_fee_xof: 120 * XOF_PER_EUR }, // 120 EUR
-  door_to_door: { flat_fee_xof: 200 * XOF_PER_EUR }, // 200 EUR
-  storage: { flat_fee_xof: 50 * XOF_PER_EUR }, // 50 EUR
+  let cost = 0;
+  if (fee.type === "percentage") {
+    cost = baseAmountXOF * (fee.value / 100);
+  } else {
+    // Fixed fee
+    cost = fee.value;
+  }
+
+  // Apply min/max constraints if present
+  if (fee.minAmount) cost = Math.max(cost, fee.minAmount);
+  if (fee.maxAmount) cost = Math.min(cost, fee.maxAmount);
+
+  return cost;
 };
 
 export interface QuoteResult {
@@ -79,10 +89,9 @@ export interface CalculationParams {
 
   additionalServices?: {
     insurance?: boolean;
-    priority?: boolean;
     packaging?: boolean;
+    priority?: boolean;
     inspection?: boolean;
-    customs_clearance?: boolean;
     door_to_door?: boolean;
     storage?: boolean;
   };
@@ -103,11 +112,8 @@ export const calculatorService = {
     if (quantity <= 0) return [];
     if (params.origin === params.destination) return [];
 
-    // 2. Resolve Taxes
+    // 2. Fetch Active Fees Config
     const fees = await feeService.getFees();
-    const taxFee = fees.find((f) => f.category === "tax" && f.isActive);
-    const taxRate =
-      taxFee && taxFee.type === "percentage" ? taxFee.value / 100 : 0;
 
     // 3. Resolve Location IDs
     const originCode = getCountryCode(params.origin) || params.origin;
@@ -135,7 +141,7 @@ export const calculatorService = {
         params,
         quantity,
         targetCurrency,
-        taxRate,
+        fees,
       );
     }
 
@@ -151,7 +157,7 @@ export const calculatorService = {
         destId,
         quantity,
         targetCurrency,
-        taxRate,
+        fees,
       );
     }
 
@@ -164,7 +170,7 @@ export const calculatorService = {
         destId,
         quantity,
         targetCurrency,
-        taxRate,
+        fees,
       );
     }
 
@@ -178,7 +184,7 @@ export const calculatorService = {
     params: CalculationParams,
     quantity: number,
     targetCurrency: string,
-    taxRate: number,
+    fees: FeeConfig[],
   ): Promise<QuoteResult[]> {
     // Fetch from platform_rates table
     const rates = await supabaseWrapper.query(async () => {
@@ -198,7 +204,7 @@ export const calculatorService = {
         rates,
         quantity,
         targetCurrency,
-        taxRate,
+        fees,
         params,
         "NextMove Platform",
         "platform",
@@ -216,7 +222,7 @@ export const calculatorService = {
     destId: string,
     quantity: number,
     targetCurrency: string,
-    taxRate: number,
+    fees: FeeConfig[],
   ): Promise<QuoteResult[]> {
     const rates = await supabaseWrapper.query(async () => {
       return await supabase
@@ -241,7 +247,7 @@ export const calculatorService = {
         rate,
         quantity,
         targetCurrency,
-        taxRate,
+        fees,
         params,
         rate.profiles?.company_name || "Unknown",
         rate.forwarder_id,
@@ -267,7 +273,7 @@ export const calculatorService = {
     destId: string,
     quantity: number,
     targetCurrency: string,
-    taxRate: number,
+    fees: FeeConfig[],
   ): Promise<QuoteResult[]> {
     const { data: rate } = await supabase
       .from("forwarder_rates")
@@ -292,7 +298,7 @@ export const calculatorService = {
         rate,
         quantity,
         targetCurrency,
-        taxRate,
+        fees,
         params,
         rate.profiles?.company_name || "Specific Forwarder",
         rate.forwarder_id,
@@ -308,7 +314,7 @@ export const calculatorService = {
     rateData: any,
     quantity: number,
     targetCurrency: string,
-    taxRate: number,
+    fees: FeeConfig[],
     params: CalculationParams,
     firmName: string,
     forwarderId: string,
@@ -318,106 +324,48 @@ export const calculatorService = {
     const priceXOF = Number(rateData.price);
     const baseCostXOF = priceXOF * quantity;
 
-    // 2. Additional Services (XOF)
-    let servicesXOF = 0;
+    // 2. Resolve Cargo Value in XOF
+    const cargoValueXOF = (params.cargoValue || 0) / EXCHANGE_RATES[targetCurrency];
 
-    if (params.additionalServices) {
-      // Insurance
-      if (params.additionalServices.insurance && params.cargoValue) {
-        // Determine rate (Forwarder specific OR Platform fallback)
-        // Note: platform_rates also has insurance_rate column now
-        const insRate =
-          rateData.insurance_rate || ADDITIONAL_SERVICES_RATES.insurance.rate;
-
-        // cargoValue is in Target Currency. Convert to XOF first?
-        // Actually, simplest is: Calculate Insurance in Target, then convert back to XOF for total?
-        // No, strict flow: EVERYTHING IN XOF.
-
-        // Convert User Cargo Value to XOF
-        // valueXOF = valueTarget / EXCHANGE_RATES[target]
-        const valueXOF =
-          (params.cargoValue || 0) / EXCHANGE_RATES[targetCurrency];
-
-        const calculatedIns = valueXOF * insRate;
-        const minIns = ADDITIONAL_SERVICES_RATES.insurance.min_fee_xof;
-        servicesXOF += Math.max(calculatedIns, minIns);
-      }
-
-      if (params.additionalServices.priority)
-        servicesXOF += ADDITIONAL_SERVICES_RATES.priority.flat_fee_xof;
-      if (params.additionalServices.packaging)
-        servicesXOF += ADDITIONAL_SERVICES_RATES.packaging.flat_fee_xof;
-      if (params.additionalServices.inspection)
-        servicesXOF += ADDITIONAL_SERVICES_RATES.inspection.flat_fee_xof;
-      if (params.additionalServices.customs_clearance)
-        servicesXOF += ADDITIONAL_SERVICES_RATES.customs_clearance.flat_fee_xof;
-      if (params.additionalServices.door_to_door)
-        servicesXOF += ADDITIONAL_SERVICES_RATES.door_to_door.flat_fee_xof;
-      if (params.additionalServices.storage)
-        servicesXOF += ADDITIONAL_SERVICES_RATES.storage.flat_fee_xof;
-    }
-
-    // 3. Tax (XOF)
-    const taxXOF = (baseCostXOF + servicesXOF) * taxRate;
-
-    // 4. Convert Parts to Target Currency
-    const base_cost = convertFromXOF(baseCostXOF, targetCurrency);
-    const additional_services_cost = convertFromXOF(
-      servicesXOF,
-      targetCurrency,
-    );
-    const tax_cost = convertFromXOF(taxXOF, targetCurrency);
-    const total_cost = convertFromXOF(
-      baseCostXOF + servicesXOF + taxXOF,
-      targetCurrency,
-    );
-
-    // 5. Insurance Cost Display (Separate bucket in UI usually)
-    // Check if insurance was part of servicesXOF... yes.
-    // We should extract it if UI wants it separate.
-    // For now, let's keep it simple: if insurance service is ON, it's in additional_services_cost.
-    // Wait, UI props has insurance_cost separate.
-    // Let's separate it.
-
+    // 3. Additional Services (XOF) - STRICT DB LOOKUP
     let insuranceXOF = 0;
     let otherServicesXOF = 0;
 
     if (params.additionalServices) {
+      // Insurance
       if (params.additionalServices.insurance && params.cargoValue) {
-        const insRate =
-          rateData.insurance_rate || ADDITIONAL_SERVICES_RATES.insurance.rate;
-        const valueXOF =
-          (params.cargoValue || 0) / EXCHANGE_RATES[targetCurrency];
-        insuranceXOF = Math.max(
-          valueXOF * insRate,
-          ADDITIONAL_SERVICES_RATES.insurance.min_fee_xof,
-        );
+        // Priority: DB Fee Config > Calculated
+        insuranceXOF = resolveFeeCost(fees, "insurance", cargoValueXOF);
       }
-      // ... recalculate others
-      if (params.additionalServices.priority)
-        otherServicesXOF += ADDITIONAL_SERVICES_RATES.priority.flat_fee_xof;
+
+      // Other services
       if (params.additionalServices.packaging)
-        otherServicesXOF += ADDITIONAL_SERVICES_RATES.packaging.flat_fee_xof;
+        otherServicesXOF += resolveFeeCost(fees, "packaging", baseCostXOF); // Usually fixed, but supports %
+
+      if (params.additionalServices.priority)
+        otherServicesXOF += resolveFeeCost(fees, "priority", baseCostXOF);
+
       if (params.additionalServices.inspection)
-        otherServicesXOF += ADDITIONAL_SERVICES_RATES.inspection.flat_fee_xof;
-      if (params.additionalServices.customs_clearance)
-        otherServicesXOF +=
-          ADDITIONAL_SERVICES_RATES.customs_clearance.flat_fee_xof;
+        otherServicesXOF += resolveFeeCost(fees, "inspection", baseCostXOF);
+
       if (params.additionalServices.door_to_door)
-        otherServicesXOF += ADDITIONAL_SERVICES_RATES.door_to_door.flat_fee_xof;
+        otherServicesXOF += resolveFeeCost(fees, "door_to_door", baseCostXOF);
+
       if (params.additionalServices.storage)
-        otherServicesXOF += ADDITIONAL_SERVICES_RATES.storage.flat_fee_xof;
+        otherServicesXOF += resolveFeeCost(fees, "storage", baseCostXOF);
     }
 
+    // 4. Tax (XOF) - Calculated on (Base + Services + Insurance)
+    // Note: Some jurisdictions tax only service fees, others the whole amount. 
+    // Defaulting to taxing the Total Service Value (Base + Extras).
+    const taxableAmount = baseCostXOF + insuranceXOF + otherServicesXOF;
+    const taxXOF = resolveFeeCost(fees, "tax", taxableAmount);
+
+    // 5. Convert Parts to Target Currency
+    const base_cost = convertFromXOF(baseCostXOF, targetCurrency);
     const insurance_cost = convertFromXOF(insuranceXOF, targetCurrency);
-    const other_services_cost = convertFromXOF(
-      otherServicesXOF,
-      targetCurrency,
-    );
-    const tax_cost_final = convertFromXOF(
-      (baseCostXOF + insuranceXOF + otherServicesXOF) * taxRate,
-      targetCurrency,
-    );
+    const other_services_cost = convertFromXOF(otherServicesXOF, targetCurrency);
+    const tax_cost_final = convertFromXOF(taxXOF, targetCurrency);
 
     return {
       id: rateData.id,

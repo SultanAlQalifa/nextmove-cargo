@@ -15,6 +15,10 @@ import {
   AlertTriangle,
   Warehouse,
   FileText,
+  Package,
+  Zap,
+  Search,
+  Truck,
 } from "lucide-react";
 import { feeService, FeeConfig } from "../../../services/feeService";
 import ConfirmationModal from "../../../components/common/ConfirmationModal";
@@ -127,6 +131,14 @@ export default function AdminFees() {
         return AlertTriangle;
       case "tax":
         return FileText;
+      case "packaging":
+        return Package;
+      case "priority":
+        return Zap;
+      case "inspection":
+        return Search;
+      case "door_to_door":
+        return Truck;
       default:
         return DollarSign;
     }
@@ -146,6 +158,14 @@ export default function AdminFees() {
         return "bg-red-50 text-red-600";
       case "tax":
         return "bg-gray-100 text-gray-600";
+      case "packaging":
+        return "bg-brown-50 text-amber-800";
+      case "priority":
+        return "bg-yellow-50 text-yellow-600";
+      case "inspection":
+        return "bg-cyan-50 text-cyan-600";
+      case "door_to_door":
+        return "bg-teal-50 text-teal-600";
       default:
         return "bg-gray-50 text-gray-600";
     }
@@ -355,6 +375,10 @@ export default function AdminFees() {
                     <option value="storage">Magasinage</option>
                     <option value="penalty">Pénalité</option>
                     <option value="tax">Taxe / Impôt</option>
+                    <option value="packaging">Emballage</option>
+                    <option value="priority">Priorité / Express</option>
+                    <option value="inspection">Inspection</option>
+                    <option value="door_to_door">Porte-à-Porte</option>
                     <option value="other">Autre</option>
                   </select>
                 </div>

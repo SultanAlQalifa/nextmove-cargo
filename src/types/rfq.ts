@@ -21,7 +21,6 @@ export type OfferStatus =
   | "expired";
 
 export type ServiceNeeded =
-  | "customs_clearance"
   | "door_to_door"
   | "insurance"
   | "packaging"
@@ -123,7 +122,6 @@ export interface RFQOffer {
   // Pricing Breakdown
   base_price: number;
   insurance_price: number;
-  customs_clearance_price: number;
   door_to_door_price: number;
   packaging_price: number;
   storage_price: number;
@@ -162,7 +160,6 @@ export interface CreateOfferData {
   // Pricing Breakdown
   base_price: number;
   insurance_price?: number;
-  customs_clearance_price?: number;
   door_to_door_price?: number;
   packaging_price?: number;
   storage_price?: number;

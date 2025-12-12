@@ -654,13 +654,7 @@ export default function CreateConsolidationModal({
                   icon: ClipboardCheck,
                   color: "green",
                 },
-                {
-                  id: "customs_clearance",
-                  label: "Customs Clearance",
-                  desc: "Customs formalities",
-                  icon: FileCheck,
-                  color: "teal",
-                },
+
                 {
                   id: "door_to_door",
                   label: "Door to Door",

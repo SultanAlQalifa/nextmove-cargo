@@ -323,7 +323,7 @@ export default function ConsolidationList({
                           priority: Zap,
                           packaging: Box,
                           inspection: ClipboardCheck,
-                          customs_clearance: FileCheck,
+
                           door_to_door: Truck,
                           storage: Warehouse,
                         };

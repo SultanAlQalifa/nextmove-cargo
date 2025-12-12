@@ -1214,13 +1214,6 @@ export default function CreateRFQForm() {
                     color: "green",
                   },
                   {
-                    id: "customs_clearance",
-                    label: "Dédouanement",
-                    desc: "Gestion des formalités douanières",
-                    icon: FileCheck,
-                    color: "teal",
-                  },
-                  {
                     id: "door_to_door",
                     label: "Door to Door",
                     desc: "Livraison jusqu'à l'adresse finale",

@@ -736,11 +736,11 @@ export default function RFQDetail() {
                             {offer.base_price.toLocaleString()} {offer.currency}
                           </span>
                         </div>
-                        {offer.customs_clearance_price > 0 && (
+                        {offer.packaging_price > 0 && (
                           <div className="flex justify-between text-sm">
-                            <span className="text-gray-500">Dédouanement</span>
+                            <span className="text-gray-500">Emballage</span>
                             <span className="font-medium">
-                              {offer.customs_clearance_price.toLocaleString()}{" "}
+                              {offer.packaging_price.toLocaleString()}{" "}
                               {offer.currency}
                             </span>
                           </div>

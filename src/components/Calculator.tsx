@@ -9,9 +9,9 @@ import {
   CalculationParams,
 } from "../services/calculatorService";
 import {
-  forwarderService,
   ForwarderOption,
 } from "../services/forwarderService";
+import { feeService, FeeConfig } from "../services/feeService";
 import { calculateCBM, LengthUnit } from "../utils/volumeCalculator";
 import {
   Search,
@@ -63,6 +63,16 @@ export default function Calculator() {
   const [destSearch, setDestSearch] = useState("");
   const [showOriginDropdown, setShowOriginDropdown] = useState(false);
   const [showDestDropdown, setShowDestDropdown] = useState(false);
+  const [activeFees, setActiveFees] = useState<FeeConfig[]>([]);
+
+  // Fee loading
+  useEffect(() => {
+    feeService.getFees().then((fees) => setActiveFees(fees));
+  }, []);
+
+  const isFeeActive = (category: string) => {
+    return activeFees.some((f) => f.category === category && f.isActive);
+  };
 
   // Dimension inputs for CBM calculation
   const [dimensionUnit, setDimensionUnit] = useState<LengthUnit>("m");
@@ -75,7 +85,6 @@ export default function Calculator() {
     priority: boolean;
     packaging: boolean;
     inspection: boolean;
-    customs_clearance: boolean;
     door_to_door: boolean;
     storage: boolean;
   }>({
@@ -83,7 +92,6 @@ export default function Calculator() {
     priority: false,
     packaging: false,
     inspection: false,
-    customs_clearance: false,
     door_to_door: false,
     storage: false,
   });
@@ -945,233 +953,245 @@ export default function Calculator() {
                     Services Additionnels
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div
-                      className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${selectedServices.insurance
-                        ? "border-blue-600 bg-blue-50 dark:bg-blue-900/20"
-                        : "border-gray-200 dark:border-gray-700 hover:border-blue-300"
-                        }`}
-                      onClick={() =>
-                        setSelectedServices((prev) => ({
-                          ...prev,
-                          insurance: !prev.insurance,
-                        }))
-                      }
-                    >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`p-2 rounded-full ${selectedServices.insurance ? "bg-blue-600 text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-500"}`}
-                        >
-                          <ShieldCheck className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <h4 className="font-medium text-gray-900 dark:text-white">
-                            Assurance (Garantie Plateforme)
-                          </h4>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Protection complète contre la perte ou les dommages
-                          </p>
-                        </div>
-                        <div className="ml-auto">
-                          <input
-                            type="checkbox"
-                            aria-label="Assurance"
-                            checked={selectedServices.insurance}
-                            onChange={() => { }} // Handled by parent div click
-                            className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
-                          />
+                    {isFeeActive("insurance") && (
+                      <div
+                        className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${selectedServices.insurance
+                          ? "border-blue-600 bg-blue-50 dark:bg-blue-900/20"
+                          : "border-gray-200 dark:border-gray-700 hover:border-blue-300"
+                          }`}
+                        onClick={() =>
+                          setSelectedServices((prev) => ({
+                            ...prev,
+                            insurance: !prev.insurance,
+                          }))
+                        }
+                      >
+                        <div className="flex items-center gap-3">
+                          <div
+                            className={`p-2 rounded-full ${selectedServices.insurance ? "bg-blue-600 text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-500"}`}
+                          >
+                            <ShieldCheck className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <h4 className="font-medium text-gray-900 dark:text-white">
+                              Assurance (Garantie Plateforme)
+                            </h4>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                              Protection complète contre la perte ou les dommages
+                            </p>
+                          </div>
+                          <div className="ml-auto">
+                            <input
+                              type="checkbox"
+                              aria-label="Assurance"
+                              checked={selectedServices.insurance}
+                              onChange={() => { }} // Handled by parent div click
+                              className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                            />
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    )}
 
-                    <div
-                      className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${selectedServices.priority
-                        ? "border-blue-600 bg-blue-50 dark:bg-blue-900/20"
-                        : "border-gray-200 dark:border-gray-700 hover:border-blue-300"
-                        }`}
-                      onClick={() =>
-                        setSelectedServices((prev) => ({
-                          ...prev,
-                          priority: !prev.priority,
-                        }))
-                      }
-                    >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`p-2 rounded-full ${selectedServices.priority ? "bg-blue-600 text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-500"}`}
-                        >
-                          <Zap className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <h4 className="font-medium text-gray-900 dark:text-white">
-                            Traitement Prioritaire
-                          </h4>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Accélérez le traitement de votre dossier
-                          </p>
-                        </div>
-                        <div className="ml-auto">
-                          <input
-                            type="checkbox"
-                            aria-label="Traitement Prioritaire"
-                            checked={selectedServices.priority}
-                            onChange={() => { }} // Handled by parent div click
-                            className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
-                          />
+                    {isFeeActive("priority") && (
+                      <div
+                        className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${selectedServices.priority
+                          ? "border-blue-600 bg-blue-50 dark:bg-blue-900/20"
+                          : "border-gray-200 dark:border-gray-700 hover:border-blue-300"
+                          }`}
+                        onClick={() =>
+                          setSelectedServices((prev) => ({
+                            ...prev,
+                            priority: !prev.priority,
+                          }))
+                        }
+                      >
+                        <div className="flex items-center gap-3">
+                          <div
+                            className={`p-2 rounded-full ${selectedServices.priority ? "bg-blue-600 text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-500"}`}
+                          >
+                            <Zap className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <h4 className="font-medium text-gray-900 dark:text-white">
+                              Traitement Prioritaire
+                            </h4>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                              Accélérez le traitement de votre dossier
+                            </p>
+                          </div>
+                          <div className="ml-auto">
+                            <input
+                              type="checkbox"
+                              aria-label="Traitement Prioritaire"
+                              checked={selectedServices.priority}
+                              onChange={() => { }} // Handled by parent div click
+                              className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                            />
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    )}
 
-                    <div
-                      className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${selectedServices.packaging
-                        ? "border-blue-600 bg-blue-50 dark:bg-blue-900/20"
-                        : "border-gray-200 dark:border-gray-700 hover:border-blue-300"
-                        }`}
-                      onClick={() =>
-                        setSelectedServices((prev) => ({
-                          ...prev,
-                          packaging: !prev.packaging,
-                        }))
-                      }
-                    >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`p-2 rounded-full ${selectedServices.packaging ? "bg-blue-600 text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-500"}`}
-                        >
-                          <Box className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <h4 className="font-medium text-gray-900 dark:text-white">
-                            Emballage Renforcé
-                          </h4>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Protection supplémentaire pour vos colis fragiles
-                          </p>
-                        </div>
-                        <div className="ml-auto">
-                          <input
-                            type="checkbox"
-                            aria-label="Emballage Renforcé"
-                            checked={selectedServices.packaging}
-                            onChange={() => { }} // Handled by parent div click
-                            className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
-                          />
+                    {isFeeActive("packaging") && (
+                      <div
+                        className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${selectedServices.packaging
+                          ? "border-blue-600 bg-blue-50 dark:bg-blue-900/20"
+                          : "border-gray-200 dark:border-gray-700 hover:border-blue-300"
+                          }`}
+                        onClick={() =>
+                          setSelectedServices((prev) => ({
+                            ...prev,
+                            packaging: !prev.packaging,
+                          }))
+                        }
+                      >
+                        <div className="flex items-center gap-3">
+                          <div
+                            className={`p-2 rounded-full ${selectedServices.packaging ? "bg-blue-600 text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-500"}`}
+                          >
+                            <Box className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <h4 className="font-medium text-gray-900 dark:text-white">
+                              Emballage Renforcé
+                            </h4>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                              Protection supplémentaire pour vos colis fragiles
+                            </p>
+                          </div>
+                          <div className="ml-auto">
+                            <input
+                              type="checkbox"
+                              aria-label="Emballage Renforcé"
+                              checked={selectedServices.packaging}
+                              onChange={() => { }} // Handled by parent div click
+                              className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                            />
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    )}
 
-                    <div
-                      className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${selectedServices.inspection
-                        ? "border-blue-600 bg-blue-50 dark:bg-blue-900/20"
-                        : "border-gray-200 dark:border-gray-700 hover:border-blue-300"
-                        }`}
-                      onClick={() =>
-                        setSelectedServices((prev) => ({
-                          ...prev,
-                          inspection: !prev.inspection,
-                        }))
-                      }
-                    >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`p-2 rounded-full ${selectedServices.inspection ? "bg-blue-600 text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-500"}`}
-                        >
-                          <ClipboardCheck className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <h4 className="font-medium text-gray-900 dark:text-white">
-                            Inspection Qualité
-                          </h4>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Vérification de la conformité de la marchandise
-                          </p>
-                        </div>
-                        <div className="ml-auto">
-                          <input
-                            type="checkbox"
-                            aria-label="Inspection Qualité"
-                            checked={selectedServices.inspection}
-                            onChange={() => { }} // Handled by parent div click
-                            className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
-                          />
+                    {isFeeActive("inspection") && (
+                      <div
+                        className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${selectedServices.inspection
+                          ? "border-blue-600 bg-blue-50 dark:bg-blue-900/20"
+                          : "border-gray-200 dark:border-gray-700 hover:border-blue-300"
+                          }`}
+                        onClick={() =>
+                          setSelectedServices((prev) => ({
+                            ...prev,
+                            inspection: !prev.inspection,
+                          }))
+                        }
+                      >
+                        <div className="flex items-center gap-3">
+                          <div
+                            className={`p-2 rounded-full ${selectedServices.inspection ? "bg-blue-600 text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-500"}`}
+                          >
+                            <ClipboardCheck className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <h4 className="font-medium text-gray-900 dark:text-white">
+                              Inspection Qualité
+                            </h4>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                              Vérification de la conformité de la marchandise
+                            </p>
+                          </div>
+                          <div className="ml-auto">
+                            <input
+                              type="checkbox"
+                              aria-label="Inspection Qualité"
+                              checked={selectedServices.inspection}
+                              onChange={() => { }} // Handled by parent div click
+                              className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                            />
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    )}
 
-                    <div
-                      className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${selectedServices.door_to_door
-                        ? "border-blue-600 bg-blue-50 dark:bg-blue-900/20"
-                        : "border-gray-200 dark:border-gray-700 hover:border-blue-300"
-                        }`}
-                      onClick={() =>
-                        setSelectedServices((prev) => ({
-                          ...prev,
-                          door_to_door: !prev.door_to_door,
-                        }))
-                      }
-                    >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`p-2 rounded-full ${selectedServices.door_to_door ? "bg-blue-600 text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-500"}`}
-                        >
-                          <Truck className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <h4 className="font-medium text-gray-900 dark:text-white">
-                            Door to Door
-                          </h4>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Livraison jusqu'à l'adresse finale
-                          </p>
-                        </div>
-                        <div className="ml-auto">
-                          <input
-                            type="checkbox"
-                            aria-label="Door to Door"
-                            checked={selectedServices.door_to_door}
-                            onChange={() => { }} // Handled by parent div click
-                            className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
-                          />
+                    {isFeeActive("door_to_door") && (
+                      <div
+                        className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${selectedServices.door_to_door
+                          ? "border-blue-600 bg-blue-50 dark:bg-blue-900/20"
+                          : "border-gray-200 dark:border-gray-700 hover:border-blue-300"
+                          }`}
+                        onClick={() =>
+                          setSelectedServices((prev) => ({
+                            ...prev,
+                            door_to_door: !prev.door_to_door,
+                          }))
+                        }
+                      >
+                        <div className="flex items-center gap-3">
+                          <div
+                            className={`p-2 rounded-full ${selectedServices.door_to_door ? "bg-blue-600 text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-500"}`}
+                          >
+                            <Truck className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <h4 className="font-medium text-gray-900 dark:text-white">
+                              Door to Door
+                            </h4>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                              Livraison jusqu'à l'adresse finale
+                            </p>
+                          </div>
+                          <div className="ml-auto">
+                            <input
+                              type="checkbox"
+                              aria-label="Door to Door"
+                              checked={selectedServices.door_to_door}
+                              onChange={() => { }} // Handled by parent div click
+                              className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                            />
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    )}
 
-                    <div
-                      className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${selectedServices.storage
-                        ? "border-blue-600 bg-blue-50 dark:bg-blue-900/20"
-                        : "border-gray-200 dark:border-gray-700 hover:border-blue-300"
-                        }`}
-                      onClick={() =>
-                        setSelectedServices((prev) => ({
-                          ...prev,
-                          storage: !prev.storage,
-                        }))
-                      }
-                    >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`p-2 rounded-full ${selectedServices.storage ? "bg-blue-600 text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-500"}`}
-                        >
-                          <Warehouse className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <h4 className="font-medium text-gray-900 dark:text-white">
-                            Stockage
-                          </h4>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Entreposage temporaire
-                          </p>
-                        </div>
-                        <div className="ml-auto">
-                          <input
-                            type="checkbox"
-                            aria-label="Stockage"
-                            checked={selectedServices.storage}
-                            onChange={() => { }} // Handled by parent div click
-                            className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
-                          />
+                    {isFeeActive("storage") && (
+                      <div
+                        className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${selectedServices.storage
+                          ? "border-blue-600 bg-blue-50 dark:bg-blue-900/20"
+                          : "border-gray-200 dark:border-gray-700 hover:border-blue-300"
+                          }`}
+                        onClick={() =>
+                          setSelectedServices((prev) => ({
+                            ...prev,
+                            storage: !prev.storage,
+                          }))
+                        }
+                      >
+                        <div className="flex items-center gap-3">
+                          <div
+                            className={`p-2 rounded-full ${selectedServices.storage ? "bg-blue-600 text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-500"}`}
+                          >
+                            <Warehouse className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <h4 className="font-medium text-gray-900 dark:text-white">
+                              Stockage
+                            </h4>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                              Entreposage temporaire
+                            </p>
+                          </div>
+                          <div className="ml-auto">
+                            <input
+                              type="checkbox"
+                              aria-label="Stockage"
+                              checked={selectedServices.storage}
+                              onChange={() => { }} // Handled by parent div click
+                              className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                            />
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 </div>
               </form>
