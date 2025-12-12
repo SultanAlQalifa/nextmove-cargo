@@ -12,6 +12,7 @@ export default function SnowEffect() {
         // eslint-disable-next-line react-dom/no-unsafe-style-property
         <div className="fixed inset-0 pointer-events-none z-[9999] overflow-hidden" aria-hidden="true">
             {snowflakes.map((i) => (
+                // eslint-disable-next-line
                 <div
                     key={i}
                     className="absolute top-[-10px] bg-white rounded-full opacity-80 animate-snow"
