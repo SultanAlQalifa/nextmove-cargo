@@ -12,45 +12,45 @@ const popularCountries: {
   language: string;
   currency: string;
 }[] = [
-  // French-speaking (Africa & Europe)
-  { code: "SN", name: "Sénégal", flag: "🇸🇳", language: "fr", currency: "XOF" },
-  {
-    code: "CI",
-    name: "Côte d'Ivoire",
-    flag: "🇨🇮",
-    language: "fr",
-    currency: "XOF",
-  },
-  { code: "ML", name: "Mali", flag: "🇲🇱", language: "fr", currency: "XOF" },
-  { code: "FR", name: "France", flag: "🇫🇷", language: "fr", currency: "EUR" },
+    // French-speaking (Africa & Europe)
+    { code: "SN", name: "Sénégal", flag: "🇸🇳", language: "fr", currency: "XOF" },
+    {
+      code: "CI",
+      name: "Côte d'Ivoire",
+      flag: "🇨🇮",
+      language: "fr",
+      currency: "XOF",
+    },
+    { code: "ML", name: "Mali", flag: "🇲🇱", language: "fr", currency: "XOF" },
+    { code: "FR", name: "France", flag: "🇫🇷", language: "fr", currency: "EUR" },
 
-  // Chinese-speaking
-  { code: "CN", name: "中国", flag: "🇨🇳", language: "zh", currency: "CNY" },
-  { code: "HK", name: "香港", flag: "🇭🇰", language: "zh", currency: "HKD" },
-  { code: "TW", name: "台灣", flag: "🇹🇼", language: "zh", currency: "TWD" },
+    // Chinese-speaking
+    { code: "CN", name: "中国", flag: "🇨🇳", language: "zh", currency: "CNY" },
+    { code: "HK", name: "香港", flag: "🇭🇰", language: "zh", currency: "HKD" },
+    { code: "TW", name: "台灣", flag: "🇹🇼", language: "zh", currency: "TWD" },
 
-  // English-speaking
-  {
-    code: "US",
-    name: "United States",
-    flag: "🇺🇸",
-    language: "en",
-    currency: "USD",
-  },
-  {
-    code: "GB",
-    name: "United Kingdom",
-    flag: "🇬🇧",
-    language: "en",
-    currency: "GBP",
-  },
-  { code: "NG", name: "Nigeria", flag: "🇳🇬", language: "en", currency: "NGN" },
-  { code: "GH", name: "Ghana", flag: "🇬🇭", language: "en", currency: "GHS" },
+    // English-speaking
+    {
+      code: "US",
+      name: "United States",
+      flag: "🇺🇸",
+      language: "en",
+      currency: "USD",
+    },
+    {
+      code: "GB",
+      name: "United Kingdom",
+      flag: "🇬🇧",
+      language: "en",
+      currency: "GBP",
+    },
+    { code: "NG", name: "Nigeria", flag: "🇳🇬", language: "en", currency: "NGN" },
+    { code: "GH", name: "Ghana", flag: "🇬🇭", language: "en", currency: "GHS" },
 
-  // Spanish-speaking
-  { code: "ES", name: "España", flag: "🇪🇸", language: "es", currency: "EUR" },
-  { code: "MX", name: "México", flag: "🇲🇽", language: "es", currency: "MXN" },
-];
+    // Spanish-speaking
+    { code: "ES", name: "España", flag: "🇪🇸", language: "es", currency: "EUR" },
+    { code: "MX", name: "México", flag: "🇲🇽", language: "es", currency: "MXN" },
+  ];
 
 export default function MobileCountrySelector() {
   const [isOpen, setIsOpen] = useState(false);
@@ -94,6 +94,9 @@ export default function MobileCountrySelector() {
     setCurrency(country.currency);
     setCountryCode(country.code);
     setIsOpen(false);
+
+    // Force reload to ensure all components (date pickers, etc) update correctly
+    window.location.reload();
   };
 
   // Detect mobile view

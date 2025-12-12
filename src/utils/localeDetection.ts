@@ -74,9 +74,7 @@ export async function detectUserLocale(): Promise<LocaleConfig> {
 
     // If we have a country code from browser, use it
     if (countryCode && countryLocaleMap[countryCode]) {
-      const config = countryLocaleMap[countryCode];
-      localStorage.setItem("userLocale", JSON.stringify(config));
-      return config;
+      return countryLocaleMap[countryCode];
     }
 
     // Otherwise, create config based on language
@@ -104,17 +102,14 @@ export async function detectUserLocale(): Promise<LocaleConfig> {
         const detectedCountry = data.country_code;
 
         if (detectedCountry && countryLocaleMap[detectedCountry]) {
-          const geoConfig = countryLocaleMap[detectedCountry];
-          localStorage.setItem("userLocale", JSON.stringify(geoConfig));
-          return geoConfig;
+          return countryLocaleMap[detectedCountry];
         }
       }
     } catch (geoError) {
       // Geolocation failed (CORS, timeout, etc.) - that's okay, use browser language
     }
 
-    // Save and return browser-based config
-    localStorage.setItem("userLocale", JSON.stringify(languageBasedConfig));
+    // Return browser-based config without saving (allow dynamic detection until manual override)
     return languageBasedConfig;
   } catch (error) {
     console.error("Error detecting user locale:", error);
