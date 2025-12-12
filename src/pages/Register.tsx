@@ -15,6 +15,8 @@ import {
   CheckCircle2,
   Send,
   Phone,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import GoogleLoginButton from "../components/auth/GoogleLoginButton";
 import PhoneInputWithCountry from "../components/auth/PhoneInputWithCountry";
@@ -30,6 +32,8 @@ export default function Register() {
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [role, setRole] = useState("client");
   const [transportModes, setTransportModes] = useState<string[]>([]);
   const [referralCode, setReferralCode] = useState("");
@@ -253,9 +257,17 @@ export default function Register() {
 
         <div className="relative z-10 flex flex-col justify-between p-16 text-white w-full h-full">
           <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-xl shadow-blue-500/20">
-              <span className="font-bold text-2xl">N</span>
-            </div>
+            {settings?.logo_url ? (
+              <img
+                src={settings.logo_url}
+                alt="Logo"
+                className="h-12 object-contain"
+              />
+            ) : (
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-xl shadow-blue-500/20">
+                <span className="font-bold text-2xl">N</span>
+              </div>
+            )}
             <span className="text-2xl font-bold tracking-tight">
               NextMove Cargo
             </span>
@@ -505,14 +517,21 @@ export default function Register() {
                       <input
                         id="password"
                         name="password"
-                        type="password"
+                        type={showPassword ? "text" : "password"}
                         autoComplete="new-password"
                         required
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="block w-full pl-11 pr-4 py-4 border-2 border-transparent bg-white dark:bg-slate-900 rounded-2xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-blue-500/20 focus:ring-4 focus:ring-blue-500/10 shadow-sm shadow-slate-200/50 dark:shadow-none transition-all duration-200"
+                        className="block w-full pl-11 pr-12 py-4 border-2 border-transparent bg-white dark:bg-slate-900 rounded-2xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-blue-500/20 focus:ring-4 focus:ring-blue-500/10 shadow-sm shadow-slate-200/50 dark:shadow-none transition-all duration-200"
                         placeholder="••••••••"
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-blue-500 transition-colors cursor-pointer"
+                      >
+                        {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                      </button>
                     </div>
                   </div>
 
@@ -530,14 +549,21 @@ export default function Register() {
                       <input
                         id="confirmPassword"
                         name="confirmPassword"
-                        type="password"
+                        type={showConfirmPassword ? "text" : "password"}
                         autoComplete="new-password"
                         required
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
-                        className={`block w-full pl-11 pr-4 py-4 border-2 ${confirmPassword && password !== confirmPassword ? "border-red-300 focus:border-red-500 focus:ring-red-200" : "border-transparent focus:border-blue-500/20 focus:ring-blue-500/10"} bg-white dark:bg-slate-900 rounded-2xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-4 shadow-sm shadow-slate-200/50 dark:shadow-none transition-all duration-200`}
+                        className={`block w-full pl-11 pr-12 py-4 border-2 ${confirmPassword && password !== confirmPassword ? "border-red-300 focus:border-red-500 focus:ring-red-200" : "border-transparent focus:border-blue-500/20 focus:ring-blue-500/10"} bg-white dark:bg-slate-900 rounded-2xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-4 shadow-sm shadow-slate-200/50 dark:shadow-none transition-all duration-200`}
                         placeholder="••••••••"
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-blue-500 transition-colors cursor-pointer"
+                      >
+                        {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                      </button>
                     </div>
                     {confirmPassword && password !== confirmPassword && (
                       <p className="text-sm text-red-500 font-medium animate-in slide-in-from-top-1 ml-1">
