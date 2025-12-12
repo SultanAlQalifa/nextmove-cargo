@@ -12,7 +12,7 @@ export const exportToCSV = (
   filename: string,
 ) => {
   if (!data || !data.length) {
-    alert("Aucune donnée à exporter");
+    console.warn("Aucune donnée à exporter");
     return;
   }
 

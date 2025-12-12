@@ -10,6 +10,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
+import { useToast } from "../../contexts/ToastContext";
 import { supabase } from "../../lib/supabase";
 
 interface Referral {
@@ -27,6 +28,7 @@ interface Referral {
 export default function ReferralDashboard() {
   const { t } = useTranslation();
   const { user, profile, refreshProfile } = useAuth();
+  const { success, error: toastError } = useToast();
   const [stats, setStats] = useState({
     total: 0,
     pending: 0,
@@ -106,10 +108,10 @@ export default function ReferralDashboard() {
       await fetchWalletData();
 
       setShowConfirm(false);
-      alert("✅ Conversion réussie ! Votre portefeuille a été crédité.");
+      success("✅ Conversion réussie ! Votre portefeuille a été crédité.");
     } catch (error: any) {
       console.error("Conversion error:", error);
-      alert("❌ Erreur : " + (error.message || "Erreur inconnue"));
+      toastError("❌ Erreur : " + (error.message || "Erreur inconnue"));
     } finally {
       setConverting(false);
     }
@@ -205,7 +207,7 @@ export default function ReferralDashboard() {
           text: `Rejoignez - moi sur NextMove Cargo! Utilisez mon code ${codeToUse} pour obtenir des avantages.`,
           url: `${window.location.origin}/register?referral=${codeToUse}`,
         });
-      } catch (err) {}
+      } catch (err) { }
     }
   };
 
@@ -267,7 +269,7 @@ export default function ReferralDashboard() {
                 <button
                   onClick={() => {
                     if (stats.totalPoints < 10) {
-                      alert("Il faut au moins 10 points.");
+                      toastError("Il faut au moins 10 points.");
                       return;
                     }
                     setShowConfirm(true);
@@ -408,12 +410,11 @@ export default function ReferralDashboard() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                                ${
-                                                  ref.status === "completed" ||
-                                                  ref.status === "rewarded"
-                                                    ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-                                                    : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400"
-                                                }`}
+                                                ${ref.status === "completed" ||
+                            ref.status === "rewarded"
+                            ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                            : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400"
+                          }`}
                       >
                         {ref.status === "pending" ? "En attente" : "Validé"}
                       </span>

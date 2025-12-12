@@ -46,7 +46,7 @@ export default function Login() {
       } else {
         // Phone Auth
         if (!phone || phone.length < 8) {
-          throw new Error("Numéro de téléphone invalide");
+          throw new Error(t("auth.invalidPhone"));
         }
         const res = await supabase.auth.signInWithPassword({
           phone: phone,
@@ -60,7 +60,7 @@ export default function Login() {
     } catch (err: any) {
       setError(
         err.message === "Invalid login credentials"
-          ? "Identifiants incorrects."
+          ? t("auth.invalidCredentials")
           : err.message
       );
     } finally {
@@ -89,12 +89,12 @@ export default function Login() {
       if (error) throw error;
       setResetMessage({
         type: "success",
-        text: "Email de réinitialisation envoyé ! Vérifiez votre boîte mail.",
+        text: t("auth.resetSentSuccess"),
       });
     } catch (err: any) {
       setResetMessage({
         type: "error",
-        text: err.message || "Erreur lors de l'envoi de l'email.",
+        text: err.message || t("auth.resetSentError"),
       });
     } finally {
       setResetLoading(false);
@@ -139,7 +139,7 @@ export default function Login() {
               className="absolute top-4 right-4 p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 transition-colors"
             >
               <ArrowRight className="w-5 h-5 rotate-180" />
-              <span className="sr-only">Fermer</span>
+              <span className="sr-only">{t("common.close", "Fermer")}</span>
             </button>
 
             <div className="text-center mb-8">
@@ -147,10 +147,10 @@ export default function Login() {
                 <Lock className="w-8 h-8" />
               </div>
               <h3 className="text-2xl font-bold text-slate-900 dark:text-white">
-                Mot de passe oublié ?
+                {t("auth.forgotPasswordTitle")}
               </h3>
               <p className="text-slate-500 dark:text-slate-400 mt-2">
-                Entrez votre email pour recevoir un lien de réinitialisation.
+                {t("auth.forgotPasswordDesc")}
               </p>
             </div>
 
@@ -189,7 +189,7 @@ export default function Login() {
                 disabled={resetLoading}
                 className="w-full py-3.5 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-500 transition-all duration-200 shadow-lg shadow-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-0.5"
               >
-                {resetLoading ? "Envoi en cours..." : "Envoyer le lien"}
+                {resetLoading ? t("auth.sending") : t("auth.sendLink")}
               </button>
             </form>
           </div>
@@ -296,7 +296,7 @@ export default function Login() {
                     </div>
                     <div className="relative flex justify-center text-sm">
                       <span className="px-2 bg-white dark:bg-slate-900 text-slate-500">
-                        Ou continuer avec
+                        {t("auth.orContinueWith")}
                       </span>
                     </div>
                   </div>
@@ -321,7 +321,7 @@ export default function Login() {
                         : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
                         }`}
                     >
-                      Téléphone
+                      {t("auth.phone")}
                     </button>
                   </div>
                 </div>
@@ -354,7 +354,7 @@ export default function Login() {
                 ) : (
                   <div className="space-y-2">
                     <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">
-                      Numéro de téléphone
+                      {t("auth.phoneNumber")}
                     </label>
                     <PhoneInputWithCountry
                       value={phone}

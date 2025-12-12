@@ -80,10 +80,41 @@ export default function RichEditor({
     </button>
   );
 
+  const [inputMode, setInputMode] = React.useState<{ type: 'link' | 'image', value: string } | null>(null);
+
+  const handleInputSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (inputMode && inputMode.value) {
+      if (inputMode.type === 'link') exec("createLink", inputMode.value);
+      if (inputMode.type === 'image') exec("insertImage", inputMode.value);
+    }
+    setInputMode(null);
+  };
+
   return (
     <div
-      className={`flex flex-col border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden bg-white dark:bg-gray-800 ${className}`}
+      className={`flex flex-col border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden bg-white dark:bg-gray-800 relative ${className}`}
     >
+      {/* Input Overlay */}
+      {inputMode && (
+        <div className="absolute top-0 left-0 right-0 z-10 p-2 bg-gray-50 border-b border-gray-200 flex items-center gap-2 animate-in slide-in-from-top-2">
+          <input
+            type="text"
+            value={inputMode.value}
+            onChange={(e) => setInputMode({ ...inputMode, value: e.target.value })}
+            placeholder={inputMode.type === 'link' ? "URL du lien..." : "URL de l'image..."}
+            className="flex-1 px-3 py-1 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
+            autoFocus
+          />
+          <button onClick={handleInputSubmit} className="px-3 py-1 text-xs font-bold text-white bg-primary rounded-lg hover:bg-primary/90">
+            OK
+          </button>
+          <button onClick={() => setInputMode(null)} className="px-3 py-1 text-xs font-medium text-gray-600 bg-gray-200 rounded-lg hover:bg-gray-300">
+            Annuler
+          </button>
+        </div>
+      )}
+
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-1 p-2 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50">
         <div className="flex items-center gap-0.5 border-r border-gray-200 dark:border-gray-700 pr-2 mr-1">
@@ -156,23 +187,17 @@ export default function RichEditor({
         <div className="flex items-center gap-0.5 ml-auto">
           <button
             type="button"
-            onClick={() => {
-              const url = prompt("URL du lien :");
-              if (url) exec("createLink", url);
-            }}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-600 dark:text-gray-300"
+            onClick={() => setInputMode({ type: 'link', value: '' })}
+            className={`p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-600 dark:text-gray-300 ${inputMode?.type === 'link' ? 'bg-gray-200' : ''}`}
             title="Insérer un lien"
           >
             <LinkIcon className="w-4 h-4" />
           </button>
-          {/* Image insertion handled externally via drag-drop usually, but basic url method here */}
+
           <button
             type="button"
-            onClick={() => {
-              const url = prompt("URL de l'image :");
-              if (url) exec("insertImage", url);
-            }}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-600 dark:text-gray-300"
+            onClick={() => setInputMode({ type: 'image', value: '' })}
+            className={`p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-600 dark:text-gray-300 ${inputMode?.type === 'image' ? 'bg-gray-200' : ''}`}
             title="Insérer une image web"
           >
             <ImageIcon className="w-4 h-4" />
@@ -183,7 +208,9 @@ export default function RichEditor({
       {/* Editor Area */}
       <div
         className="flex-1 overflow-y-auto bg-white dark:bg-gray-800 cursor-text group"
-        onClick={() => editorRef.current?.focus()}
+        onClick={() => {
+          if (!inputMode) editorRef.current?.focus();
+        }}
       >
         <div
           ref={editorRef}

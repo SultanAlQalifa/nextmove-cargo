@@ -10,6 +10,8 @@ interface ChatContextType {
     userId: string,
     details?: { name: string; email: string },
   ) => void;
+  isAIConversation: boolean;
+  setIsAIConversation: (isAI: boolean) => void;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -36,6 +38,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     setIsOpen(true);
   };
 
+  const [isAIConversation, setIsAIConversation] = useState(false);
+
   return (
     <ChatContext.Provider
       value={{
@@ -45,6 +49,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         setSelectedConversation,
         recipientDetails,
         openChatWith,
+        isAIConversation,
+        setIsAIConversation,
       }}
     >
       {children}

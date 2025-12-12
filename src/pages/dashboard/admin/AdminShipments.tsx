@@ -20,8 +20,10 @@ import {
   FileText,
 } from "lucide-react";
 import { shipmentService } from "../../../services/shipmentService";
+import { useToast } from "../../../contexts/ToastContext";
 
 export default function AdminShipments() {
+  const { error: toastError } = useToast();
   const [shipments, setShipments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -132,7 +134,7 @@ export default function AdminShipments() {
 
   const handleWhatsAppNotify = (shipment: any) => {
     if (!shipment.clientPhone) {
-      alert("Numéro de téléphone du client non disponible.");
+      toastError("Numéro de téléphone du client non disponible.");
       return;
     }
     const message = `Bonjour ${shipment.client}, votre colis ${shipment.id} est actuellement : ${shipment.status}. Suivez votre livraison sur notre plateforme.`;
@@ -219,11 +221,10 @@ export default function AdminShipments() {
               onClick={() => setTimeRange(period.id as any)}
               className={`
                                 px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2
-                                ${
-                                  timeRange === period.id
-                                    ? "bg-white text-gray-900 shadow-sm"
-                                    : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
-                                }
+                                ${timeRange === period.id
+                  ? "bg-white text-gray-900 shadow-sm"
+                  : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+                }
                             `}
               title={
                 period.id === "custom" ? "Période personnalisée" : undefined

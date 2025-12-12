@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../contexts/AuthContext";
+import { useToast } from "../contexts/ToastContext";
 import { useTranslation } from "react-i18next";
 import {
   Mail,
@@ -25,6 +26,7 @@ import PhoneInputWithCountry from "../components/auth/PhoneInputWithCountry";
 export default function Register() {
   const { t } = useTranslation();
   const { settings } = useBranding();
+  const { success: showSuccess, error: showError } = useToast();
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
 
@@ -223,9 +225,9 @@ export default function Register() {
                       email: email,
                     });
                     if (error) throw error;
-                    alert("Email renvoyé avec succès !");
+                    showSuccess("Email renvoyé avec succès !");
                   } catch (err: any) {
-                    alert(err.message || "Erreur lors du renvoi.");
+                    showError(err.message || "Erreur lors du renvoi.");
                   } finally {
                     setLoading(false);
                   }
@@ -573,6 +575,20 @@ export default function Register() {
                       </p>
                     )}
                   </div>
+                </div>
+
+                <div>
+                  <label htmlFor="referralCode" className="block text-sm font-bold text-slate-700 dark:text-slate-300 ml-1 mb-2">
+                    Code de Parrainage (Optionnel)
+                  </label>
+                  <input
+                    id="referralCode"
+                    type="text"
+                    value={referralCode}
+                    onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+                    className="block w-full px-4 py-4 border-2 border-transparent bg-white dark:bg-slate-900 rounded-2xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-blue-500/20 focus:ring-4 focus:ring-blue-500/10 shadow-sm shadow-slate-200/50 dark:shadow-none transition-all duration-200"
+                    placeholder="Ex: NEXT-123"
+                  />
                 </div>
 
                 <div>

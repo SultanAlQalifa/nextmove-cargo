@@ -21,7 +21,7 @@ import ConfirmationModal from "../../../components/common/ConfirmationModal";
 import EditShipmentModal from "../../../components/dashboard/EditShipmentModal";
 
 export default function ForwarderShipments() {
-  const { success } = useToast();
+  const { success, error: toastError } = useToast();
   const navigate = useNavigate();
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -87,7 +87,7 @@ export default function ForwarderShipments() {
     } catch (error: any) {
       console.error("Error deleting shipment:", error);
       // Use toast error if available, or just log
-      alert(error.message || "Erreur lors de la suppression");
+      toastError(error.message || "Erreur lors de la suppression");
     }
   };
 

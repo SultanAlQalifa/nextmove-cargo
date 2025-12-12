@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { useAuth } from "../../contexts/AuthContext";
 import { rateService, Rate } from "../../services/rateService";
 import { Plus, Trash2, Edit2 } from "lucide-react";
+import ConfirmationModal from "../common/ConfirmationModal";
 
 export default function RateManager() {
   const { user } = useAuth();
@@ -10,6 +11,10 @@ export default function RateManager() {
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [confirmation, setConfirmation] = useState<{
+    isOpen: boolean;
+    id: string | null;
+  }>({ isOpen: false, id: null });
 
   const { register, handleSubmit, reset, watch } = useForm<Rate>({
     defaultValues: {
@@ -54,13 +59,19 @@ export default function RateManager() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure?")) return;
+  const handleDelete = (id: string) => {
+    setConfirmation({ isOpen: true, id });
+  };
+
+  const confirmDelete = async () => {
+    if (!confirmation.id) return;
     try {
-      await rateService.deleteRate(id);
+      await rateService.deleteRate(confirmation.id);
       await loadRates();
     } catch (error) {
       console.error("Error deleting rate:", error);
+    } finally {
+      setConfirmation({ isOpen: false, id: null });
     }
   };
 
@@ -269,6 +280,15 @@ export default function RateManager() {
           </tbody>
         </table>
       </div>
+      <ConfirmationModal
+        isOpen={confirmation.isOpen}
+        onClose={() => setConfirmation({ isOpen: false, id: null })}
+        onConfirm={confirmDelete}
+        title="Delete Rate"
+        message="Are you sure you want to delete this shipping rate? This action cannot be undone."
+        variant="danger"
+        confirmLabel="Delete"
+      />
     </div>
   );
 }

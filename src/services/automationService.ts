@@ -86,6 +86,56 @@ export const automationService = {
                 carrier_logo: offer.forwarder?.avatar_url
             });
 
+            // 4. QUEUE AUTOMATED EMAIL (Client Notification)
+            const clientEmailSubject = `Confirmation d'Acceptation de l'Offre - RFQ ${rfq.id.slice(0, 8)}`;
+            const clientEmailBody = `
+                <div style="font-family: sans-serif; padding: 20px;">
+                    <h2 style="color: #2563eb;">Offre Acceptée !</h2>
+                    <p>Bonjour,</p>
+                    <p>Vous avez accepté l'offre de transport de <strong>${offer.forwarder?.company_name || 'votre transitaire'}</strong>.</p>
+                    <p><strong>Détails de l'expédition :</strong></p>
+                    <ul>
+                        <li>Numéro de Suivi : <strong>${trackingNumber}</strong></li>
+                        <li>Montant : ${offer.total_price} ${offer.currency}</li>
+                        <li>Départ estimé : ${departureDate.toLocaleDateString()}</li>
+                    </ul>
+                    <p>Votre expédition a été créée et est en attente de paiement.</p>
+                </div>
+            `;
+
+            await fetchWithRetry(() =>
+                supabase.from('email_queue').insert({
+                    sender_id: null, // System Notification
+                    subject: clientEmailSubject,
+                    body: clientEmailBody,
+                    recipient_group: 'specific',
+                    recipient_emails: [rfq.client_id], // In a real app we'd fetch the email, here we use ID as placeholder or simulation
+                    status: 'pending'
+                })
+            );
+
+            // 5. QUEUE AUTOMATED EMAIL (Forwarder Notification)
+            const forwarderEmailSubject = `Nouveau Contrat Remporté - RFQ ${rfq.id.slice(0, 8)}`;
+            const forwarderEmailBody = `
+                <div style="font-family: sans-serif; padding: 20px;">
+                    <h2 style="color: #16a34a;">Félicitations !</h2>
+                    <p>Votre offre a été retenue pour la demande de cotation.</p>
+                    <p>Un nouveau dossier d'expédition a été généré : <strong>${trackingNumber}</strong>.</p>
+                    <p>Veuillez préparer les documents nécessaires.</p>
+                </div>
+            `;
+
+            await fetchWithRetry(() =>
+                supabase.from('email_queue').insert({
+                    sender_id: null, // System Notification
+                    subject: forwarderEmailSubject,
+                    body: forwarderEmailBody,
+                    recipient_group: 'specific',
+                    recipient_emails: [offer.forwarder_id],
+                    status: 'pending'
+                })
+            );
+
             if (shipmentError) {
                 logger.error("[Automation] Error creating shipment:", shipmentError);
             } else {
@@ -105,8 +155,7 @@ export const automationService = {
     handleShipmentDelivery: async (shipmentId: string, clientId: string): Promise<void> => {
         try {
             // Check if automation is enabled for the forwarder
-            // We need to find who the forwarder is for this shipment
-            const { data: shipment } = await supabase.from('shipments').select('forwarder_id').eq('id', shipmentId).single();
+            const { data: shipment } = await supabase.from('shipments').select('forwarder_id, tracking_number').eq('id', shipmentId).single();
             if (shipment?.forwarder_id) {
                 const { data: profile } = await supabase.from('profiles').select('automation_settings').eq('id', shipment.forwarder_id).single();
                 if (profile?.automation_settings && profile.automation_settings.delivery_feedback_enabled === false) {
@@ -115,10 +164,7 @@ export const automationService = {
                 }
             }
 
-            // Simulation: In a real app, this would trigger an Edge Function to send an email
-            logger.info(`[Automation] Shipment ${shipmentId} delivered. Triggering feedback request for Client ${clientId}.`);
-
-            // We could insert a notification into the DB
+            // In-App Notification
             await fetchWithRetry(() =>
                 supabase.from("notifications").insert({
                     user_id: clientId,
@@ -129,6 +175,35 @@ export const automationService = {
                     read: false
                 })
             );
+
+            // QUEUE EMAIL: Feedback Request
+            const feedbackSubject = `Livraison Effectuée - ${shipment?.tracking_number || 'Expédition'}`;
+            const feedbackBody = `
+                <div style="font-family: sans-serif; padding: 20px;">
+                    <h2 style="color: #2563eb;">Votre colis est arrivé !</h2>
+                    <p>Nous espérons que vous êtes satisfait de votre expérience.</p>
+                    <p>Merci de prendre un moment pour noter la prestation de votre transitaire.</p>
+                    <div style="margin-top: 20px;">
+                        <a href="${window.location.origin}/dashboard/client/shipments/${shipmentId}" 
+                           style="background-color: #fbbf24; color: black; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                           Laisser un avis
+                        </a>
+                    </div>
+                </div>
+            `;
+
+            await fetchWithRetry(() =>
+                supabase.from('email_queue').insert({
+                    sender_id: null,
+                    subject: feedbackSubject,
+                    body: feedbackBody,
+                    recipient_group: 'specific',
+                    recipient_emails: [clientId], // We'd resolve this to an actual email
+                    status: 'pending'
+                })
+            );
+
+            logger.info(`[Automation] Shipment ${shipmentId} delivered. Feedback request queued.`);
 
         } catch (error) {
             console.error("[Automation] Error handling delivery:", error);

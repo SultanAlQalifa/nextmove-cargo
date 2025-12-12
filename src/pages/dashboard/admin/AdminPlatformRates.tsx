@@ -21,9 +21,10 @@ import {
 import { locationService, Location } from "../../../services/locationService";
 import { useCurrency } from "../../../contexts/CurrencyContext";
 import {
-  formatCurrency,
   convertCurrency,
+  formatCurrency,
 } from "../../../utils/currencyFormatter";
+import ConfirmationModal from "../../../components/common/ConfirmationModal";
 
 // Matrix Configuration Types
 type RateType = "standard" | "express";
@@ -215,13 +216,24 @@ export default function AdminPlatformRates() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Êtes-vous sûr de vouloir supprimer ce tarif ?")) return;
-    try {
-      await platformRateService.deleteRate(id);
-      fetchData();
-    } catch (err) {
-      setError("Erreur lors de la suppression.");
+  const [confirmation, setConfirmation] = useState<{
+    isOpen: boolean;
+    id: string | null;
+  }>({ isOpen: false, id: null });
+
+  const handleDelete = (id: string) => {
+    setConfirmation({ isOpen: true, id });
+  };
+
+  const confirmDeleteRate = async () => {
+    if (confirmation.id) {
+      try {
+        await platformRateService.deleteRate(confirmation.id);
+        fetchData();
+        setConfirmation({ isOpen: false, id: null });
+      } catch (err) {
+        setError("Erreur lors de la suppression.");
+      }
     }
   };
 
@@ -789,6 +801,16 @@ export default function AdminPlatformRates() {
           </div>
         </div>
       )}
+
+      <ConfirmationModal
+        isOpen={confirmation.isOpen}
+        onClose={() => setConfirmation({ isOpen: false, id: null })}
+        onConfirm={confirmDeleteRate}
+        title="Supprimer le tarif"
+        message="Êtes-vous sûr de vouloir supprimer ce tarif ? Cette action est irréversible."
+        variant="danger"
+        confirmLabel="Supprimer"
+      />
     </div>
   );
 }

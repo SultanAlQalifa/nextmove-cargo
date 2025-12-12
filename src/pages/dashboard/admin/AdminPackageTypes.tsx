@@ -13,6 +13,7 @@ import {
   packageTypeService,
   PackageType,
 } from "../../../services/packageTypeService";
+import ConfirmationModal from "../../../components/common/ConfirmationModal";
 
 export default function AdminPackageTypes() {
   const [types, setTypes] = useState<PackageType[]>([]);
@@ -21,6 +22,11 @@ export default function AdminPackageTypes() {
   const [filter, setFilter] = useState<"all" | "active" | "pending">("all");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [newTypeLabel, setNewTypeLabel] = useState("");
+  const [confirmation, setConfirmation] = useState<{
+    isOpen: boolean;
+    id: string | null;
+    action: "approve" | "reject" | "delete" | null;
+  }>({ isOpen: false, id: null, action: null });
 
   useEffect(() => {
     loadTypes();
@@ -38,24 +44,34 @@ export default function AdminPackageTypes() {
     }
   };
 
-  const handleApprove = async (id: string) => {
-    if (confirm("Êtes-vous sûr de vouloir approuver ce type de colis ?")) {
-      await packageTypeService.approvePackageType(id);
-      loadTypes();
-    }
+  const handleApprove = (id: string) => {
+    setConfirmation({ isOpen: true, id, action: "approve" });
   };
 
-  const handleReject = async (id: string) => {
-    if (confirm("Êtes-vous sûr de vouloir rejeter ce type de colis ?")) {
-      await packageTypeService.rejectPackageType(id);
-      loadTypes();
-    }
+  const handleReject = (id: string) => {
+    setConfirmation({ isOpen: true, id, action: "reject" });
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm("Êtes-vous sûr de vouloir supprimer ce type de colis ?")) {
-      await packageTypeService.deletePackageType(id);
+  const handleDelete = (id: string) => {
+    setConfirmation({ isOpen: true, id, action: "delete" });
+  };
+
+  const handleConfirmAction = async () => {
+    if (!confirmation.id || !confirmation.action) return;
+
+    try {
+      if (confirmation.action === "approve") {
+        await packageTypeService.approvePackageType(confirmation.id);
+      } else if (confirmation.action === "reject") {
+        await packageTypeService.rejectPackageType(confirmation.id);
+      } else if (confirmation.action === "delete") {
+        await packageTypeService.deletePackageType(confirmation.id);
+      }
       loadTypes();
+    } catch (error) {
+      console.error("Error performing action:", error);
+    } finally {
+      setConfirmation({ isOpen: false, id: null, action: null });
     }
   };
 
@@ -182,13 +198,12 @@ export default function AdminPackageTypes() {
                     </td>
                     <td className="p-4">
                       <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          type.status === "active"
-                            ? "bg-green-100 text-green-800"
-                            : type.status === "pending"
-                              ? "bg-orange-100 text-orange-800"
-                              : "bg-red-100 text-red-800"
-                        }`}
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${type.status === "active"
+                          ? "bg-green-100 text-green-800"
+                          : type.status === "pending"
+                            ? "bg-orange-100 text-orange-800"
+                            : "bg-red-100 text-red-800"
+                          }`}
                       >
                         {type.status === "active"
                           ? "Actif"
@@ -248,6 +263,8 @@ export default function AdminPackageTypes() {
               <button
                 onClick={() => setIsAddModalOpen(false)}
                 className="text-gray-400 hover:text-gray-600"
+                title="Fermer"
+                aria-label="Fermer"
               >
                 <X size={24} />
               </button>
@@ -285,6 +302,35 @@ export default function AdminPackageTypes() {
           </div>
         </div>
       )}
+      <ConfirmationModal
+        isOpen={confirmation.isOpen}
+        onClose={() =>
+          setConfirmation({ isOpen: false, id: null, action: null })
+        }
+        onConfirm={handleConfirmAction}
+        title={
+          confirmation.action === "approve"
+            ? "Approuver le type de colis"
+            : confirmation.action === "reject"
+              ? "Rejeter le type de colis"
+              : "Supprimer le type de colis"
+        }
+        message={
+          confirmation.action === "approve"
+            ? "Êtes-vous sûr de vouloir approuver ce type de colis ? Il sera disponible pour tous les utilisateurs."
+            : confirmation.action === "reject"
+              ? "Êtes-vous sûr de vouloir rejeter ce type de colis ?"
+              : "Êtes-vous sûr de vouloir supprimer ce type de colis ? Cette action est irréversible."
+        }
+        variant={confirmation.action === "delete" ? "danger" : "warning"}
+        confirmLabel={
+          confirmation.action === "approve"
+            ? "Approuver"
+            : confirmation.action === "reject"
+              ? "Rejeter"
+              : "Supprimer"
+        }
+      />
     </div>
   );
 }

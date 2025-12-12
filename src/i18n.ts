@@ -409,9 +409,25 @@ const resources = {
       "coupons.invalid": "Invalid Code",
       "coupons.expired": "Expired Code",
       "coupons.limitReached": "Usage limit reached",
+      "auth.invalidPhone": "Invalid phone number",
+      "auth.invalidCredentials": "Invalid credentials",
+      "auth.forgotPasswordTitle": "Forgot Password?",
+      "auth.forgotPasswordDesc": "Enter your email to receive a reset link.",
+      "auth.resetSentSuccess": "Reset email sent! Check your inbox.",
+      "auth.resetSentError": "Error sending email.",
+      "auth.sending": "Sending...",
+      "auth.sendLink": "Send Link",
+      "auth.orContinueWith": "Or continue with",
+      "auth.phone": "Phone",
+      "auth.phoneNumber": "Phone Number",
       "coupons.success": "Coupon applied",
       "coupons.remove": "Remove Coupon",
       "coupons.discount": "Discount applied",
+
+      // SEO
+      "seo.defaultTitle": "NextMove Cargo | The Bridge Between China & Africa",
+      "seo.defaultDescription": "The most secure logistics platform for imports from China to Africa. Customs clearance, door-to-door delivery, and secure payments.",
+      "seo.keywords": "logistics, china, africa, shipping, air freight, sea freight, customs, escrow",
     },
   },
   fr: {
@@ -827,9 +843,25 @@ const resources = {
       "coupons.invalid": "Code invalide",
       "coupons.expired": "Code expiré",
       "coupons.limitReached": "Limite d'utilisation atteinte",
+      "auth.invalidPhone": "Numéro de téléphone invalide",
+      "auth.invalidCredentials": "Identifiants incorrects",
+      "auth.forgotPasswordTitle": "Mot de passe oublié ?",
+      "auth.forgotPasswordDesc": "Entrez votre email pour recevoir un lien de réinitialisation.",
+      "auth.resetSentSuccess": "Email de réinitialisation envoyé ! Vérifiez votre boîte mail.",
+      "auth.resetSentError": "Erreur lors de l'envoi de l'email.",
+      "auth.sending": "Envoi en cours...",
+      "auth.sendLink": "Envoyer le lien",
+      "auth.orContinueWith": "Ou continuer avec",
+      "auth.phone": "Téléphone",
+      "auth.phoneNumber": "Numéro de téléphone",
       "coupons.success": "Code promo appliqué",
       "coupons.remove": "Retirer le code",
       "coupons.discount": "Réduction appliquée",
+
+      // SEO
+      "seo.defaultTitle": "NextMove Cargo | Le Pont Entre la Chine et l'Afrique",
+      "seo.defaultDescription": "La plateforme logistique la plus sûre pour importer de Chine en Afrique. Dédouanement, livraison porte-à-porte et paiements sécurisés.",
+      "seo.keywords": "logistique, chine, afrique, transport, fret aérien, fret maritime, douane, séquestre",
     },
   },
   es: {
@@ -1332,6 +1364,68 @@ const resources = {
         "NextMove 彻底改变了我们处理物流的方式。这是我们一直在等待的合作伙伴。",
     },
   },
+  ar: {
+    translation: {
+      // Navigation
+      calculator: "حاسبة الأسعار",
+      login: "تسجيل الدخول",
+      getStarted: "ابدأ الآن",
+      signOut: "خروج",
+      dashboard: "لوحة التحكم",
+
+      // Hero Section
+      "hero.title": "جسر التجارة بين الصين وأفريقيا",
+      "hero.subtitle": "المنصة اللوجستية الأكثر أماناً وموثوقية. نحن نتولى الشحن والتخليص والدفع لتتمكن من التركيز على تنمية أعمالك.",
+      "hero.cta1": "احصل على تسعير فوري",
+      "hero.cta2": "ابدأ الشحن الآن",
+      "hero.badge1": "دفع آمن",
+      "hero.badge2": "توصيل خلال 72 ساعة",
+      "hero.badge3": "تغطية أكثر من 50 مدينة",
+
+      // Stats
+      "stats.shipments": "شحنات تم توصيلها",
+      "stats.value": "قيمة البضائع المحمية",
+      "stats.forwarders": "وكلاء شحن معتمدون",
+      "stats.success": "نسبة النجاح",
+
+      // Features
+      "features.title": "لماذا تختارنا",
+      "features.subtitle": "اللوجستيات بمفهوم حديث للتجارة",
+      "features.description": "نجمع بين التكنولوجيا والخبرة الميدانية لحل أكبر تحديات التجارة عبر الحدود.",
+
+      // Auth
+      "auth.welcomeBack": "مرحباً بعودتك",
+      "auth.signInSubtitle": "سجل الدخول للمتابعة",
+      "auth.createAccount": "إنشاء حساب",
+      "auth.email": "البريد الإلكتروني",
+      "auth.password": "كلمة المرور",
+      "auth.signIn": "دخول",
+      "auth.signUp": "تسجيل",
+      "auth.noAccount": "ليس لديك حساب؟",
+      "auth.invalidPhone": "رقم الهاتف غير صحيح",
+      "auth.invalidCredentials": "بيانات الدخول غير صحيحة",
+      "auth.forgotPasswordTitle": "نسيت كلمة المرور؟",
+      "auth.forgotPasswordDesc": "أدخل بريدك الإلكتروني لتلقي رابط إعادة التعيين.",
+      "auth.resetSentSuccess": "تم إرسال رابط إعادة التعيين! تحقق من بريدك.",
+      "auth.resetSentError": "خطأ في إرسال البريد الإلكتروني.",
+      "auth.sending": "جاري الإرسال...",
+      "auth.sendLink": "إرسال الرابط",
+      "auth.orContinueWith": "أو المتابعة باستخدام",
+      "auth.phone": "الهاتف",
+      "auth.phoneNumber": "رقم الهاتف",
+      "auth.hasAccount": "لديك حساب بالفعل؟",
+      "auth.roleSelection": "اختار دورك",
+      "auth.roles.client": "عميل (مستورد/مصدر)",
+      "auth.roles.forwarder": "وكيل شحن",
+      "auth.roles.supplier": "مورد",
+      "auth.roles.driver": "سائق",
+
+      // SEO
+      "seo.defaultTitle": "NextMove Cargo | جسر التجارة بين الصين وأفريقيا",
+      "seo.defaultDescription": "المنصة اللوجستية الأكثر أماناً للاستيراد من الصين إلى أفريقيا. تخليص جمركي، توصيل من الباب للباب، ودفع آمن.",
+      "seo.keywords": "لوجستيات, الصين, أفريقيا, شحن, شحن جوي, شحن بحري, جمارك, ضمان",
+    },
+  },
 };
 
 // Detect user locale and initialize i18n
@@ -1344,6 +1438,14 @@ detectUserLocale().then((localeConfig) => {
       escapeValue: false,
     },
   });
+
+  // Set initial direction
+  document.dir = localeConfig.language === 'ar' ? 'rtl' : 'ltr';
+});
+
+// Listen for language changes to update direction
+i18n.on('languageChanged', (lng) => {
+  document.dir = lng === 'ar' ? 'rtl' : 'ltr';
 });
 
 export default i18n;

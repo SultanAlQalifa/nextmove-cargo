@@ -115,29 +115,35 @@ export default function ClientWallet() {
             {balance.toLocaleString()} FCFA
           </h2>
 
-          <div className="flex gap-4">
-            <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-lg backdrop-blur-sm">
-              <div className="bg-green-500/20 p-1 rounded-full">
-                <ArrowDownLeft className="w-4 h-4 text-green-400" />
-              </div>
-              <div>
-                <p className="text-xs text-gray-400">Dernier Dépôt</p>
-                {/* Placeholder logic for last deposit */}
-                <p className="text-sm font-semibold">--</p>
-              </div>
+          <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-lg backdrop-blur-sm">
+            <div className="bg-green-500/20 p-1 rounded-full">
+              <ArrowDownLeft className="w-4 h-4 text-green-400" />
             </div>
-            <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-lg backdrop-blur-sm">
-              <div className="bg-red-500/20 p-1 rounded-full">
-                <ArrowUpRight className="w-4 h-4 text-red-400" />
-              </div>
-              <div>
-                <p className="text-xs text-gray-400">Dernière Dépense</p>
-                <p className="text-sm font-semibold">--</p>
-              </div>
+            <div>
+              <p className="text-xs text-gray-400">Dernier Dépôt</p>
+              <p className="text-sm font-semibold">
+                {transactions.find((t) => t.amount > 0)
+                  ? `+${transactions.find((t) => t.amount > 0)?.amount.toLocaleString()} F`
+                  : "--"}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-lg backdrop-blur-sm">
+            <div className="bg-red-500/20 p-1 rounded-full">
+              <ArrowUpRight className="w-4 h-4 text-red-400" />
+            </div>
+            <div>
+              <p className="text-xs text-gray-400">Dernière Dépense</p>
+              <p className="text-sm font-semibold">
+                {transactions.find((t) => t.amount < 0)
+                  ? `${transactions.find((t) => t.amount < 0)?.amount.toLocaleString()} F`
+                  : "--"}
+              </p>
             </div>
           </div>
         </div>
       </div>
+
 
       {/* Transactions */}
       <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">
@@ -226,11 +232,10 @@ export default function ClientWallet() {
                       </span>
                     </td>
                     <td
-                      className={`px-6 py-4 whitespace-nowrap text-sm font-bold text-right ${
-                        tx.amount > 0
+                      className={`px-6 py-4 whitespace-nowrap text-sm font-bold text-right ${tx.amount > 0
                           ? "text-green-600"
                           : "text-gray-900 dark:text-white"
-                      }`}
+                        }`}
                     >
                       {tx.amount > 0 ? "+" : ""}
                       {Number(tx.amount).toLocaleString()} FCFA
@@ -238,13 +243,12 @@ export default function ClientWallet() {
                     <td className="px-6 py-4 whitespace-nowrap text-center">
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize
-                                                ${
-                                                  tx.status === "completed"
-                                                    ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-                                                    : tx.status === "pending"
-                                                      ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400"
-                                                      : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
-                                                }`}
+                                                ${tx.status === "completed"
+                            ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                            : tx.status === "pending"
+                              ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400"
+                              : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+                          }`}
                       >
                         {tx.status === "completed"
                           ? "Succès"
@@ -268,6 +272,6 @@ export default function ClientWallet() {
           fetchWalletData(); // Refresh balance
         }}
       />
-    </div>
+    </div >
   );
 }

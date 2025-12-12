@@ -16,6 +16,7 @@ import {
   ArrowDownRight,
 } from "lucide-react";
 import { rfqService } from "../../../services/rfqService";
+import ConfirmationModal from "../../../components/common/ConfirmationModal";
 
 export default function AdminRFQList() {
   const [rfqs, setRfqs] = useState<any[]>([]);
@@ -35,6 +36,17 @@ export default function AdminRFQList() {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [selectedRFQ, setSelectedRFQ] = useState<any>(null);
   const [showQuoteForRFQ, setShowQuoteForRFQ] = useState<string | null>(null);
+  const [confirmation, setConfirmation] = useState<{
+    isOpen: boolean;
+    id: string | null;
+  }>({ isOpen: false, id: null });
+
+  const confirmDeleteRFQ = () => {
+    if (confirmation.id) {
+      setFilteredRFQs(filteredRFQs.filter((r) => r.id !== confirmation.id));
+      setConfirmation({ isOpen: false, id: null });
+    }
+  };
 
   // Stats State
   const [stats, setStats] = useState({
@@ -160,11 +172,10 @@ export default function AdminRFQList() {
               onClick={() => setTimeRange(period.id as any)}
               className={`
                                 px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2
-                                ${
-                                  timeRange === period.id
-                                    ? "bg-white text-gray-900 shadow-sm"
-                                    : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
-                                }
+                                ${timeRange === period.id
+                  ? "bg-white text-gray-900 shadow-sm"
+                  : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+                }
                             `}
               title={
                 period.id === "custom" ? "Période personnalisée" : undefined
@@ -179,6 +190,8 @@ export default function AdminRFQList() {
         <div className="relative">
           <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
           <select
+            aria-label="Filtrer par statut"
+            title="Filtrer par statut"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             className="pl-9 pr-8 py-2 bg-gray-50 border border-transparent hover:bg-white hover:border-gray-200 rounded-xl text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all appearance-none cursor-pointer min-w-[140px]"
@@ -210,6 +223,7 @@ export default function AdminRFQList() {
           <div className="flex items-center gap-2 animate-in fade-in slide-in-from-left-4 duration-200 bg-gray-50 p-1 rounded-xl">
             <input
               type="date"
+              aria-label="Date de début"
               value={customDateRange.start}
               onChange={(e) =>
                 setCustomDateRange({
@@ -222,6 +236,7 @@ export default function AdminRFQList() {
             <span className="text-gray-400">-</span>
             <input
               type="date"
+              aria-label="Date de fin"
               value={customDateRange.end}
               onChange={(e) =>
                 setCustomDateRange({ ...customDateRange, end: e.target.value })
@@ -247,6 +262,8 @@ export default function AdminRFQList() {
             <button
               onClick={() => setSearchQuery("")}
               className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
+              aria-label="Effacer la recherche"
+              title="Effacer la recherche"
             >
               <X className="w-3 h-3" />
             </button>
@@ -376,13 +393,12 @@ export default function AdminRFQList() {
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span
                     className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                        ${
-                                          rfq.status === "Open"
-                                            ? "bg-blue-100 text-blue-800"
-                                            : rfq.status === "Pending Quote"
-                                              ? "bg-yellow-100 text-yellow-800"
-                                              : "bg-green-100 text-green-800"
-                                        }`}
+                                        ${rfq.status === "Open"
+                        ? "bg-blue-100 text-blue-800"
+                        : rfq.status === "Pending Quote"
+                          ? "bg-yellow-100 text-yellow-800"
+                          : "bg-green-100 text-green-800"
+                      }`}
                   >
                     {rfq.status}
                   </span>
@@ -397,6 +413,8 @@ export default function AdminRFQList() {
                         setActiveMenu(activeMenu === rfq.id ? null : rfq.id)
                       }
                       className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-full transition-colors"
+                      aria-label="Actions"
+                      title="Actions"
                     >
                       <MoreVertical className="w-5 h-5" />
                     </button>
@@ -418,11 +436,7 @@ export default function AdminRFQList() {
                           </button>
                           <button
                             onClick={() => {
-                              if (confirm("Supprimer cette RFQ ?")) {
-                                setFilteredRFQs(
-                                  filteredRFQs.filter((r) => r.id !== rfq.id),
-                                );
-                              }
+                              setConfirmation({ isOpen: true, id: rfq.id });
                               setActiveMenu(null);
                             }}
                             className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
@@ -472,6 +486,16 @@ export default function AdminRFQList() {
           onClose={() => setShowQuoteForRFQ(null)}
         />
       )}
+
+      <ConfirmationModal
+        isOpen={confirmation.isOpen}
+        onClose={() => setConfirmation({ isOpen: false, id: null })}
+        onConfirm={confirmDeleteRFQ}
+        title="Supprimer la RFQ"
+        message="Êtes-vous sûr de vouloir supprimer cette demande de devis ? Cette action est irréversible."
+        variant="danger"
+        confirmLabel="Supprimer"
+      />
     </div>
   );
 }

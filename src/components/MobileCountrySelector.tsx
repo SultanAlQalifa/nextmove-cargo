@@ -47,6 +47,10 @@ const popularCountries: {
     { code: "NG", name: "Nigeria", flag: "🇳🇬", language: "en", currency: "NGN" },
     { code: "GH", name: "Ghana", flag: "🇬🇭", language: "en", currency: "GHS" },
 
+    // Arabic-speaking
+    { code: "AE", name: "الإمارات", flag: "🇦🇪", language: "ar", currency: "AED" },
+    { code: "SA", name: "المملكة العربية السعودية", flag: "🇸🇦", language: "ar", currency: "SAR" },
+
     // Spanish-speaking
     { code: "ES", name: "España", flag: "🇪🇸", language: "es", currency: "EUR" },
     { code: "MX", name: "México", flag: "🇲🇽", language: "es", currency: "MXN" },

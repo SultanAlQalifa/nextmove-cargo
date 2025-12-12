@@ -3,6 +3,7 @@ import { Plus, MapPin, Edit2, Trash2, Globe, Phone, User, Info, Building2, Packa
 import { addressService, ForwarderAddress } from "../../services/addressService";
 import { useToast } from "../../contexts/ToastContext";
 import { useAuth } from "../../contexts/AuthContext";
+import ConfirmationModal from "../common/ConfirmationModal";
 
 export default function AddressManager() {
     const { user } = useAuth();
@@ -11,6 +12,10 @@ export default function AddressManager() {
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingAddress, setEditingAddress] = useState<ForwarderAddress | null>(null);
+    const [confirmation, setConfirmation] = useState<{
+        isOpen: boolean;
+        id: string | null;
+    }>({ isOpen: false, id: null });
 
     const [formData, setFormData] = useState<Partial<ForwarderAddress>>({
         type: "collection",
@@ -69,14 +74,20 @@ export default function AddressManager() {
         setIsModalOpen(true);
     };
 
-    const handleDelete = async (id: string) => {
-        if (!confirm("Êtes-vous sûr de vouloir supprimer cette adresse ?")) return;
+    const handleDelete = (id: string) => {
+        setConfirmation({ isOpen: true, id });
+    };
+
+    const confirmDelete = async () => {
+        if (!confirmation.id) return;
         try {
-            await addressService.deleteAddress(id);
+            await addressService.deleteAddress(confirmation.id);
             success("Adresse supprimée");
             loadAddresses();
         } catch (err) {
             toastError("Erreur lors de la suppression");
+        } finally {
+            setConfirmation({ isOpen: false, id: null });
         }
     };
 
@@ -259,6 +270,15 @@ export default function AddressManager() {
                     </div>
                 </div>
             )}
+            <ConfirmationModal
+                isOpen={confirmation.isOpen}
+                onClose={() => setConfirmation({ isOpen: false, id: null })}
+                onConfirm={confirmDelete}
+                title="Supprimer l'adresse"
+                message="Êtes-vous sûr de vouloir supprimer cette adresse ?"
+                variant="danger"
+                confirmLabel="Supprimer"
+            />
         </div>
     );
 }

@@ -11,6 +11,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { locationService, Location } from "../../../services/locationService";
+import ConfirmationModal from "../../../components/common/ConfirmationModal";
 
 export default function AdminLocations() {
   const [locations, setLocations] = useState<Location[]>([]);
@@ -36,25 +37,37 @@ export default function AdminLocations() {
     }
   };
 
-  const handleApprove = async (id: string) => {
-    if (confirm("Êtes-vous sûr de vouloir approuver cette destination ?")) {
-      await locationService.approveLocation(id);
-      loadLocations();
-    }
+  const [confirmation, setConfirmation] = useState<{
+    isOpen: boolean;
+    id: string | null;
+    action: "approve" | "reject" | "delete" | null;
+  }>({ isOpen: false, id: null, action: null });
+
+  const handleApprove = (id: string) => {
+    setConfirmation({ isOpen: true, id, action: "approve" });
   };
 
-  const handleReject = async (id: string) => {
-    if (confirm("Êtes-vous sûr de vouloir rejeter cette destination ?")) {
-      await locationService.rejectLocation(id);
-      loadLocations();
-    }
+  const handleReject = (id: string) => {
+    setConfirmation({ isOpen: true, id, action: "reject" });
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm("Êtes-vous sûr de vouloir supprimer cette destination ?")) {
-      await locationService.deleteLocation(id);
-      loadLocations();
+  const handleDelete = (id: string) => {
+    setConfirmation({ isOpen: true, id, action: "delete" });
+  };
+
+  const confirmAction = async () => {
+    if (!confirmation.id || !confirmation.action) return;
+
+    if (confirmation.action === "approve") {
+      await locationService.approveLocation(confirmation.id);
+    } else if (confirmation.action === "reject") {
+      await locationService.rejectLocation(confirmation.id);
+    } else if (confirmation.action === "delete") {
+      await locationService.deleteLocation(confirmation.id);
     }
+
+    loadLocations();
+    setConfirmation({ isOpen: false, id: null, action: null });
   };
 
   const handleAddLocation = async (e: React.FormEvent) => {
@@ -180,13 +193,12 @@ export default function AdminLocations() {
                     </td>
                     <td className="p-4">
                       <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          loc.status === "active"
-                            ? "bg-green-100 text-green-800"
-                            : loc.status === "pending"
-                              ? "bg-orange-100 text-orange-800"
-                              : "bg-red-100 text-red-800"
-                        }`}
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${loc.status === "active"
+                          ? "bg-green-100 text-green-800"
+                          : loc.status === "pending"
+                            ? "bg-orange-100 text-orange-800"
+                            : "bg-red-100 text-red-800"
+                          }`}
                       >
                         {loc.status === "active"
                           ? "Active"
@@ -246,6 +258,8 @@ export default function AdminLocations() {
               <button
                 onClick={() => setIsAddModalOpen(false)}
                 className="text-gray-400 hover:text-gray-600"
+                aria-label="Fermer"
+                title="Fermer"
               >
                 <X size={24} />
               </button>
@@ -283,6 +297,38 @@ export default function AdminLocations() {
           </div>
         </div>
       )}
+
+      <ConfirmationModal
+        isOpen={confirmation.isOpen}
+        onClose={() => setConfirmation({ ...confirmation, isOpen: false })}
+        onConfirm={confirmAction}
+        title={
+          confirmation.action === "approve"
+            ? "Approuver la destination"
+            : confirmation.action === "reject"
+              ? "Rejeter la destination"
+              : "Supprimer la destination"
+        }
+        message={
+          confirmation.action === "approve"
+            ? "Voulez-vous rendre cette destination active ?"
+            : confirmation.action === "reject"
+              ? "Voulez-vous rejeter cette demande ?"
+              : "Êtes-vous sûr de vouloir supprimer cette destination définitivement ?"
+        }
+        variant={
+          confirmation.action === "delete" || confirmation.action === "reject"
+            ? "danger"
+            : "success"
+        }
+        confirmLabel={
+          confirmation.action === "approve"
+            ? "Approuver"
+            : confirmation.action === "reject"
+              ? "Rejeter"
+              : "Supprimer"
+        }
+      />
     </div>
   );
 }

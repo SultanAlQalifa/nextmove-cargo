@@ -18,6 +18,7 @@ import {
   ChevronRight,
   Loader2
 } from "lucide-react";
+import { useToast } from "../../../contexts/ToastContext";
 import UnifiedFilterSegment from "../../../components/dashboard/UnifiedFilterSegment";
 import TicketDetailsModal from "../../../components/admin/TicketDetailsModal";
 import UserProfileModal from "../../../components/admin/UserProfileModal";
@@ -26,8 +27,10 @@ import CreateUserModal from "../../../components/admin/CreateUserModal";
 import { profileService } from "../../../services/profileService";
 import { shipmentService } from "../../../services/shipmentService";
 import { supabase } from "../../../lib/supabase";
+import ConfirmationModal from "../../../components/common/ConfirmationModal";
 
 export default function AdminSupport() {
+  const { error: toastError } = useToast();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
@@ -172,12 +175,22 @@ export default function AdminSupport() {
     }
   };
 
-  const handleDelete = async (ticketId: string) => {
-    if (window.confirm("Êtes-vous sûr de vouloir supprimer ce ticket ?")) {
+  const [confirmation, setConfirmation] = useState<{
+    isOpen: boolean;
+    id: string | null;
+  }>({ isOpen: false, id: null });
+
+  const handleDelete = (ticketId: string) => {
+    setConfirmation({ isOpen: true, id: ticketId });
+  };
+
+  const confirmDeleteTicket = async () => {
+    if (confirmation.id) {
       try {
-        await supportService.deleteTicket(ticketId);
+        await supportService.deleteTicket(confirmation.id);
         fetchTickets();
         setOpenActionMenuId(null);
+        setConfirmation({ isOpen: false, id: null });
       } catch (error) {
         console.error("Error deleting ticket:", error);
       }
@@ -614,7 +627,7 @@ export default function AdminSupport() {
               await profileService.updateStatus(selectedUser.id, newStatus);
               // Optimistic UI Update
               setSelectedUser({ ...selectedUser, status: newStatus === 'active' ? 'Actif' : 'Suspendu' });
-            } catch (e) { console.error(e); alert("Erreur lors de la mise à jour"); }
+            } catch (e) { console.error(e); toastError("Erreur lors de la mise à jour"); }
           }}
         />
       )}
@@ -665,6 +678,17 @@ export default function AdminSupport() {
           }}
         />
       )}
+
+
+      <ConfirmationModal
+        isOpen={confirmation.isOpen}
+        onClose={() => setConfirmation({ isOpen: false, id: null })}
+        onConfirm={confirmDeleteTicket}
+        title="Supprimer le ticket"
+        message="Êtes-vous sûr de vouloir supprimer ce ticket ? Cette action est irréversible."
+        variant="danger"
+        confirmLabel="Supprimer"
+      />
     </div>
   );
 }

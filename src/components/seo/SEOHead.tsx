@@ -1,4 +1,5 @@
 import { Helmet } from "react-helmet-async";
+import { useTranslation } from "react-i18next";
 import { useBranding } from "../../contexts/BrandingContext";
 
 interface SEOHeadProps {
@@ -16,16 +17,32 @@ export default function SEOHead({
   image,
   url,
 }: SEOHeadProps) {
+  const { t, i18n } = useTranslation();
   const { settings } = useBranding();
 
-  // Default values from settings or hardcoded fallbacks
-  const siteName = settings?.seo?.default_title || "NextMove Cargo";
+  // 1. Branding Settings (Admin overrides)
+  // These take precedence if configured, otherwise we fall back to translation files
+  // Note: We only fallback to translation file if Branding doesn't cover it.
+
+  // Site Name
+  const siteName = settings?.seo?.default_title || t("seo.defaultTitle");
+
+  // Title Template
   const template = settings?.seo?.meta_title_template || "%s | NextMove Cargo";
-  const defaultDesc = settings?.seo?.default_description || "NextMove Cargo";
-  const defaultKeywords = settings?.seo?.default_keywords || "";
+
+  // Description
+  // If no detailed description is passed, use Branding Default, else Translation Default
+  const defaultDesc = settings?.seo?.default_description || t("seo.defaultDescription");
+
+  // Keywords
+  const defaultKeywords = settings?.seo?.default_keywords || t("seo.keywords");
+
+  // Image
   const defaultImage = settings?.seo?.og_image || settings?.logo_url || "";
 
-  // Computed values
+  // 2. Computed values
+  // Formatting the title: If a specific page title is provided, use it with template.
+  // Otherwise, strictly use the siteName (which is now key-based).
   const pageTitle = title ? template.replace("%s", title) : siteName;
   const metaDesc = description || defaultDesc;
   const metaKeywords = keywords || defaultKeywords;
@@ -34,6 +51,9 @@ export default function SEOHead({
 
   return (
     <Helmet>
+      {/* HTML Attributes for Language & Direction */}
+      <html lang={i18n.language} dir={i18n.dir()} />
+
       {/* Basic Meta Tags */}
       <title>{pageTitle}</title>
       <meta name="description" content={metaDesc} />

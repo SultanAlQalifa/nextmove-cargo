@@ -15,7 +15,10 @@ interface QuoteRequestFormData {
   description: string;
 }
 
+import { useToast } from "../contexts/ToastContext";
+
 export default function SupplierQuoteRequest() {
+  const { error: toastError } = useToast();
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const { register, handleSubmit, watch, setValue } = useForm<QuoteRequestFormData>({
@@ -48,7 +51,7 @@ export default function SupplierQuoteRequest() {
       setSubmitted(true);
     } catch (error) {
       console.error("Error submitting request:", error);
-      alert("Failed to submit request.");
+      toastError("Failed to submit request.");
     } finally {
       setLoading(false);
     }
@@ -187,8 +190,8 @@ export default function SupplierQuoteRequest() {
                         setValue("type", option.type);
                       }}
                       className={`cursor-pointer relative p-4 rounded-xl border-2 transition-all duration-200 hover:shadow-md ${isSelected
-                          ? `border-${option.color}-500 bg-${option.color}-50 ring-1 ring-${option.color}-500`
-                          : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                        ? `border-${option.color}-500 bg-${option.color}-50 ring-1 ring-${option.color}-500`
+                        : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
                         }`}
                     >
                       {isSelected && (

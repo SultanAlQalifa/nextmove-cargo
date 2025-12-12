@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import SEOHead from "./seo/SEOHead";
 import NewsTicker from "./common/NewsTicker";
+import ChatWidget from "./common/ChatWidget"; // NEW
 
 export default function Layout() {
   const { t } = useTranslation();
@@ -439,6 +440,7 @@ export default function Layout() {
       />
 
       <NewsTicker />
+      <ChatWidget /> {/* NEW */}
     </div>
   );
 }

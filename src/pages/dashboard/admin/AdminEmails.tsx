@@ -24,6 +24,7 @@ import {
   BrandingSettings,
 } from "../../../services/brandingService";
 import RichEditor from "../../../components/common/RichEditor";
+import ConfirmationModal from "../../../components/common/ConfirmationModal";
 
 interface EmailHistoryItem {
   id: string;
@@ -282,19 +283,30 @@ export default function AdminEmails() {
     }
   };
 
-  const handleDelete = async (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!confirm("Voulez-vous vraiment supprimer cet email de l'historique ?"))
-      return;
+  // Confirmation Modal State
+  const [confirmation, setConfirmation] = useState<{
+    isOpen: boolean;
+    id: string | null;
+  }>({ isOpen: false, id: null });
+
+  const confirmDelete = async () => {
+    if (!confirmation.id) return;
 
     try {
-      await emailService.deleteAdminEmail(id);
+      await emailService.deleteAdminEmail(confirmation.id);
       success("Email supprimé");
       loadHistory();
     } catch (err) {
       console.error(err);
       toastError("Impossible de supprimer");
+    } finally {
+      setConfirmation({ isOpen: false, id: null });
     }
+  };
+
+  const handleDelete = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setConfirmation({ isOpen: true, id });
   };
 
   const handleResend = (item: EmailHistoryItem, e: React.MouseEvent) => {
@@ -582,13 +594,12 @@ export default function AdminEmails() {
                       <td className="px-6 py-4">
                         <div className="flex items-start gap-3">
                           <div
-                            className={`mt-1 w-2 h-2 rounded-full flex-shrink-0 ${
-                              item.status === "sent"
-                                ? "bg-green-500"
-                                : item.status === "failed"
-                                  ? "bg-red-500"
-                                  : "bg-amber-500"
-                            }`}
+                            className={`mt-1 w-2 h-2 rounded-full flex-shrink-0 ${item.status === "sent"
+                              ? "bg-green-500"
+                              : item.status === "failed"
+                                ? "bg-red-500"
+                                : "bg-amber-500"
+                              }`}
                           />
                           <div>
                             <p
@@ -791,6 +802,16 @@ export default function AdminEmails() {
           </div>
         </div>
       )}
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={confirmation.isOpen}
+        onClose={() => setConfirmation({ isOpen: false, id: null })}
+        onConfirm={confirmDelete}
+        title="Supprimer l'email"
+        message="Voulez-vous vraiment supprimer cet email de l'historique ? Cette action est irréversible."
+        variant="danger"
+        confirmLabel="Supprimer"
+      />
     </div>
   );
 }

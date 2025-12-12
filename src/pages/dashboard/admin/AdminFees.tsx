@@ -17,6 +17,7 @@ import {
   FileText,
 } from "lucide-react";
 import { feeService, FeeConfig } from "../../../services/feeService";
+import ConfirmationModal from "../../../components/common/ConfirmationModal";
 
 export default function AdminFees() {
   const [fees, setFees] = useState<FeeConfig[]>([]);
@@ -91,11 +92,21 @@ export default function AdminFees() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm("Êtes-vous sûr de vouloir supprimer ce frais ?")) {
+  const [confirmation, setConfirmation] = useState<{
+    isOpen: boolean;
+    id: string | null;
+  }>({ isOpen: false, id: null });
+
+  const handleDelete = (id: string) => {
+    setConfirmation({ isOpen: true, id });
+  };
+
+  const confirmDeleteFee = async () => {
+    if (confirmation.id) {
       try {
-        await feeService.deleteFee(id);
+        await feeService.deleteFee(confirmation.id);
         fetchFees();
+        setConfirmation({ isOpen: false, id: null });
       } catch (error) {
         console.error("Error deleting fee:", error);
       }
@@ -180,12 +191,16 @@ export default function AdminFees() {
                     <button
                       onClick={() => handleOpenModal(fee)}
                       className="p-2 text-gray-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors"
+                      aria-label="Modifier"
+                      title="Modifier"
                     >
                       <Edit2 className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => handleDelete(fee.id)}
                       className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                      aria-label="Supprimer"
+                      title="Supprimer"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -268,6 +283,8 @@ export default function AdminFees() {
               <button
                 onClick={handleCloseModal}
                 className="text-gray-400 hover:text-gray-600 transition-colors"
+                aria-label="Fermer"
+                title="Fermer"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -329,6 +346,8 @@ export default function AdminFees() {
                       })
                     }
                     className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none bg-white"
+                    aria-label="Catégorie"
+                    title="Catégorie"
                   >
                     <option value="management">Gestion</option>
                     <option value="insurance">Assurance</option>
@@ -385,6 +404,7 @@ export default function AdminFees() {
                         })
                       }
                       className="w-full pl-4 pr-10 py-2 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
+                      aria-label="Valeur"
                     />
                     <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
                       {formData.type === "percentage" ? (
@@ -457,6 +477,7 @@ export default function AdminFees() {
                         })
                       }
                       className="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer checked:right-0 right-5"
+                      aria-label="Frais Récurrent"
                     />
                     <label
                       htmlFor="isRecurring"
@@ -502,6 +523,8 @@ export default function AdminFees() {
                             })
                           }
                           className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-primary outline-none bg-white"
+                          aria-label="Intervalle"
+                          title="Intervalle"
                         >
                           <option value="day">Par Jour</option>
                           <option value="week">Par Semaine</option>
@@ -561,6 +584,16 @@ export default function AdminFees() {
           </div>
         </div>
       )}
+
+      <ConfirmationModal
+        isOpen={confirmation.isOpen}
+        onClose={() => setConfirmation({ isOpen: false, id: null })}
+        onConfirm={confirmDeleteFee}
+        title="Supprimer le frais"
+        message="Êtes-vous sûr de vouloir supprimer ce frais ? Cette action est irréversible."
+        variant="danger"
+        confirmLabel="Supprimer"
+      />
     </div>
   );
 }

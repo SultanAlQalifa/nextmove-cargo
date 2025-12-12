@@ -32,6 +32,7 @@ import {
 import { storageService } from "../../../services/storageService";
 import { useBranding } from "../../../contexts/BrandingContext";
 import { useToast } from "../../../contexts/ToastContext";
+import ConfirmationModal from "../../../components/common/ConfirmationModal";
 
 export default function AdminBranding() {
   const { error: toastError } = useToast();
@@ -136,18 +137,20 @@ export default function AdminBranding() {
     { id: "pwa", label: "PWA & Mobile", icon: Smartphone },
   ];
 
-  const handleReset = async () => {
-    if (
-      !window.confirm(
-        "Êtes-vous sûr de vouloir réinitialiser tous les paramètres de branding par défaut ? Cette action est irréversible.",
-      )
-    )
-      return;
+  const [confirmation, setConfirmation] = useState<{
+    isOpen: boolean;
+  }>({ isOpen: false });
 
+  const handleReset = async () => {
+    setConfirmation({ isOpen: true });
+  };
+
+  const confirmReset = async () => {
     setLoading(true);
     try {
       const defaults = await brandingService.resetToDefaults();
       setSettings(defaults);
+      setConfirmation({ isOpen: false });
     } catch (error) {
       console.error("Error resetting branding:", error);
     } finally {
@@ -201,11 +204,10 @@ export default function AdminBranding() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors ${
-                  activeTab === tab.id
-                    ? "bg-blue-50 text-blue-600 border-l-4 border-blue-600"
-                    : "text-gray-600 hover:bg-gray-50 border-l-4 border-transparent"
-                }`}
+                className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors ${activeTab === tab.id
+                  ? "bg-blue-50 text-blue-600 border-l-4 border-blue-600"
+                  : "text-gray-600 hover:bg-gray-50 border-l-4 border-transparent"
+                  }`}
               >
                 <tab.icon className="w-4 h-4" />
                 {tab.label}
@@ -1121,7 +1123,7 @@ export default function AdminBranding() {
                           type="text"
                           value={
                             settings.howItWorks?.[
-                              `step${step}_title` as keyof typeof settings.howItWorks
+                            `step${step}_title` as keyof typeof settings.howItWorks
                             ] || ""
                           }
                           onChange={(e) =>
@@ -1144,7 +1146,7 @@ export default function AdminBranding() {
                           id={`howItWorks_step${step}_desc`}
                           value={
                             settings.howItWorks?.[
-                              `step${step}_desc` as keyof typeof settings.howItWorks
+                            `step${step}_desc` as keyof typeof settings.howItWorks
                             ] || ""
                           }
                           onChange={(e) =>
@@ -1205,7 +1207,7 @@ export default function AdminBranding() {
                           type="text"
                           value={
                             settings.testimonials?.[
-                              `review${review}_name` as keyof typeof settings.testimonials
+                            `review${review}_name` as keyof typeof settings.testimonials
                             ] || ""
                           }
                           onChange={(e) =>
@@ -1229,7 +1231,7 @@ export default function AdminBranding() {
                           type="text"
                           value={
                             settings.testimonials?.[
-                              `review${review}_role` as keyof typeof settings.testimonials
+                            `review${review}_role` as keyof typeof settings.testimonials
                             ] || ""
                           }
                           onChange={(e) =>
@@ -1252,7 +1254,7 @@ export default function AdminBranding() {
                           id={`testimonials_review${review}_text`}
                           value={
                             settings.testimonials?.[
-                              `review${review}_text` as keyof typeof settings.testimonials
+                            `review${review}_text` as keyof typeof settings.testimonials
                             ] || ""
                           }
                           onChange={(e) =>
@@ -2113,6 +2115,15 @@ export default function AdminBranding() {
           )}
         </div>
       </div>
+      <ConfirmationModal
+        isOpen={confirmation.isOpen}
+        onClose={() => setConfirmation({ isOpen: false })}
+        onConfirm={confirmReset}
+        title="Réinitialiser le branding"
+        message="Êtes-vous sûr de vouloir réinitialiser tous les paramètres de branding par défaut ? Cette action est irréversible."
+        variant="danger"
+        confirmLabel="Réinitialiser"
+      />
     </div>
   );
 }

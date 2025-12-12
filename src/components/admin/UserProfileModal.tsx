@@ -42,7 +42,7 @@ export default function UserProfileModal({
   onEdit,
   onToggleStatus,
 }: UserProfileModalProps) {
-  const { error: toastError } = useToast();
+  const { success, error: toastError } = useToast();
   const [uploading, setUploading] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
@@ -267,11 +267,11 @@ export default function UserProfileModal({
             // I will stick to alert for simplicity OR console.log + auto close.
             // Better: setShowConfirmReset(false) + alert.
 
-            alert("Email de réinitialisation envoyé avec succès !");
+            success("Email de réinitialisation envoyé avec succès !");
             setShowConfirmReset(false);
           } catch (e) {
             console.error(e);
-            alert("Erreur lors de l'envoi de l'email.");
+            toastError("Erreur lors de l'envoi de l'email.");
           } finally {
             setResetLoading(false);
           }

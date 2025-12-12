@@ -2,7 +2,9 @@ import { useState, useEffect } from "react";
 import PageHeader from "../../../components/common/PageHeader";
 import CreateUserModal from "../../../components/admin/CreateUserModal";
 import UserProfileModal from "../../../components/admin/UserProfileModal";
+import WalletManagementModal from "../../../components/admin/WalletManagementModal";
 import ConfirmationModal from "../../../components/common/ConfirmationModal";
+import { useAuth } from "../../../contexts/AuthContext";
 import { useToast } from "../../../contexts/ToastContext";
 import {
   User,
@@ -17,9 +19,11 @@ import {
   UserPlus,
   ArrowUpRight,
   ArrowDownRight,
+  Wallet,
 } from "lucide-react";
 
 export default function UserManagement() {
+  const { profile } = useAuth();
   const { success, error: toastError } = useToast();
   // Data State
   const [users, setUsers] = useState<any[]>([]);
@@ -39,6 +43,10 @@ export default function UserManagement() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
+
+  // Wallet Modal State
+  const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
+  const [selectedUserWallet, setSelectedUserWallet] = useState<any>(null);
 
   // Confirmation Modal State
   const [confirmation, setConfirmation] = useState<{
@@ -536,6 +544,22 @@ export default function UserManagement() {
                           >
                             <X className="w-4 h-4" /> Supprimer
                           </button>
+
+                          <div className="border-t border-gray-100 my-1"></div>
+
+                          {profile?.role === "super-admin" && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedUserWallet(user);
+                                setIsWalletModalOpen(true);
+                                setActiveMenu(null);
+                              }}
+                              className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                            >
+                              <Wallet className="w-4 h-4" /> Gérer Portefeuille
+                            </button>
+                          )}
                         </div>
                       </>
                     )}
@@ -562,30 +586,46 @@ export default function UserManagement() {
         </table>
       </div>
 
-      {isCreateModalOpen && (
-        <CreateUserModal
-          user={selectedUser}
-          onClose={() => {
-            setIsCreateModalOpen(false);
-            setSelectedUser(null);
-          }}
-          onSuccess={() => {
-            // Refresh logic would go here
-            setSelectedUser(null);
-          }}
-        />
-      )}
+      {
+        isCreateModalOpen && (
+          <CreateUserModal
+            user={selectedUser}
+            onClose={() => {
+              setIsCreateModalOpen(false);
+              setSelectedUser(null);
+            }}
+            onSuccess={() => {
+              // Refresh logic would go here
+              setSelectedUser(null);
+            }}
+          />
+        )
+      }
 
-      {selectedUser && !isCreateModalOpen && (
-        <UserProfileModal
-          user={selectedUser}
-          onClose={() => setSelectedUser(null)}
-          onEdit={() => setIsCreateModalOpen(true)}
-          onToggleStatus={() =>
-            handleToggleStatus(selectedUser.id, selectedUser.status)
-          }
-        />
-      )}
+      {
+        selectedUser && !isCreateModalOpen && !activeMenu && (
+          <UserProfileModal
+            user={selectedUser}
+            onClose={() => setSelectedUser(null)}
+            onEdit={() => setIsCreateModalOpen(true)}
+            onToggleStatus={() =>
+              handleToggleStatus(selectedUser.id, selectedUser.status)
+            }
+          />
+        )
+      }
+
+      {
+        isWalletModalOpen && selectedUserWallet && (
+          <WalletManagementModal
+            user={selectedUserWallet}
+            onClose={() => {
+              setIsWalletModalOpen(false);
+              setSelectedUserWallet(null);
+            }}
+          />
+        )
+      }
 
       <ConfirmationModal
         isOpen={confirmation.isOpen}
@@ -599,6 +639,6 @@ export default function UserManagement() {
         }
         isLoading={loading && confirmation.isOpen} // Only show loading spinner in modal if it's the active actor
       />
-    </div>
+    </div >
   );
 }

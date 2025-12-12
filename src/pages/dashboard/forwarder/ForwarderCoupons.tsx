@@ -3,6 +3,7 @@ import PageHeader from "../../../components/common/PageHeader";
 import { Plus, Search, Tag, Trash2, CheckCircle, XCircle } from "lucide-react";
 import { couponService, Coupon } from "../../../services/couponService";
 import { useToast } from "../../../contexts/ToastContext";
+import ConfirmationModal from "../../../components/common/ConfirmationModal";
 
 export default function ForwarderCoupons() {
   const { error: toastError } = useToast();
@@ -18,6 +19,11 @@ export default function ForwarderCoupons() {
     usage_limit: "",
     end_date: "",
   });
+
+  const [confirmation, setConfirmation] = useState<{
+    isOpen: boolean;
+    id: string | null;
+  }>({ isOpen: false, id: null });
 
   useEffect(() => {
     fetchCoupons();
@@ -108,14 +114,19 @@ export default function ForwarderCoupons() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm("Êtes-vous sûr de vouloir supprimer ce coupon ?")) {
-      try {
-        await couponService.deleteCoupon(id);
-        fetchCoupons();
-      } catch (error) {
-        console.error("Error deleting coupon:", error);
-      }
+  const handleDelete = (id: string) => {
+    setConfirmation({ isOpen: true, id });
+  };
+
+  const confirmDelete = async () => {
+    if (!confirmation.id) return;
+    try {
+      await couponService.deleteCoupon(confirmation.id);
+      fetchCoupons();
+    } catch (error) {
+      console.error("Error deleting coupon:", error);
+    } finally {
+      setConfirmation({ isOpen: false, id: null });
     }
   };
 
@@ -195,11 +206,10 @@ export default function ForwarderCoupons() {
                         onClick={() =>
                           toggleStatus(coupon.id, coupon.is_active)
                         }
-                        className={`px-3 py-1 rounded-full text-xs font-medium border ${
-                          coupon.is_active
+                        className={`px-3 py-1 rounded-full text-xs font-medium border ${coupon.is_active
                             ? "bg-green-50 text-green-700 border-green-200"
                             : "bg-gray-50 text-gray-600 border-gray-200"
-                        }`}
+                          }`}
                       >
                         {coupon.is_active ? "Actif" : "Inactif"}
                       </button>
@@ -377,6 +387,15 @@ export default function ForwarderCoupons() {
           </div>
         </div>
       )}
+      <ConfirmationModal
+        isOpen={confirmation.isOpen}
+        onClose={() => setConfirmation({ isOpen: false, id: null })}
+        onConfirm={confirmDelete}
+        title="Supprimer le coupon"
+        message="Êtes-vous sûr de vouloir supprimer ce coupon ? Cette action est irréversible."
+        variant="danger"
+        confirmLabel="Supprimer"
+      />
     </div>
   );
 }

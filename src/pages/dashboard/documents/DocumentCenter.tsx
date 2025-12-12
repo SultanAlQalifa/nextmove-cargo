@@ -16,6 +16,7 @@ import { useAuth } from "../../../contexts/AuthContext";
 import { useToast } from "../../../contexts/ToastContext";
 import { format } from "date-fns";
 import { fr, enUS, es } from "date-fns/locale";
+import ConfirmationModal from "../../../components/common/ConfirmationModal";
 
 export default function DocumentCenter() {
   const { t, i18n } = useTranslation();
@@ -81,16 +82,36 @@ export default function DocumentCenter() {
     }
   };
 
-  const handleDelete = async (doc: Document) => {
-    if (!window.confirm(t("documents.messages.deleteConfirm"))) return;
+  const [confirmation, setConfirmation] = useState<{
+    isOpen: boolean;
+    docId: string | null;
+    docUrl: string | null;
+  }>({
+    isOpen: false,
+    docId: null,
+    docUrl: null
+  });
+
+  const handleDelete = (doc: Document) => {
+    setConfirmation({
+      isOpen: true,
+      docId: doc.id,
+      docUrl: doc.url
+    });
+  };
+
+  const confirmDelete = async () => {
+    if (!confirmation.docId || !confirmation.docUrl) return;
 
     try {
-      await documentService.deleteDocument(doc.id, doc.url);
+      await documentService.deleteDocument(confirmation.docId, confirmation.docUrl);
       success(t("documents.messages.deleteSuccess"));
-      setDocuments((prev) => prev.filter((d) => d.id !== doc.id));
+      setDocuments((prev) => prev.filter((d) => d.id !== confirmation.docId));
     } catch (error) {
       console.error("Error deleting document:", error);
       showError(t("documents.messages.deleteError"));
+    } finally {
+      setConfirmation({ isOpen: false, docId: null, docUrl: null });
     }
   };
 
@@ -177,11 +198,10 @@ export default function DocumentCenter() {
             <button
               key={type}
               onClick={() => setFilterType(type)}
-              className={`px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-colors ${
-                filterType === type
-                  ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
-                  : "bg-slate-50 text-slate-600 dark:bg-gray-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-gray-600"
-              }`}
+              className={`px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-colors ${filterType === type
+                ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+                : "bg-slate-50 text-slate-600 dark:bg-gray-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-gray-600"
+                }`}
             >
               {t(`documents.filter.${type}`)}
             </button>
@@ -257,6 +277,15 @@ export default function DocumentCenter() {
           </div>
         )}
       </div>
+      <ConfirmationModal
+        isOpen={confirmation.isOpen}
+        onClose={() => setConfirmation({ isOpen: false, docId: null, docUrl: null })}
+        onConfirm={confirmDelete}
+        title={t("documents.modal.deleteTitle")}
+        message={t("documents.modal.deleteMessage")}
+        variant="danger"
+        confirmLabel={t("common.delete")}
+      />
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
+import { useToast } from "../../contexts/ToastContext";
 import { useCurrency } from "../../contexts/CurrencyContext";
 import { shipmentService } from "../../services/shipmentService";
 import { supabase } from "../../lib/supabase";
@@ -24,6 +25,7 @@ import {
 
 export default function DriverDashboard() {
   const { user } = useAuth();
+  const { success, error: toastError } = useToast();
   const { currency } = useCurrency();
 
   const [shipments, setShipments] = useState<any[]>([]);
@@ -80,10 +82,11 @@ export default function DriverDashboard() {
 
       if (error) throw error;
       await loadShipments();
-      alert("Mission de test générée avec succès !");
+      await loadShipments();
+      success("Mission de test générée avec succès !");
     } catch (error: any) {
       console.error("Error simulating mission:", error);
-      alert(`Erreur: ${error.message}`);
+      toastError(`Erreur: ${error.message}`);
     } finally {
       setSimulating(false);
     }
@@ -97,22 +100,26 @@ export default function DriverDashboard() {
             lat: position.coords.latitude,
             lng: position.coords.longitude,
           });
-          alert("Localisation capturée avec succès !");
+          setLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
+          success("Localisation capturée avec succès !");
         },
         (error) => {
           console.error("Error getting location:", error);
-          alert("Impossible de récupérer la localisation.");
+          toastError("Impossible de récupérer la localisation.");
         },
       );
     } else {
-      alert("Géolocalisation non supportée.");
+      toastError("Géolocalisation non supportée.");
     }
   };
 
   const handleSubmitPOD = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedShipment || !location) {
-      alert("Veuillez d'abord capturer la localisation.");
+      toastError("Veuillez d'abord capturer la localisation.");
       return;
     }
 
@@ -127,12 +134,12 @@ export default function DriverDashboard() {
         driver_notes: podForm.notes,
       });
 
-      alert("POD soumis avec succès !");
+      success("POD soumis avec succès !");
       setSelectedShipment(null);
       loadShipments();
     } catch (error) {
       console.error("Error submitting POD:", error);
-      alert("Échec de la soumission du POD.");
+      toastError("Échec de la soumission du POD.");
     }
   };
 
@@ -153,9 +160,9 @@ export default function DriverDashboard() {
     );
     if (found) {
       setSelectedShipment(found);
-      // alert(`Colis trouvé: ${found.tracking_number}`);
+      // toastError(`Colis trouvé: ${found.tracking_number}`);
     } else {
-      alert(`Aucun colis trouvé pour le code: ${decodedText}`);
+      toastError(`Aucun colis trouvé pour le code: ${decodedText}`);
     }
   };
 
@@ -180,7 +187,7 @@ export default function DriverDashboard() {
 
       <DashboardControls
         timeRange="30d"
-        setTimeRange={() => {}}
+        setTimeRange={() => { }}
         showTimeRange={false}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}

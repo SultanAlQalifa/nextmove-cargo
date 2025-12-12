@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import ConfirmationModal from "../../../components/common/ConfirmationModal";
 import PageHeader from "../../../components/common/PageHeader";
 import {
   Plus,
@@ -13,8 +15,10 @@ import {
   featureService,
   PlatformFeature,
 } from "../../../services/featureService";
+import { useToast } from "../../../contexts/ToastContext";
 
 export default function AdminFeatures() {
+  const { error: toastError } = useToast();
   const [features, setFeatures] = useState<PlatformFeature[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -79,19 +83,25 @@ export default function AdminFeatures() {
       setIsModalOpen(false);
     } catch (error) {
       console.error("Error saving feature:", error);
-      alert("Erreur lors de la sauvegarde (vérifiez que la clé est unique)");
+      toastError("Erreur lors de la sauvegarde (vérifiez que la clé est unique)");
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (
-      confirm(
-        "Êtes-vous sûr de vouloir supprimer cette fonctionnalité ? Elle ne sera plus disponible pour les nouveaux plans.",
-      )
-    ) {
+  const [confirmation, setConfirmation] = useState<{
+    isOpen: boolean;
+    id: string | null;
+  }>({ isOpen: false, id: null });
+
+  const handleDelete = (id: string) => {
+    setConfirmation({ isOpen: true, id });
+  };
+
+  const confirmDeleteFeature = async () => {
+    if (confirmation.id) {
       try {
-        await featureService.deleteFeature(id);
+        await featureService.deleteFeature(confirmation.id);
         fetchFeatures();
+        setConfirmation({ isOpen: false, id: null });
       } catch (error) {
         console.error("Error deleting feature:", error);
       }
@@ -198,11 +208,10 @@ export default function AdminFeatures() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        feature.type === "limit"
-                          ? "bg-blue-100 text-blue-800"
-                          : "bg-green-100 text-green-800"
-                      }`}
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${feature.type === "limit"
+                        ? "bg-blue-100 text-blue-800"
+                        : "bg-green-100 text-green-800"
+                        }`}
                     >
                       {feature.type === "limit"
                         ? "Limite Numérique"
@@ -221,12 +230,16 @@ export default function AdminFeatures() {
                       <button
                         onClick={() => handleOpenModal(feature)}
                         className="p-2 text-gray-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors"
+                        aria-label="Modifier"
+                        title="Modifier"
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleDelete(feature.id)}
                         className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        aria-label="Supprimer"
+                        title="Supprimer"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -257,6 +270,8 @@ export default function AdminFeatures() {
               <button
                 onClick={() => setIsModalOpen(false)}
                 className="text-gray-400 hover:text-gray-600"
+                aria-label="Fermer"
+                title="Fermer"
               >
                 <Plus className="w-6 h-6 rotate-45" />
               </button>
@@ -325,6 +340,8 @@ export default function AdminFeatures() {
                       })
                     }
                     className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none bg-white"
+                    aria-label="Type"
+                    title="Type"
                   >
                     <option value="boolean">Oui/Non (Booléen)</option>
                     <option value="limit">Limite (Numérique)</option>
@@ -343,6 +360,8 @@ export default function AdminFeatures() {
                       })
                     }
                     className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none bg-white"
+                    aria-label="Catégorie"
+                    title="Catégorie"
                   >
                     <option value="core">Principal</option>
                     <option value="usage">Usage</option>
@@ -366,6 +385,7 @@ export default function AdminFeatures() {
                       })
                     }
                     className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
+                    aria-label="Valeur par défaut"
                   />
                 ) : (
                   <div className="flex items-center gap-4 mt-2">
@@ -415,6 +435,17 @@ export default function AdminFeatures() {
           </div>
         </div>
       )}
+
+      <ConfirmationModal
+        isOpen={confirmation.isOpen}
+        onClose={() => setConfirmation({ isOpen: false, id: null })}
+        onConfirm={confirmDeleteFeature}
+        title="Supprimer la fonctionnalité"
+        message="Êtes-vous sûr de vouloir supprimer cette fonctionnalité ? Elle ne sera plus disponible pour les nouveaux plans."
+        variant="danger"
+        confirmLabel="Supprimer"
+      />
     </div>
   );
 }
+

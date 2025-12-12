@@ -1,13 +1,55 @@
-import { Crown, Star, Gift, TrendingUp, History } from "lucide-react";
+import { useState } from "react";
+import { Crown, Star, Gift, TrendingUp, History, X } from "lucide-react";
 import PageHeader from "../../../components/common/PageHeader";
 import { useAuth } from "../../../contexts/AuthContext";
+import { useToast } from "../../../contexts/ToastContext";
 import { supabase } from "../../../lib/supabase";
 
 export default function LoyaltyDashboard() {
     const { profile } = useAuth();
+    const { success, error: toastError } = useToast();
+    const [isConvertModalOpen, setIsConvertModalOpen] = useState(false);
+    const [convertAmount, setConvertAmount] = useState("");
+    const [loading, setLoading] = useState(false);
+
     const points = profile?.loyalty_points || 0;
     const nextTier = points < 2000 ? 2000 : points < 5000 ? 5000 : 10000;
     const progress = Math.min((points / nextTier) * 100, 100);
+    const progressBarStyle = { width: `${progress}%` };
+
+    const handleConvert = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const pointsToConvert = parseInt(convertAmount);
+
+        if (isNaN(pointsToConvert) || pointsToConvert <= 0) {
+            toastError("Veuillez entrer un nombre valide.");
+            return;
+        }
+
+        if (pointsToConvert > points) {
+            toastError("Solde de points insuffisant.");
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const { error } = await supabase.rpc('exchange_loyalty_points', {
+                points_to_exchange: pointsToConvert
+            });
+
+            if (error) throw error;
+
+            success(`Succès ! ${pointsToConvert} points convertis en ${pointsToConvert * 10} FCFA.`);
+            setIsConvertModalOpen(false);
+            setConvertAmount("");
+            window.location.reload();
+        } catch (error: any) {
+            console.error('Error converting points:', error);
+            toastError("Erreur lors de la conversion: " + error.message);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <div className="space-y-8 pb-12">
@@ -42,8 +84,8 @@ export default function LoyaltyDashboard() {
                             <span>{Math.round(progress)}%</span>
                         </div>
                         <div className="w-full h-3 bg-indigo-900/50 rounded-full overflow-hidden">
-                            {/* eslint-disable-next-line react/forbid-dom-props */}
-                            <div className="h-full bg-gradient-to-r from-yellow-400 to-orange-500 transition-all duration-1000" style={{ width: `${progress}%` }}></div>
+                            {/* eslint-disable-next-line */}
+                            <div className="h-full bg-gradient-to-r from-yellow-400 to-orange-500 transition-all duration-1000" style={progressBarStyle}></div>
                         </div>
                         <div className="flex justify-between text-xs mt-2 text-indigo-200">
                             <span>{points} pts</span>
@@ -63,35 +105,7 @@ export default function LoyaltyDashboard() {
                     <h3 className="font-bold text-lg mb-2">Convertir mes points</h3>
                     <p className="text-slate-500 text-sm mb-6">Échangez vos points contre du crédit portefeuille (1 pt = 10 FCFA).</p>
                     <button
-                        onClick={async () => {
-                            const amount = prompt("Combien de points souhaitez-vous convertir ?");
-                            if (!amount) return;
-
-                            const pointsToConvert = parseInt(amount);
-                            if (isNaN(pointsToConvert) || pointsToConvert <= 0) {
-                                alert("Veuillez entrer un nombre valide.");
-                                return;
-                            }
-
-                            if (pointsToConvert > points) {
-                                alert("Solde de points insuffisant.");
-                                return;
-                            }
-
-                            try {
-                                const { data, error } = await supabase.rpc('exchange_loyalty_points', {
-                                    points_to_exchange: pointsToConvert
-                                });
-
-                                if (error) throw error;
-
-                                alert(`Succès ! ${pointsToConvert} points convertis en ${pointsToConvert * 10} FCFA.`);
-                                window.location.reload(); // Simple reload to refresh points/wallet
-                            } catch (error: any) {
-                                console.error('Error converting points:', error);
-                                alert("Erreur lors de la conversion: " + error.message);
-                            }
-                        }}
+                        onClick={() => setIsConvertModalOpen(true)}
                         className="w-full py-2 bg-purple-50 text-purple-600 font-bold rounded-xl text-sm hover:bg-purple-100 transition-colors"
                     >
                         Convertir maintenant
@@ -119,6 +133,63 @@ export default function LoyaltyDashboard() {
                     Aucun historique de points disponible pour le moment.
                 </div>
             </div>
+
+            {/* Convert Modal */}
+            {isConvertModalOpen && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl w-full max-w-sm p-6 relative animate-in fade-in zoom-in duration-200">
+                        <button
+                            onClick={() => setIsConvertModalOpen(false)}
+                            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+                            title="Fermer"
+                            aria-label="Fermer"
+                        >
+                            <X size={20} />
+                        </button>
+
+                        <div className="text-center mb-6">
+                            <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <Gift className="w-6 h-6 text-purple-600" />
+                            </div>
+                            <h3 className="text-lg font-bold text-gray-900">Convertir mes points</h3>
+                            <p className="text-sm text-gray-500 mt-1">1 point = 10 FCFA</p>
+                        </div>
+
+                        <form onSubmit={handleConvert}>
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Points à convertir (Max: {points})
+                                </label>
+                                <input
+                                    type="number"
+                                    value={convertAmount}
+                                    onChange={(e) => setConvertAmount(e.target.value)}
+                                    className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                    placeholder="Ex: 500"
+                                    max={points}
+                                    min="1"
+                                    required
+                                />
+                            </div>
+
+                            <div className="bg-purple-50 p-3 rounded-lg flex justify-between items-center mb-6">
+                                <span className="text-sm text-purple-700 font-medium">Vous recevrez :</span>
+                                <span className="text-lg font-bold text-purple-700">
+                                    {parseInt(convertAmount || "0") * 10} FCFA
+                                </span>
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={loading || !convertAmount}
+                                className="w-full py-3 bg-purple-600 text-white rounded-xl font-bold hover:bg-purple-700 transition-colors disabled:opacity-50"
+                            >
+                                {loading ? "Conversion..." : "Valider la conversion"}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

@@ -3,7 +3,7 @@
 // Layout avec sidebar pour les dashboards
 // ═══════════════════════════════════════════════════════════════
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Link,
   Outlet,
@@ -64,6 +64,12 @@ import ChatWidget from "../common/ChatWidget";
 import KYCBadge from "../common/KYCBadge";
 import ClientTierBadge from "../common/ClientTierBadge";
 
+import { useUI } from "../../contexts/UIContext";
+import { useChat } from "../../contexts/ChatContext";
+import CalculatorModal from "../dashboard/CalculatorModal";
+import { notificationService, Notification } from "../../services/notificationService"; // FIX IMPORT
+import { CustomToast, showNotification } from "../common/NotificationToast"; // FIX IMPORT
+
 interface NavItem {
   name: string;
   path: string;
@@ -77,26 +83,75 @@ interface NavSection {
   items: NavItem[];
 }
 
-import { useUI } from "../../contexts/UIContext";
-import CalculatorModal from "../dashboard/CalculatorModal";
-
 export default function DashboardLayout() {
   const { t } = useTranslation();
-  const { profile } = useAuth();
+  const { user, profile, signOut } = useAuth();
+  const { isOpen: isChatOpen } = useChat(); // FIX DESTRUCTURING
   const { settings } = useBranding();
-  const { openCalculator } = useUI();
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
-  const isMessagesPage = location.pathname.includes("/messages");
+
+  useEffect(() => {
+    // Subscribe to Realtime Notifications
+    if (user) {
+      const subscription = notificationService.subscribeToNotifications((payload) => {
+        const newNotif = payload.new as Notification;
+        if (newNotif.user_id === user.id) {
+          showNotification(newNotif.title, newNotif.message, 'info');
+        }
+      });
+
+      return () => {
+        subscription.unsubscribe();
+      };
+    }
+  }, [user]);
+  const { openCalculator } = useUI(); // FIX MISSING DESTRUCTURING
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isOffline, setIsOffline] = useState(!navigator.onLine); // NEW: Offline State
+
+  useEffect(() => {
+    // 1. Realtime Notifications Subscription
+    if (user) {
+      const subscription = notificationService.subscribeToNotifications((payload) => {
+        const newNotif = payload.new as Notification;
+        if (newNotif.user_id === user.id) {
+          showNotification(newNotif.title, newNotif.message, 'info');
+        }
+      });
+      return () => subscription.unsubscribe();
+    }
+  }, [user]);
+
+  useEffect(() => {
+    // 2. Offline Mode Detection
+    const handleOnline = () => {
+      setIsOffline(false);
+      showNotification("Connexion rétablie", "Vous êtes de nouveau en ligne 🌐", "success");
+    };
+    const handleOffline = () => {
+      setIsOffline(true);
+      showNotification("Connexion perdue", "Passage en mode hors-ligne 📡", "warning");
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   // Logic for Trial Banner
   const trialEndDate = profile?.trial_ends_at ? new Date(profile.trial_ends_at) : null;
   const daysLeft = trialEndDate ? Math.ceil((trialEndDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : 0;
   const showTrialBanner = trialEndDate && daysLeft > 0 && daysLeft <= 14;
+
+  const isMessagesPage = location.pathname.includes("/messages"); // RESTORED DEFINITION
 
   // Navigation items based on role
   const getNavSections = (): NavSection[] => {
@@ -768,6 +823,14 @@ export default function DashboardLayout() {
       {/* Main Content Wrapper */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-slate-50/50 dark:bg-dark-bg transition-colors duration-500">
 
+        {/* Offline Banner */}
+        {isOffline && (
+          <div className="bg-slate-800 text-white px-4 py-2 text-sm font-medium flex items-center justify-center gap-2 shadow-sm animate-in slide-in-from-top duration-300 relative z-50">
+            <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+            <span>Mode Hors-Ligne : Certaines fonctionnalités peuvent être limitées.</span>
+          </div>
+        )}
+
         {/* Trial Banner */}
         {showTrialBanner && (
           <div className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white px-4 py-3 sm:py-2 text-sm font-medium flex flex-col sm:flex-row items-center justify-center gap-2 shadow-sm relative z-50 text-center sm:text-left">
@@ -989,16 +1052,18 @@ export default function DashboardLayout() {
                           <span>Mon Profil</span>
                         </Link>
 
-                        <Link
-                          to={`/dashboard/${profile?.role === "super-admin" ? "admin" : profile?.role}/wallet`}
-                          onClick={() => setUserMenuOpen(false)}
-                          className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-2xl transition-colors group"
-                        >
-                          <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-xl group-hover:bg-white group-hover:shadow-sm transition-all text-slate-500 group-hover:text-primary">
-                            <Wallet className="w-4 h-4" />
-                          </div>
-                          <span>Portefeuille</span>
-                        </Link>
+                        {profile?.role !== "admin" && (
+                          <Link
+                            to={`/dashboard/${profile?.role === "super-admin" ? "admin" : profile?.role}/wallet`}
+                            onClick={() => setUserMenuOpen(false)}
+                            className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-2xl transition-colors group"
+                          >
+                            <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-xl group-hover:bg-white group-hover:shadow-sm transition-all text-slate-500 group-hover:text-primary">
+                              <Wallet className="w-4 h-4" />
+                            </div>
+                            <span>Portefeuille</span>
+                          </Link>
+                        )}
 
                         <div className="my-1 border-t border-slate-100 dark:border-slate-700/50 mx-4"></div>
 
@@ -1021,9 +1086,10 @@ export default function DashboardLayout() {
         </div>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-x-hidden overflow-y-auto w-full max-w-full custom-scrollbar relative z-0 pb-12">
+        <main className={`flex-1 overflow-x-hidden overflow-y-auto w-full max-w-full custom-scrollbar relative z-0 ${isChatOpen ? 'pb-32' : 'pb-12'}`}>
           <div className="container mx-auto px-6 py-8">
             <Outlet />
+            <CustomToast />
           </div>
         </main>
 

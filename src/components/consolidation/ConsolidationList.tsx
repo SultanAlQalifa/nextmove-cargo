@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { supabase } from "../../lib/supabase";
+import ConfirmationModal from "../common/ConfirmationModal";
 
 interface ConsolidationListProps {
   type?: ConsolidationType;
@@ -48,6 +49,11 @@ export default function ConsolidationList({
     status: "open",
     type: type,
   });
+  const [confirmation, setConfirmation] = useState<{
+    isOpen: boolean;
+    id: string | null;
+    action: "cancel" | "delete" | null;
+  }>({ isOpen: false, id: null, action: null });
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -92,30 +98,30 @@ export default function ConsolidationList({
     }
   };
 
-  const handleCancel = async (id: string) => {
-    if (!confirm("Are you sure you want to cancel this request?")) return;
-    try {
-      await consolidationService.updateConsolidation(id, {
-        status: "cancelled",
-      });
-      loadConsolidations();
-    } catch (error) {
-      console.error("Error cancelling consolidation:", error);
-    }
+  const handleCancel = (id: string) => {
+    setConfirmation({ isOpen: true, id, action: "cancel" });
   };
 
-  const handleDelete = async (id: string) => {
-    if (
-      !confirm(
-        "Are you sure you want to delete this request? This action cannot be undone.",
-      )
-    )
-      return;
+  const handleDelete = (id: string) => {
+    setConfirmation({ isOpen: true, id, action: "delete" });
+  };
+
+  const handleConfirmAction = async () => {
+    if (!confirmation.id || !confirmation.action) return;
+
     try {
-      await consolidationService.deleteConsolidation(id);
+      if (confirmation.action === "cancel") {
+        await consolidationService.updateConsolidation(confirmation.id, {
+          status: "cancelled",
+        });
+      } else {
+        await consolidationService.deleteConsolidation(confirmation.id);
+      }
       loadConsolidations();
     } catch (error) {
-      console.error("Error deleting consolidation:", error);
+      console.error("Error processing consolidation action:", error);
+    } finally {
+      setConfirmation({ isOpen: false, id: null, action: null });
     }
   };
 
@@ -380,6 +386,25 @@ export default function ConsolidationList({
           ))}
         </div>
       )}
+      <ConfirmationModal
+        isOpen={confirmation.isOpen}
+        onClose={() =>
+          setConfirmation({ isOpen: false, id: null, action: null })
+        }
+        onConfirm={handleConfirmAction}
+        title={
+          confirmation.action === "cancel"
+            ? "Cancel Consolidation"
+            : "Delete Consolidation"
+        }
+        message={
+          confirmation.action === "cancel"
+            ? "Are you sure you want to cancel this consolidation request?"
+            : "Are you sure you want to delete this consolidation? This action cannot be undone."
+        }
+        variant="danger"
+        confirmLabel={confirmation.action === "cancel" ? "Cancel" : "Delete"}
+      />
     </div>
   );
 }

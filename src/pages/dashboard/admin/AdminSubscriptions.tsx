@@ -26,6 +26,7 @@ import { FEATURE_DEFINITIONS } from "../../../constants/subscriptionFeatures";
 import { subscriptionService } from "../../../services/subscriptionService";
 import { SubscriptionPlan, CreatePlanData } from "../../../types/subscription";
 import CreatePlanModal from "../../../components/admin/CreatePlanModal";
+import ConfirmationModal from "../../../components/common/ConfirmationModal";
 
 export default function AdminSubscriptions() {
   const { success, error: toastError } = useToast();
@@ -175,15 +176,27 @@ export default function AdminSubscriptions() {
       const msg = error.message || "Erreur lors de l'enregistrement du plan";
       toastError(msg);
       toastError(msg);
-      // alert(`Erreur: ${msg}`); // Removed fallback alert
       throw error;
     }
   };
 
-  const handleDeletePlan = async (id: string) => {
-    if (window.confirm("Êtes-vous sûr de vouloir supprimer ce plan ?")) {
-      await subscriptionService.deletePlan(id);
+  const [confirmation, setConfirmation] = useState<{
+    isOpen: boolean;
+    id: string | null;
+  }>({ isOpen: false, id: null });
+
+  // ... (fetchData and effects)
+
+  const handleDeletePlan = (id: string) => {
+    setConfirmation({ isOpen: true, id });
+  };
+
+  const confirmDeletePlan = async () => {
+    if (confirmation.id) {
+      await subscriptionService.deletePlan(confirmation.id);
       await fetchData();
+      success("Plan supprimé avec succès");
+      setConfirmation({ isOpen: false, id: null });
     }
   };
 
@@ -731,6 +744,16 @@ export default function AdminSubscriptions() {
         onSubmit={handleCreatePlan}
         initialData={editingPlan}
         isEditing={!!editingPlan}
+      />
+
+      <ConfirmationModal
+        isOpen={confirmation.isOpen}
+        onClose={() => setConfirmation({ isOpen: false, id: null })}
+        onConfirm={confirmDeletePlan}
+        title="Supprimer le plan"
+        message="Êtes-vous sûr de vouloir supprimer ce plan d'abonnement ? Cette action ne peut pas être annulée."
+        variant="danger"
+        confirmLabel="Supprimer"
       />
     </div>
   );

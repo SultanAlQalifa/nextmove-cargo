@@ -24,6 +24,7 @@ import { useAuth } from "../../../contexts/AuthContext";
 import { useToast } from "../../../contexts/ToastContext";
 
 import ClientDetailsModal from "../../../components/dashboard/forwarder/ClientDetailsModal";
+import ConfirmationModal from "../../../components/common/ConfirmationModal";
 
 export default function ForwarderClients() {
   const { user } = useAuth();
@@ -43,6 +44,10 @@ export default function ForwarderClients() {
   // Client Details Modal
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<any>(null);
+  const [confirmation, setConfirmation] = useState<{
+    isOpen: boolean;
+    id: string | null;
+  }>({ isOpen: false, id: null });
 
   useEffect(() => {
     fetchData();
@@ -94,15 +99,21 @@ export default function ForwarderClients() {
     }
   };
 
-  const handleReject = async (connectionId: string) => {
-    if (!confirm("Voulez-vous vraiment refuser cette demande ?")) return;
+  const handleReject = (connectionId: string) => {
+    setConfirmation({ isOpen: true, id: connectionId });
+  };
+
+  const confirmReject = async () => {
+    if (!confirmation.id) return;
     try {
-      await connectionService.rejectRequest(connectionId);
+      await connectionService.rejectRequest(confirmation.id);
       success("Demande refusée");
       fetchData();
     } catch (err) {
       console.error(err);
       error("Erreur lors du refus");
+    } finally {
+      setConfirmation({ isOpen: false, id: null });
     }
   };
 
@@ -129,8 +140,8 @@ export default function ForwarderClients() {
         <button
           onClick={() => setActiveTab("clients")}
           className={`pb-3 px-1 text-sm font-medium transition-colors relative ${activeTab === "clients"
-              ? "text-primary border-b-2 border-primary"
-              : "text-gray-500 hover:text-gray-700"
+            ? "text-primary border-b-2 border-primary"
+            : "text-gray-500 hover:text-gray-700"
             }`}
         >
           <div className="flex items-center gap-2">
@@ -144,8 +155,8 @@ export default function ForwarderClients() {
         <button
           onClick={() => setActiveTab("pending")}
           className={`pb-3 px-1 text-sm font-medium transition-colors relative ${activeTab === "pending"
-              ? "text-primary border-b-2 border-primary"
-              : "text-gray-500 hover:text-gray-700"
+            ? "text-primary border-b-2 border-primary"
+            : "text-gray-500 hover:text-gray-700"
             }`}
         >
           <div className="flex items-center gap-2">
@@ -392,6 +403,15 @@ export default function ForwarderClients() {
         isOpen={isDetailsOpen}
         onClose={() => setIsDetailsOpen(false)}
         client={selectedClient}
+      />
+      <ConfirmationModal
+        isOpen={confirmation.isOpen}
+        onClose={() => setConfirmation({ isOpen: false, id: null })}
+        onConfirm={confirmReject}
+        title="Refuser la demande"
+        message="Voulez-vous vraiment refuser cette demande de connexion ?"
+        variant="danger"
+        confirmLabel="Refuser"
       />
     </div>
   );

@@ -20,12 +20,13 @@ export default function CreateUserModal({
   onClose,
   onSuccess,
 }: CreateUserModalProps) {
-  const { success } = useToast();
+  const { success, error: toastError } = useToast();
   const { profile } = useAuth();
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
     role: "client",
+    phone: "",
   });
   const [loading, setLoading] = useState(false);
   const [roles, setRoles] = useState<Role[]>([]);
@@ -78,7 +79,7 @@ export default function CreateUserModal({
       onClose();
     } catch (error) {
       console.error(error);
-      // alert("Erreur lors de la mise à jour");
+      toastError("Erreur lors de la mise à jour");
     } finally {
       setLoading(false);
     }

@@ -38,7 +38,14 @@ import {
   ResponsiveContainer,
   AreaChart,
   Area,
+  PieChart,
+  Pie,
+  Cell,
+  Legend
 } from "recharts";
+import { useToast } from "../../contexts/ToastContext";
+import ConfirmationModal from "../../components/common/ConfirmationModal";
+import { Quote } from "../../services/quoteService";
 
 export default function ClientDashboard() {
   const { t } = useTranslation();
@@ -91,16 +98,38 @@ export default function ClientDashboard() {
     else setShipments(data || []);
   };
 
-  const handleAcceptQuote = async (quoteId: string, requestId: string) => {
-    if (!confirm("Êtes-vous sûr de vouloir accepter cette offre ? Cela créera une expédition.")) return;
+  const { success, error: toastError } = useToast();
+  const [confirmation, setConfirmation] = useState<{
+    isOpen: boolean;
+    quoteId: string | null;
+    requestId: string | null;
+  }>({
+    isOpen: false,
+    quoteId: null,
+    requestId: null
+  });
+
+  const handleAcceptQuote = (quoteId: string, requestId: string) => {
+    setConfirmation({
+      isOpen: true,
+      quoteId,
+      requestId
+    });
+  };
+
+  const confirmAcceptQuote = async () => {
+    if (!confirmation.quoteId || !confirmation.requestId) return;
+
     try {
-      await quoteService.acceptQuote(quoteId, requestId);
-      alert("Offre acceptée ! Expédition créée.");
+      await quoteService.acceptQuote(confirmation.quoteId, confirmation.requestId);
+      success("Offre acceptée ! Expédition créée.");
       setSelectedRequestQuotes(null);
       loadData();
     } catch (error) {
       console.error("Error accepting quote:", error);
-      alert("Échec de l'acceptation de l'offre.");
+      toastError("Échec de l'acceptation de l'offre.");
+    } finally {
+      setConfirmation({ isOpen: false, quoteId: null, requestId: null });
     }
   };
 
@@ -137,6 +166,14 @@ export default function ClientDashboard() {
       demandes: Math.max(2, (stats.pendingRequests + i) % 8),   // Deterministic mock
     }));
   }, [stats]);
+
+  // Pie Chart Data
+  const pieData = useMemo(() => [
+    { name: 'Chine', value: 45, color: '#4F46E5' },
+    { name: 'Turquie', value: 25, color: '#F59E0B' },
+    { name: 'France', value: 20, color: '#10B981' },
+    { name: 'Autres', value: 10, color: '#64748B' },
+  ], []);
 
 
   return (
@@ -216,6 +253,34 @@ export default function ClientDashboard() {
           </div>
           {/* Decorative bg blobs */}
           <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors pointer-events-none"></div>
+        </div>
+
+        {/* Spend by Origin (Pie Chart) - Replaces Loyalty Card or gets added */}
+        <div className="md:col-span-1 lg:col-span-1 row-span-2 bg-white/80 dark:bg-dark-card/80 backdrop-blur-xl rounded-3xl p-6 border border-white/40 dark:border-white/10 shadow-sm relative overflow-hidden hover:shadow-md transition-shadow">
+          <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-2">Volume par Origine</h3>
+          <div className="w-full h-[250px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={pieData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={80}
+                  paddingAngle={5}
+                  dataKey="value"
+                >
+                  {pieData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                />
+                <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
         {/* 2. Loyalty Card - Premium Glass */}
@@ -462,6 +527,15 @@ export default function ClientDashboard() {
           onClose={() => setActiveChat(null)}
         />
       )}
+
+      <ConfirmationModal
+        isOpen={confirmation.isOpen}
+        onClose={() => setConfirmation({ isOpen: false, quoteId: null, requestId: null })}
+        onConfirm={confirmAcceptQuote}
+        title="Accepter l'offre"
+        message="Êtes-vous sûr de vouloir accepter cette offre ? Cela créera une expédition automatiquement."
+        confirmLabel="Accepter et Payer"
+      />
     </div>
   );
 }

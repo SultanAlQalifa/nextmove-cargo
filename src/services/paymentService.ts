@@ -326,4 +326,21 @@ export const paymentService = {
       }),
     );
   },
+
+  adminAdjustWallet: async (
+    userId: string,
+    amount: number,
+    type: "deposit" | "withdrawal",
+    description: string,
+  ) => {
+    const { data, error } = await supabase.rpc("admin_adjust_wallet", {
+      p_user_id: userId,
+      p_amount: amount,
+      p_type: type,
+      p_description: description,
+    });
+
+    if (error) throw error;
+    return data;
+  },
 };

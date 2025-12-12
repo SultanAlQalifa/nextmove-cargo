@@ -22,6 +22,7 @@ import {
   Calendar,
   MapPin,
 } from "lucide-react";
+import ConfirmationModal from "../common/ConfirmationModal";
 
 export default function ClientRFQList() {
   const { t } = useTranslation();
@@ -32,6 +33,11 @@ export default function ClientRFQList() {
     "all" | "draft" | "published" | "offers_received"
   >("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const [confirmation, setConfirmation] = useState<{
+    isOpen: boolean;
+    id: string | null;
+    action: "cancel" | "delete" | null;
+  }>({ isOpen: false, id: null, action: null });
 
   useEffect(() => {
     loadRFQs();
@@ -69,23 +75,28 @@ export default function ClientRFQList() {
     }
   };
 
-  const handleCancel = async (id: string) => {
-    if (!confirm(t("rfq.messages.confirmCancel"))) return;
-    try {
-      await rfqService.cancelRFQ(id);
-      loadRFQs();
-    } catch (error) {
-      console.error("Error cancelling RFQ:", error);
-    }
+  const handleCancel = (id: string) => {
+    setConfirmation({ isOpen: true, id, action: "cancel" });
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm(t("rfq.messages.confirmCancel"))) return;
+  const handleDelete = (id: string) => {
+    setConfirmation({ isOpen: true, id, action: "delete" });
+  };
+
+  const handleConfirmAction = async () => {
+    if (!confirmation.id || !confirmation.action) return;
+
     try {
-      await rfqService.deleteRFQ(id);
+      if (confirmation.action === "cancel") {
+        await rfqService.cancelRFQ(confirmation.id);
+      } else {
+        await rfqService.deleteRFQ(confirmation.id);
+      }
       loadRFQs();
     } catch (error) {
-      console.error("Error deleting RFQ:", error);
+      console.error("Error processing RFQ action:", error);
+    } finally {
+      setConfirmation({ isOpen: false, id: null, action: null });
     }
   };
 
@@ -375,6 +386,31 @@ export default function ClientRFQList() {
           ))}
         </div>
       )}
+      <ConfirmationModal
+        isOpen={confirmation.isOpen}
+        onClose={() =>
+          setConfirmation({ isOpen: false, id: null, action: null })
+        }
+        onConfirm={handleConfirmAction}
+        title={
+          confirmation.action === "cancel"
+            ? t("rfq.actions.cancel") || "Annuler la demande"
+            : t("rfq.actions.delete") || "Supprimer la demande"
+        }
+        message={
+          confirmation.action === "cancel"
+            ? t("rfq.messages.confirmCancel") ||
+            "Êtes-vous sûr de vouloir annuler cette demande ?"
+            : t("rfq.messages.confirmDelete") ||
+            "Êtes-vous sûr de vouloir supprimer cette demande ? Cette action est irréversible."
+        }
+        variant="danger"
+        confirmLabel={
+          confirmation.action === "cancel"
+            ? t("common.confirm") || "Confirmer"
+            : t("common.delete") || "Supprimer"
+        }
+      />
     </div>
   );
 }

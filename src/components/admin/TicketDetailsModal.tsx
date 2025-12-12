@@ -9,6 +9,7 @@ import {
   AlertCircle,
   CheckCircle,
 } from "lucide-react";
+import ConfirmationModal from "../common/ConfirmationModal";
 import { Ticket, supportService } from "../../services/supportService";
 
 interface TicketDetailsModalProps {
@@ -26,6 +27,10 @@ export default function TicketDetailsModal({
   const [sending, setSending] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [confirmation, setConfirmation] = useState<{
+    isOpen: boolean;
+    action: "escalate" | null;
+  }>({ isOpen: false, action: null });
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -134,6 +139,8 @@ export default function TicketDetailsModal({
           <button
             onClick={onClose}
             className="p-2 hover:bg-gray-200 rounded-full transition-colors"
+            title="Fermer"
+            aria-label="Fermer"
           >
             <X className="w-5 h-5 text-gray-500" />
           </button>
@@ -149,11 +156,10 @@ export default function TicketDetailsModal({
                   className={`flex gap-4 ${msg.sender === "support" ? "flex-row-reverse" : ""}`}
                 >
                   <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                      msg.sender === "support"
-                        ? "bg-primary text-white"
-                        : "bg-gray-200 text-gray-600"
-                    }`}
+                    className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${msg.sender === "support"
+                      ? "bg-primary text-white"
+                      : "bg-gray-200 text-gray-600"
+                      }`}
                   >
                     {msg.sender === "support" ? (
                       <Headphones className="w-4 h-4" />
@@ -162,11 +168,10 @@ export default function TicketDetailsModal({
                     )}
                   </div>
                   <div
-                    className={`max-w-[80%] rounded-2xl p-4 ${
-                      msg.sender === "support"
-                        ? "bg-primary text-white rounded-tr-none"
-                        : "bg-white border border-gray-100 text-gray-800 rounded-tl-none shadow-sm"
-                    }`}
+                    className={`max-w-[80%] rounded-2xl p-4 ${msg.sender === "support"
+                      ? "bg-primary text-white rounded-tr-none"
+                      : "bg-white border border-gray-100 text-gray-800 rounded-tl-none shadow-sm"
+                      }`}
                   >
                     <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
                     <p
@@ -249,23 +254,7 @@ export default function TicketDetailsModal({
                   ticket.status !== "resolved" &&
                   ticket.status !== "closed" && (
                     <button
-                      onClick={async () => {
-                        if (
-                          window.confirm(
-                            "Êtes-vous sûr de vouloir escalader ce ticket ? Cela le marquera comme urgent.",
-                          )
-                        ) {
-                          setUpdatingStatus(true);
-                          try {
-                            await supportService.escalateTicket(ticket.id);
-                            onUpdate();
-                          } catch (error) {
-                            console.error("Error escalating ticket:", error);
-                          } finally {
-                            setUpdatingStatus(false);
-                          }
-                        }
-                      }}
+                      onClick={() => setConfirmation({ isOpen: true, action: "escalate" })}
                       disabled={updatingStatus}
                       className="w-full flex items-center gap-3 px-4 py-3 bg-red-50 text-red-700 rounded-xl hover:bg-red-100 transition-colors font-medium text-sm mt-2 border border-red-100"
                     >
@@ -321,6 +310,8 @@ export default function TicketDetailsModal({
 
                 <div className="relative">
                   <select
+                    title="Assigner un utilisateur"
+                    aria-label="Assigner un utilisateur"
                     onChange={async (e) => {
                       if (e.target.value) {
                         setUpdatingStatus(true);
@@ -367,6 +358,28 @@ export default function TicketDetailsModal({
           </div>
         </div>
       </div>
+      <ConfirmationModal
+        isOpen={confirmation.isOpen}
+        onClose={() => setConfirmation({ isOpen: false, action: null })}
+        onConfirm={async () => {
+          if (confirmation.action === "escalate") {
+            setUpdatingStatus(true);
+            try {
+              await supportService.escalateTicket(ticket.id);
+              onUpdate();
+            } catch (error) {
+              console.error("Error escalating ticket:", error);
+            } finally {
+              setUpdatingStatus(false);
+              setConfirmation({ isOpen: false, action: null });
+            }
+          }
+        }}
+        title="Escalader le ticket"
+        message="Êtes-vous sûr de vouloir escalader ce ticket ? Cela le marquera comme urgent."
+        variant="danger"
+        confirmLabel="Escalader"
+      />
     </div>
   );
 }
