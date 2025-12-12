@@ -18,6 +18,7 @@ export default function CEOSection() {
                                 src="/assets/ceo.jpg"
                                 alt="Cheikh Abdoul Khadre Djeylani Djitte - PDG NextMove Cargo"
                                 className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 object-top"
+                                loading="lazy"
                             />
                             <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-black/80 to-transparent z-20">
                                 <h3 className="text-2xl font-bold text-white">Cheikh Abdoul Khadre Djeylani Djitte</h3>
