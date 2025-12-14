@@ -23,7 +23,7 @@ export interface Profile {
     avatar_url?: string;
     website_url?: string;
     friendly_id?: string;
-    account_status?: "active" | "suspended" | "inactive" | "banned";
+    account_status?: "active" | "suspended" | "inactive" | "banned" | "pending_approval";
     // Specific fields
     transport_modes?: string[];
     kyc_status?: "pending" | "approved" | "rejected" | "verified";
@@ -34,6 +34,13 @@ export interface Profile {
 
     // New settings field
     automation_settings?: AutomationSettings;
+
+    // Referral System
+    referral_code?: string;
+    referral_points?: number;
+    is_founder?: boolean;
+
+    subscription_status?: "active" | "inactive" | "past_due" | "canceled";
 
     created_at?: string;
     updated_at?: string;

@@ -20,6 +20,8 @@ export interface Ticket {
   shipment_ref?: string;
   is_escalated?: boolean;
   assigned_to?: string; // Staff ID
+  sla_deadline?: string;
+  user_plan?: string;
 }
 
 export interface GlobalSearchResult {
@@ -103,7 +105,7 @@ export const supportService = {
     return (data || []).map(mapDbTicketToApp);
   },
 
-  createTicket: async (ticket: Partial<Ticket>): Promise<Ticket> => {
+  createTicket: async (ticket: Partial<Ticket>, onBehalfOfUserId?: string): Promise<Ticket> => {
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -112,7 +114,7 @@ export const supportService = {
     const { data, error } = await supabase
       .from("tickets")
       .insert({
-        user_id: user.id,
+        user_id: onBehalfOfUserId || user.id,
         subject: ticket.subject,
         category: ticket.category,
         priority: ticket.priority,
@@ -232,6 +234,8 @@ function mapDbTicketToApp(dbRecord: any): Ticket {
     shipment_ref: dbRecord.shipment_ref,
     is_escalated: dbRecord.is_escalated,
     assigned_to: dbRecord.assigned_to,
+    sla_deadline: dbRecord.sla_deadline,
+    user_plan: dbRecord.user_plan,
   };
 }
 

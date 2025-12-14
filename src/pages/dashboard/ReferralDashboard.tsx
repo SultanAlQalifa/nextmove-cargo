@@ -207,7 +207,11 @@ export default function ReferralDashboard() {
           text: `Rejoignez - moi sur NextMove Cargo! Utilisez mon code ${codeToUse} pour obtenir des avantages.`,
           url: `${window.location.origin}/register?referral=${codeToUse}`,
         });
-      } catch (err) { }
+      } catch (err) {
+        if ((err as Error).name !== 'AbortError') {
+          console.warn("Share failed:", err);
+        }
+      }
     }
   };
 

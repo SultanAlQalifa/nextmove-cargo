@@ -10,7 +10,6 @@ import {
   ChevronDown,
   Clock,
   DollarSign,
-  Info,
   MapPin,
   Plus,
   Globe,
@@ -19,7 +18,6 @@ import {
 import { shipmentService } from "../../services/shipmentService";
 import { locationService, Location } from "../../services/locationService";
 import { useAuth } from "../../contexts/AuthContext";
-import { rateService } from "../../services/rateService";
 import {
   forwarderRateService,
   ForwarderRate,
@@ -146,10 +144,15 @@ export default function AddShipmentModal({
   const [transitMaxDays, setTransitMaxDays] = useState<number | null>(null);
 
   // If rate_id is provided, we lock the selection to that rate
+  // If rate_id is provided, we lock the selection to that rate
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isRateContext, setIsRateContext] = useState(!!initialData?.rate_id);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [rateId, setRateId] = useState<string | undefined>(initialData?.rate_id);
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [step, setStep] = useState(1);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [dateError, setDateError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -607,7 +610,7 @@ export default function AddShipmentModal({
           else finalPrice = parseFloat(finalPrice.toFixed(2));
 
           const submissionData = {
-            tracking_number: `TRK - ${Date.now().toString().slice(-4)}${Math.floor(Math.random() * 1000)} `, // Unique TRK
+            // tracking_number removed - handled by service
             origin_country: rate.origin?.name,
             destination_country: rate.destination?.name,
             origin_id: rate.origin_id,
@@ -616,10 +619,10 @@ export default function AddShipmentModal({
             transport_mode: rate.mode,
             service_type: rate.type,
             price: finalPrice,
-            cargo_type: formData.cargo_types.join(", "), // Common? Or default? Use form data for now.
+            cargo_type: formData.cargo_types.join(", "),
             cargo_weight: rate.mode === "air" ? 1000 : 0,
             cargo_volume: rate.mode === "sea" ? 76 : 0,
-            cargo_packages: formData.cargo_packages, // Common
+            cargo_packages: formData.cargo_packages,
             departure_date: departureDate,
             arrival_estimated_date: arrivalDateStr,
             transit_duration:
@@ -638,6 +641,7 @@ export default function AddShipmentModal({
         // SINGLE SUBMISSION (Classic)
         const submissionData = {
           ...formData,
+          tracking_number: undefined, // Let service generate it
           cargo_type: formData.cargo_types.join(", "),
           origin_port: "",
           destination_port: "",

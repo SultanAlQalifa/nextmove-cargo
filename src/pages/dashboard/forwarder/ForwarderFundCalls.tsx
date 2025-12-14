@@ -31,6 +31,7 @@ export default function ForwarderFundCalls() {
   const [newFundCall, setNewFundCall] = useState({
     amount: "",
     currency: "XOF",
+    type: "withdrawal" as "withdrawal" | "funding",
     reason: "",
     due_date: "",
   });
@@ -98,8 +99,8 @@ export default function ForwarderFundCalls() {
         amountInXOF = amountInXOF * 600;
       }
 
-      // Validation: Check Wallet Balance
-      if (wallet && amountInXOF > wallet.balance) {
+      // Validation: Check Wallet Balance ONLY for withdrawals
+      if (newFundCall.type === 'withdrawal' && wallet && amountInXOF > wallet.balance) {
         toastError(
           `Solde insuffisant. Votre solde est de ${wallet.balance.toLocaleString()} FCFA.`,
         );
@@ -109,12 +110,13 @@ export default function ForwarderFundCalls() {
       await fundCallService.createFundCall({
         amount: Math.round(amountInXOF), // Store as Integer XOF
         currency: "XOF", // Always store as XOF
+        type: newFundCall.type,
         reason: newFundCall.reason,
         due_date: newFundCall.due_date,
         reference: `FC-${Date.now()}`,
       });
       setIsCreateModalOpen(false);
-      setNewFundCall({ amount: "", currency: "XOF", reason: "", due_date: "" });
+      setNewFundCall({ amount: "", currency: "XOF", type: "withdrawal", reason: "", due_date: "" });
       fetchFundCalls();
       fetchWalletAndRates(); // Refresh balance just in case
     } catch (error) {
@@ -229,6 +231,9 @@ export default function ForwarderFundCalls() {
                     Référence
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Type
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Montant
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -255,6 +260,11 @@ export default function ForwarderFundCalls() {
                       <div className="text-sm font-medium text-gray-900">
                         {call.reference}
                       </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${call.type === 'funding' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}>
+                        {call.type === 'funding' ? 'Financement' : 'Retrait'}
+                      </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-bold text-gray-900">
@@ -342,6 +352,27 @@ export default function ForwarderFundCalls() {
               )}
             </div>
             <form onSubmit={handleCreate} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Type de demande
+                </label>
+                <div className="flex bg-gray-50 rounded-xl p-1 mb-4">
+                  <button
+                    type="button"
+                    onClick={() => setNewFundCall({ ...newFundCall, type: 'withdrawal' })}
+                    className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${newFundCall.type === 'withdrawal' ? 'bg-white shadow-sm text-gray-900 border border-gray-100' : 'text-gray-500 hover:text-gray-900'}`}
+                  >
+                    Retrait (Débit)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setNewFundCall({ ...newFundCall, type: 'funding' })}
+                    className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${newFundCall.type === 'funding' ? 'bg-white shadow-sm text-gray-900 border border-gray-100' : 'text-gray-500 hover:text-gray-900'}`}
+                  >
+                    Financement (Crédit)
+                  </button>
+                </div>
+              </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Montant

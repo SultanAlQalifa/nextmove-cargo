@@ -10,6 +10,7 @@ import {
 } from "../services/calculatorService";
 import {
   ForwarderOption,
+  forwarderService,
 } from "../services/forwarderService";
 import { feeService, FeeConfig } from "../services/feeService";
 import { calculateCBM, LengthUnit } from "../utils/volumeCalculator";
@@ -587,6 +588,7 @@ export default function Calculator() {
                         value={originSearch || watch("origin")}
                         onChange={(e) => {
                           setOriginSearch(e.target.value);
+                          setValue("origin", e.target.value);
                           setShowOriginDropdown(true);
                         }}
                         onFocus={() => {
@@ -630,6 +632,7 @@ export default function Calculator() {
                         value={destSearch || watch("destination")}
                         onChange={(e) => {
                           setDestSearch(e.target.value);
+                          setValue("destination", e.target.value);
                           setShowDestDropdown(true);
                         }}
                         onFocus={() => {

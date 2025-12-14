@@ -1,16 +1,11 @@
 import { Shipment } from "../../services/shipmentService";
 import {
-  Truck,
   Ship,
-  Plane,
   Package,
-  MapPin,
-  Calendar,
   ArrowRight,
-  CheckCircle2,
-  Clock,
   FileText,
-  CreditCard
+  CreditCard,
+  QrCode,
 } from "lucide-react";
 import ShipmentTracker from "./ShipmentTracker";
 import { generateInvoicePDF } from "../../utils/invoiceGenerator";
@@ -82,6 +77,25 @@ export default function ShipmentCard({ shipment, onClick, onPay }: ShipmentCardP
       currency: "XOF",
       status: shipment.status === "delivered" ? "PAID" : "UNPAID",
     });
+  };
+
+  const handleDownloadQR = async () => {
+    try {
+      // Dynamic import to avoid SSR issues if any, or just standard import
+      const QRCode = (await import("qrcode")).default;
+
+      const trackingUrl = `${window.location.origin}/tracking/${shipment.tracking_number}`;
+      const dataUrl = await QRCode.toDataURL(trackingUrl, { width: 300, margin: 2 });
+
+      const link = document.createElement("a");
+      link.href = dataUrl;
+      link.download = `QR-${shipment.tracking_number}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error("Failed to generate QR code", err);
+    }
   };
 
   return (
@@ -167,6 +181,17 @@ export default function ShipmentCard({ shipment, onClick, onPay }: ShipmentCardP
           </span>
         </div>
         <div className="flex items-center gap-3">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDownloadQR();
+            }}
+            className="text-gray-400 hover:text-gray-600 text-xs font-bold hover:underline flex items-center gap-1 transition-colors"
+            title="Télécharger QR Code"
+          >
+            <QrCode className="w-3 h-3" /> QR
+          </button>
+
           {shipment.status === 'pending_payment' && onPay && (
             <button
               onClick={(e) => {

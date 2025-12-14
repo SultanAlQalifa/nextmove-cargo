@@ -24,7 +24,8 @@ import {
   Crown,
   Wallet,
   Bell,
-  Activity
+  Activity,
+  Sparkles
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -207,6 +208,33 @@ export default function ClientDashboard() {
         </div>
       </PageHeader>
 
+      {/* Founder Pack Banner */}
+      {!profile?.is_founder && (
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-amber-500 to-orange-600 p-8 text-white shadow-xl shadow-amber-500/20 animate-in fade-in slide-in-from-top-4 duration-700">
+          <div className="absolute top-0 right-0 -mr-16 -mt-16 h-64 w-64 rounded-full bg-white/10 blur-3xl"></div>
+          <div className="absolute bottom-0 left-0 -ml-16 -mb-16 h-40 w-40 rounded-full bg-black/10 blur-2xl"></div>
+
+          <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="text-center md:text-left">
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/20 px-3 py-1 text-xs font-bold uppercase tracking-wider backdrop-blur-sm mb-3">
+                <Sparkles className="h-3 w-3" /> Offre Limitée
+              </div>
+              <h3 className="mb-2 text-2xl font-bold">Devenez Membre Fondateur</h3>
+              <p className="max-w-xl text-amber-100">
+                Obtenez le badge exclusif, un support prioritaire à vie et des accès anticipés. Rejoignez le cercle des pionniers.
+              </p>
+            </div>
+            <Link
+              to="/dashboard/client/founder-payment"
+              className="group whitespace-nowrap rounded-2xl bg-white px-6 py-3 font-bold text-orange-600 shadow-lg transition-all hover:-translate-y-1 hover:shadow-xl hover:bg-slate-50"
+            >
+              Découvrir l'offre
+              <ArrowRight className="ml-2 inline-block h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </Link>
+          </div>
+        </div>
+      )}
+
       {/* Bento Grid Layout */}
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 auto-rows-[minmax(140px,auto)]">
 
@@ -218,7 +246,7 @@ export default function ClientDashboard() {
                 <Activity className="w-5 h-5 text-primary" />
                 Activité Mensuelle
               </h3>
-              <p className="text-sm text-slate-500">Expéditions vs Demandes</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">Expéditions vs Demandes</p>
             </div>
             <div className="p-2 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
               <TrendingUp className="w-5 h-5 text-emerald-500" />
@@ -314,12 +342,12 @@ export default function ClientDashboard() {
               Actives
             </span>
           </div>
-          <p className="text-slate-500 text-sm font-medium">Expéditions en cours</p>
+          <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Expéditions en cours</p>
           <h3 className="text-3xl font-bold text-slate-800 dark:text-white mt-1">{stats.activeShipments}</h3>
           <div className="mt-4 flex -space-x-2 overflow-hidden">
             {/* Fake user avatars/icons representing active shipments agents */}
             {[1, 2, 3].map(i => (
-              <div key={i} className="inline-block h-6 w-6 rounded-full ring-2 ring-white dark:ring-slate-800 bg-slate-200 flex items-center justify-center text-[8px] font-bold text-slate-500">A{i}</div>
+              <div key={i} className="inline-block h-6 w-6 rounded-full ring-2 ring-white dark:ring-slate-800 bg-slate-200 flex items-center justify-center text-[8px] font-bold text-slate-500 dark:text-slate-400">A{i}</div>
             ))}
             <div className="inline-block h-6 w-6 rounded-full ring-2 ring-white dark:ring-slate-800 bg-slate-100 flex items-center justify-center text-[8px] font-bold text-slate-400">+</div>
           </div>
@@ -335,7 +363,7 @@ export default function ClientDashboard() {
               {stats.pendingRequests} En attente
             </span>
           </div>
-          <p className="text-slate-500 text-sm font-medium">Demandes de devis</p>
+          <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Demandes de devis</p>
           <h3 className="text-3xl font-bold text-slate-800 dark:text-white mt-1">{stats.pendingRequests}</h3>
           <Link to="/dashboard/client/rfq" className="mt-4 text-xs font-semibold text-amber-600 hover:text-amber-700 flex items-center gap-1">
             Voir les offres <ArrowRight className="w-3 h-3" />
@@ -349,7 +377,7 @@ export default function ClientDashboard() {
               <Wallet className="w-5 h-5" />
             </div>
           </div>
-          <p className="text-slate-500 text-sm font-medium">Dépenses Totales</p>
+          <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Dépenses Totales</p>
           <h3 className="text-2xl font-bold text-slate-800 dark:text-white mt-1">
             {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF' }).format(stats.totalSpent)}
           </h3>
@@ -379,12 +407,12 @@ export default function ClientDashboard() {
             {filteredShipments.slice(0, 4).map(shipment => (
               <div key={shipment.id} className="p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors flex items-center justify-between group cursor-pointer" onClick={() => navigate(`/dashboard/client/shipments/${shipment.id}`)}>
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500">
+                  <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400">
                     <Package className="w-5 h-5" />
                   </div>
                   <div>
                     <p className="font-semibold text-slate-800 dark:text-slate-200">{shipment.tracking_number}</p>
-                    <p className="text-xs text-slate-500">{shipment.origin_country} → {shipment.destination_country}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">{shipment.origin_country} → {shipment.destination_country}</p>
                   </div>
                 </div>
                 <div className="flex flex-col items-end gap-1">
@@ -427,12 +455,12 @@ export default function ClientDashboard() {
             {filteredRequests.slice(0, 4).map(request => (
               <div key={request.id} className="p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors flex items-center justify-between group cursor-pointer" onClick={() => setSelectedRequestQuotes(request.quotes || null)}>
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500">
+                  <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400">
                     <TrendingUp className="w-5 h-5" />
                   </div>
                   <div>
                     <p className="font-semibold text-slate-800 dark:text-slate-200 truncate max-w-[150px]">{request.cargo_details.description}</p>
-                    <p className="text-xs text-slate-500">{request.origin_country} → {request.destination_country}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">{request.origin_country} → {request.destination_country}</p>
                   </div>
                 </div>
                 <div className="flex flex-col items-end gap-1">
@@ -472,7 +500,7 @@ export default function ClientDashboard() {
                 className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors"
                 aria-label="Fermer"
               >
-                <X className="w-5 h-5 text-slate-500" />
+                <X className="w-5 h-5 text-slate-500 dark:text-slate-400" />
               </button>
             </div>
             <div className="space-y-4">
@@ -486,7 +514,7 @@ export default function ClientDashboard() {
                       {quote.forwarder?.company_name || "Transitaire"}
                       <div className="text-[10px] px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full">Verifié</div>
                     </p>
-                    <p className="text-sm text-slate-500 mt-1 flex items-center gap-1">
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1">
                       <Clock className="w-3 h-3" />
                       Valide jusqu'au: {quote.valid_until ? new Date(quote.valid_until).toLocaleDateString() : "N/A"}
                     </p>

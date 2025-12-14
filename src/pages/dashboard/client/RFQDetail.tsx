@@ -204,6 +204,10 @@ export default function RFQDetail() {
         color: "bg-gray-50 text-gray-500 border-gray-200",
         label: "Annulée",
       },
+      rejected: {
+        color: "bg-red-50 text-red-700 border-red-200",
+        label: "Rejetée",
+      },
     };
 
     const badge = badges[status as keyof typeof badges] || badges.draft;
@@ -316,6 +320,20 @@ export default function RFQDetail() {
             >
               <Archive className="w-4 h-4" />
               Supprimer
+            </button>
+          )}
+
+          {rfq.status === "rejected" && (
+            <button
+              onClick={() =>
+                navigate("/dashboard/client/rfq/create", {
+                  state: { mode: "retry", rfqData: rfq },
+                })
+              }
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-colors flex items-center gap-2 shadow-lg shadow-blue-200"
+            >
+              <CheckCircle className="w-4 h-4" />
+              Réessayer (Paiement en ligne requis)
             </button>
           )}
         </div>

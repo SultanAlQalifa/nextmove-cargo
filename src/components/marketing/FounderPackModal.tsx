@@ -13,7 +13,7 @@ export default function FounderPackModal() {
 
     const checkSettings = async () => {
         // User requested popup to show every visit, so we removed the localStorage check
-        // const dismissed = localStorage.getItem('founder_pack_dismissed');
+
         // if (dismissed) return;
 
         try {

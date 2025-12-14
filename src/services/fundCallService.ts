@@ -5,6 +5,7 @@ export interface FundCall {
   reference: string;
   amount: number;
   currency: string;
+  type: "funding" | "withdrawal";
   status: "pending" | "approved" | "rejected" | "paid";
   requester: {
     id: string;
@@ -64,13 +65,15 @@ export const fundCallService = {
   ): Promise<void> => {
     const { error } = await supabase
       .from("fund_calls")
-      .update({ status }) // In a real app, we might store the rejection reason in a separate column or log
+      .update({
+        status,
+        ...(reason && { reason })
+      })
       .eq("id", id);
 
     if (error) throw error;
 
-    if (reason) {
-    }
+
   },
 
   createFundCall: async (fundCall: Partial<FundCall>): Promise<FundCall> => {
@@ -109,6 +112,7 @@ function mapDbFundCallToApp(dbRecord: any): FundCall {
     reference: dbRecord.reference,
     amount: dbRecord.amount,
     currency: dbRecord.currency,
+    type: dbRecord.type || "withdrawal", // Default to withdrawal for legacy
     status: dbRecord.status,
     requester: {
       id: dbRecord.requester?.id,

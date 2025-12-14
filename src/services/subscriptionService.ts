@@ -317,14 +317,14 @@ function mapDbSubscriptionToApp(dbRecord: any): UserSubscription {
 }
 
 function calculateEndDate(
-  billingCycle: "monthly" | "quarterly" | "semiannual" | "yearly",
+  billingCycle: "monthly" | "quarterly" | "biannual" | "yearly",
 ): string {
   const date = new Date();
   if (billingCycle === "monthly") {
     date.setMonth(date.getMonth() + 1);
   } else if (billingCycle === "quarterly") {
     date.setMonth(date.getMonth() + 3);
-  } else if (billingCycle === "semiannual") {
+  } else if (billingCycle === "biannual") {
     date.setMonth(date.getMonth() + 6);
   } else if (billingCycle === "yearly") {
     date.setFullYear(date.getFullYear() + 1);

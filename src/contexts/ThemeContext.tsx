@@ -12,7 +12,12 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>(() => {
     const savedTheme = localStorage.getItem("theme");
-    return (savedTheme as Theme) || "light";
+    if (savedTheme) {
+      return savedTheme as Theme;
+    }
+    // Auto-detect based on time (6:00 - 18:00 is Day/Light)
+    const hour = new Date().getHours();
+    return hour >= 6 && hour < 18 ? "light" : "dark";
   });
 
   useEffect(() => {

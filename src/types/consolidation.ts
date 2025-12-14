@@ -4,7 +4,8 @@ export type ConsolidationStatus =
   | "open"
   | "closing_soon"
   | "full"
-  | "in_transit"
+  | "shipped"
+  | "delivered"
   | "completed"
   | "cancelled";
 
@@ -81,4 +82,13 @@ export interface ConsolidationFilters {
   destination_port?: string;
   transport_mode?: "sea" | "air";
   status?: ConsolidationStatus;
+}
+
+export interface ConsolidationBookingData {
+  consolidation_id: string;
+  weight_kg: number;
+  volume_cbm: number;
+  description: string;
+  goods_nature: string;
+  cargo_value?: number;
 }

@@ -163,7 +163,7 @@ export default function UserProfileModal({
                 <div>
                   <p className="text-xs text-gray-400">ID Utilisateur</p>
                   <p className="font-medium font-mono text-sm" title={user.id}>
-                    {(user as any).friendly_id ||
+                    {user.friendly_id ||
                       user.id.substring(0, 8) + "..."}
                   </p>
                 </div>
@@ -260,12 +260,7 @@ export default function UserProfileModal({
             });
             if (error) throw error;
 
-            // Show success toast or alert? Since we can't use toast hook inside callback easily if not structured well...
-            // But wait, we have useToast() at top level!
-            // Checking line 42: const { error: toastError } = useToast(); -> Only 'error' was destructured.
-            // I should verify if I can just use alert or if I should improve this.
-            // I will stick to alert for simplicity OR console.log + auto close.
-            // Better: setShowConfirmReset(false) + alert.
+            // Success handled below
 
             success("Email de réinitialisation envoyé avec succès !");
             setShowConfirmReset(false);

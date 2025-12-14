@@ -41,11 +41,8 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          'vendor-supabase': ['@supabase/supabase-js'],
-          'vendor-ui': ['lucide-react', 'clsx', 'tailwind-merge'],
-          'vendor-utils': ['date-fns', 'jspdf']
+        output: {
+          // manualChunks removed to prevent React instance conflicts
         }
       }
     },

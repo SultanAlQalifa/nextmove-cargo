@@ -15,8 +15,10 @@ import {
   FileText,
   CheckCircle,
   Clock,
+  RefreshCcw,
 } from "lucide-react";
 import TransactionDetailsModal from "../../../components/admin/TransactionDetailsModal";
+import RefundRequestModal from "../../../components/admin/RefundRequestModal";
 import { useToast } from "../../../contexts/ToastContext";
 
 export default function AdminPayments() {
@@ -57,15 +59,21 @@ export default function AdminPayments() {
       setLoading(true);
       const data = await paymentService.getAllTransactions();
       const formattedData = data.map((t) => ({
-        id: t.reference || t.id, // Use reference if available (e.g. txn_...)
+        id: t.reference || t.id,
         client:
           t.user?.full_name ||
           t.user?.company_name ||
           t.user?.email ||
           "Inconnu",
         amount: t.amount,
-        type: "Paiement", // Assuming all are payments for now
-        status: t.status.charAt(0).toUpperCase() + t.status.slice(1), // Capitalize
+        type: t.category === "escrow_deposit" ? "Escrow" : "Paiement",
+        status:
+          t.release_status === "locked"
+            ? "Locked"
+            : t.status.charAt(0).toUpperCase() + t.status.slice(1),
+        isLocked: t.release_status === "locked",
+        shipment_id: t.shipment_id, // Store for release action
+        currency: t.currency,
         date: t.created_at,
         method:
           t.method === "mobile_money"
@@ -97,10 +105,13 @@ export default function AdminPayments() {
     }
 
     if (statusFilter !== "all") {
-      // Map English/French status if needed, but we standardized on English in DB
-      result = result.filter(
-        (t) => t.status.toLowerCase() === statusFilter.toLowerCase(),
-      );
+      if (statusFilter === "Locked") {
+        result = result.filter((t) => t.isLocked);
+      } else {
+        result = result.filter(
+          (t) => t.status.toLowerCase() === statusFilter.toLowerCase(),
+        );
+      }
     }
 
     // Time range filtering
@@ -122,28 +133,52 @@ export default function AdminPayments() {
 
     // Update Stats
     const totalVolume = result.reduce((acc, curr) => acc + curr.amount, 0);
-    const pendingVolume = result
-      .filter((t) => t.status.toLowerCase() === "pending")
+    const lockedVolume = result
+      .filter((t) => t.isLocked)
       .reduce((acc, curr) => acc + curr.amount, 0);
 
     setStats({
       volume: {
         value: totalVolume,
-        trend: "+0%", // Dynamic trend requires historical data comparison
-        trendUp: true,
-      },
-      commissions: {
-        value: 0, // No commission logic yet
         trend: "+0%",
         trendUp: true,
       },
+      commissions: {
+        value: lockedVolume,
+        trend: "Fonds Bloqués",
+        trendUp: true,
+      },
       pending: {
-        value: pendingVolume,
+        value: result
+          .filter((t) => t.status.toLowerCase() === "pending")
+          .reduce((acc, curr) => acc + curr.amount, 0),
         trend: "0%",
         trendUp: false,
       },
     });
   }, [searchQuery, timeRange, customDateRange, statusFilter, transactions]);
+
+  const handleReleaseFunds = async (trx: any) => {
+    if (!trx.shipment_id) return;
+    if (
+      !window.confirm(
+        `Voulez-vous libérer les fonds (${trx.amount} ${trx.currency || "XOF"
+        }) pour le transitaire ?`,
+      )
+    )
+      return;
+
+    try {
+      setLoading(true);
+      await paymentService.releaseFunds(trx.shipment_id);
+      success("Fonds libérés avec succès");
+      fetchTransactions(); // Refresh
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("fr-XO", {
@@ -166,11 +201,46 @@ export default function AdminPayments() {
     document.body.removeChild(element);
   };
 
+  // Refund State
+  const [isRefundModalOpen, setIsRefundModalOpen] = useState(false);
+  const [refundPayment, setRefundPayment] = useState<any>(null);
+
+  const openRefundModal = (trx: any) => {
+    // Adapter for modal props
+    setRefundPayment({
+      id: trx.id,
+      amount: trx.amount,
+      currency: trx.currency || 'XOF', // Assuming default
+      reference: trx.id,
+      status: trx.status,
+      user: {
+        full_name: trx.client,
+        email: 'client@example.com' // IDK email from table, using mock or need to fetch
+      }
+    });
+    setIsRefundModalOpen(true);
+  };
+
+  const handleRefundConfirm = async (paymentId: string, amount: number, reason: string) => {
+    try {
+      setLoading(true);
+      await paymentService.refund(paymentId, amount, reason);
+
+      success(`Remboursement de ${amount} effectué avec succès.`);
+      setIsRefundModalOpen(false);
+      fetchTransactions();
+    } catch (error) {
+      console.error("Refund failed", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Gestion Financière"
-        subtitle="Suivi des paiements et des commissions"
+        subtitle="Suivi des paiements et Escrow"
         action={{
           label: "Exporter le rapport",
           onClick: () => {
@@ -197,11 +267,10 @@ export default function AdminPayments() {
               onClick={() => setTimeRange(period.id as any)}
               className={`
                                 px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2
-                                ${
-                                  timeRange === period.id
-                                    ? "bg-white text-gray-900 shadow-sm"
-                                    : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
-                                }
+                                ${timeRange === period.id
+                  ? "bg-white text-gray-900 shadow-sm"
+                  : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+                }
                             `}
               title={
                 period.id === "custom" ? "Période personnalisée" : undefined
@@ -216,11 +285,14 @@ export default function AdminPayments() {
         <div className="relative">
           <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
           <select
+            title="Filtre Statut"
+            aria-label="Filtre Statut"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             className="pl-9 pr-8 py-2 bg-gray-50 border border-transparent hover:bg-white hover:border-gray-200 rounded-xl text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all appearance-none cursor-pointer min-w-[140px]"
           >
             <option value="all">Tous les statuts</option>
+            <option value="Locked">Escrow (Bloqué)</option>
             <option value="Completed">Complété</option>
             <option value="Pending">En attente</option>
             <option value="Failed">Échoué</option>
@@ -247,6 +319,7 @@ export default function AdminPayments() {
           <div className="flex items-center gap-2 animate-in fade-in slide-in-from-left-4 duration-200 bg-gray-50 p-1 rounded-xl">
             <input
               type="date"
+              title="Date de début personnalisée"
               value={customDateRange.start}
               onChange={(e) =>
                 setCustomDateRange({
@@ -259,6 +332,7 @@ export default function AdminPayments() {
             <span className="text-gray-400">-</span>
             <input
               type="date"
+              title="Date de fin personnalisée"
               value={customDateRange.end}
               onChange={(e) =>
                 setCustomDateRange({ ...customDateRange, end: e.target.value })
@@ -275,6 +349,7 @@ export default function AdminPayments() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
             type="text"
+            title="Rechercher une transaction"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Rechercher par ID, client..."
@@ -282,6 +357,8 @@ export default function AdminPayments() {
           />
           {searchQuery && (
             <button
+              title="Effacer la recherche"
+              aria-label="Effacer la recherche"
               onClick={() => setSearchQuery("")}
               className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
             >
@@ -417,13 +494,14 @@ export default function AdminPayments() {
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span
                     className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                        ${
-                                          trx.status === "Pending"
-                                            ? "bg-yellow-100 text-yellow-800"
-                                            : trx.status === "Failed"
-                                              ? "bg-red-100 text-red-800"
-                                              : "bg-green-100 text-green-800"
-                                        }`}
+                                        ${trx.status === "Pending"
+                        ? "bg-yellow-100 text-yellow-800"
+                        : trx.status === "Failed"
+                          ? "bg-red-100 text-red-800"
+                          : trx.status === "Locked"
+                            ? "bg-purple-100 text-purple-800 border-purple-200 border"
+                            : "bg-green-100 text-green-800"
+                      }`}
                   >
                     {trx.status}
                   </span>
@@ -434,10 +512,11 @@ export default function AdminPayments() {
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <div className="relative">
                     <button
+                      title="Options"
                       onClick={() =>
                         setActiveMenu(activeMenu === trx.id ? null : trx.id)
                       }
-                      className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-full transition-colors"
+                      className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
                     >
                       <MoreVertical className="w-5 h-5" />
                     </button>
@@ -448,6 +527,14 @@ export default function AdminPayments() {
                           onClick={() => setActiveMenu(null)}
                         ></div>
                         <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 z-20 py-1 animate-in fade-in zoom-in duration-200">
+                          {trx.isLocked && (
+                            <button
+                              onClick={() => handleReleaseFunds(trx)}
+                              className="w-full text-left px-4 py-2 text-sm text-purple-700 hover:bg-purple-50 flex items-center gap-2 font-bold"
+                            >
+                              <CheckCircle className="w-4 h-4" /> Libérer Fonds
+                            </button>
+                          )}
                           <button
                             onClick={() => {
                               setSelectedTransaction(trx);
@@ -458,6 +545,17 @@ export default function AdminPayments() {
                           >
                             <FileText className="w-4 h-4" /> Voir détails
                           </button>
+                          {trx.status === 'Completed' && (
+                            <button
+                              onClick={() => {
+                                openRefundModal(trx);
+                                setActiveMenu(null);
+                              }}
+                              className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                            >
+                              <RefreshCcw className="w-4 h-4" /> Rembourser
+                            </button>
+                          )}
                           <button
                             onClick={() => {
                               handleDownloadReceipt(trx.id);
@@ -499,6 +597,13 @@ export default function AdminPayments() {
           onDownloadReceipt={handleDownloadReceipt}
         />
       )}
+
+      <RefundRequestModal
+        isOpen={isRefundModalOpen}
+        onClose={() => setIsRefundModalOpen(false)}
+        payment={refundPayment}
+        onConfirm={handleRefundConfirm}
+      />
     </div>
   );
 }

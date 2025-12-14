@@ -13,15 +13,7 @@ import { useAuth } from "../../../contexts/AuthContext";
 import { useToast } from "../../../contexts/ToastContext";
 import TopUpModal from "../../../components/dashboard/TopUpModal";
 
-interface Transaction {
-  id: string;
-  created_at: string;
-  amount: number;
-  type: string;
-  status: string;
-  description: string;
-  reference_id?: string;
-}
+import { Transaction } from "../../../types/transaction";
 
 export default function ClientWallet() {
   const { user } = useAuth();
@@ -233,8 +225,8 @@ export default function ClientWallet() {
                     </td>
                     <td
                       className={`px-6 py-4 whitespace-nowrap text-sm font-bold text-right ${tx.amount > 0
-                          ? "text-green-600"
-                          : "text-gray-900 dark:text-white"
+                        ? "text-green-600"
+                        : "text-gray-900 dark:text-white"
                         }`}
                     >
                       {tx.amount > 0 ? "+" : ""}

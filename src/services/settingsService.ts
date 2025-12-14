@@ -19,6 +19,7 @@ export interface SystemSettings {
     min_password_length: number;
     require_2fa: boolean;
     session_timeout_minutes: number;
+    phone_auth_enabled: boolean;
   };
   maintenance: {
     maintenance_mode: boolean;
@@ -80,6 +81,7 @@ const DEFAULT_SETTINGS: SystemSettings = {
     min_password_length: 8,
     require_2fa: false,
     session_timeout_minutes: 60,
+    phone_auth_enabled: true,
   },
   maintenance: {
     maintenance_mode: false,

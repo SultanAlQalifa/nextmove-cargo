@@ -12,10 +12,11 @@ import SnowEffect from "./components/common/SnowEffect";
 const Home = lazy(() => import("./pages/Home"));
 const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
+const CompleteProfile = lazy(() => import("./pages/CompleteProfile"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const About = lazy(() => import("./pages/About"));
 const Contact = lazy(() => import("./pages/Contact"));
-// const Privacy = lazy(() => import("./pages/Privacy")); // Deprecated
+
 const PrivacyPolicy = lazy(() => import("./pages/legal/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./pages/legal/TermsOfService"));
 const BlogIndex = lazy(() => import("./pages/blog/BlogIndex"));
@@ -65,6 +66,9 @@ const ClientShipmentDetail = lazy(
 const ClientPayments = lazy(
   () => import("./pages/dashboard/client/ClientPayments"),
 );
+const ClientInvoices = lazy(
+  () => import("./pages/dashboard/client/ClientInvoices"),
+);
 const ClientWallet = lazy(
   () => import("./pages/dashboard/client/ClientWallet"),
 );
@@ -81,10 +85,12 @@ const ClientSettings = lazy(
   () => import("./pages/dashboard/client/ClientSettings"),
 );
 const UpgradeToPro = lazy(() => import("./pages/UpgradeToPro"));
+const FounderPayment = lazy(() => import("./pages/FounderPayment"));
 const DocumentCenter = lazy(
   () => import("./pages/dashboard/documents/DocumentCenter"),
 );
 const TrackingPage = lazy(() => import("./pages/TrackingPage")); // Public Tracking
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 const ForwarderOffers = lazy(
   () => import("./pages/dashboard/forwarder/ForwarderOffers"),
@@ -210,6 +216,12 @@ const AdminSecurity = lazy(
 const AdminWallet = lazy(
   () => import("./pages/dashboard/admin/AdminWallet"),
 );
+const PendingCashPayments = lazy(
+  () => import("./pages/dashboard/admin/PendingCashPayments"),
+);
+const AdminInvoices = lazy(
+  () => import("./pages/dashboard/admin/AdminInvoices"),
+);
 
 import "./i18n";
 import { SettingsProvider } from "./contexts/SettingsContext";
@@ -256,6 +268,7 @@ function App() {
                                   <Route index element={<Home />} />
                                   <Route path="login" element={<Login />} />
                                   <Route path="register" element={<Register />} />
+                                  <Route path="complete-profile" element={<CompleteProfile />} />
                                   <Route
                                     path="calculator"
                                     element={<CalculatorPage />}
@@ -343,6 +356,10 @@ function App() {
                                         element={<ClientPayments />}
                                       />
                                       <Route
+                                        path="client/invoices"
+                                        element={<ClientInvoices />}
+                                      />
+                                      <Route
                                         path="client/wallet"
                                         element={<ClientWallet />}
                                       />
@@ -373,6 +390,10 @@ function App() {
                                       <Route
                                         path="upgrade"
                                         element={<UpgradeToPro />}
+                                      />
+                                      <Route
+                                        path="client/founder-payment"
+                                        element={<FounderPayment />}
                                       />
                                     </Route>
 
@@ -602,6 +623,14 @@ function App() {
                                         path="admin/wallet"
                                         element={<AdminWallet />}
                                       />
+                                      <Route
+                                        path="admin/cash-payments"
+                                        element={<PendingCashPayments />}
+                                      />
+                                      <Route
+                                        path="admin/invoices"
+                                        element={<AdminInvoices />}
+                                      />
                                     </Route>
 
                                     {/* Driver routes */}
@@ -635,8 +664,10 @@ function App() {
                                         element={<DriverPOD />}
                                       />
                                     </Route>
+                                    <Route path="*" element={<NotFound />} />
                                   </Route>
                                 </Route>
+                                <Route path="*" element={<NotFound />} />
                               </Routes>
                             </Suspense>
                           </Router>
@@ -650,7 +681,7 @@ function App() {
           </BrandingProvider>
         </CurrencyProvider>
       </ThemeProvider>
-    </SettingsProvider>
+    </SettingsProvider >
   );
 }
 

@@ -117,6 +117,14 @@ export default function AdminFees() {
     }
   };
 
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("fr-XO", {
+      style: "currency",
+      currency: "XOF",
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
+
   const getCategoryIcon = (category: string) => {
     switch (category) {
       case "insurance":
@@ -248,7 +256,7 @@ export default function AdminFees() {
                     <span className="text-2xl font-bold text-gray-900">
                       {fee.type === "percentage"
                         ? `${fee.value}%`
-                        : `${fee.value.toLocaleString()} XOF`}
+                        : formatCurrency(fee.value)}
                     </span>
                     <span className="text-sm font-medium text-gray-500">
                       {fee.type === "percentage" ? "du montant" : "fixe"}
@@ -266,12 +274,12 @@ export default function AdminFees() {
                     <>
                       {fee.minAmount && (
                         <span className="text-[10px] text-gray-400 bg-gray-50 px-2 py-0.5 rounded-full">
-                          Min: {fee.minAmount.toLocaleString()}
+                          Min: {formatCurrency(fee.minAmount)}
                         </span>
                       )}
                       {fee.maxAmount && (
                         <span className="text-[10px] text-gray-400 bg-gray-50 px-2 py-0.5 rounded-full">
-                          Max: {fee.maxAmount.toLocaleString()}
+                          Max: {formatCurrency(fee.maxAmount)}
                         </span>
                       )}
                     </>
@@ -289,6 +297,16 @@ export default function AdminFees() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {!loading && fees.length === 0 && (
+        <div className="text-center py-12 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
+          <DollarSign className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+          <h3 className="text-lg font-medium text-gray-900">Aucun frais configuré</h3>
+          <p className="text-gray-500 max-w-sm mx-auto mt-2">
+            Commencez par ajouter des frais pour qu'ils apparaissent dans le calculateur.
+          </p>
         </div>
       )}
 

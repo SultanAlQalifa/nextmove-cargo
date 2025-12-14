@@ -8,6 +8,7 @@ import {
   ROLE_FAMILIES,
   RoleFamilyType,
 } from "../../services/personnelService";
+import { useAuth } from "../../contexts/AuthContext";
 
 interface RoleModalProps {
   isOpen: boolean;
@@ -144,6 +145,10 @@ export default function RoleModal({
     operations: "Opérations",
   };
 
+  const { profile } = useAuth();
+  const isSuperAdmin = profile?.role === "super-admin";
+  const isReadOnly = initialData?.is_system && !isSuperAdmin;
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
       <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-xl animate-in fade-in zoom-in duration-200">
@@ -165,7 +170,7 @@ export default function RoleModal({
                   : "Nouveau Rôle"}
               </h2>
               <p className="text-sm text-gray-500">
-                {initialData?.is_system
+                {initialData?.is_system && !isSuperAdmin
                   ? "Ce rôle est géré par le système et ne peut pas être modifié"
                   : "Définissez les accès et permissions"}
               </p>
@@ -181,13 +186,20 @@ export default function RoleModal({
         </div>
 
         {initialData?.is_system && (
-          <div className="px-6 py-3 bg-purple-50 border-b border-purple-100 flex items-center gap-3">
-            <Info className="w-5 h-5 text-purple-600 flex-shrink-0" />
-            <p className="text-sm text-purple-800">
-              <strong>Protection Système :</strong> Les rôles critiques comme
-              Super Admin et Administrateur sont protégés pour garantir la
-              stabilité de l'application. Vous ne pouvez pas modifier leurs
-              permissions.
+          <div className={`px-6 py-3 border-b flex items-center gap-3 ${isSuperAdmin ? "bg-orange-50 border-orange-100" : "bg-purple-50 border-purple-100"}`}>
+            <Info className={`w-5 h-5 flex-shrink-0 ${isSuperAdmin ? "text-orange-600" : "text-purple-600"}`} />
+            <p className={`text-sm ${isSuperAdmin ? "text-orange-800" : "text-purple-800"}`}>
+              {isSuperAdmin ? (
+                <>
+                  <strong>Mode Super Admin :</strong> Vous avez l'autorisation exceptionnelle de modifier ce rôle système.
+                  Soyez prudent, cela peut affecter la stabilité de l'application.
+                </>
+              ) : (
+                <>
+                  <strong>Protection Système :</strong> Les rôles critiques sont protégés.
+                  Seul le Super Admin peut modifier ces permissions.
+                </>
+              )}
             </p>
           </div>
         )}
@@ -210,14 +222,15 @@ export default function RoleModal({
                     <button
                       key={family}
                       type="button"
+                      disabled={isReadOnly}
                       onClick={() => handleFamilyChange(family)}
                       className={`
                                             px-3 py-2 rounded-lg text-sm font-medium border transition-all
-                                            ${
-                                              selectedFamily === family
-                                                ? "bg-primary/5 border-primary text-primary"
-                                                : "bg-white border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50"
-                                            }
+                                            ${selectedFamily === family
+                          ? "bg-primary/5 border-primary text-primary"
+                          : "bg-white border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50"
+                        }
+                                            ${isReadOnly ? "opacity-50 cursor-not-allowed" : ""}
                                         `}
                     >
                       {ROLE_FAMILIES[family].label}
@@ -242,14 +255,13 @@ export default function RoleModal({
                   onChange={(e) =>
                     setFormData({ ...formData, name: e.target.value })
                   }
-                  disabled={initialData?.is_system}
+                  disabled={isReadOnly}
                   className={`
                                         w-full px-4 py-2 rounded-xl border focus:ring-2 outline-none transition-all
-                                        ${
-                                          initialData?.is_system
-                                            ? "bg-gray-50 border-gray-200 text-gray-500 cursor-not-allowed"
-                                            : "border-gray-200 focus:border-primary focus:ring-primary/20 bg-white"
-                                        }
+                                        ${isReadOnly
+                      ? "bg-gray-50 border-gray-200 text-gray-500 cursor-not-allowed"
+                      : "border-gray-200 focus:border-primary focus:ring-primary/20 bg-white"
+                    }
                                     `}
                   placeholder="Ex: Support Manager"
                 />
@@ -265,14 +277,13 @@ export default function RoleModal({
                   onChange={(e) =>
                     setFormData({ ...formData, description: e.target.value })
                   }
-                  disabled={initialData?.is_system}
+                  disabled={isReadOnly}
                   className={`
                                         w-full px-4 py-2 rounded-xl border focus:ring-2 outline-none transition-all
-                                        ${
-                                          initialData?.is_system
-                                            ? "bg-gray-50 border-gray-200 text-gray-500 cursor-not-allowed"
-                                            : "border-gray-200 focus:border-primary focus:ring-primary/20 bg-white"
-                                        }
+                                        ${isReadOnly
+                      ? "bg-gray-50 border-gray-200 text-gray-500 cursor-not-allowed"
+                      : "border-gray-200 focus:border-primary focus:ring-primary/20 bg-white"
+                    }
                                     `}
                   placeholder="Description courte..."
                 />
@@ -300,14 +311,14 @@ export default function RoleModal({
                           const categoryIds = perms.map((p) => p.id);
                           const newPermissions = allSelected
                             ? prev.permissions.filter(
-                                (id) => !categoryIds.includes(id),
-                              )
+                              (id) => !categoryIds.includes(id),
+                            )
                             : [
-                                ...new Set([
-                                  ...prev.permissions,
-                                  ...categoryIds,
-                                ]),
-                              ];
+                              ...new Set([
+                                ...prev.permissions,
+                                ...categoryIds,
+                              ]),
+                            ];
 
                           if (selectedFamily !== "custom")
                             setSelectedFamily("custom");
@@ -333,7 +344,7 @@ export default function RoleModal({
                                 /{perms.length}
                               </span>
                             </h4>
-                            {!initialData?.is_system && (
+                            {!isReadOnly && (
                               <button
                                 type="button"
                                 onClick={toggleCategory}
@@ -351,53 +362,51 @@ export default function RoleModal({
                                 key={perm.id}
                                 className={`
                                                                 flex items-center gap-3 p-3 rounded-lg border transition-all group relative
-                                                                ${
-                                                                  formData.permissions.includes(
-                                                                    perm.id,
-                                                                  ) ||
-                                                                  formData.permissions.includes(
-                                                                    "all",
-                                                                  )
-                                                                    ? "bg-white border-primary shadow-sm"
-                                                                    : "bg-white border-gray-200 hover:border-gray-300"
-                                                                }
-                                                                ${initialData?.is_system ? "cursor-not-allowed opacity-80 bg-gray-50" : "cursor-pointer"}
+                                                                ${formData.permissions.includes(
+                                  perm.id,
+                                ) ||
+                                    formData.permissions.includes(
+                                      "all",
+                                    )
+                                    ? "bg-white border-primary shadow-sm"
+                                    : "bg-white border-gray-200 hover:border-gray-300"
+                                  }
+                                                                ${isReadOnly ? "cursor-not-allowed opacity-80 bg-gray-50" : "cursor-pointer"}
                                                             `}
                                 title={perm.label}
                               >
                                 <div
                                   className={`
                                                                 w-5 h-5 rounded border flex items-center justify-center transition-colors shrink-0
-                                                                ${
-                                                                  formData.permissions.includes(
-                                                                    perm.id,
-                                                                  ) ||
-                                                                  formData.permissions.includes(
-                                                                    "all",
-                                                                  )
-                                                                    ? (initialData?.is_system
-                                                                        ? "bg-gray-400 border-gray-400"
-                                                                        : "bg-primary border-primary") +
-                                                                      " text-white"
-                                                                    : "border-gray-300 bg-white group-hover:border-primary"
-                                                                }
+                                                                ${formData.permissions.includes(
+                                    perm.id,
+                                  ) ||
+                                      formData.permissions.includes(
+                                        "all",
+                                      )
+                                      ? (isReadOnly
+                                        ? "bg-gray-400 border-gray-400"
+                                        : "bg-primary border-primary") +
+                                      " text-white"
+                                      : "border-gray-300 bg-white group-hover:border-primary"
+                                    }
                                                             `}
                                 >
                                   {(formData.permissions.includes(perm.id) ||
                                     formData.permissions.includes("all")) && (
-                                    <Check className="w-3 h-3" />
-                                  )}
+                                      <Check className="w-3 h-3" />
+                                    )}
                                 </div>
                                 <input
                                   type="checkbox"
-                                  disabled={initialData?.is_system}
+                                  disabled={isReadOnly}
                                   className="hidden"
                                   checked={
                                     formData.permissions.includes(perm.id) ||
                                     formData.permissions.includes("all")
                                   }
                                   onChange={() =>
-                                    !initialData?.is_system &&
+                                    !isReadOnly &&
                                     handlePermissionToggle(perm.id)
                                   }
                                 />
@@ -428,7 +437,7 @@ export default function RoleModal({
           <button
             type="submit"
             form="role-form"
-            disabled={saving || initialData?.is_system}
+            disabled={saving || isReadOnly}
             className="px-6 py-2.5 text-sm font-medium text-white bg-primary rounded-xl hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm shadow-primary/30 transition-all"
           >
             {saving ? (
@@ -439,7 +448,7 @@ export default function RoleModal({
             ) : (
               <>
                 <Save className="w-4 h-4" />
-                {initialData?.is_system
+                {isReadOnly
                   ? "Lecture Seule"
                   : initialData
                     ? "Mettre à jour"

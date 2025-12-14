@@ -68,6 +68,50 @@ export async function createRFQ(data: CreateRFQData): Promise<RFQRequest> {
 }
 
 /**
+ * Retry a rejected RFQ (Forces Online Payment)
+ */
+export async function retryRFQ(originalId: string): Promise<RFQRequest> {
+  const { data: original, error: fetchError } = await supabase
+    .from("rfq_requests")
+    .select("*")
+    .eq("id", originalId)
+    .single();
+
+  if (fetchError) throw fetchError;
+  if (!original) throw new Error("Original RFQ not found");
+
+  // Create new RFQ data based on original
+  const retryData: CreateRFQData = {
+    origin_port: original.origin_port,
+    destination_port: original.destination_port,
+    cargo_type: original.cargo_type,
+    cargo_description: original.cargo_description,
+    weight_kg: original.weight_kg,
+    volume_cbm: original.volume_cbm,
+    length_cm: original.length_cm,
+    width_cm: original.width_cm,
+    height_cm: original.height_cm,
+    quantity: original.quantity,
+    transport_mode: original.transport_mode,
+    service_type: original.service_type,
+    preferred_departure_date: original.preferred_departure_date,
+    required_delivery_date: original.required_delivery_date,
+    budget_amount: original.budget_amount,
+    budget_currency: original.budget_currency,
+    services_needed: original.services_needed,
+    special_requirements: original.special_requirements,
+
+    // Retry Logic
+    parent_rfq_id: original.id,
+    is_retry: true,
+    payment_method: "online", // FORCE ONLINE PAYMENT
+    specific_forwarder_id: original.specific_forwarder_id
+  };
+
+  return createRFQ(retryData);
+}
+
+/**
  * Update an existing RFQ (only if status = draft)
  */
 export async function updateRFQ(
@@ -547,6 +591,7 @@ export async function getAllOffers(
 export const rfqService = {
   // Client
   createRFQ,
+  retryRFQ,
   updateRFQ,
   publishRFQ,
   cancelRFQ,

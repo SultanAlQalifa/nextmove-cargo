@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { emailService } from "../../../services/emailService";
+import { emailService, EmailHistoryItem } from "../../../services/emailService";
 import {
   Mail,
   Send,
@@ -25,20 +25,6 @@ import {
 } from "../../../services/brandingService";
 import RichEditor from "../../../components/common/RichEditor";
 import ConfirmationModal from "../../../components/common/ConfirmationModal";
-
-interface EmailHistoryItem {
-  id: string;
-  created_at: string;
-  subject: string;
-  body: string;
-  recipient_group: "all" | "clients" | "forwarders" | "specific";
-  status: "pending" | "processing" | "sent" | "failed";
-  error_message?: string;
-  sender: {
-    full_name: string;
-    email: string;
-  };
-}
 
 export default function AdminEmails() {
   const { t } = useTranslation();
@@ -211,7 +197,7 @@ export default function AdminEmails() {
     setLoading(true);
     try {
       const data = await emailService.getAdminEmailHistory();
-      setHistory((data as any) || []);
+      setHistory(data || []);
     } catch (error) {
       console.error("Failed to load email history", error);
       toastError("Erreur lors du chargement de l'historique");

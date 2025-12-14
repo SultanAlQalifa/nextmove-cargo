@@ -20,10 +20,20 @@ import {
   AlertCircle,
 } from "lucide-react";
 
+import AssignForwarderModal from "../../../components/admin/AssignForwarderModal";
+import { useToast } from "../../../contexts/ToastContext";
+
 export default function AdminGroupage() {
-  const [consolidations, setConsolidations] = useState<Consolidation[]>([]);
+  const [consolidations, setConsolidations] = useState<(Consolidation & { linked_shipment_forwarder_id?: string | null })[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { success, error: toastError } = useToast();
+
+  // Assign Modal State
+  const [assignModal, setAssignModal] = useState<{
+    isOpen: boolean;
+    consolidation: (Consolidation & { linked_shipment_forwarder_id?: string | null }) | null;
+  }>({ isOpen: false, consolidation: null });
 
   // Filter State
   const [timeRange, setTimeRange] = useState<
@@ -37,6 +47,7 @@ export default function AdminGroupage() {
   const [stats, setStats] = useState({
     total: { value: 0, trend: "+0%", trendUp: true },
     active: { value: 0, trend: "+0%", trendUp: true },
+    unassigned: { value: 0, trend: "+0%", trendUp: false },
     completed: { value: 0, trend: "+0%", trendUp: true },
   });
 
@@ -47,32 +58,35 @@ export default function AdminGroupage() {
   const fetchConsolidations = async () => {
     try {
       setLoading(true);
-      const data = await consolidationService.getConsolidations();
+      // Use Admin API to get detailed info including assignments
+      const data = await consolidationService.adminGetConsolidations();
       setConsolidations(data);
       calculateStats(data);
     } catch (err) {
       console.error("Error fetching consolidations:", err);
       setError(
-        "Impossible de charger les groupages. Vérifiez que la migration de la base de données a été effectuée.",
+        "Impossible de charger les groupages.",
       );
     } finally {
       setLoading(false);
     }
   };
 
-  const calculateStats = (data: Consolidation[]) => {
+  const calculateStats = (data: (Consolidation & { linked_shipment_forwarder_id?: string | null })[]) => {
     const total = data.length;
     const active = data.filter(
       (c) => c.status === "open" || c.status === "closing_soon",
     ).length;
-    const completed = data.filter(
-      (c) => c.status === "shipped" || c.status === "delivered",
+    // Count unassigned client requests
+    const unassigned = data.filter(
+      (c) => c.type === "client_request" && !c.linked_shipment_forwarder_id
     ).length;
 
     setStats({
       total: { value: total, trend: "+0%", trendUp: true },
       active: { value: active, trend: "+0%", trendUp: true },
-      completed: { value: completed, trend: "+0%", trendUp: true },
+      unassigned: { value: unassigned, trend: unassigned > 0 ? "Action Requise" : "OK", trendUp: unassigned === 0 },
+      completed: { value: data.filter(c => c.status === 'shipped' || c.status === 'delivered').length, trend: "+100%", trendUp: true }
     });
   };
 
@@ -83,22 +97,38 @@ export default function AdminGroupage() {
       const query = searchQuery.toLowerCase();
       result = result.filter(
         (c) =>
-          c.title.toLowerCase().includes(query) ||
+          (c.title || "").toLowerCase().includes(query) ||
           c.origin_port.toLowerCase().includes(query) ||
           c.destination_port.toLowerCase().includes(query),
       );
     }
 
     if (statusFilter !== "all") {
-      result = result.filter((c) => c.status === statusFilter);
+      if (statusFilter === 'unassigned') {
+        result = result.filter(c => c.type === "client_request" && !c.linked_shipment_forwarder_id);
+      } else {
+        result = result.filter((c) => c.status === statusFilter);
+      }
     }
 
     return result;
   };
 
+  const handleAssignForwarder = async (forwarderId: string) => {
+    if (!assignModal.consolidation) return;
+    try {
+      await consolidationService.adminAssignForwarder(assignModal.consolidation.id, forwarderId);
+      success("Transitaire assigné avec succès !");
+      fetchConsolidations(); // Refresh list
+    } catch (err) {
+      console.error(err);
+      toastError("Erreur lors de l'assignation.");
+    }
+  };
+
   const filteredConsolidations = getFilteredConsolidations();
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string, item: Consolidation & { linked_shipment_forwarder_id?: string | null }) => {
     const styles = {
       open: "bg-green-100 text-green-800",
       closing_soon: "bg-yellow-100 text-yellow-800",
@@ -118,11 +148,27 @@ export default function AdminGroupage() {
     };
 
     return (
-      <span
-        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${styles[status as keyof typeof styles] || "bg-gray-100 text-gray-800"}`}
-      >
-        {labels[status as keyof typeof labels] || status}
-      </span>
+      <div className="flex flex-col gap-1 items-start">
+        <span
+          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium w-fit ${styles[status as keyof typeof styles] || "bg-gray-100 text-gray-800"}`}
+        >
+          {labels[status as keyof typeof labels] || status}
+        </span>
+        {item.type === 'client_request' && (
+          !item.linked_shipment_forwarder_id ? (
+            <button
+              onClick={() => setAssignModal({ isOpen: true, consolidation: item })}
+              className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-700 w-fit animate-pulse hover:bg-red-200 transition-colors cursor-pointer border border-red-200"
+            >
+              Assigner Force
+            </button>
+          ) : (
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 w-fit">
+              Assigné
+            </span>
+          )
+        )}
+      </div>
     );
   };
 
@@ -157,11 +203,13 @@ export default function AdminGroupage() {
         <div className="relative">
           <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
           <select
+            title="Filtre Statut"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="pl-9 pr-8 py-2 bg-gray-50 border border-transparent hover:bg-white hover:border-gray-200 rounded-xl text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all appearance-none cursor-pointer min-w-[140px]"
+            className="pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20"
           >
             <option value="all">Tous les statuts</option>
+            <option value="unassigned">Non Assignés (Urgent)</option>
             <option value="open">Ouvert</option>
             <option value="closing_soon">Ferme Bientôt</option>
             <option value="shipped">Expédié</option>
@@ -201,16 +249,16 @@ export default function AdminGroupage() {
 
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
           <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-green-50 text-green-600 rounded-xl">
-              <Clock className="w-6 h-6" />
+            <div className="p-3 bg-orange-50 text-orange-600 rounded-xl">
+              <AlertCircle className="w-6 h-6" />
             </div>
-            <span className="text-green-600 bg-green-50 text-xs font-medium px-2 py-1 rounded-full flex items-center gap-1">
-              <ArrowUpRight className="w-3 h-3" /> {stats.active.trend}
+            <span className={`text-xs font-medium px-2 py-1 rounded-full flex items-center gap-1 ${stats.unassigned.trendUp ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
+              {stats.unassigned.trend}
             </span>
           </div>
-          <h3 className="text-gray-500 text-sm font-medium">Actifs</h3>
+          <h3 className="text-gray-500 text-sm font-medium">Non Assignés</h3>
           <p className="text-3xl font-bold text-gray-900 mt-1">
-            {stats.active.value}
+            {stats.unassigned.value}
           </p>
         </div>
 
@@ -298,7 +346,7 @@ export default function AdminGroupage() {
                       </div>
                       <div>
                         <div className="text-sm font-medium text-gray-900">
-                          {consolidation.title}
+                          {consolidation.title || "Groupage sans titre"}
                         </div>
                         <div className="text-xs text-gray-500 capitalize">
                           {consolidation.type.replace("_", " ")}
@@ -315,27 +363,28 @@ export default function AdminGroupage() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">
-                      {consolidation.current_cbm} /{" "}
-                      {consolidation.total_capacity_cbm} CBM
+                      {consolidation.current_load_cbm || 0} /{" "}
+                      {consolidation.total_capacity_cbm || 0} CBM
                     </div>
                     <div className="w-24 h-1.5 bg-gray-100 rounded-full mt-1 overflow-hidden">
+                      {/* eslint-disable-next-line */}
                       <div
-                        className="h-full bg-blue-500 rounded-full"
+                        className="h-full bg-blue-500 rounded-full transition-all duration-500"
                         style={{
-                          width: `${Math.min((consolidation.current_cbm / consolidation.total_capacity_cbm) * 100, 100)}%`,
+                          width: `${Math.min(((consolidation.current_load_cbm || 0) / (consolidation.total_capacity_cbm || 1)) * 100, 100)}%`,
                         }}
                       />
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    {getStatusBadge(consolidation.status)}
+                    {getStatusBadge(consolidation.status, consolidation)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     <div>
                       Dép:{" "}
-                      {new Date(
+                      {consolidation.departure_date ? new Date(
                         consolidation.departure_date,
-                      ).toLocaleDateString()}
+                      ).toLocaleDateString() : 'TBD'}
                     </div>
                     {consolidation.arrival_date && (
                       <div className="text-xs text-gray-400">
@@ -347,7 +396,10 @@ export default function AdminGroupage() {
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-full">
+                    <button
+                      title="Actions"
+                      className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-full"
+                    >
                       <MoreVertical className="w-5 h-5" />
                     </button>
                   </td>
@@ -357,6 +409,13 @@ export default function AdminGroupage() {
           </tbody>
         </table>
       </div>
+
+      <AssignForwarderModal
+        isOpen={assignModal.isOpen}
+        onClose={() => setAssignModal({ isOpen: false, consolidation: null })}
+        onAssign={handleAssignForwarder}
+        consolidationTitle={assignModal.consolidation?.title}
+      />
     </div>
   );
 }

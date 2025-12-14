@@ -213,8 +213,8 @@ export default function ClientPayments() {
             <button
               onClick={() => setFilter("all")}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${filter === "all"
-                  ? "bg-gray-900 text-white shadow-md"
-                  : "text-gray-500 hover:bg-gray-50"
+                ? "bg-gray-900 text-white shadow-md"
+                : "text-gray-500 hover:bg-gray-50"
                 }`}
             >
               Toutes
@@ -222,8 +222,8 @@ export default function ClientPayments() {
             <button
               onClick={() => setFilter("unpaid")}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${filter === "unpaid"
-                  ? "bg-blue-600 text-white shadow-md"
-                  : "text-gray-500 hover:bg-gray-50"
+                ? "bg-blue-600 text-white shadow-md"
+                : "text-gray-500 hover:bg-gray-50"
                 }`}
             >
               À Payer
@@ -231,8 +231,8 @@ export default function ClientPayments() {
             <button
               onClick={() => setFilter("paid")}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${filter === "paid"
-                  ? "bg-green-600 text-white shadow-md"
-                  : "text-gray-500 hover:bg-gray-50"
+                ? "bg-green-600 text-white shadow-md"
+                : "text-gray-500 hover:bg-gray-50"
                 }`}
             >
               Payées
@@ -330,14 +330,20 @@ export default function ClientPayments() {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
                       className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize
-                                            ${txn.status === "completed"
-                          ? "bg-green-50 text-green-700"
-                          : txn.status === "pending"
-                            ? "bg-yellow-50 text-yellow-700"
-                            : "bg-red-50 text-red-700"
+                                            ${
+                        // Escrow Specific Logic
+                        (txn as any).category === 'escrow_deposit' && (txn as any).release_status === 'locked'
+                          ? "bg-purple-100 text-purple-700 border border-purple-200"
+                          : txn.status === "completed"
+                            ? "bg-green-50 text-green-700"
+                            : txn.status === "pending"
+                              ? "bg-yellow-50 text-yellow-700"
+                              : "bg-red-50 text-red-700"
                         }`}
                     >
-                      {txn.status}
+                      {(txn as any).category === 'escrow_deposit' && (txn as any).release_status === 'locked'
+                        ? "Fonds Sécurisés"
+                        : txn.status}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right">

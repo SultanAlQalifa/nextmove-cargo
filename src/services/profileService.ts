@@ -125,16 +125,19 @@ export const profileService = {
 
     try {
       // Fetch from BOTH sources in parallel
+      // Define wrapper type for query result
+      type ProfileWrapper = { user: UserProfile };
+
       const [shipmentClients, explicitClients] = await Promise.all([
         // Source 1: Clients from Shipments
-        fetchWithRetry<any[]>(() =>
+        fetchWithRetry<ProfileWrapper[]>(() =>
           supabase
             .from("shipments")
             .select(`user:profiles!client_id(*)`)
             .eq("forwarder_id", user.id),
         ),
         // Source 2: Explicitly added clients
-        fetchWithRetry<any[]>(() =>
+        fetchWithRetry<ProfileWrapper[]>(() =>
           supabase
             .from("forwarder_clients")
             .select(`user:profiles!client_id(*)`)
@@ -147,14 +150,14 @@ export const profileService = {
 
       // Process explicit clients first (priority?) - order in map doesn't matter much for dedup
       if (explicitClients) {
-        explicitClients.forEach((item: any) => {
+        explicitClients.forEach((item) => {
           if (item.user) clientsMap.set(item.user.id, item.user);
         });
       }
 
       // Process shipment clients
       if (shipmentClients) {
-        shipmentClients.forEach((item: any) => {
+        shipmentClients.forEach((item) => {
           if (item.user && !clientsMap.has(item.user.id)) {
             clientsMap.set(item.user.id, item.user);
           }
@@ -181,24 +184,29 @@ export const profileService = {
           client_id: clientId,
         }),
       );
-    } catch (error: any) {
+    } catch (error) {
       // Ignore duplicate key error safely
-      if (error.code === "23505") return;
+      if (typeof error === 'object' && error !== null && 'code' in error && (error as { code: string }).code === "23505") return;
       console.error("Error adding client:", error);
       throw error;
     }
   },
 
-  searchProfiles: async (query: string): Promise<UserProfile[]> => {
+  searchProfiles: async (query: string, role?: string): Promise<UserProfile[]> => {
     if (!query || query.length < 2) return [];
 
     try {
-      const { data } = await supabase
+      let builder = supabase
         .from("profiles")
         .select("*")
         .or(`full_name.ilike.%${query}%,email.ilike.%${query}%`)
-        .eq("role", "client") // Only search for clients
         .limit(10);
+
+      if (role) {
+        builder = builder.eq("role", role);
+      }
+
+      const { data } = await builder;
 
       return data || [];
     } catch (error) {

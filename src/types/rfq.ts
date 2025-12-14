@@ -7,6 +7,7 @@ export type RFQStatus =
   | "published"
   | "offers_received"
   | "offer_accepted"
+  | "rejected"
   | "expired"
   | "cancelled";
 
@@ -60,6 +61,11 @@ export interface RFQRequest {
   services_needed?: ServiceNeeded[];
   special_requirements?: string;
 
+  // Payment & Retry Logic
+  payment_method?: "online" | "on_delivery";
+  parent_rfq_id?: string;
+  is_retry?: boolean;
+
   // Targeting
   specific_forwarder_id?: string;
 
@@ -97,6 +103,11 @@ export interface CreateRFQData {
   budget_currency?: string;
   services_needed?: ServiceNeeded[];
   special_requirements?: string;
+
+  // Payment & Retry Logic
+  payment_method?: "online" | "on_delivery";
+  parent_rfq_id?: string;
+  is_retry?: boolean;
 
   // Targeting
   specific_forwarder_id?: string;

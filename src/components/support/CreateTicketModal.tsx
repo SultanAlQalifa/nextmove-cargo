@@ -1,37 +1,42 @@
-import React, { useState, useRef } from "react";
-import { X, Upload, Paperclip, AlertCircle, Loader2 } from "lucide-react";
-import { supportService, Ticket } from "../../services/supportService";
+import { useState } from "react";
+import { X, AlertCircle, Loader2, Clock, ShieldCheck } from "lucide-react";
+import { supportService } from "../../services/supportService";
+import { useSubscription } from "../../hooks/useSubscription";
 
 interface CreateTicketModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
+  onSubmit?: (data: any) => Promise<void>; // Added for compatibility
 }
 
 export default function CreateTicketModal({
   isOpen,
   onClose,
   onSuccess,
+  onSubmit
 }: CreateTicketModalProps) {
+  const { isPro, isElite } = useSubscription();
+
   const [subject, setSubject] = useState("");
-  const [priority, setPriority] = useState<Ticket["priority"]>("medium");
+  // Priority is now automatic
   const [description, setDescription] = useState("");
-  const [files, setFiles] = useState<File[]>([]);
+  const [category, setCategory] = useState("other");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!isOpen) return null;
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setFiles((prev) => [...prev, ...Array.from(e.target.files || [])]);
-    }
+  // Derive SLA Info
+  const getSlaInfo = () => {
+    if (isElite) return { time: "4-6h", label: "Support Urgent", color: "text-purple-600 bg-purple-50 border-purple-100" };
+    if (isPro) return { time: "24h", label: "Support Prioritaire", color: "text-blue-600 bg-blue-50 border-blue-100" };
+    return { time: "48h", label: "Support Standard", color: "text-gray-600 bg-gray-50 border-gray-200" };
   };
 
-  const removeFile = (index: number) => {
-    setFiles((prev) => prev.filter((_, i) => i !== index));
-  };
+  const sla = getSlaInfo();
+
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,23 +44,25 @@ export default function CreateTicketModal({
     setError(null);
 
     try {
-      // Upload files first if any (Not implemented fully in mock, but we'll prepare the structure)
-      // For now we just create the ticket with description as initial message
-
-      await supportService.createTicket({
+      const ticketData = {
         subject,
-        priority,
-        category: "other", // Default or add selector
+        // Priority is auto-assigned by backend trigger based on plan
+        category: category as any,
         messages: [
           {
             id: "temp",
-            sender: "user",
+            sender: "user" as const,
             content: description,
             timestamp: new Date().toISOString(),
-            // attachments: files // Need upload logic
           },
         ],
-      });
+      };
+
+      if (onSubmit) {
+        await onSubmit(ticketData);
+      } else {
+        await supportService.createTicket(ticketData as any);
+      }
 
       if (onSuccess) onSuccess();
       onClose();
@@ -111,6 +118,20 @@ export default function CreateTicketModal({
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
+
+              {/* SLA Info Banner */}
+              <div className={`p-4 rounded-lg border flex items-center gap-3 ${sla.color}`}>
+                <div className="p-2 bg-white/50 rounded-full">
+                  {isElite || isPro ? <ShieldCheck className="w-5 h-5" /> : <Clock className="w-5 h-5" />}
+                </div>
+                <div>
+                  <p className="font-semibold text-sm">{sla.label}</p>
+                  <p className="text-xs opacity-90">
+                    Réponse garantie sous <strong>{sla.time}</strong> ouvrées
+                  </p>
+                </div>
+              </div>
+
               <div>
                 <label
                   htmlFor="subject"
@@ -131,25 +152,22 @@ export default function CreateTicketModal({
 
               <div>
                 <label
-                  htmlFor="priority"
+                  htmlFor="category"
                   className="block text-sm font-medium text-gray-700 mb-1"
                 >
-                  Priorité
+                  Catégorie
                 </label>
                 <select
-                  id="priority"
+                  id="category"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all bg-white"
-                  value={priority}
-                  onChange={(e) =>
-                    setPriority(e.target.value as Ticket["priority"])
-                  }
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  aria-label="Sélectionner une catégorie"
                 >
-                  <option value="low">Basse - Question générale</option>
-                  <option value="medium">
-                    Normale - Problème non bloquant
-                  </option>
-                  <option value="high">Haute - Problème bloquant</option>
-                  <option value="urgent">Urgente - Arrêt de service</option>
+                  <option value="other">Autre demande</option>
+                  <option value="technical">Problème Technique</option>
+                  <option value="billing">Facturation</option>
+                  <option value="shipment">Expédition / Logistique</option>
                 </select>
               </div>
 
@@ -169,19 +187,6 @@ export default function CreateTicketModal({
                   onChange={(e) => setDescription(e.target.value)}
                   required
                 />
-              </div>
-
-              {/* Attachments Section Hidden for now as logic is incomplete in mock */}
-              {/* 
-                            <div> ... </div>
-                            */}
-
-              <div className="bg-blue-50 p-4 rounded-lg flex gap-3 items-start">
-                <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-blue-800">
-                  Notre équipe de support répond généralement sous 24h ouvrées.
-                  Pour les urgences, privilégiez le contact téléphonique.
-                </p>
               </div>
 
               <div className="flex gap-3 pt-2">

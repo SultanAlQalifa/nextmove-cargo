@@ -34,7 +34,7 @@ export default function CreateUserModal({
   useEffect(() => {
     const loadRoles = async () => {
       try {
-        const fetchedRoles = await personnelService.getRoles();
+        const fetchedRoles = await personnelService.getAssignableRoles("admin");
         setRoles(fetchedRoles);
       } catch (error) {
         console.error("Error loading roles:", error);
@@ -70,9 +70,13 @@ export default function CreateUserModal({
         });
         success("Utilisateur modifié avec succès !");
       } else {
-        // Mode Création/Invitation (Simulation for now as backend logic might be complex)
-        // TODO: Implement real invitation logic via Supabase Admin API if needed
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Mode Création/Invitation
+        await personnelService.addSystemUser({
+          name: formData.fullName,
+          email: formData.email,
+          role: formData.role,
+          phone: (formData as any).phone
+        });
         success("Invitation envoyée avec succès !");
       }
       onSuccess();
@@ -166,12 +170,10 @@ export default function CreateUserModal({
               <select
                 value={formData.role}
                 title="Rôle utilisateur"
-                disabled={profile?.role !== "super-admin"} // Only super-admin can change roles
                 onChange={(e) =>
                   setFormData({ ...formData, role: e.target.value })
                 }
-                className={`w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary appearance-none bg-white ${profile?.role !== "super-admin" ? "bg-gray-100 text-gray-500 cursor-not-allowed" : ""
-                  }`}
+                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary appearance-none bg-white"
               >
                 <option value="client">Client</option>
                 <option value="forwarder">Transitaire</option>

@@ -3,32 +3,11 @@ import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabase";
 import { profileService } from "../services/profileService";
 
-type UserRole =
-  | "client"
-  | "forwarder"
-  | "admin"
-  | "super-admin"
-  | "supplier"
-  | "driver";
+import { Profile } from "../types/profile";
 
-interface Profile {
-  id: string;
-  email: string;
-  role: UserRole;
-  full_name?: string;
-  company_name?: string;
-  phone?: string;
-  avatar_url?: string;
-  subscription_status?: "active" | "inactive" | "past_due" | "canceled";
-  kyc_status?: "pending" | "approved" | "rejected" | "verified";
-  transport_modes?: string[];
-  client_tier?: "bronze" | "silver" | "gold" | "platinum";
-  referral_code?: string;
-  referral_points?: number;
-  loyalty_points?: number;
-  tier?: "Bronze" | "Silver" | "Gold" | "Platinum";
-  trial_ends_at?: string; // ISO Date string
-}
+export type { Profile }; // Re-export for convenience if needed by consumers
+
+
 
 interface AuthContextType {
   user: User | null;
@@ -57,6 +36,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         setLoading(false);
       }
+    }).catch((err) => {
+      console.error("Auth session check failed:", err);
+      setLoading(false);
     });
 
     // Listen for changes on auth state (logged in, signed out, etc.)

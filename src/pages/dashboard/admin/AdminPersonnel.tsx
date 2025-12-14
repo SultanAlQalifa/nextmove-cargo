@@ -19,6 +19,7 @@ import {
   Role,
 } from "../../../services/personnelService";
 import { useToast } from "../../../contexts/ToastContext";
+import { useAuth } from "../../../contexts/AuthContext";
 import ConfirmationModal from "../../../components/common/ConfirmationModal";
 import RoleModal from "../../../components/admin/RoleModal";
 import AddStaffModal from "../../../components/admin/AddStaffModal";
@@ -49,6 +50,7 @@ export default function AdminPersonnel() {
   });
 
   const { success, error: toastError } = useToast();
+  const { profile } = useAuth();
 
   useEffect(() => {
     fetchData();
@@ -59,7 +61,7 @@ export default function AdminPersonnel() {
     try {
       const [staffData, rolesData] = await Promise.all([
         personnelService.getStaff(),
-        personnelService.getRoles(),
+        personnelService.getAssignableRoles("admin"),
       ]);
       setStaff(staffData);
       setRoles(rolesData);
@@ -178,22 +180,20 @@ export default function AdminPersonnel() {
       <div className="flex border-b border-gray-200">
         <button
           onClick={() => setActiveTab("team")}
-          className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
-            activeTab === "team"
-              ? "border-primary text-primary"
-              : "border-transparent text-gray-500 hover:text-gray-700"
-          }`}
+          className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${activeTab === "team"
+            ? "border-primary text-primary"
+            : "border-transparent text-gray-500 hover:text-gray-700"
+            }`}
         >
           <Users className="w-4 h-4" />
           Équipe
         </button>
         <button
           onClick={() => setActiveTab("roles")}
-          className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
-            activeTab === "roles"
-              ? "border-primary text-primary"
-              : "border-transparent text-gray-500 hover:text-gray-700"
-          }`}
+          className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${activeTab === "roles"
+            ? "border-primary text-primary"
+            : "border-transparent text-gray-500 hover:text-gray-700"
+            }`}
         >
           <Shield className="w-4 h-4" />
           Rôles & Permissions
@@ -264,20 +264,20 @@ export default function AdminPersonnel() {
                       </span>
                       {(member.role === "forwarder" ||
                         member.role_details?.role_family === "forwarder") && (
-                        <div className="mt-1 flex flex-wrap gap-1">
-                          <TransportBadge
-                            modes={member.transport_modes}
-                            size="sm"
-                          />
-                          {member.kyc_status && (
-                            <KYCBadge
-                              status={member.kyc_status}
+                          <div className="mt-1 flex flex-wrap gap-1">
+                            <TransportBadge
+                              modes={member.transport_modes}
                               size="sm"
-                              showLabel={false}
                             />
-                          )}
-                        </div>
-                      )}
+                            {member.kyc_status && (
+                              <KYCBadge
+                                status={member.kyc_status}
+                                size="sm"
+                                showLabel={false}
+                              />
+                            )}
+                          </div>
+                        )}
                       {(member.role === "client" ||
                         member.role_details?.role_family === "client") &&
                         member.client_tier && (
@@ -292,11 +292,10 @@ export default function AdminPersonnel() {
                     </td>
                     <td className="px-6 py-4">
                       <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          member.status === "active"
-                            ? "bg-green-50 text-green-700"
-                            : "bg-gray-100 text-gray-600"
-                        }`}
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${member.status === "active"
+                          ? "bg-green-50 text-green-700"
+                          : "bg-gray-100 text-gray-600"
+                          }`}
                       >
                         {member.status === "active" ? "Actif" : "Inactif"}
                       </span>
@@ -325,42 +324,76 @@ export default function AdminPersonnel() {
                               onClick={() => setActiveMenu(null)}
                             ></div>
                             <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 z-50 py-1 animate-in fade-in zoom-in duration-200">
-                              <button
-                                onClick={() => {
-                                  setSelectedStaff(member);
-                                  setIsAddStaffOpen(true);
-                                  setActiveMenu(null);
-                                }}
-                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                              >
-                                <Edit2 className="w-4 h-4" /> Modifier
-                              </button>
-                              <button
-                                onClick={() => {
-                                  handleToggleStatus(member);
-                                  setActiveMenu(null);
-                                }}
-                                className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2 ${member.status === "active" ? "text-orange-600" : "text-green-600"}`}
-                              >
-                                {member.status === "active" ? (
-                                  <>
-                                    <XCircle className="w-4 h-4" /> Désactiver
-                                  </>
-                                ) : (
-                                  <>
-                                    <CheckCircle className="w-4 h-4" /> Activer
-                                  </>
-                                )}
-                              </button>
-                              <button
-                                onClick={() => {
-                                  handleDeleteStaff(member);
-                                  setActiveMenu(null);
-                                }}
-                                className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
-                              >
-                                <Trash2 className="w-4 h-4" /> Supprimer
-                              </button>
+                              {(() => {
+                                const getRoleRank = (roleName: string) => {
+                                  const r = roleName.toLowerCase();
+                                  if (r === 'super admin' || r === 'super-admin') return 1;
+                                  // Admin, Support, etc are Rank 2 (System)
+                                  if (r === 'admin' || r === 'support' || r === 'support manager' || member.role_details?.role_family === 'admin') return 2;
+                                  if (r === 'forwarder') return 3;
+                                  if (r === 'client') return 4;
+                                  return 5;
+                                };
+
+                                const currentRank = getRoleRank(profile?.role || 'client');
+                                const targetRank = getRoleRank(member.role_details?.name || member.role);
+                                const isSelf = profile?.id === member.id;
+
+                                // Allow if Super Admin (Rank 1)
+                                // OR if target rank is lower (higher number) than current rank (e.g. Admin(2) can edit Forwarder(3))
+                                // OR if it is self (users can usually edit their own profile, or at least active/inactive? actually self-deactivation is dangerous, let's keep strict for now)
+                                // Strict Hierarchical: 
+                                const canManage = currentRank === 1 || (currentRank < targetRank);
+                                
+                                if (!canManage) {
+                                  return (
+                                    <div className="px-4 py-2 text-sm text-gray-500 italic flex items-center gap-2">
+                                      <Lock className="w-3 h-3" /> Action restreinte
+                                    </div>
+                                  );
+                                }
+
+                                return (
+                                <>
+                                  <button
+                                    onClick={() => {
+                                      setSelectedStaff(member);
+                                      setIsAddStaffOpen(true);
+                                      setActiveMenu(null);
+                                    }}
+                                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                                  >
+                                    <Edit2 className="w-4 h-4" /> Modifier
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      handleToggleStatus(member);
+                                      setActiveMenu(null);
+                                    }}
+                                    className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2 ${member.status === "active" ? "text-orange-600" : "text-green-600"}`}
+                                  >
+                                    {member.status === "active" ? (
+                                      <>
+                                        <XCircle className="w-4 h-4" /> Désactiver
+                                      </>
+                                    ) : (
+                                      <>
+                                        <CheckCircle className="w-4 h-4" /> Activer
+                                      </>
+                                    )}
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      handleDeleteStaff(member);
+                                      setActiveMenu(null);
+                                    }}
+                                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                                  >
+                                    <Trash2 className="w-4 h-4" /> Supprimer
+                                  </button>
+                                </>
+                              );
+                              })()}
                             </div>
                           </>
                         )}

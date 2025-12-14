@@ -55,8 +55,10 @@ serve(async (req: Request) => {
             .single();
 
         // We fetch sensitive email config from private secrets
+        // CORRECTION: The UI saves to 'system_settings', so we must read from there too.
+        // system_secrets might be deprecated or unused by the UI.
         const { data: emailData } = await supabaseAdmin
-            .from('system_secrets')
+            .from('system_settings')
             .select('value')
             .eq('key', 'email')
             .single();

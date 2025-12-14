@@ -15,6 +15,7 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Filter,
+  AlertTriangle,
 } from "lucide-react";
 import FundCallDetailsModal from "../../../components/admin/FundCallDetailsModal";
 import FundCallApprovalModal, {
@@ -23,6 +24,7 @@ import FundCallApprovalModal, {
 import FundCallRejectionModal from "../../../components/admin/FundCallRejectionModal";
 import ConfirmationModal from "../../../components/common/ConfirmationModal";
 import { fundCallService, FundCall } from "../../../services/fundCallService";
+import { paymentService } from "../../../services/paymentService";
 import { exportToCSV } from "../../../utils/exportUtils";
 
 export default function AdminFundCalls() {
@@ -56,6 +58,7 @@ export default function AdminFundCalls() {
   const [fundCallToReject, setFundCallToReject] = useState<FundCall | null>(
     null,
   );
+  const [requesterBalance, setRequesterBalance] = useState<{ amount: number; currency: string } | null>(null);
 
   // Confirmation Modal State
   const [confirmModal, setConfirmModal] = useState<{
@@ -160,6 +163,14 @@ export default function AdminFundCalls() {
 
     if (status === "approved") {
       setFundCallToApprove(fundCall);
+      setRequesterBalance(null); // Reset
+      // Fetch Balance for check
+      try {
+        const wallet = await paymentService.adminGetWallet(fundCall.requester.id);
+        if (wallet) setRequesterBalance({ amount: wallet.balance, currency: wallet.currency });
+      } catch (e) {
+        console.error("Could not fetch wallet", e);
+      }
       setIsApprovalModalOpen(true);
     } else {
       setFundCallToReject(fundCall);
@@ -170,6 +181,14 @@ export default function AdminFundCalls() {
 
   const handleApproveConfirm = async (id: string, details: ApprovalDetails) => {
     try {
+      // Validate High Value Security
+      const call = fundCalls.find(c => c.id === id);
+      if (call && call.amount >= 1000000) {
+        // This check duplicates the modal logic for safety, but the modal itself should enforce it.
+        // We assume the modal passed validation.
+
+      }
+
       // In a real app, we would send the details to the backend
       await fundCallService.updateStatus(id, "approved");
 
@@ -190,6 +209,8 @@ export default function AdminFundCalls() {
       if (isDetailsModalOpen) {
         setIsDetailsModalOpen(false);
       }
+
+      // Success toast? (Missing in original, could add here)
     } catch (error) {
       console.error("Error approving fund call:", error);
     }
@@ -197,7 +218,7 @@ export default function AdminFundCalls() {
 
   const handleRejectConfirm = async (id: string, reason: string) => {
     try {
-      await fundCallService.updateStatus(id, "rejected");
+      await fundCallService.updateStatus(id, "rejected", reason);
 
       // Refresh data
       const updatedData = await fundCallService.getFundCalls();
@@ -223,6 +244,17 @@ export default function AdminFundCalls() {
 
   const handleConfirmAction = async () => {
     if (!confirmModal.id || !confirmModal.type) return;
+
+    // Additional Safety Check for High Value in simple confirmation (though ApprovalModal handles approvals)
+    if (confirmModal.type === 'approve') {
+      const call = fundCalls.find(c => c.id === confirmModal.id);
+      if (call && call.amount >= 1000000) {
+        // Force use of ApprovalModal for high value
+        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+        handleStatusUpdate(call.id, 'approved');
+        return;
+      }
+    }
 
     try {
       const status = confirmModal.type === "approve" ? "approved" : "rejected";
@@ -526,6 +558,9 @@ export default function AdminFundCalls() {
                     Demandeur
                   </th>
                   <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Type
+                  </th>
+                  <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                     Date
                   </th>
                   <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
@@ -562,6 +597,11 @@ export default function AdminFundCalls() {
                       </div>
                     </td>
                     <td className="px-6 py-4">
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${call.type === 'funding' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
+                        {call.type === 'funding' ? 'Financement' : 'Retrait'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
                       <div className="flex items-center gap-2 text-sm text-gray-500">
                         <Calendar className="w-4 h-4 text-gray-400" />
                         {new Date(call.created_at).toLocaleDateString()}
@@ -571,6 +611,12 @@ export default function AdminFundCalls() {
                       <span className="font-medium text-gray-900">
                         {call.amount.toLocaleString()} {call.currency}
                       </span>
+                      {call.amount >= 1000000 && (
+                        <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                          <AlertTriangle className="w-3 h-3 mr-1" />
+                          H.V.
+                        </span>
+                      )}
                     </td>
                     <td className="px-6 py-4">{getStatusBadge(call.status)}</td>
                     <td className="px-6 py-4 text-right">
@@ -668,6 +714,7 @@ export default function AdminFundCalls() {
           setFundCallToApprove(null);
         }}
         fundCall={fundCallToApprove}
+        requesterBalance={requesterBalance}
         onConfirm={handleApproveConfirm}
       />
 

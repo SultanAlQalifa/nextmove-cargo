@@ -213,7 +213,20 @@ export default function CreateConsolidationModal({
           );
         } else {
           // @ts-ignore
-          await consolidationService.createConsolidation(cleanData);
+          const newConsolidation = await consolidationService.createConsolidation(cleanData);
+
+          // CRITICAL: If this is a client request, we must also create the Shipment (Book the slot)
+          // The shipment will initially have forwarder_id = null (assigned to platform)
+          if (type === "client_request" && newConsolidation) {
+            await consolidationService.bookConsolidationSlot({
+              consolidation_id: newConsolidation.id,
+              weight_kg: Number(cleanData.total_capacity_kg || 0),
+              volume_cbm: Number(cleanData.total_capacity_cbm || 0),
+              description: cleanData.description || "Client Request",
+              goods_nature: "General Cargo", // Default for now
+              cargo_value: 0
+            });
+          }
         }
       }
       onSuccess();

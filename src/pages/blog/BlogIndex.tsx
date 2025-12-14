@@ -1,8 +1,12 @@
 import { Newspaper, Calendar, ArrowRight, Tag } from "lucide-react";
 import PageHeader from "../../components/common/PageHeader";
 import { Link } from "react-router-dom";
+import { useState } from "react";
+import NewsletterModal from "../../components/marketing/NewsletterModal";
 
 export default function BlogIndex() {
+    const [isNewsletterOpen, setIsNewsletterOpen] = useState(false);
+
     const posts = [
         {
             id: 1,
@@ -38,7 +42,7 @@ export default function BlogIndex() {
                 action={{
                     label: "S'abonner à la newsletter",
                     icon: Newspaper,
-                    onClick: () => { }, // Todo: Newsletter modal
+                    onClick: () => setIsNewsletterOpen(true),
                 }}
             />
 
@@ -75,6 +79,10 @@ export default function BlogIndex() {
                     </article>
                 ))}
             </div>
+
+            {isNewsletterOpen && (
+                <NewsletterModal onClose={() => setIsNewsletterOpen(false)} />
+            )}
         </div>
     );
 }

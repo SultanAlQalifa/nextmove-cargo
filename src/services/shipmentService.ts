@@ -1,5 +1,7 @@
 import { supabase } from "../lib/supabase";
 import { fetchWithRetry } from "../utils/supabaseHelpers";
+import { notificationService } from "./notificationService";
+import { automationService } from "./automationService";
 
 export interface ShipmentEvent {
   id: string;
@@ -142,7 +144,24 @@ function mapDbShipmentToApp(dbRecord: any): Shipment {
 
 // ... (rest of the file remains same until mapDbShipmentToApp)
 
+// Helper to generate secure tracking number
+export const generateTrackingNumber = (): string => {
+  const prefix = "NMC";
+  const timestamp = Date.now().toString().slice(-4);
+  const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+  return `${prefix}-${timestamp}-${random}`;
+};
+
 export const shipmentService = {
+  /**
+   * Create shipment from payment transaction
+   */
+  createShipmentFromPayment: async (transactionId: string): Promise<Shipment | null> => {
+    // Mock implementation to satisfy interface requirement for now
+    // In real scenario, this would extract metadata from transaction to build shipment
+
+    return null;
+  },
   /**
    * Get all shipments for the current client
    */
@@ -279,7 +298,7 @@ export const shipmentService = {
   /**
    * Assign a driver to a shipment (Mock implementation for now as Driver system is separate)
    */
-  assignDriver: async (shipmentId: string, driverId: string): Promise<void> => {
+  assignDriver: async (shipmentId: string, _driverId: string): Promise<void> => {
     try {
       // We can simulate an event update
       // Using straight await here as standard try/catch is enough for writes
@@ -300,7 +319,7 @@ export const shipmentService = {
   /**
    * Get shipments assigned to a specific driver
    */
-  getShipmentsForDriver: async (driverId: string): Promise<Shipment[]> => {
+  getShipmentsForDriver: async (_driverId: string): Promise<Shipment[]> => {
     try {
       const data = await fetchWithRetry<any[]>(() =>
         supabase
@@ -373,44 +392,29 @@ export const shipmentService = {
     if (!user) throw new Error("Not authenticated");
 
     try {
-      // Ensure forwarder_id is set and data is sanitized
-      // We explicitely map ONLY fields that exist in the DB 'shipments' table
-      // This prevents "Column not found" errors if frontend passes extra UI state (like origin_id, cargo_packages, etc if missing)
+      // Generate tracking number if not provided
+      const trackingNumber = shipmentData.tracking_number || generateTrackingNumber();
 
       const dataToInsert = {
-        tracking_number: shipmentData.tracking_number,
-        client_id: shipmentData.client_id || user.id, // Fallback if not provided (though illogical for forwarder creation?)
-        // Wait, if Forwarder creates it, who is client?
-        // For now assuming Forwarder creates on behalf of self or generic?
-        // The DB requires client_id. If forwarder is creating, maybe they select a client?
-        // If checking AddShipmentModal, it doesn't seem to select Client!
-        // ERROR POTENTIAL: client_id is NOT NULL in schema.
-        // But let's focus on the reported error first: cargo_packages.
-
+        tracking_number: trackingNumber,
+        client_id: shipmentData.client_id || user.id,
         forwarder_id: user.id,
         origin_port: shipmentData.origin_port || "",
         origin_country: shipmentData.origin_country || "CN",
         destination_port: shipmentData.destination_port || "",
         destination_country: shipmentData.destination_country || "SN",
         carrier_name: shipmentData.carrier_name,
-
-        // Now fully supported by DB after user migration
-        // ERROR FIX: DB has 'transport_type', not 'transport_mode' (or both), and 'transport_type' is NOT NULL
         transport_type: shipmentData.transport_mode || "sea",
         transport_mode: shipmentData.transport_mode || "sea",
         service_type: shipmentData.service_type || "standard",
         price: shipmentData.price || 0,
-
         cargo_type: shipmentData.cargo_type,
         cargo_packages: shipmentData.cargo_packages || 0,
-
         cargo_weight: shipmentData.cargo_weight,
         cargo_volume: shipmentData.cargo_volume,
-
         departure_date: shipmentData.departure_date || null,
         arrival_estimated_date: shipmentData.arrival_estimated_date || null,
         parent_shipment_id: shipmentData.parent_shipment_id || null,
-
         status: "pending",
         created_at: new Date().toISOString(),
       };
@@ -423,12 +427,16 @@ export const shipmentService = {
 
       if (error) throw error;
 
-      // Auto-Link Users (Mutual Connection)
-      // If created by Forwarder for a Client, ensure connection exists
+      // Log initial creation event
+      await supabase.from("shipment_events").insert({
+        shipment_id: data.id,
+        status: 'pending',
+        location: data.origin_country || 'Origin',
+        description: 'Expédition créée',
+        timestamp: new Date().toISOString()
+      });
+
       if (user.id !== dataToInsert.client_id) {
-        // We don't await this to avoid blocking the UI response (fire and forget)
-        // However, importing the service might cause circular dep if service imports shipmentService?
-        // Checking imports... connectionService doesn't import shipmentService. Safe.
         import("./connectionService").then(({ connectionService }) => {
           connectionService.ensureConnection(user.id, dataToInsert.client_id);
         });
@@ -453,6 +461,7 @@ export const shipmentService = {
     try {
       const dataToInsert = shipmentsData.map((s) => ({
         ...s,
+        tracking_number: s.tracking_number || generateTrackingNumber(),
         forwarder_id: user.id,
         status: "pending",
         created_at: new Date().toISOString(),
@@ -473,42 +482,31 @@ export const shipmentService = {
   updateShipment: async (
     id: string,
     updates: Partial<Shipment>,
+    note?: string
   ): Promise<Shipment> => {
     try {
-      // Map App fields back to DB columns
       const dbUpdates: any = {};
 
-      // Allow updating core fields
       if (updates.status) dbUpdates.status = updates.status;
       if (updates.transport_mode) {
         dbUpdates.transport_mode = updates.transport_mode;
-        dbUpdates.transport_type = updates.transport_mode; // Keep sync
+        dbUpdates.transport_type = updates.transport_mode;
       }
       if (updates.service_type) dbUpdates.service_type = updates.service_type;
       if (updates.carrier?.name) dbUpdates.carrier_name = updates.carrier.name;
       if (updates.price !== undefined) dbUpdates.price = updates.price;
 
-      // Cargo
-      if (updates.cargo?.weight !== undefined)
-        dbUpdates.cargo_weight = updates.cargo.weight;
-      if (updates.cargo?.volume !== undefined)
-        dbUpdates.cargo_volume = updates.cargo.volume;
-      if (updates.cargo?.packages !== undefined)
-        dbUpdates.cargo_packages = updates.cargo.packages;
+      if (updates.cargo?.weight !== undefined) dbUpdates.cargo_weight = updates.cargo.weight;
+      if (updates.cargo?.volume !== undefined) dbUpdates.cargo_volume = updates.cargo.volume;
+      if (updates.cargo?.packages !== undefined) dbUpdates.cargo_packages = updates.cargo.packages;
       if (updates.cargo?.type) dbUpdates.cargo_type = updates.cargo.type;
 
-      // Dates
-      if (updates.dates?.departure)
-        dbUpdates.departure_date = updates.dates.departure;
-      if (updates.dates?.arrival_estimated)
-        dbUpdates.arrival_estimated_date = updates.dates.arrival_estimated;
-      if (updates.dates?.arrival_actual)
-        dbUpdates.arrival_actual_date = updates.dates.arrival_actual;
+      if (updates.dates?.departure) dbUpdates.departure_date = updates.dates.departure;
+      if (updates.dates?.arrival_estimated) dbUpdates.arrival_estimated_date = updates.dates.arrival_estimated;
+      if (updates.dates?.arrival_actual) dbUpdates.arrival_actual_date = updates.dates.arrival_actual;
 
-      // Route
       if (updates.origin?.port) dbUpdates.origin_port = updates.origin.port;
-      if (updates.destination?.port)
-        dbUpdates.destination_port = updates.destination.port;
+      if (updates.destination?.port) dbUpdates.destination_port = updates.destination.port;
 
       dbUpdates.updated_at = new Date().toISOString();
 
@@ -521,11 +519,20 @@ export const shipmentService = {
 
       if (error) throw error;
 
+      // Log Event if status changed
+      if (updates.status) {
+        await supabase.from("shipment_events").insert({
+          shipment_id: id,
+          status: updates.status,
+          location: updates.origin?.country || 'System', // Ideal would be to pass location
+          description: note || `Statut mis à jour vers ${updates.status}`,
+          timestamp: new Date().toISOString()
+        });
+      }
+
       const updatedShipment = mapDbShipmentToApp(data);
 
-      // Trigger WhatsApp Notification if status changed
       if (updates.status && updatedShipment.client?.phone) {
-        // Fire and forget - don't block the UI
         supabase.functions
           .invoke("send-whatsapp", {
             body: {
@@ -536,28 +543,23 @@ export const shipmentService = {
             },
           })
           .then(({ error }) => {
-            if (error)
-              console.warn("Failed to send WhatsApp notification:", error);
+            if (error) console.warn("Failed to send WhatsApp notification:", error);
           })
           .catch((err) => {
             console.warn("Error triggering WhatsApp function:", err);
           });
 
-        // Trigger In-App & Email Notification
         if (updatedShipment.client?.id) {
           notificationService.sendNotification(
             updatedShipment.client.id,
             `Mise à jour : #${updatedShipment.tracking_number}`,
             `Le statut de votre expédition est maintenant : ${updates.status}`,
             "shipment_update",
-            `${window.location.origin}/dashboard/client/shipments` // Detailed link not easily available per shipment in this context, generic list or explicit detail? 
-            // Ideally: /dashboard/client/shipments/${id}
-            // But let's check routes. Yes, ClientShipmentDetail exists.
+            `${window.location.origin}/dashboard/client/shipments`
           ).catch(err => console.error("Failed to send in-app notification", err));
         }
       }
 
-      // Trigger Automation: Feedback Request on Delivery
       if (updates.status === "delivered" && updatedShipment.client?.id) {
         automationService.handleShipmentDelivery(id, updatedShipment.client.id);
       }

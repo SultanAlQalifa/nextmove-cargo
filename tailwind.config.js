@@ -15,6 +15,8 @@ export default {
                 danger: '#ef4444', // Red
                 'dark-bg': '#020617', // Slate 950 (Premium Void)
                 'dark-card': '#0f172a', // Slate 900 (Premium Surface)
+                'dark-text': '#f1f5f9', // Slate 100
+                'dark-muted': '#94a3b8', // Slate 400
             },
             fontFamily: {
                 sans: ['Outfit', 'sans-serif'],

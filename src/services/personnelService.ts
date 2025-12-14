@@ -319,11 +319,76 @@ export const personnelService = {
     };
   },
 
+  addSystemUser: async (
+    staff: Omit<StaffMember, "id" | "last_active" | "status"> & { phone?: string },
+  ): Promise<StaffMember> => {
+    // Security Check: Only Super Admin can create Super Admin
+    if (staff.role === 'super-admin' || staff.role === 'Super Admin') {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: currentUserProfile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+        if (currentUserProfile?.role !== 'super-admin') {
+          throw new Error("Action non autorisée : Seul un Super Admin peut créer ce rôle.");
+        }
+      }
+    }
+
+    // Call the Edge Function to create the user
+    const { data, error } = await supabase.functions.invoke("create-user", {
+      body: {
+        email: staff.email,
+        password: "TempPassword123!", // Should ideally be random or part of invite flow
+        fullName: staff.name,
+        role: staff.role,
+        phone: staff.phone,
+        metadata: {
+          // No forwarder_id for system/admin created users usually, unless specified
+          // The Edge Function maps role names to DB roles
+        },
+      },
+    });
+
+    if (error) {
+      console.error("Edge Function Error:", error);
+      throw new Error(error.message || "Error creating user");
+    }
+
+    if (data.error) throw new Error(data.error);
+
+    return {
+      id: data.user.id,
+      name: staff.name,
+      email: staff.email,
+      role: staff.role,
+      status: "active",
+      last_active: new Date().toISOString(),
+      avatar: undefined,
+    };
+  },
+
   addStaff: async (
     staff: Omit<StaffMember, "id" | "last_active">,
   ): Promise<StaffMember> => {
-    // Re-use the same logic or separate if Admin needs different params
-    return personnelService.addForwarderStaff(staff);
+    // Detect current user role
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("Not authenticated");
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    if (profile?.role === "forwarder") {
+      return personnelService.addForwarderStaff(staff);
+    } else {
+      // Assume Admin/System
+      return personnelService.addSystemUser(staff);
+    }
   },
 
   // Alias for addStaff to match interface usage in some components
@@ -398,6 +463,20 @@ export const personnelService = {
     const allRoles = (data || []).map(mapDbRoleToApp);
 
     if (userFamily === "admin") {
+      // Check if current user is Super Admin
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: currentUserProfile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+
+        // If current user is NOT super-admin, filter out Super Admin role
+        if (currentUserProfile?.role !== 'super-admin') {
+          return allRoles.filter(r => r.name !== 'Super Admin' && r.id !== 'super-admin');
+        }
+      }
       return allRoles;
     } else {
       // Filter strictly for Forwarders

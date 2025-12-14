@@ -8,12 +8,32 @@ import { getCountryCode } from "../constants/countries";
 // ═══════════════════════════════════════════════════════════════
 
 // Exchange Rates (1 XOF = ???)
+// Exchange Rates (1 XOF = ???)
 const EXCHANGE_RATES: Record<string, number> = {
   XOF: 1,
   EUR: 0.001524,
   USD: 0.001646,
   CNY: 0.01189,
   GBP: 0.001295,
+};
+
+// Country Normalization Map
+const COUNTRY_NORM: Record<string, string> = {
+  "Chine": "China",
+  "Sénégal": "Senegal",
+  "France": "France",
+  "États-Unis": "USA",
+  "Etats-Unis": "USA",
+  "Cote d'Ivoire": "Ivory Coast",
+  "Côte d'Ivoire": "Ivory Coast",
+  "Turquie": "Turkey",
+  "Dubai": "UAE",
+  "Émirats arabes unis": "UAE"
+};
+
+const normalizeCountryName = (name: string): string => {
+  if (!name) return "";
+  return COUNTRY_NORM[name] || name;
 };
 
 // Conversion Helper
@@ -116,8 +136,11 @@ export const calculatorService = {
     const fees = await feeService.getFees();
 
     // 3. Resolve Location IDs
-    const originCode = getCountryCode(params.origin) || params.origin;
-    const destCode = getCountryCode(params.destination) || params.destination;
+    const originNorm = normalizeCountryName(params.origin);
+    const destinationNorm = normalizeCountryName(params.destination);
+
+    const originCode = getCountryCode(originNorm) || originNorm;
+    const destCode = getCountryCode(destinationNorm) || destinationNorm;
 
     const locations = await supabaseWrapper.query(async () => {
       return await supabase
@@ -394,8 +417,8 @@ export const calculatorService = {
    * Returns a map of rates for each mode/type combination.
    */
   async getUnitRates(
-    origin: string,
-    destination: string,
+    _origin: string,
+    _destination: string,
     calculationMode: "platform" | "compare" | "specific",
     forwarderId?: string,
     targetCurrency: string = "XOF",
@@ -431,9 +454,8 @@ export const calculatorService = {
         // Fetch Specific Forwarder Rates
         const { data, error } = await supabase
           .from("forwarder_rates")
-          .select("mode, type, price, currency") // Changed transport_mode->mode, price_per_unit->price
+          .select("mode, type, price, currency")
           .eq("forwarder_id", forwarderId);
-        // Removing origin/dest filters as they require UUID lookup and we want to show available services generally
 
         if (error) throw error;
 

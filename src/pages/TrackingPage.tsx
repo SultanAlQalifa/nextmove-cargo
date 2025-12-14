@@ -1,18 +1,17 @@
-import React, { useState, useEffect, useRef } from "react";
-import { useParams, useNavigate, useSearchParams } from "react-router-dom";
-import { supabase } from "../lib/supabase";
+import { useState, useEffect, useRef } from "react";
+import { useParams } from "react-router-dom";
 import {
   Search,
   Package,
   MapPin,
   Clock,
   ArrowRight,
-  CheckCircle2,
   AlertCircle,
   QrCode,
 } from "lucide-react";
-import { useTranslation } from "react-i18next";
 import QRScannerModal from "../components/common/QRScannerModal";
+import { shipmentService } from "../services/shipmentService";
+import { Helmet } from "react-helmet-async";
 
 interface PublicShipment {
   id: string;
@@ -35,10 +34,6 @@ interface PublicShipment {
 
 export default function TrackingPage() {
   const { code } = useParams();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-  const { t } = useTranslation();
 
   const [trackingInput, setTrackingInput] = useState(code || "");
   const [shipment, setShipment] = useState<PublicShipment | null>(null);
@@ -62,15 +57,11 @@ export default function TrackingPage() {
     setShipment(null);
 
     try {
-      const { data, error } = await supabase.rpc(
-        "get_public_shipment_tracking",
-        { tracking_code_input: trackingCode.trim() },
-      );
+      const data = await shipmentService.getShipmentByTracking(trackingCode.trim());
 
-      if (error) throw error;
-
-      if (data && data.length > 0) {
-        setShipment(data[0]);
+      // If data is null, it means no shipment found
+      if (data) {
+        setShipment(data);
       } else {
         setError("Aucune expédition trouvée avec ce numéro de suivi.");
       }
@@ -111,6 +102,19 @@ export default function TrackingPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-gray-900 flex flex-col font-sans">
+      <Helmet>
+        <title>
+          {shipment
+            ? `Suivi ${shipment.tracking_number} - NextMove`
+            : "Suivi de Colis - NextMove"}
+        </title>
+        <meta
+          name="description"
+          content={shipment
+            ? `Suivez l'état de l'expédition ${shipment.tracking_number} en temps réel.`
+            : "Suivez vos colis en temps réel sur NextMove Cargo."}
+        />
+      </Helmet>
       <main className="flex-grow pt-28 pb-20 px-4 sm:px-6">
         <div className="max-w-4xl mx-auto space-y-12">
           {/* Header & Search */}
@@ -210,12 +214,12 @@ export default function TrackingPage() {
                     <p className="text-xl font-bold text-slate-900 dark:text-white">
                       {shipment.arrival_estimated_date
                         ? new Date(
-                            shipment.arrival_estimated_date,
-                          ).toLocaleDateString("fr-FR", {
-                            day: "numeric",
-                            month: "long",
-                            year: "numeric",
-                          })
+                          shipment.arrival_estimated_date,
+                        ).toLocaleDateString("fr-FR", {
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                        })
                         : "Non définie"}
                     </p>
                   </div>
@@ -320,8 +324,8 @@ export default function TrackingPage() {
                       <p className="font-medium text-slate-900 dark:text-white">
                         {shipment.departure_date
                           ? new Date(
-                              shipment.departure_date,
-                            ).toLocaleDateString("fr-FR")
+                            shipment.departure_date,
+                          ).toLocaleDateString("fr-FR")
                           : "-"}
                       </p>
                     </div>

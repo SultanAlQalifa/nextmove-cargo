@@ -8,15 +8,47 @@ import {
   FileText,
   Phone,
 } from "lucide-react";
+import { useSubscription } from "../../../hooks/useSubscription";
+import { Link } from "react-router-dom";
 import { supportService, Ticket } from "../../../services/supportService";
 import TicketList from "../../../components/support/TicketList";
 import CreateTicketModal from "../../../components/support/CreateTicketModal";
+import Chatbot from "../../../components/support/Chatbot";
 
 export default function ClientSupport() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+
+  const { isStarter, isPro, isElite } = useSubscription();
+
+  const supportConfig = {
+    starter: {
+      sla: '48h ouvrées',
+      badge: 'Support Standard',
+      badgeColor: 'bg-gray-200 text-gray-700',
+      priority: 'normal',
+      channels: ['Email']
+    },
+    pro: {
+      sla: '24h ouvrées',
+      badge: 'Support Prioritaire',
+      badgeColor: 'bg-blue-100 text-blue-700',
+      priority: 'high',
+      channels: ['Email', 'Téléphone']
+    },
+    enterprise: {
+      sla: '4h ouvrées',
+      badge: 'Support Premium',
+      badgeColor: 'bg-purple-100 text-purple-700',
+      priority: 'critical',
+      channels: ['Email', 'Téléphone', 'Chat Direct']
+    }
+  };
+
+  const currentPlan = isElite ? 'enterprise' : (isPro ? 'pro' : 'starter');
+  const config = supportConfig[currentPlan];
 
   useEffect(() => {
     loadTickets();
@@ -34,14 +66,10 @@ export default function ClientSupport() {
     }
   };
 
-  const handleCreateTicket = async (ticketData: any) => {
-    try {
-      await supportService.createTicket(ticketData);
-      await loadTickets();
-      setIsCreateModalOpen(false);
-    } catch (error) {
-      console.error("Error creating ticket:", error);
-    }
+  // Modal handles submission internally, just refresh on success
+  const handleTicketCreated = async () => {
+    await loadTickets();
+    setIsCreateModalOpen(false);
   };
 
   const filteredTickets = tickets.filter(
@@ -62,37 +90,60 @@ export default function ClientSupport() {
         }}
       />
 
-      {/* Quick Help Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all cursor-pointer group">
-          <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mb-4 group-hover:bg-blue-100 transition-colors">
-            <HelpCircle className="w-6 h-6 text-blue-600" />
-          </div>
-          <h3 className="font-bold text-gray-900 mb-2">FAQ</h3>
-          <p className="text-sm text-gray-500">
-            Consultez nos questions fréquentes pour des réponses rapides.
-          </p>
+      {/* Dynamic SLA Section */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 p-6 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold text-gray-900">Niveau de Support</h2>
+          <span className={`px-3 py-1 rounded-full text-sm font-medium ${config.badgeColor
+            }`}>
+            {config.badge}
+          </span>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all cursor-pointer group">
-          <div className="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center mb-4 group-hover:bg-purple-100 transition-colors">
-            <FileText className="w-6 h-6 text-purple-600" />
-          </div>
-          <h3 className="font-bold text-gray-900 mb-2">Documentation</h3>
-          <p className="text-sm text-gray-500">
-            Guides détaillés sur l'utilisation de la plateforme.
-          </p>
+        <div className="flex items-center text-gray-600 dark:text-gray-300 mb-6">
+          <HelpCircle className="w-5 h-5 mr-2" />
+          <span>Temps de réponse garanti : <strong>{config.sla}</strong></span>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all cursor-pointer group">
-          <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center mb-4 group-hover:bg-green-100 transition-colors">
-            <Phone className="w-6 h-6 text-green-600" />
-          </div>
-          <h3 className="font-bold text-gray-900 mb-2">Contact Direct</h3>
-          <p className="text-sm text-gray-500">
-            Appelez-nous directement pour les urgences.
-          </p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          {config.channels.includes('Email') && (
+            <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50">
+              <FileText className="w-6 h-6 mb-2 text-blue-500" />
+              <h3 className="font-semibold mb-1">Email</h3>
+              <p className="text-sm text-gray-500">support@nextmovecargo.com</p>
+            </div>
+          )}
+
+          {config.channels.includes('Téléphone') && (
+            <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50">
+              <Phone className="w-6 h-6 mb-2 text-green-500" />
+              <h3 className="font-semibold mb-1">Téléphone</h3>
+              <p className="text-sm text-gray-500">+33 1 23 45 67 89</p>
+            </div>
+          )}
+
+          {config.channels.includes('Chat Direct') && (
+            <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50">
+              <MessageCircle className="w-6 h-6 mb-2 text-purple-500" />
+              <h3 className="font-semibold mb-1">Chat Direct</h3>
+              <span className="text-sm text-purple-600 underline cursor-pointer">Démarrer</span>
+            </div>
+          )}
         </div>
+
+        {isStarter && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <p className="text-sm text-blue-800">
+              💡 Besoin d'une réponse plus rapide ? Le plan Pro offre un support prioritaire.
+            </p>
+            <Link
+              to="/subscription/plans"
+              className="text-blue-600 font-medium underline mt-2 inline-block text-sm"
+            >
+              Découvrir le plan Pro →
+            </Link>
+          </div>
+        )}
       </div>
 
       {/* Tickets Section */}
@@ -144,8 +195,11 @@ export default function ClientSupport() {
       <CreateTicketModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
-        onSubmit={handleCreateTicket}
+        onSuccess={handleTicketCreated}
       />
+
+      {/* AI Assistant */}
+      <Chatbot />
     </div>
   );
 }

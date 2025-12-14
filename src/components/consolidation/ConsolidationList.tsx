@@ -29,17 +29,22 @@ import {
 import { format } from "date-fns";
 import { supabase } from "../../lib/supabase";
 import ConfirmationModal from "../common/ConfirmationModal";
+import JoinConsolidationModal from "./JoinConsolidationModal";
 
 interface ConsolidationListProps {
   type?: ConsolidationType;
   showActions?: boolean;
   onEdit?: (consolidation: Consolidation) => void;
+  isForwarder?: boolean;
+  onClaim?: (id: string) => void;
 }
 
 export default function ConsolidationList({
   type,
   showActions,
   onEdit,
+  isForwarder,
+  onClaim,
 }: ConsolidationListProps) {
   const { t } = useTranslation();
   const [consolidations, setConsolidations] = useState<Consolidation[]>([]);
@@ -54,6 +59,15 @@ export default function ConsolidationList({
     id: string | null;
     action: "cancel" | "delete" | null;
   }>({ isOpen: false, id: null, action: null });
+
+  // Booking Modal State
+  const [bookingModal, setBookingModal] = useState<{
+    isOpen: boolean;
+    consolidation: Consolidation | null;
+  }>({
+    isOpen: false,
+    consolidation: null,
+  });
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -375,17 +389,45 @@ export default function ConsolidationList({
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </>
-                ) : (
-                  <button className="w-full py-2.5 px-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-lg font-medium hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors flex items-center justify-center gap-2">
-                    View Details
+                ) : isForwarder && type === "client_request" ? (
+                  <button
+                    onClick={() => onClaim?.(item.id)}
+                    className="w-full py-2.5 px-4 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors flex items-center justify-center gap-2 shadow-sm"
+                  >
+                    <Zap className="h-4 w-4" />
+                    Se Positionner (Prendre en charge)
+                  </button>
+                ) : type === "forwarder_offer" || (!showActions && !isForwarder) ? (
+                  <button
+                    onClick={() =>
+                      setBookingModal({ isOpen: true, consolidation: item })
+                    }
+                    className="w-full py-2.5 px-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-lg font-medium hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors flex items-center justify-center gap-2"
+                  >
+                    Réserver une place
                     <ArrowRight className="h-4 w-4" />
                   </button>
-                )}
+                ) : null}
               </div>
             </div>
           ))}
         </div>
       )}
+
+      {/* Booking Modal */}
+      <JoinConsolidationModal
+        isOpen={bookingModal.isOpen}
+        onClose={() =>
+          setBookingModal({ isOpen: false, consolidation: null })
+        }
+        consolidation={bookingModal.consolidation}
+        onSuccess={() => {
+          // Maybe refresh list or show toast?
+          loadConsolidations();
+        }}
+      />
+
+
       <ConfirmationModal
         isOpen={confirmation.isOpen}
         onClose={() =>

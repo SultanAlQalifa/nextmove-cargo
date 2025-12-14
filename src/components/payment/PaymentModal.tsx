@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "../../contexts/ToastContext";
 import {
   X,
   CreditCard,
@@ -39,6 +41,8 @@ export default function PaymentModal({
   allowedMethods = ["wave", "wallet", "cash"],
   shipmentId,
 }: PaymentModalProps) {
+  const { success: showSuccess, error: showError } = useToast();
+  const navigate = useNavigate();
   const [step, setStep] = useState<
     "method" | "processing" | "success" | "error"
   >("method");
@@ -181,19 +185,21 @@ export default function PaymentModal({
           throw new Error("Solde insuffisant dans votre portefeuille");
         }
 
-        await paymentService.payWithWallet(
-          totalAmount,
-          "",
-          `Paiement ${planName || "Service"}`,
-        );
-
         if (shipmentId) {
+          // Shipment Flow: Escrow RPC handles wallet deduction internally
           await paymentService.confirmPayment(shipmentId, {
             amount: totalAmount,
             currency: currency,
             method: 'wallet',
             transactionId: `WALLET-${Date.now()}`
           }, appliedCoupon?.id);
+        } else {
+          // Subscription/Service Flow: Direct Wallet Deduction
+          await paymentService.payWithWallet(
+            totalAmount,
+            `SUB-${Date.now()}`,
+            `Paiement ${planName || "Service"}`,
+          );
         }
 
         if (appliedCoupon && !shipmentId) {
@@ -223,15 +229,41 @@ export default function PaymentModal({
   };
 
   const handleCashPayment = async () => {
-    // Simulate offline payment initiation
-    setStep("processing");
-    setTimeout(() => {
-      setStep("success");
-      setTimeout(() => {
-        onSuccess();
+    try {
+      setStep("processing");
+
+      // Appel réel au backend
+      const result = await paymentService.initiateCashPayment(
+        shipmentId,
+        {
+          paymentMethod: 'cash',
+          discountAmount: totalAmount,
+          transactionReference: `CASH-${Date.now()}`,
+        },
+        appliedCoupon?.id
+      );
+
+      if (result.success) {
+        showSuccess("Paiement en espèces enregistré");
+
+        // Rediriger vers page de confirmation avec instructions
+        // Si shipmentId existe, on track. Sinon on va juste au dashboard.
+        if (result.shipment_id) {
+          navigate(`/tracking/${result.shipment_id}?payment=cash_pending`);
+        } else {
+          // Cas abonnement : On reste sur dashboard mais on notifie
+          onSuccess();
+        }
         onClose();
-      }, 2000);
-    }, 1500);
+      }
+    } catch (error: any) {
+      console.error('Cash payment failed:', error);
+      setStep("error");
+      setError(
+        error.message ||
+        "Impossible d'enregistrer votre demande de paiement en espèces. Réessayez."
+      );
+    }
   };
 
   if (!isOpen) return null;

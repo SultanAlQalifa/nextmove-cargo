@@ -9,9 +9,36 @@
     content="NextMove - La plateforme logistique digitale pour vos expéditions maritimes et aériennes. Suivi en temps réel, paiements sécurisés et gestion simplifiée." />
   <link rel="apple-touch-icon" href="/pwa-192x192.png" />
   <title>NextMove - Logistique Digitale</title>
+
+  <!-- SEO & OGP -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://app.nextmove-cargo.com/" />
+  <meta property="og:title" content="NextMove - Expédiez sans frontières" />
+  <meta property="og:description"
+    content="Plateforme logistique digitale pour vos expéditions maritimes et aériennes. Suivi en temps réel, paiements sécurisés." />
+  <meta property="og:image" content="/og-image.jpg" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:domain" content="app.nextmove-cargo.com" />
+  <meta name="twitter:url" content="https://app.nextmove-cargo.com/" />
+  <meta name="twitter:title" content="NextMove - Logistique Digitale" />
+  <meta name="twitter:description"
+    content="Plateforme logistique digitale pour vos expéditions maritimes et aériennes." />
+  <meta name="twitter:image" content="/og-image.jpg" />
+
+  <!-- Meta theme-color removed due to partial support warnings -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+  <script>
+    (function () {
+      const savedTheme = localStorage.getItem("theme");
+      const hour = new Date().getHours();
+      const autoTheme = hour >= 6 && hour < 18 ? "light" : "dark";
+      const theme = savedTheme || autoTheme;
+      document.documentElement.classList.add(theme);
+    })();
+  </script>
 </head>
 
 <body>

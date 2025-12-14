@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../contexts/AuthContext";
+import { useSettings } from "../contexts/SettingsContext";
 import { useTranslation } from "react-i18next";
 import { Mail, Lock, ArrowRight, Loader2, Phone, Eye, EyeOff } from "lucide-react";
 
@@ -12,8 +13,12 @@ import PhoneInputWithCountry from "../components/auth/PhoneInputWithCountry";
 export default function Login() {
   const { t } = useTranslation();
   const { settings } = useBranding();
+  // We use the global settings context for security flags
+  const { settings: systemSettings } = useSettings();
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
+
+  const phoneAuthEnabled = systemSettings?.security?.phone_auth_enabled ?? true;
 
   const [authMethod, setAuthMethod] = useState<"email" | "phone">("email");
   const [email, setEmail] = useState("");
@@ -313,16 +318,18 @@ export default function Login() {
                     >
                       Email
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => setAuthMethod("phone")}
-                      className={`py-2 px-4 rounded-lg text-sm font-bold transition-all ${authMethod === "phone"
-                        ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm"
-                        : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
-                        }`}
-                    >
-                      {t("auth.phone")}
-                    </button>
+                    {phoneAuthEnabled && (
+                      <button
+                        type="button"
+                        onClick={() => setAuthMethod("phone")}
+                        className={`py-2 px-4 rounded-lg text-sm font-bold transition-all ${authMethod === "phone"
+                          ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm"
+                          : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                          }`}
+                      >
+                        {t("auth.phone")}
+                      </button>
+                    )}
                   </div>
                 </div>
 

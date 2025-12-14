@@ -79,6 +79,8 @@ export default function CreateRFQForm() {
     special_requirements: "",
     preferred_departure_date: undefined,
     specific_forwarder_id: undefined,
+    payment_method: "on_delivery",
+    is_retry: false,
   };
 
   const [formData, setFormData] = useState<CreateRFQData>(initialFormData);
@@ -182,9 +184,44 @@ export default function CreateRFQForm() {
         if (rfqData.height_cm) setHeight(rfqData.height_cm.toString());
         if (rfqData.volume_cbm) setCalculatedCBM(rfqData.volume_cbm);
       }
+      // Handle Retry Mode
+      else if (location.state.mode === "retry" && location.state.rfqData) {
+        const { rfqData } = location.state;
+        setFormData({
+          origin_port: rfqData.origin_port,
+          destination_port: rfqData.destination_port,
+          cargo_type: rfqData.cargo_type,
+          cargo_description: rfqData.cargo_description || "",
+          transport_mode: rfqData.transport_mode,
+          service_type: rfqData.service_type,
+          weight_kg: rfqData.weight_kg,
+          volume_cbm: rfqData.volume_cbm,
+          length_cm: rfqData.length_cm,
+          width_cm: rfqData.width_cm,
+          height_cm: rfqData.height_cm,
+          quantity: rfqData.quantity || 1,
+          budget_amount: rfqData.budget_amount,
+          budget_currency: rfqData.budget_currency || "XOF",
+          services_needed: rfqData.services_needed || [],
+          special_requirements: rfqData.special_requirements || "",
+          preferred_departure_date: rfqData.preferred_departure_date,
+          specific_forwarder_id: rfqData.specific_forwarder_id,
+
+          // Retry Specifics
+          is_retry: true,
+          parent_rfq_id: rfqData.id,
+          payment_method: "online" // Force online payment
+        });
+
+        // Set dimensions
+        if (rfqData.length_cm) setLength(rfqData.length_cm.toString());
+        if (rfqData.width_cm) setWidth(rfqData.width_cm.toString());
+        if (rfqData.height_cm) setHeight(rfqData.height_cm.toString());
+        if (rfqData.volume_cbm) setCalculatedCBM(rfqData.volume_cbm);
+      }
       // Handle Calculator Prefill
       else if (location.state.prefill) {
-        const { prefill } = location.state;
+        const { prefill, isRetry, parentRfqId } = location.state;
 
         // Update dimensions first
         if (prefill.cargo_details) {
@@ -213,6 +250,12 @@ export default function CreateRFQForm() {
           budget_amount: prefill.budget
             ? Math.round(prefill.budget)
             : undefined,
+
+          // Retry Logic
+          is_retry: !!isRetry,
+          parent_rfq_id: parentRfqId,
+          payment_method: isRetry ? "online" : "on_delivery", // Force online for retry
+
           // Only set specific_forwarder_id if it's a valid UUID
           specific_forwarder_id:
             prefill.target_forwarder &&
@@ -725,6 +768,58 @@ export default function CreateRFQForm() {
                 En confirmant, votre demande sera envoyée directement au
                 transitaire sélectionné pour validation finale.
               </p>
+
+              {/* Payment Method Selection */}
+              <div className="mb-6 space-y-3">
+                <label className="block text-sm font-bold text-gray-900 mb-2">
+                  Méthode de validation
+                </label>
+
+                {formData.is_retry && (
+                  <div className="p-3 bg-yellow-50 text-yellow-800 text-sm rounded-lg mb-3 border border-yellow-200">
+                    ⚠️ Suite à un refus précédent, le paiement en ligne est requis pour la validation automatique.
+                  </div>
+                )}
+
+                <div className={`p-4 rounded-xl border-2 transition-all cursor-pointer ${formData.payment_method === 'on_delivery'
+                  ? 'border-blue-600 bg-blue-50'
+                  : formData.is_retry ? 'opacity-50 cursor-not-allowed border-gray-200 bg-gray-50' : 'border-gray-200 hover:border-blue-300'
+                  }`}
+                  onClick={() => !formData.is_retry && setFormData(prev => ({ ...prev, payment_method: 'on_delivery' }))}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${formData.payment_method === 'on_delivery' ? 'border-blue-600' : 'border-gray-300'
+                      }`}>
+                      {formData.payment_method === 'on_delivery' && <div className="w-2.5 h-2.5 rounded-full bg-blue-600" />}
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-bold text-gray-900">Paiement à la livraison</div>
+                      <div className="text-xs text-gray-500">Validation manuelle par le transitaire</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className={`p-4 rounded-xl border-2 transition-all cursor-pointer ${formData.payment_method === 'online'
+                  ? 'border-blue-600 bg-blue-50'
+                  : 'border-gray-200 hover:border-blue-300'
+                  }`}
+                  onClick={() => setFormData(prev => ({ ...prev, payment_method: 'online' }))}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${formData.payment_method === 'online' ? 'border-blue-600' : 'border-gray-300'
+                      }`}>
+                      {formData.payment_method === 'online' && <div className="w-2.5 h-2.5 rounded-full bg-blue-600" />}
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-bold text-gray-900">Paiement Sécurisé en Ligne</div>
+                      <div className="text-xs text-gray-500">Validation automatique & Garantie</div>
+                    </div>
+                    <span className="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-1 rounded-full uppercase">
+                      Recommandé
+                    </span>
+                  </div>
+                </div>
+              </div>
 
               {error && (
                 <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm border border-red-200">

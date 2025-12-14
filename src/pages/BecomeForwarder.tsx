@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   Check,
   Shield,
@@ -63,6 +63,8 @@ function TermsModal({ isOpen, onClose, onAccept }: TermsModalProps) {
             <button
               onClick={onClose}
               className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
+              aria-label="Fermer"
+              title="Fermer"
             >
               <X className="w-6 h-6 text-slate-500" />
             </button>
@@ -199,6 +201,7 @@ export default function BecomeForwarder() {
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -528,126 +531,156 @@ export default function BecomeForwarder() {
               <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600"></div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
-              {plans.map((plan) => {
-                const isPro = plan.name.toLowerCase().includes("pro");
-                return (
-                  <div
-                    key={plan.id}
-                    className={`bg-white dark:bg-gray-900 rounded-[2.5rem] shadow-xl shadow-slate-200/50 dark:shadow-none border ${isPro ? "border-blue-500 ring-4 ring-blue-500/10" : "border-slate-100 dark:border-slate-800"} overflow-hidden flex flex-col hover:-translate-y-2 transition-all duration-300 relative group`}
+            <>
+              {/* Billing Toggle Switch */}
+              <div className="flex justify-center mb-16">
+                <div className="bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl inline-flex relative shadow-inner">
+                  <button
+                    onClick={() => setBillingCycle("monthly")}
+                    className={`relative z-10 px-8 py-3 rounded-xl text-sm font-bold transition-all duration-300 ${billingCycle === "monthly"
+                      ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-md shadow-slate-200/50 dark:shadow-none"
+                      : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                      }`}
                   >
-                    {/* Popular Badge Logic */}
-                    {isPro && (
-                      <div className="bg-blue-600 text-white text-xs font-bold uppercase tracking-widest py-2 text-center">
-                        Recommandé
-                      </div>
-                    )}
+                    Mensuel
+                  </button>
+                  <button
+                    onClick={() => setBillingCycle("yearly")}
+                    className={`relative z-10 px-8 py-3 rounded-xl text-sm font-bold transition-all duration-300 flex items-center gap-2 ${billingCycle === "yearly"
+                      ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-md shadow-slate-200/50 dark:shadow-none"
+                      : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                      }`}
+                  >
+                    Annuel
+                    <span className="px-2 py-0.5 rounded-full bg-green-100 text-green-600 text-[10px] font-extrabold uppercase tracking-wide">
+                      -20%
+                    </span>
+                  </button>
+                </div>
+              </div>
 
-                    <div className="p-10 flex-1">
-                      <div className="mb-8">
-                        <h3 className="text-2xl font-bold text-slate-900 dark:text-white">
-                          {plan.name}
-                        </h3>
-                        <p className="text-slate-500 dark:text-slate-400 mt-3 min-h-[48px] text-lg leading-relaxed">
-                          {plan.description}
-                        </p>
-                      </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
+                {plans
+                  .filter((p) => p.billing_cycle === billingCycle)
+                  .map((plan) => {
+                    const isPro = plan.name.toLowerCase().includes("pro");
+                    return (
+                      <div
+                        key={plan.id}
+                        className={`bg-white dark:bg-gray-900 rounded-[2.5rem] shadow-xl shadow-slate-200/50 dark:shadow-none border ${isPro ? "border-blue-500 ring-4 ring-blue-500/10" : "border-slate-100 dark:border-slate-800"} overflow-hidden flex flex-col hover:-translate-y-2 transition-all duration-300 relative group`}
+                      >
+                        {/* Popular Badge Logic */}
+                        {isPro && (
+                          <div className="bg-blue-600 text-white text-xs font-bold uppercase tracking-widest py-2 text-center">
+                            Recommandé
+                          </div>
+                        )}
 
-                      <div className="mb-10 pb-10 border-b border-slate-100 dark:border-slate-800">
-                        <div className="flex items-baseline">
-                          <span className="text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-                            {new Intl.NumberFormat("fr-XO", {
-                              style: "currency",
-                              currency: plan.currency,
-                              maximumFractionDigits: 0,
-                            }).format(plan.price)}
-                          </span>
-                          <span className="text-slate-500 dark:text-slate-400 ml-2 font-medium text-lg">
-                            /{plan.billing_cycle === "monthly" ? "mois" : "an"}
-                          </span>
+                        <div className="p-10 flex-1">
+                          <div className="mb-8">
+                            <h3 className="text-2xl font-bold text-slate-900 dark:text-white">
+                              {plan.name}
+                            </h3>
+                            <p className="text-slate-500 dark:text-slate-400 mt-3 min-h-[48px] text-lg leading-relaxed">
+                              {plan.description}
+                            </p>
+                          </div>
+
+                          <div className="mb-10 pb-10 border-b border-slate-100 dark:border-slate-800">
+                            <div className="flex items-baseline">
+                              <span className="text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                                {new Intl.NumberFormat("fr-XO", {
+                                  style: "currency",
+                                  currency: plan.currency,
+                                  maximumFractionDigits: 0,
+                                }).format(plan.price)}
+                              </span>
+                              <span className="text-slate-500 dark:text-slate-400 ml-2 font-medium text-lg">
+                                /{plan.billing_cycle === "monthly" ? "mois" : "an"}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="space-y-10">
+                            {categories.map((cat) => {
+                              const catDefinitions = definitionsByCategory[cat.id];
+                              if (!catDefinitions || catDefinitions.length === 0)
+                                return null;
+
+                              return (
+                                <div key={cat.id}>
+                                  <div className="flex items-center gap-3 mb-5">
+                                    <div
+                                      className={`p-2 rounded-xl ${cat.color} bg-opacity-10`}
+                                    >
+                                      <cat.icon className="w-4 h-4" />
+                                    </div>
+                                    <h5 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                                      {cat.label}
+                                    </h5>
+                                  </div>
+                                  <div className="space-y-4">
+                                    {catDefinitions.map((def) => {
+                                      const planFeature = plan.features.find(
+                                        (f) => f.name === def.name,
+                                      );
+                                      const isIncluded = !!planFeature;
+                                      const value = planFeature?.value;
+
+                                      if (!isIncluded) return null;
+
+                                      return (
+                                        <div
+                                          key={def.id}
+                                          className="flex items-start gap-3"
+                                        >
+                                          <div
+                                            className={`mt-1 ${def.type === "limit" ? "text-blue-600" : "text-green-500"}`}
+                                          >
+                                            {def.type === "limit" ? (
+                                              <Hash className="w-5 h-5" />
+                                            ) : (
+                                              <Check className="w-5 h-5" />
+                                            )}
+                                          </div>
+                                          <div className="flex-1">
+                                            <span className="text-base font-medium block text-slate-700 dark:text-slate-300">
+                                              {def.name}
+                                            </span>
+                                            {def.type === "limit" && (
+                                              <span className="text-xs text-blue-600 font-bold bg-blue-50 dark:bg-blue-900/30 px-3 py-1 rounded-full mt-2 inline-block">
+                                                {value === -1
+                                                  ? "Illimité"
+                                                  : `Limite: ${value}`}
+                                              </span>
+                                            )}
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        <div className="p-10 bg-slate-50 dark:bg-gray-800/50 border-t border-slate-100 dark:border-slate-800">
+                          <button
+                            onClick={() => setIsModalOpen(true)}
+                            className={`block w-full py-5 px-6 text-center font-bold rounded-2xl transition-all shadow-lg transform group-hover:-translate-y-1 ${isPro
+                              ? "bg-blue-600 text-white hover:bg-blue-500 shadow-blue-600/30"
+                              : "bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 shadow-slate-900/10"
+                              }`}
+                          >
+                            Choisir ce plan
+                          </button>
                         </div>
                       </div>
-
-                      <div className="space-y-10">
-                        {categories.map((cat) => {
-                          const catDefinitions = definitionsByCategory[cat.id];
-                          if (!catDefinitions || catDefinitions.length === 0)
-                            return null;
-
-                          return (
-                            <div key={cat.id}>
-                              <div className="flex items-center gap-3 mb-5">
-                                <div
-                                  className={`p-2 rounded-xl ${cat.color} bg-opacity-10`}
-                                >
-                                  <cat.icon className="w-4 h-4" />
-                                </div>
-                                <h5 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                                  {cat.label}
-                                </h5>
-                              </div>
-                              <div className="space-y-4">
-                                {catDefinitions.map((def) => {
-                                  const planFeature = plan.features.find(
-                                    (f) => f.name === def.name,
-                                  );
-                                  const isIncluded = !!planFeature;
-                                  const value = planFeature?.value;
-
-                                  if (!isIncluded) return null;
-
-                                  return (
-                                    <div
-                                      key={def.id}
-                                      className="flex items-start gap-3"
-                                    >
-                                      <div
-                                        className={`mt-1 ${def.type === "limit" ? "text-blue-600" : "text-green-500"}`}
-                                      >
-                                        {def.type === "limit" ? (
-                                          <Hash className="w-5 h-5" />
-                                        ) : (
-                                          <Check className="w-5 h-5" />
-                                        )}
-                                      </div>
-                                      <div className="flex-1">
-                                        <span className="text-base font-medium block text-slate-700 dark:text-slate-300">
-                                          {def.name}
-                                        </span>
-                                        {def.type === "limit" && (
-                                          <span className="text-xs text-blue-600 font-bold bg-blue-50 dark:bg-blue-900/30 px-3 py-1 rounded-full mt-2 inline-block">
-                                            {value === -1
-                                              ? "Illimité"
-                                              : `Limite: ${value}`}
-                                          </span>
-                                        )}
-                                      </div>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    <div className="p-10 bg-slate-50 dark:bg-gray-800/50 border-t border-slate-100 dark:border-slate-800">
-                      <button
-                        onClick={() => setIsModalOpen(true)}
-                        className={`block w-full py-5 px-6 text-center font-bold rounded-2xl transition-all shadow-lg transform group-hover:-translate-y-1 ${
-                          isPro
-                            ? "bg-blue-600 text-white hover:bg-blue-500 shadow-blue-600/30"
-                            : "bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 shadow-slate-900/10"
-                        }`}
-                      >
-                        Choisir ce plan
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                    );
+                  })}
+              </div>
+            </>
           )}
         </div>
       </div>

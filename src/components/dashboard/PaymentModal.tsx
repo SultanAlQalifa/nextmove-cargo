@@ -16,6 +16,7 @@ import {
   Info,
   Wallet,
 } from "lucide-react";
+import { useSubscription } from "../../hooks/useSubscription";
 
 interface PaymentModalProps {
   shipment: any;
@@ -29,6 +30,8 @@ export default function PaymentModal({
   onSuccess,
 }: PaymentModalProps) {
   const { success, error: toastError } = useToast();
+  const { isPro, isElite } = useSubscription(); // Add Hook Call
+
   const [loading, setLoading] = useState(false);
   const [gateways, setGateways] = useState<PaymentGateway[]>([]);
   const [selectedGateway, setSelectedGateway] = useState<string | null>(null);
@@ -39,6 +42,14 @@ export default function PaymentModal({
   } | null>(null);
   const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
   const [walletBalance, setWalletBalance] = useState(0);
+
+  // Discount Calculation
+  const subDiscountPercent = isElite ? 10 : (isPro ? 5 : 0);
+  const amount = shipment.quotes?.[0]?.amount || 0;
+  const subDiscountAmount = (amount * subDiscountPercent) / 100;
+  const couponDiscountAmount = discount?.amount || 0;
+  const totalDiscountAmount = subDiscountAmount + couponDiscountAmount;
+  const finalTotal = Math.max(0, amount - totalDiscountAmount);
 
   useEffect(() => {
     loadGateways();
@@ -84,10 +95,8 @@ export default function PaymentModal({
     if (!selectedGateway) return;
     setLoading(true);
     try {
-      const amount = shipment.quotes?.[0]?.amount || 0;
-      const finalAmount = discount
-        ? Math.max(0, amount - discount.amount)
-        : amount;
+      // Use pre-calculated finalTotal
+      const finalAmount = finalTotal;
 
       // Handle Wallet Payment
       const selectedGatewayObj = gateways.find((g) => g.id === selectedGateway);
@@ -96,13 +105,10 @@ export default function PaymentModal({
         selectedGatewayObj?.provider === "wallet"; // Support legacy/offline 'wallet' string if needed
 
       if (isWalletPayment) {
-        await paymentService.payWithWallet(
-          finalAmount,
-          shipment.id,
-          `Paiement expédition #${shipment.tracking_number || shipment.id}`,
-        );
+        // Direct execution via Escrow RPC (handled by confirmPayment)
+        // We skip payWithWallet because confirmPayment's RPC (process_shipment_payment_escrow) 
+        // already performs the deduction from the wallet.
 
-        // Explicitly confirm shipment status to ensure UI updates to 'Paid'
         await paymentService.confirmPayment(shipment.id, {
           amount: finalAmount,
           currency: shipment.quotes?.[0]?.currency || "XOF",
@@ -218,34 +224,51 @@ export default function PaymentModal({
         <div className="p-6 space-y-6">
           {/* Amount Display */}
           <div className="flex flex-col gap-2 p-4 bg-gray-50 rounded-xl border border-gray-100">
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600 font-medium">Sous-total</span>
-              <span className="text-lg font-bold text-gray-900">
-                {shipment.quotes?.[0]?.amount || "---"}{" "}
-                {shipment.quotes?.[0]?.currency || "XOF"}
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-gray-600 font-medium">Montant de base</span>
+              <span className="font-bold text-gray-900">
+                {amount.toLocaleString()} {shipment.quotes?.[0]?.currency || "XOF"}
               </span>
             </div>
-            {discount && (
-              <div className="flex justify-between items-center text-green-600">
-                <span className="text-sm font-medium">Réduction</span>
-                <span className="text-sm font-bold">
-                  - {discount.amount} {shipment.quotes?.[0]?.currency || "XOF"}
+
+            {/* Subscription Discount */}
+            {subDiscountPercent > 0 && (
+              <div className="flex justify-between items-center text-blue-600 text-sm">
+                <span className="font-medium flex items-center gap-1">
+                  <ShieldCheck className="w-3 h-3" />
+                  Réduction {isElite ? 'Elite' : 'Pro'} (-{subDiscountPercent}%)
+                </span>
+                <span className="font-bold">
+                  - {subDiscountAmount.toLocaleString()} {shipment.quotes?.[0]?.currency || "XOF"}
                 </span>
               </div>
             )}
+
+            {/* Promo Code Discount */}
+            {discount && (
+              <div className="flex justify-between items-center text-green-600 text-sm">
+                <span className="font-medium">Code Promo</span>
+                <span className="font-bold">
+                  - {discount.amount.toLocaleString()} {shipment.quotes?.[0]?.currency || "XOF"}
+                </span>
+              </div>
+            )}
+
             <div className="border-t border-gray-200 my-1"></div>
+
             <div className="flex justify-between items-center">
               <span className="text-gray-900 font-bold">Total à payer</span>
               <span className="text-2xl font-bold text-primary">
-                {discount
-                  ? Math.max(
-                    0,
-                    (shipment.quotes?.[0]?.amount || 0) - discount.amount,
-                  )
-                  : shipment.quotes?.[0]?.amount || "---"}{" "}
-                {shipment.quotes?.[0]?.currency || "XOF"}
+                {finalTotal.toLocaleString()} {shipment.quotes?.[0]?.currency || "XOF"}
               </span>
             </div>
+
+            {/* Starter Upsell */}
+            {subDiscountPercent === 0 && (
+              <div className="mt-2 bg-blue-50 border border-blue-100 rounded-lg p-2 text-xs text-blue-700">
+                <p>💡 Économisez 5% avec le plan <span className="font-bold">Pro</span>.</p>
+              </div>
+            )}
           </div>
 
           {/* Promo Code */}

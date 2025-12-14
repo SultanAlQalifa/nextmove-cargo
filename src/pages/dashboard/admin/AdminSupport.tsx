@@ -24,6 +24,7 @@ import TicketDetailsModal from "../../../components/admin/TicketDetailsModal";
 import UserProfileModal from "../../../components/admin/UserProfileModal";
 import ShipmentDetailsModal from "../../../components/admin/ShipmentDetailsModal";
 import CreateUserModal from "../../../components/admin/CreateUserModal";
+import CreateTicketModal from "../../../components/admin/CreateTicketModal";
 import { profileService } from "../../../services/profileService";
 import { shipmentService } from "../../../services/shipmentService";
 import { supabase } from "../../../lib/supabase";
@@ -50,6 +51,7 @@ export default function AdminSupport() {
   const [selectedShipment, setSelectedShipment] = useState<any>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isCreateTicketOpen, setIsCreateTicketOpen] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(async () => {
@@ -255,7 +257,7 @@ export default function AdminSupport() {
         subtitle="Centre de contrôle tickets et recherche globale"
         action={{
           label: "Nouveau Ticket",
-          onClick: () => { }, // TODO
+          onClick: () => setIsCreateTicketOpen(true),
           icon: MessageSquare,
         }}
       />
@@ -441,6 +443,9 @@ export default function AdminSupport() {
                       Priorité
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      SLA Echéance
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                       Statut
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
@@ -458,7 +463,7 @@ export default function AdminSupport() {
                   {loading ? (
                     <tr>
                       <td
-                        colSpan={6}
+                        colSpan={8}
                         className="px-6 py-8 text-center text-gray-500"
                       >
                         Chargement...
@@ -467,144 +472,171 @@ export default function AdminSupport() {
                   ) : filteredTickets.length === 0 ? (
                     <tr>
                       <td
-                        colSpan={6}
+                        colSpan={8}
                         className="px-6 py-8 text-center text-gray-500"
                       >
                         Aucun ticket trouvé
                       </td>
                     </tr>
                   ) : (
-                    filteredTickets.map((ticket) => (
-                      <tr
-                        key={ticket.id}
-                        className="hover:bg-gray-50 transition-colors"
-                      >
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className="p-2 bg-gray-100 rounded-lg">
-                              <MessageSquare className="w-4 h-4 text-gray-600" />
-                            </div>
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <p className="text-sm font-medium text-gray-900">
-                                  {ticket.subject}
-                                </p>
-                                {ticket.is_escalated && (
-                                  <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-600 uppercase tracking-wide border border-red-200">
-                                    Escaladé
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-xs text-gray-500">
-                                ID: {ticket.id}
-                              </p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className="px-2.5 py-1 rounded-lg text-xs font-medium bg-gray-100 text-gray-700 capitalize">
-                            {ticket.category}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span
-                            className={`px-2.5 py-1 rounded-full text-xs font-medium ${getPriorityColor(ticket.priority)} capitalize`}
-                          >
-                            {ticket.priority}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span
-                            className={`px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(ticket.status)} capitalize`}
-                          >
-                            {ticket.status.replace("_", " ")}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          {ticket.assigned_to ? (
-                            <div
-                              className="flex items-center gap-2"
-                              title={`Assigné à ID: ${ticket.assigned_to}`}
-                            >
-                              <div className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">
-                                {ticket.assigned_to === "1"
-                                  ? "AD"
-                                  : ticket.assigned_to === "2"
-                                    ? "SA"
-                                    : "FM"}
-                              </div>
-                            </div>
-                          ) : (
-                            <span className="text-xs text-gray-400 italic">
-                              Non assigné
-                            </span>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-500">
-                          {new Date(ticket.created_at).toLocaleDateString()}
-                        </td>
-                        <td className="px-6 py-4 text-right">
-                          <div className="relative action-menu-trigger">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setOpenActionMenuId(
-                                  openActionMenuId === ticket.id ? null : ticket.id,
-                                );
-                              }}
-                              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                              title="Options du ticket"
-                            >
-                              <MoreVertical className="w-4 h-4 text-gray-400" />
-                            </button>
+                    filteredTickets.map((ticket) => {
+                      // Calculate SLA status
+                      const deadline = ticket.sla_deadline ? new Date(ticket.sla_deadline) : null;
+                      const now = new Date();
+                      let slaColor = "text-gray-500";
+                      let slaText = "N/A";
 
-                            {openActionMenuId === ticket.id && (
-                              <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 z-10 py-1 animate-fade-in">
-                                <button
-                                  onClick={() => {
-                                    setSelectedTicket(ticket);
-                                    setOpenActionMenuId(null);
-                                  }}
-                                  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                                >
-                                  <Eye className="w-4 h-4" />
-                                  Voir détails
-                                </button>
-                                {ticket.status !== "resolved" && (
+                      if (deadline) {
+                        const diffHours = (deadline.getTime() - now.getTime()) / (1000 * 60 * 60);
+                        if (diffHours < 0) {
+                          slaColor = "text-red-600 font-bold bg-red-50 px-2 py-1 rounded";
+                          slaText = `Retard (${Math.abs(Math.round(diffHours))}h)`;
+                        } else if (diffHours < 4) {
+                          slaColor = "text-yellow-600 font-bold bg-yellow-50 px-2 py-1 rounded";
+                          slaText = `${Math.round(diffHours)}h (Urgent)`;
+                        } else {
+                          slaColor = "text-green-600 bg-green-50 px-2 py-1 rounded";
+                          slaText = `${Math.round(diffHours)}h restants`;
+                        }
+                      }
+
+                      return (
+                        <tr
+                          key={ticket.id}
+                          className="hover:bg-gray-50 transition-colors"
+                        >
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <div className="p-2 bg-gray-100 rounded-lg">
+                                <MessageSquare className="w-4 h-4 text-gray-600" />
+                              </div>
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <p className="text-sm font-medium text-gray-900">
+                                    {ticket.subject}
+                                  </p>
+                                  {ticket.is_escalated && (
+                                    <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-600 uppercase tracking-wide border border-red-200">
+                                      Escaladé
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-xs text-gray-500">
+                                  ID: {ticket.id}
+                                </p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className="px-2.5 py-1 rounded-lg text-xs font-medium bg-gray-100 text-gray-700 capitalize">
+                              {ticket.category}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span
+                              className={`px-2.5 py-1 rounded-full text-xs font-medium ${getPriorityColor(ticket.priority)} capitalize`}
+                            >
+                              {ticket.priority}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className={`text-xs ${slaColor}`}>
+                              {slaText}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span
+                              className={`px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(ticket.status)} capitalize`}
+                            >
+                              {ticket.status.replace("_", " ")}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4">
+                            {ticket.assigned_to ? (
+                              <div
+                                className="flex items-center gap-2"
+                                title={`Assigné à ID: ${ticket.assigned_to}`}
+                              >
+                                <div className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">
+                                  {ticket.assigned_to === "1"
+                                    ? "AD"
+                                    : ticket.assigned_to === "2"
+                                      ? "SA"
+                                      : "FM"}
+                                </div>
+                              </div>
+                            ) : (
+                              <span className="text-xs text-gray-400 italic">
+                                Non assigné
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-500">
+                            {new Date(ticket.created_at).toLocaleDateString()}
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <div className="relative action-menu-trigger">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setOpenActionMenuId(
+                                    openActionMenuId === ticket.id ? null : ticket.id,
+                                  );
+                                }}
+                                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                                title="Options du ticket"
+                              >
+                                <MoreVertical className="w-4 h-4 text-gray-400" />
+                              </button>
+
+                              {openActionMenuId === ticket.id && (
+                                <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 z-10 py-1 animate-fade-in">
                                   <button
-                                    onClick={() =>
-                                      handleStatusUpdate(ticket.id, "resolved")
-                                    }
-                                    className="w-full px-4 py-2 text-left text-sm text-green-600 hover:bg-green-50 flex items-center gap-2"
-                                  >
-                                    <CheckCircle className="w-4 h-4" />
-                                    Marquer résolu
-                                  </button>
-                                )}
-                                {ticket.status !== "closed" && (
-                                  <button
-                                    onClick={() =>
-                                      handleStatusUpdate(ticket.id, "closed")
-                                    }
+                                    onClick={() => {
+                                      setSelectedTicket(ticket);
+                                      setOpenActionMenuId(null);
+                                    }}
                                     className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
                                   >
-                                    <XCircle className="w-4 h-4" />
-                                    Fermer
+                                    <Eye className="w-4 h-4" />
+                                    Voir détails
                                   </button>
-                                )}
-                                <button
-                                  onClick={() => handleDelete(ticket.id)}
-                                  className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 border-t border-gray-50"
-                                >
-                                  <XCircle className="w-4 h-4" />
-                                  Supprimer
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    ))
+                                  {ticket.status !== "resolved" && (
+                                    <button
+                                      onClick={() =>
+                                        handleStatusUpdate(ticket.id, "resolved")
+                                      }
+                                      className="w-full px-4 py-2 text-left text-sm text-green-600 hover:bg-green-50 flex items-center gap-2"
+                                    >
+                                      <CheckCircle className="w-4 h-4" />
+                                      Marquer résolu
+                                    </button>
+                                  )}
+                                  {ticket.status !== "closed" && (
+                                    <button
+                                      onClick={() =>
+                                        handleStatusUpdate(ticket.id, "closed")
+                                      }
+                                      className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                                    >
+                                      <XCircle className="w-4 h-4" />
+                                      Fermer
+                                    </button>
+                                  )}
+                                  <button
+                                    onClick={() => handleDelete(ticket.id)}
+                                    className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 border-t border-gray-50"
+                                  >
+                                    <XCircle className="w-4 h-4" />
+                                    Supprimer
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      )
+                    })
                   )}
                 </tbody>
               </table>
@@ -649,6 +681,13 @@ export default function AdminSupport() {
             const updated = tickets.find((t) => t.id === selectedTicket.id);
             if (updated) setSelectedTicket(updated);
           }}
+        />
+      )}
+
+      {isCreateTicketOpen && (
+        <CreateTicketModal
+          onClose={() => setIsCreateTicketOpen(false)}
+          onSuccess={fetchTickets}
         />
       )}
 

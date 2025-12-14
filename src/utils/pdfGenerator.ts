@@ -111,7 +111,7 @@ export const generateWaybill = (shipment: ShipmentData) => {
   doc.text("WAYBILL", 105, 20, { align: "center" });
 
   // Barcode Placeholder (Visual only)
-  doc.setFillColor(0);
+  doc.setFillColor(0, 0, 0);
   doc.rect(80, 25, 50, 10, "F");
   doc.setFontSize(10);
   doc.text(String(shipment.tracking_number), 105, 40, { align: "center" });
@@ -126,8 +126,8 @@ export const generateWaybill = (shipment: ShipmentData) => {
   doc.setFontSize(12);
   doc.text(
     shipment.forwarder.company_name ||
-      shipment.forwarder.full_name ||
-      "Forwarder",
+    shipment.forwarder.full_name ||
+    "Forwarder",
     15,
     68,
   );

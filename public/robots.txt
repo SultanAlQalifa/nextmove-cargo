@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard/
+Disallow: /client/
+Disallow: /admin/
+Disallow: /driver/
+Disallow: /forwarder/
+
+Sitemap: https://app.nextmove-cargo.com/sitemap.xml

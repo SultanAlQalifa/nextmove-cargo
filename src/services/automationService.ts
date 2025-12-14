@@ -74,7 +74,22 @@ export const automationService = {
                 transport_mode: rfq.transport_mode,
                 transport_type: rfq.transport_mode,
                 service_type: rfq.service_type,
-                price: offer.total_price,
+                price: (async () => {
+                    // Calculate Discount based on Plan
+                    const { data: sub } = await supabase.from('user_subscriptions')
+                        .select('plan:subscription_plans(name)')
+                        .eq('user_id', rfq.client_id)
+                        .eq('status', 'active')
+                        .single();
+
+                    const planName = sub?.plan?.name?.toLowerCase() || '';
+                    let discount = 0;
+                    if (planName.includes('elite') || planName.includes('enterprise')) discount = 0.10;
+                    else if (planName.includes('pro')) discount = 0.05;
+
+                    const finalPrice = offer.total_price * (1 - discount);
+                    return Math.floor(finalPrice); // Round down to avoid decimals issues in XOF
+                })(),
                 currency: offer.currency,
 
                 // Dates
@@ -218,7 +233,7 @@ export const automationService = {
             const { data: profile } = await supabase.from('profiles').select('automation_settings').eq('id', userId).single();
             if (profile?.automation_settings?.invoice_reminder_enabled === false) return;
 
-            console.log(`[Automation] Checking overdue invoices for Forwarder ${userId} (Enabled)...`);
+
             // Logic to find invoices and likely call 'send-email' edge function
         } catch (e) { console.error(e); }
     },
@@ -231,7 +246,7 @@ export const automationService = {
             const { data: profile } = await supabase.from('profiles').select('automation_settings').eq('id', userId).single();
             if (profile?.automation_settings?.weather_alert_enabled === false) return;
 
-            console.log(`[Automation] Checking weather alerts for Forwarder ${userId} (Enabled)...`);
+
             // Logic to check external API
         } catch (e) { console.error(e); }
     },
@@ -244,7 +259,7 @@ export const automationService = {
             const { data: profile } = await supabase.from('profiles').select('automation_settings').eq('id', forwarderId).single();
             if (profile?.automation_settings?.ticket_auto_ack_enabled === false) return;
 
-            console.log(`[Automation] Sending Ticket Auto-Ack for Forwarder ${forwarderId} (Enabled)...`);
+
             // Logic to insert 'auto-reply' message into ticket_messages
         } catch (e) { console.error(e); }
     },

@@ -507,43 +507,72 @@ export default function UserManagement() {
                           >
                             <User className="w-4 h-4" /> Voir profil
                           </button>
-                          {user.role === "Client" && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setConfirmation({
-                                  isOpen: true,
-                                  type: "upgrade",
-                                  user: user,
-                                  title: "Promouvoir en Transitaire",
-                                  message: `Voulez-vous vraiment donner le rôle de Transitaire à ${user.name} ? Cette action lui donnera accès au tableau de bord transitaire.`,
-                                  variant: "warning",
-                                });
-                                setActiveMenu(null);
-                              }}
-                              className="w-full text-left px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 flex items-center gap-2"
-                            >
-                              <Shield className="w-4 h-4" /> Promouvoir
-                              Transitaire
-                            </button>
-                          )}
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setConfirmation({
-                                isOpen: true,
-                                type: "delete",
-                                user: user,
-                                title: "Supprimer l'utilisateur",
-                                message: `ATTENTION : Cette action est irréversible. Voulez-vous vraiment supprimer définitivement ${user.name} ?`,
-                                variant: "danger",
-                              });
-                              setActiveMenu(null);
-                            }}
-                            className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
-                          >
-                            <X className="w-4 h-4" /> Supprimer
-                          </button>
+
+                          {(() => {
+                            // RBAC Logic
+                            const getRoleRank = (roleName: string) => {
+                              const r = roleName.toLowerCase();
+                              if (r === 'super admin' || r === 'super-admin') return 1;
+                              if (r === 'admin' || r === 'support' || r === 'support manager') return 2;
+                              if (r === 'transitaire' || r === 'forwarder') return 3;
+                              return 4; // Client
+                            };
+
+                            const currentRank = getRoleRank(profile?.role || 'client');
+                            // user.role in this component is formatted (Admin, Client etc), so we lower case it
+                            const targetRank = getRoleRank(user.role);
+                            const canManage = currentRank === 1 || (currentRank < targetRank);
+
+                            if (!canManage) {
+                              return (
+                                <div className="px-4 py-2 text-sm text-gray-500 italic flex items-center gap-2 border-t border-gray-50 mt-1 pt-1">
+                                  <Shield className="w-3 h-3" /> Action protégée
+                                </div>
+                              );
+                            }
+
+                            return (
+                              <>
+                                {user.role === "Client" && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setConfirmation({
+                                        isOpen: true,
+                                        type: "upgrade",
+                                        user: user,
+                                        title: "Promouvoir en Transitaire",
+                                        message: `Voulez-vous vraiment donner le rôle de Transitaire à ${user.name} ? Cette action lui donnera accès au tableau de bord transitaire.`,
+                                        variant: "warning",
+                                      });
+                                      setActiveMenu(null);
+                                    }}
+                                    className="w-full text-left px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 flex items-center gap-2"
+                                  >
+                                    <Shield className="w-4 h-4" /> Promouvoir
+                                    Transitaire
+                                  </button>
+                                )}
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setConfirmation({
+                                      isOpen: true,
+                                      type: "delete",
+                                      user: user,
+                                      title: "Supprimer l'utilisateur",
+                                      message: `ATTENTION : Cette action est irréversible. Voulez-vous vraiment supprimer définitivement ${user.name} ?`,
+                                      variant: "danger",
+                                    });
+                                    setActiveMenu(null);
+                                  }}
+                                  className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                                >
+                                  <X className="w-4 h-4" /> Supprimer
+                                </button>
+                              </>
+                            );
+                          })()}
 
                           <div className="border-t border-gray-100 my-1"></div>
 

@@ -1,162 +1,83 @@
 import { supabase } from "../lib/supabase";
-import { emailService } from "./emailService";
 
 export interface Notification {
   id: string;
   user_id: string;
+  type: "info" | "success" | "warning" | "error";
   title: string;
   message: string;
-  type:
-  | "rfq_new"
-  | "offer_new"
-  | "offer_accepted"
-  | "offer_rejected"
-  | "offer_rejected"
-  | "shipment_update"
-  | "system_info";
   link?: string;
-  is_read: boolean;
+  read_at: string | null;
   created_at: string;
+  data?: any;
 }
 
 export const notificationService = {
-  /**
-   * Récupère les notifications de l'utilisateur connecté
-   */
-  getNotifications: async (): Promise<Notification[]> => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return [];
-
+  getNotifications: async (limit = 20) => {
     const { data, error } = await supabase
       .from("notifications")
       .select("*")
-      .eq("user_id", user.id)
       .order("created_at", { ascending: false })
-      .limit(20);
+      .limit(limit);
 
-    if (error) {
-      console.error("Error fetching notifications:", error);
-      return [];
-    }
-
-    return data || [];
+    if (error) throw error;
+    return data as Notification[];
   },
 
-  /**
-   * Marque une notification comme lue
-   */
-  markAsRead: async (id: string): Promise<void> => {
+  getUnreadCount: async () => {
+    const { count, error } = await supabase
+      .from("notifications")
+      .select("*", { count: "exact", head: true })
+      .is("read_at", null);
+
+    if (error) throw error;
+    return count || 0;
+  },
+
+  markAsRead: async (notificationId: string) => {
     const { error } = await supabase
       .from("notifications")
-      .update({ is_read: true })
-      .eq("id", id);
+      .update({ read_at: new Date().toISOString() })
+      .eq("id", notificationId);
 
-    if (error) console.error("Error marking notification as read:", error);
+    if (error) throw error;
   },
 
-  /**
-   * Marque toutes les notifications comme lues
-   */
-  markAllAsRead: async (): Promise<void> => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+  markAllAsRead: async () => {
+    const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
     const { error } = await supabase
       .from("notifications")
-      .update({ is_read: true })
+      .update({ read_at: new Date().toISOString() })
       .eq("user_id", user.id)
-      .eq("is_read", false);
+      .is("read_at", null);
 
-    if (error) console.error("Error marking all notifications as read:", error);
+    if (error) throw error;
   },
 
-  /**
-   * Souscrit aux notifications en temps réel
-   */
+  // Method to simulate manual trigger for testing (usually admin only, but useful for verificaiton)
+  testTrigger: async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    await supabase.from("notifications").insert({
+      user_id: user.id,
+      title: "Test Notification",
+      message: "Ceci est une notification de test générée manuellement.",
+      type: "info",
+      link: "/dashboard"
+    });
+  },
+
   subscribeToNotifications: (callback: (payload: any) => void) => {
     return supabase
-      .channel("public:notifications")
+      .channel('public:notifications')
       .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "notifications",
-        },
-        (payload) => {
-          callback(payload);
-        },
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'notifications' },
+        callback
       )
       .subscribe();
-  },
-
-  /**
-   * Send a notification (and email) to a user
-   */
-  sendNotification: async (
-    userId: string,
-    title: string,
-    message: string,
-    type: Notification["type"],
-    link?: string,
-  ) => {
-    // 1. Create in-app notification via Secure RPC
-    const { error } = await supabase.rpc("send_notification", {
-      p_user_id: userId,
-      p_title: title,
-      p_message: message,
-      p_type: type,
-      p_link: link,
-    });
-
-    if (error) console.error("Error creating notification:", error);
-
-    // 2. Send Email (if applicable)
-    try {
-      // Fetch user email
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("email, full_name")
-        .eq("id", userId)
-        .single();
-
-      if (profile?.email) {
-        if (type === "rfq_new") {
-          await emailService.sendRFQNotification(profile.email, link || "");
-        } else if (type === "offer_new") {
-          await emailService.sendOfferNotification(profile.email, link || "");
-        } else if (type === "system_info" && title.includes("Bienvenue")) {
-          await emailService.sendWelcomeEmail(
-            profile.email,
-            profile.full_name || "Utilisateur",
-          );
-        } else if (type === "shipment_update") {
-          // Parse message/title or require separate params?
-          // For simplicity, we assume title contains tracking and we pass standardized data
-          // Or we extract from message. 
-          // Ideally: "Status: delivered" passed as meta, but here we just have title/message/link.
-          // Let's assume title = "Mise à jour : #TRACKING"
-          const trackingMatch = title.match(/#([A-Z0-9-]+)/);
-          const trackingNumber = trackingMatch ? trackingMatch[1] : "Expédition";
-
-          // We don't have exact status code here easily unless passed.
-          // Fallback: Just send generic "Check dashboard" email or try to infer.
-          // Actually, let's pass an extracted status in the message or rely on the link.
-          // BETTER: Update the sending call side to be consistent.
-          await emailService.sendShipmentStatusUpdate(
-            profile.email,
-            trackingNumber,
-            "Mise à jour récente", // Generic if not passed, or extract
-            link || ""
-          );
-        }
-      }
-    } catch (emailError) {
-      console.error("Error sending email notification:", emailError);
-    }
-  },
+  }
 };

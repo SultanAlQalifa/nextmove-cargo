@@ -8,6 +8,13 @@ export default function DashboardRedirect() {
 
   useEffect(() => {
     if (!loading && profile) {
+
+      // Force Profile Completion
+      if (!profile.full_name || profile.full_name.trim().length === 0 || !profile.phone) {
+        navigate("/complete-profile", { replace: true });
+        return;
+      }
+
       // Redirect based on user role
       switch (profile.role) {
         case "client":
@@ -37,7 +44,7 @@ export default function DashboardRedirect() {
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading your dashboard...</p>
+          <p className="text-gray-600">Chargement du tableau de bord...</p>
         </div>
       </div>
     );

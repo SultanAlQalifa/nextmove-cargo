@@ -53,22 +53,24 @@ import {
   Building2,
   AlertCircle,
   MoreVertical,
+  Banknote,
 } from "lucide-react";
 import { Zap } from "lucide-react";
 import NewsTicker from "../common/NewsTicker";
 
-import NotificationBell from "../common/NotificationBell";
+import NotificationCenter from "../notifications/NotificationCenter";
 import MobileCountrySelector from "../MobileCountrySelector";
 import ChatWidget from "../common/ChatWidget";
 
 import KYCBadge from "../common/KYCBadge";
 import ClientTierBadge from "../common/ClientTierBadge";
+import GlobalErrorBoundary from "../common/GlobalErrorBoundary";
 
 import { useUI } from "../../contexts/UIContext";
 import { useChat } from "../../contexts/ChatContext";
 import CalculatorModal from "../dashboard/CalculatorModal";
-import { notificationService, Notification } from "../../services/notificationService"; // FIX IMPORT
-import { CustomToast, showNotification } from "../common/NotificationToast"; // FIX IMPORT
+import { notificationService, Notification } from "../../services/notificationService";
+import { CustomToast, showNotification } from "../common/NotificationToast";
 
 interface NavItem {
   name: string;
@@ -95,12 +97,12 @@ export default function DashboardLayout() {
   useEffect(() => {
     // Subscribe to Realtime Notifications
     if (user) {
-      const subscription = notificationService.subscribeToNotifications((payload) => {
+      const subscription = notificationService?.subscribeToNotifications ? notificationService.subscribeToNotifications((payload) => {
         const newNotif = payload.new as Notification;
         if (newNotif.user_id === user.id) {
           showNotification(newNotif.title, newNotif.message, 'info');
         }
-      });
+      }) : { unsubscribe: () => { } };
 
       return () => {
         subscription.unsubscribe();
@@ -211,6 +213,11 @@ export default function DashboardLayout() {
               name: t("dashboard.menu.payments"),
               path: "/dashboard/client/payments",
               icon: CreditCard,
+            },
+            {
+              name: "Factures",
+              path: "/dashboard/client/invoices",
+              icon: FileText,
             },
             {
               name: "Portefeuille",
@@ -474,9 +481,19 @@ export default function DashboardLayout() {
               icon: CreditCard,
             },
             {
+              name: "Factures",
+              path: "/dashboard/admin/invoices",
+              icon: FileText,
+            },
+            {
               name: "Portefeuilles",
               path: "/dashboard/admin/wallet",
               icon: Wallet,
+            },
+            {
+              name: "Validation Cash",
+              path: "/dashboard/admin/cash-payments",
+              icon: Banknote,
             },
             {
               name: t("dashboard.menu.fundCalls"),
@@ -956,7 +973,7 @@ export default function DashboardLayout() {
                 <MobileCountrySelector />
               </div>
 
-              <NotificationBell />
+              <NotificationCenter />
 
               {/* User Profile - Premium Pill */}
               <div className="relative ml-2">
@@ -1082,7 +1099,9 @@ export default function DashboardLayout() {
         {/* Page Content */}
         <main className={`flex-1 overflow-x-hidden overflow-y-auto w-full max-w-full custom-scrollbar relative z-0 ${isChatOpen ? 'pb-32' : 'pb-12'}`}>
           <div className="container mx-auto px-6 py-8">
-            <Outlet />
+            <GlobalErrorBoundary>
+              <Outlet />
+            </GlobalErrorBoundary>
             <CustomToast />
           </div>
         </main>

@@ -12,6 +12,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { profileService } from "../../../services/profileService";
+import { forwarderService } from "../../../services/forwarderService";
 import { useToast } from "../../../contexts/ToastContext";
 import ConfirmationModal from "../../../components/common/ConfirmationModal";
 
@@ -50,9 +51,9 @@ export default function AdminForwarders() {
 
   const fetchForwarders = async () => {
     try {
-      const profiles = await profileService.getAllProfiles();
-      const forwarderProfiles = profiles.filter((p) => p.role === "forwarder");
-      setForwarders(forwarderProfiles);
+      // Use forwarderService to get profiles WITH documents
+      const forwardersData = await forwarderService.getForwarders();
+      setForwarders(forwardersData);
     } catch (error) {
       console.error("Error fetching forwarders:", error);
       toastError("Erreur lors du chargement des transitaires");
@@ -333,6 +334,8 @@ export default function AdminForwarders() {
                       <button
                         onClick={(e) => toggleMenu(e, f.id)}
                         className={`p-2 rounded-full transition-colors ${activeMenu === f.id ? "bg-gray-100 text-gray-900" : "text-gray-400 hover:text-gray-600 hover:bg-gray-100"}`}
+                        aria-label="Actions"
+                        title="Actions"
                       >
                         <MoreVertical className="w-5 h-5" />
                       </button>
@@ -367,8 +370,10 @@ export default function AdminForwarders() {
             className="fixed inset-0 z-40"
             onClick={() => setActiveMenu(null)}
           ></div>
+
           <div
             className="fixed z-50 bg-white rounded-xl shadow-xl border border-gray-100 py-1 animate-in fade-in zoom-in duration-200 w-56"
+            /* eslint-disable-next-line */
             style={{
               top: menuPosition.top,
               right: menuPosition.right,
@@ -452,6 +457,8 @@ export default function AdminForwarders() {
                   setDocumentModal({ isOpen: false, forwarder: null })
                 }
                 className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                aria-label="Fermer"
+                title="Fermer"
               >
                 <X className="w-5 h-5 text-gray-500" />
               </button>
@@ -459,7 +466,7 @@ export default function AdminForwarders() {
 
             <div className="p-6 overflow-y-auto">
               {!documentModal.forwarder.documents ||
-              documentModal.forwarder.documents.length === 0 ? (
+                documentModal.forwarder.documents.length === 0 ? (
                 <div className="text-center py-12 bg-gray-50 rounded-xl border border-dashed border-gray-200">
                   <FileText className="w-12 h-12 text-gray-300 mx-auto mb-3" />
                   <p className="text-gray-500 font-medium">
@@ -493,13 +500,12 @@ export default function AdminForwarders() {
                       </div>
                       <div className="flex items-center gap-3">
                         <span
-                          className={`px-2 py-1 rounded-lg text-xs font-medium ${
-                            doc.status === "verified"
-                              ? "bg-green-100 text-green-700"
-                              : doc.status === "rejected"
-                                ? "bg-red-100 text-red-700"
-                                : "bg-orange-100 text-orange-700"
-                          }`}
+                          className={`px-2 py-1 rounded-lg text-xs font-medium ${doc.status === "verified"
+                            ? "bg-green-100 text-green-700"
+                            : doc.status === "rejected"
+                              ? "bg-red-100 text-red-700"
+                              : "bg-orange-100 text-orange-700"
+                            }`}
                         >
                           {doc.status === "verified"
                             ? "Vérifié"

@@ -278,6 +278,8 @@ export default function ForwarderSettings() {
 
   const tabs = [
     { id: "profile", label: "Mon Profil", icon: User },
+    { id: "documents", label: "Documents", icon: FileText },
+    { id: "subscription", label: "Abonnement", icon: CreditCard },
     { id: "notifications", label: "Notifications", icon: Bell },
     { id: "security", label: "Sécurité", icon: Lock },
   ];
@@ -754,6 +756,232 @@ export default function ForwarderSettings() {
                     </div>
                   </div>
                 </div>
+              </div>
+            )}
+
+            {activeTab === "documents" && (
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900">
+                    Documents Légaux & KYC
+                  </h3>
+                  <p className="text-sm text-gray-500">
+                    Pour être certifié "Vérifié" et accéder à toutes les
+                    fonctionnalités, veuillez fournir les documents requis.
+                  </p>
+                </div>
+
+                {loadingDocs ? (
+                  <div className="flex justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {requiredDocuments.map((docType) => {
+                      const status = getDocumentStatus(docType.id);
+                      const url = getDocumentUrl(docType.id);
+
+                      return (
+                        <div
+                          key={docType.id}
+                          className="flex flex-col md:flex-row md:items-center justify-between p-4 bg-gray-50 border border-gray-100 rounded-xl gap-4 hover:border-gray-200 transition-colors"
+                        >
+                          <div className="flex items-start gap-4">
+                            <div className={`p-3 rounded-xl ${status === 'approved' ? 'bg-green-100 text-green-600' :
+                              status === 'pending' ? 'bg-orange-100 text-orange-600' :
+                                status === 'rejected' ? 'bg-red-100 text-red-600' :
+                                  'bg-white border border-gray-200 text-gray-400'
+                              }`}>
+                              <FileText className="w-6 h-6" />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2 mb-1">
+                                <h4 className="font-bold text-gray-900">
+                                  {docType.label}
+                                </h4>
+                                {status === 'approved' && (
+                                  <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-bold rounded-full flex items-center gap-1">
+                                    <CheckCircle size={10} /> Validé
+                                  </span>
+                                )}
+                                {status === 'pending' && (
+                                  <span className="px-2 py-0.5 bg-orange-100 text-orange-700 text-xs font-bold rounded-full flex items-center gap-1">
+                                    <Clock size={10} /> En attente
+                                  </span>
+                                )}
+                                {status === 'rejected' && (
+                                  <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs font-bold rounded-full flex items-center gap-1">
+                                    <XCircle size={10} /> Refusé
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-sm text-gray-500">
+                                {docType.description}
+                              </p>
+                              {status === 'rejected' && (
+                                <p className="text-xs text-red-600 mt-1 font-medium">
+                                  Ce document a été refusé. Veuillez en soumettre un nouveau.
+                                </p>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-3">
+                            {url && (
+                              <a
+                                href={url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-2 text-gray-500 hover:text-primary bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                                title="Voir le document"
+                              >
+                                <Eye size={18} />
+                              </a>
+                            )}
+
+                            {status !== 'approved' && status !== 'pending' && (
+                              <label className="cursor-pointer px-4 py-2 bg-white border border-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all flex items-center gap-2 shadow-sm">
+                                <Upload size={16} />
+                                <span>{url ? "Remplacer" : "Importer"}</span>
+                                <input
+                                  type="file"
+                                  className="hidden"
+                                  accept=".pdf,.jpg,.jpeg,.png"
+                                  onChange={(e) =>
+                                    e.target.files?.[0] &&
+                                    handleDocumentUpload(e.target.files[0], docType.id)
+                                  }
+                                />
+                              </label>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === "subscription" && (
+              <div className="space-y-8">
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900">
+                    Abonnement & Facturation
+                  </h3>
+                  <p className="text-sm text-gray-500">
+                    Gérez votre abonnement et vos informations de paiement.
+                  </p>
+                </div>
+
+                {/* Current Plan Card */}
+                <div className="p-6 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl text-white shadow-xl overflow-hidden relative">
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+
+                  <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                    <div>
+                      <div className="flex items-center gap-3 mb-2">
+                        <span className="px-3 py-1 bg-white/10 rounded-full text-xs font-bold border border-white/10 backdrop-blur-sm">
+                          {currentSubscription?.status === "active" ? "Actif" : "Inactif"}
+                        </span>
+                        {currentSubscription?.plan && (
+                          <span className="text-gray-400 text-sm">
+                            Expire le {new Date(currentSubscription.current_period_end).toLocaleDateString()}
+                          </span>
+                        )}
+                      </div>
+                      <h3 className="text-3xl font-bold mb-1">
+                        {currentSubscription?.plan?.name || "Aucun abonnement"}
+                      </h3>
+                      <p className="text-gray-400">
+                        {currentSubscription?.plan
+                          ? `Plan ${currentSubscription.plan.interval === 'month' ? 'Mensuel' : 'Annuel'}`
+                          : "Souscrivez à un plan pour accéder aux fonctionnalités avancées."}
+                      </p>
+                    </div>
+
+                    {!currentSubscription?.plan || currentSubscription.status !== 'active' ? (
+                      <button
+                        onClick={() => document.getElementById('plans-grid')?.scrollIntoView({ behavior: 'smooth' })}
+                        className="px-6 py-3 bg-white text-gray-900 rounded-xl font-bold hover:bg-gray-100 transition-colors shadow-lg"
+                      >
+                        Voir les plans
+                      </button>
+                    ) : (
+                      <div className="flex flex-col items-end gap-2">
+                        <button className="text-sm text-gray-300 hover:text-white underline decoration-white/30">
+                          Gérer la facturation
+                        </button>
+                        <button className="text-sm text-red-400 hover:text-red-300">
+                          Annuler l'abonnement
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Plans Grid */}
+                {(!currentSubscription?.plan || currentSubscription.status !== 'active' || true) && (
+                  <div id="plans-grid" className="space-y-6 pt-6 border-t border-gray-100">
+                    <h4 className="font-bold text-gray-900 flex items-center gap-2">
+                      <CreditCard className="w-5 h-5 text-gray-400" />
+                      Plans disponibles
+                    </h4>
+
+                    {loadingSub ? (
+                      <div className="flex justify-center py-8">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {plans.map((plan) => {
+                          const isCurrent = currentSubscription?.plan?.id === plan.id;
+                          return (
+                            <div
+                              key={plan.id}
+                              className={`relative p-6 rounded-2xl border transition-all hover:shadow-lg ${isCurrent
+                                ? 'border-primary ring-2 ring-primary/20 bg-primary/5'
+                                : 'border-gray-200 bg-white hover:border-gray-300'
+                                }`}
+                            >
+                              {isCurrent && (
+                                <div className="absolute top-0 right-0 -mt-3 -mr-3 bg-primary text-white p-1 rounded-full shadow-sm">
+                                  <Check size={16} />
+                                </div>
+                              )}
+
+                              <h5 className="font-bold text-lg text-gray-900 mb-2">{plan.name}</h5>
+                              <div className="flex items-baseline gap-1 mb-4">
+                                <span className="text-2xl font-bold text-gray-900">{formatCurrency(plan.price, plan.currency)}</span>
+                                <span className="text-gray-500 text-sm">/{plan.interval === 'month' ? 'mois' : 'an'}</span>
+                              </div>
+
+                              <ul className="space-y-3 mb-6">
+                                {(plan.features || []).map((feature: string, idx: number) => (
+                                  <li key={idx} className="flex items-start gap-2 text-sm text-gray-600">
+                                    <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
+                                    <span>{feature}</span>
+                                  </li>
+                                ))}
+                              </ul>
+
+                              <button
+                                onClick={() => setPaymentModal({ isOpen: true, plan })}
+                                disabled={isCurrent}
+                                className={`w-full py-2.5 rounded-xl font-medium transition-all ${isCurrent
+                                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                  : 'bg-gray-900 text-white hover:bg-black shadow-lg shadow-gray-900/20'
+                                  }`}
+                              >
+                                {isCurrent ? 'Plan Actuel' : 'Choisir ce plan'}
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </div>

@@ -1,10 +1,24 @@
 import { supabase } from "../lib/supabase";
 
-interface EmailData {
+export interface EmailData {
   to: string;
   subject: string;
   html: string;
   from?: string;
+}
+
+export interface EmailHistoryItem {
+  id: string;
+  created_at: string;
+  subject: string;
+  body: string;
+  recipient_group: "all" | "clients" | "forwarders" | "specific";
+  status: "pending" | "processing" | "sent" | "failed";
+  error_message?: string;
+  sender: {
+    full_name: string;
+    email: string;
+  };
 }
 
 export const emailService = {
@@ -45,7 +59,7 @@ export const emailService = {
   /**
    * Get history of sent admin emails
    */
-  async getAdminEmailHistory() {
+  async getAdminEmailHistory(): Promise<EmailHistoryItem[]> {
     const { data, error } = await supabase
       .from("email_queue")
       .select(
@@ -57,7 +71,7 @@ export const emailService = {
       .order("created_at", { ascending: false });
 
     if (error) throw error;
-    return data;
+    return data as any; // Cast for joined relation until mapped properly or use generic
   },
 
   /**
