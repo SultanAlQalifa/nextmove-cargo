@@ -738,47 +738,51 @@ export default function AdminSettings() {
                       <Key className="w-4 h-4 text-primary" />
                       Changer le mot de passe
                     </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <label className="block text-sm font-medium text-gray-700">
-                          Nouveau mot de passe
-                          <span className="ml-2 text-xs font-normal text-gray-500">
-                            (Laisser vide pour conserver l'actuel)
-                          </span>
-                        </label>
-                        <input
-                          type="password"
-                          autoComplete="new-password"
-                          value={passwordData.new}
-                          onChange={(e) =>
-                            setPasswordData({
-                              ...passwordData,
-                              new: e.target.value,
-                            })
-                          }
-                          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                          placeholder="••••••••"
-                        />
+                    <form onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <label className="block text-sm font-medium text-gray-700">
+                            Nouveau mot de passe
+                            <span className="ml-2 text-xs font-normal text-gray-500">
+                              (Laisser vide pour conserver l'actuel)
+                            </span>
+                          </label>
+                          <input
+                            type="password"
+                            autoComplete="new-password"
+                            value={passwordData.new}
+                            onChange={(e) =>
+                              setPasswordData({
+                                ...passwordData,
+                                new: e.target.value,
+                              })
+                            }
+                            className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                            placeholder="••••••••"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="block text-sm font-medium text-gray-700">
+                            Confirmer le mot de passe
+                          </label>
+                          <input
+                            type="password"
+                            autoComplete="new-password"
+                            value={passwordData.confirm}
+                            onChange={(e) =>
+                              setPasswordData({
+                                ...passwordData,
+                                confirm: e.target.value,
+                              })
+                            }
+                            className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                            placeholder="••••••••"
+                          />
+                        </div>
                       </div>
-                      <div className="space-y-2">
-                        <label className="block text-sm font-medium text-gray-700">
-                          Confirmer le mot de passe
-                        </label>
-                        <input
-                          type="password"
-                          autoComplete="new-password"
-                          value={passwordData.confirm}
-                          onChange={(e) =>
-                            setPasswordData({
-                              ...passwordData,
-                              confirm: e.target.value,
-                            })
-                          }
-                          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                          placeholder="••••••••"
-                        />
-                      </div>
-                    </div>
+                      {/* Hidden submit button to enable enter key */}
+                      <button type="submit" className="hidden" aria-label="Submit Password Change" />
+                    </form>
                   </div>
                 </div>
               </div>

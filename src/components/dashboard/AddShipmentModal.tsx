@@ -22,11 +22,11 @@ import {
   forwarderRateService,
   ForwarderRate,
 } from "../../services/forwarderRateService";
+import { rateService } from "../../services/rateService";
 import {
   packageTypeService,
   PackageType,
 } from "../../services/packageTypeService";
-import { platformRateService } from "../../services/platformRateService";
 import { useCurrency } from "../../contexts/CurrencyContext";
 import { convertCurrency, formatCurrency } from "../../utils/currencyFormatter";
 
@@ -46,44 +46,6 @@ interface AddShipmentModalProps {
   rate_id?: string;
   parentShipment?: any; // Using any for now to avoid circular dependency import but should be Shipment
 }
-
-const TRANSPORT_MODE_INFO = {
-  sea: {
-    icon: Anchor,
-    label: "Fret Maritime",
-    measurement: "Volume en CBM (mètres cubes)",
-    pricing: "Prix calculé par CBM",
-    duration: "25-35 jours",
-    conditions: "Idéal pour gros volumes, solution économique",
-    advantages: ["Économique", "Gros volumes", "Écologique"],
-  },
-  air: {
-    icon: Plane,
-    label: "Fret Aérien",
-    measurement: "Poids en kilogrammes (kg)",
-    pricing: "Prix calculé par kg",
-    duration: "3-7 jours",
-    conditions: "Rapide, idéal pour urgences et petits volumes",
-    advantages: ["Rapide", "Sécurisé", "Urgences"],
-  },
-};
-
-const SERVICE_TYPE_INFO = {
-  standard: {
-    label: "Standard (Économique)",
-    description: "Service standard avec délai normal",
-    features: [
-      "Consolidation possible",
-      "Meilleur rapport qualité/prix",
-      "Délai normal",
-    ],
-  },
-  express: {
-    label: "Express (Le Plus Rapide)",
-    description: "Service prioritaire pour les envois urgents",
-    features: ["Priorité maximale", "Transit direct", "Douane rapide"],
-  },
-};
 
 export default function AddShipmentModal({
   isOpen,
@@ -147,13 +109,6 @@ export default function AddShipmentModal({
   // If rate_id is provided, we lock the selection to that rate
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isRateContext, setIsRateContext] = useState(!!initialData?.rate_id);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [rateId, setRateId] = useState<string | undefined>(initialData?.rate_id);
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [step, setStep] = useState(1);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [dateError, setDateError] = useState<string | null>(null);
 
   useEffect(() => {
     loadLocations();
@@ -296,7 +251,8 @@ export default function AddShipmentModal({
   useEffect(() => {
     if (initialData?.rate_id) {
       setIsRateContext(true);
-      setRateId(initialData.rate_id);
+      setIsRateContext(true);
+      // setRateId removed
       setFormData((prev) => ({
         ...prev,
         rate_id: initialData.rate_id,
@@ -321,7 +277,7 @@ export default function AddShipmentModal({
         parent_shipment_id: parentShipment.id,
       }));
       // Skip directly to details or client selection, skipping route selection
-      setStep(2); // Assuming step 2 is Details/Client
+      // setStep(2); // removed
     }
 
     if (

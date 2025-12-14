@@ -12,7 +12,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { profileService } from "../../../services/profileService";
-import { forwarderService } from "../../../services/forwarderService";
+import { forwarderService as ForwarderServiceAPI } from "../../../services/forwarderService";
 import { useToast } from "../../../contexts/ToastContext";
 import ConfirmationModal from "../../../components/common/ConfirmationModal";
 
@@ -51,8 +51,11 @@ export default function AdminForwarders() {
 
   const fetchForwarders = async () => {
     try {
-      // Use forwarderService to get profiles WITH documents
-      const forwardersData = await forwarderService.getForwarders();
+      // Use ForwarderServiceAPI to get profiles WITH documents
+      if (!ForwarderServiceAPI) {
+        throw new Error("ForwarderServiceAPI is not defined");
+      }
+      const forwardersData = await ForwarderServiceAPI.getForwarders();
       setForwarders(forwardersData);
     } catch (error) {
       console.error("Error fetching forwarders:", error);
@@ -371,9 +374,9 @@ export default function AdminForwarders() {
             onClick={() => setActiveMenu(null)}
           ></div>
 
+          {/* eslint-disable-next-line */}
           <div
             className="fixed z-50 bg-white rounded-xl shadow-xl border border-gray-100 py-1 animate-in fade-in zoom-in duration-200 w-56"
-            /* eslint-disable-next-line */
             style={{
               top: menuPosition.top,
               right: menuPosition.right,

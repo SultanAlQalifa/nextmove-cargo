@@ -3,21 +3,15 @@ import PageHeader from "../../../components/common/PageHeader";
 import { consolidationService } from "../../../services/consolidationService";
 import { Consolidation } from "../../../types/consolidation";
 import {
-  Package,
-  Search,
+  AlertCircle,
   Filter,
-  Calendar,
-  X,
-  TrendingUp,
-  Clock,
-  CheckCircle,
-  MoreVertical,
+  Search,
+  Package,
   ArrowUpRight,
-  ArrowDownRight,
-  MapPin,
+  CheckCircle,
   Anchor,
   Plane,
-  AlertCircle,
+  MoreVertical,
 } from "lucide-react";
 
 import AssignForwarderModal from "../../../components/admin/AssignForwarderModal";
@@ -41,7 +35,6 @@ export default function AdminGroupage() {
   >("30d");
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [activeMenu, setActiveMenu] = useState<string | null>(null);
 
   // Stats State
   const [stats, setStats] = useState({
@@ -150,7 +143,7 @@ export default function AdminGroupage() {
     return (
       <div className="flex flex-col gap-1 items-start">
         <span
-          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium w-fit ${styles[status as keyof typeof styles] || "bg-gray-100 text-gray-800"}`}
+          className={`inline - flex items - center px - 2.5 py - 0.5 rounded - full text - xs font - medium w - fit ${styles[status as keyof typeof styles] || "bg-gray-100 text-gray-800"} `}
         >
           {labels[status as keyof typeof labels] || status}
         </span>
