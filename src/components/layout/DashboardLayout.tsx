@@ -7,7 +7,6 @@ import { useState, useEffect } from "react";
 import {
   Link,
   Outlet,
-  NavLink,
   useNavigate,
   useLocation,
 } from "react-router-dom";
@@ -23,9 +22,6 @@ import {
   CreditCard,
   MessageCircle,
   Settings,
-  MessageSquare,
-  HeadphonesIcon,
-  Users,
   Gift,
   LogOut,
   Menu,
@@ -33,7 +29,6 @@ import {
   User,
   ChevronDown,
   Bell,
-  Search,
   HelpCircle,
   Palette,
   Shield,
@@ -51,8 +46,6 @@ import {
   Mail,
   Wallet,
   Building2,
-  AlertCircle,
-  MoreVertical,
   Banknote,
 } from "lucide-react";
 import { Zap } from "lucide-react";
@@ -651,8 +644,7 @@ export default function DashboardLayout() {
   const navSections = getNavSections();
 
   const handleLogout = async () => {
-    const { supabase } = await import("../../lib/supabase");
-    await supabase.auth.signOut();
+    await signOut();
     navigate("/login");
   };
 
@@ -692,18 +684,24 @@ export default function DashboardLayout() {
             className="flex items-center gap-3 group overflow-hidden relative"
           >
             {settings?.logo_url ? (
-              <div className="flex items-center text-2xl font-bold tracking-tight">
-                <span className="text-primary">N</span>
-                {!isCollapsed && (
-                  <span className="flex items-center animate-in fade-in duration-300">
-                    <span className="text-primary">extMove</span>
-                    <span className="text-secondary ml-1">Cargo</span>
-                  </span>
-                )}
-              </div>
+              <img
+                src={settings.logo_url}
+                alt="Logo"
+                className={`h-10 w-auto object-contain transition-all duration-300 ${isCollapsed ? "mx-auto" : ""}`}
+              />
             ) : (
-              <div className="bg-primary/10 p-2 rounded-xl group-hover:bg-primary/20 transition-colors">
-                <Package className="w-8 h-8 text-primary" />
+              <div className="flex items-center gap-3">
+                <img
+                  src="/logo.png"
+                  alt="NextMove Cargo"
+                  className="h-10 w-10 object-contain"
+                />
+                {!isCollapsed && (
+                  <div className="flex flex-col">
+                    <span className="text-xl font-bold text-gray-900 dark:text-white leading-none">NextMove</span>
+                    <span className="text-xs text-primary font-medium tracking-wider">Cargo</span>
+                  </div>
+                )}
               </div>
             )}
           </Link>

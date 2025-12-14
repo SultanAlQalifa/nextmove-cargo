@@ -374,7 +374,6 @@ export default function AdminForwarders() {
             onClick={() => setActiveMenu(null)}
           ></div>
 
-          {/* eslint-disable-next-line */}
           <div
             className="fixed z-50 bg-white rounded-xl shadow-xl border border-gray-100 py-1 animate-in fade-in zoom-in duration-200 w-56"
             style={{

@@ -360,13 +360,15 @@ export default function AdminGroupage() {
                       {consolidation.total_capacity_cbm || 0} CBM
                     </div>
                     <div className="w-24 h-1.5 bg-gray-100 rounded-full mt-1 overflow-hidden">
-                      {/* eslint-disable-next-line */}
-                      <div
-                        className="h-full bg-blue-500 rounded-full transition-all duration-500"
-                        style={{
-                          width: `${Math.min(((consolidation.current_load_cbm || 0) / (consolidation.total_capacity_cbm || 1)) * 100, 100)}%`,
-                        }}
-                      />
+                      {(() => {
+                        const width = `${Math.min(((consolidation.current_load_cbm || 0) / (consolidation.total_capacity_cbm || 1)) * 100, 100)}%`;
+                        return (
+                          <div
+                            className="h-full bg-blue-500 rounded-full transition-all duration-500"
+                            style={{ width }}
+                          />
+                        );
+                      })()}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
