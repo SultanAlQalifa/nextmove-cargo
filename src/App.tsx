@@ -6,7 +6,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Layout from "./components/Layout";
 import DashboardLayout from "./components/layout/DashboardLayout";
 import ScrollToTop from "./components/ScrollToTop";
-import SnowEffect from "./components/common/SnowEffect";
+
 
 // Lazy load pages
 const Home = lazy(() => import("./pages/Home"));
@@ -233,6 +233,7 @@ import { UIProvider } from "./contexts/UIContext";
 import { ToastProvider } from "./contexts/ToastContext";
 import { NotificationProvider } from "./contexts/NotificationContext";
 import LoadingSpinner from "./components/common/LoadingSpinner";
+import CanConfetti from "./components/common/CanConfetti";
 
 function App() {
   return (
@@ -244,7 +245,8 @@ function App() {
               <ToastProvider>
                 <AuthProvider>
                   <ChatProvider>
-                    <SnowEffect />
+                    {/* <SnowEffect /> replaced by CAN Confetti */}
+                    <CanConfetti />
                     <Suspense fallback={<LoadingSpinner />}>
                       <NotificationProvider>
                         <UIProvider>

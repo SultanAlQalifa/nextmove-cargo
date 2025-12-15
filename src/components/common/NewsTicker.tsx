@@ -33,6 +33,8 @@ export default function NewsTicker() {
             {/* Marquee Section */}
             <div className="flex-1 overflow-hidden relative h-full flex items-center">
                 <div className="whitespace-nowrap animate-marquee flex items-center gap-8 text-xs font-medium text-slate-300">
+                    <span className="text-yellow-400 font-bold">⚽️ 🇸🇳 Allez les Lions ! NextMove Cargo soutient fièrement le Sénégal pour la CAN ! 🏆</span>
+                    <span className="w-1 h-1 bg-slate-600 rounded-full"></span>
                     <span>Bienvenue sur NextMove Cargo – Votre partenaire logistique global.</span>
                     <span className="w-1 h-1 bg-slate-600 rounded-full"></span>
                     <span>Obtenez des cotations instantanées pour vos expéditions Aériennes et Maritimes.</span>
