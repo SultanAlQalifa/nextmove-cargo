@@ -684,24 +684,18 @@ export default function DashboardLayout() {
             className="flex items-center gap-3 group overflow-hidden relative"
           >
             {settings?.logo_url ? (
-              <img
-                src={settings.logo_url}
-                alt="Logo"
-                className={`h-10 w-auto object-contain transition-all duration-300 ${isCollapsed ? "mx-auto" : ""}`}
-              />
-            ) : (
-              <div className="flex items-center gap-3">
-                <img
-                  src="/logo.png"
-                  alt="NextMove Cargo"
-                  className="h-10 w-10 object-contain"
-                />
+              <div className="flex items-center text-2xl font-bold tracking-tight">
+                <span className="text-primary">N</span>
                 {!isCollapsed && (
-                  <div className="flex flex-col">
-                    <span className="text-xl font-bold text-gray-900 dark:text-white leading-none">NextMove</span>
-                    <span className="text-xs text-primary font-medium tracking-wider">Cargo</span>
-                  </div>
+                  <span className="flex items-center animate-in fade-in duration-300">
+                    <span className="text-primary">extMove</span>
+                    <span className="text-secondary ml-1">Cargo</span>
+                  </span>
                 )}
+              </div>
+            ) : (
+              <div className="bg-primary/10 p-2 rounded-xl group-hover:bg-primary/20 transition-colors">
+                <Package className="w-8 h-8 text-primary" />
               </div>
             )}
           </Link>

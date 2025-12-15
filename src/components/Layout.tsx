@@ -72,17 +72,18 @@ export default function Layout() {
             className="flex items-center space-x-3 group relative px-2"
           >
             {settings?.logo_url ? (
-              <img
-                src={settings.logo_url}
-                alt="NextMove Cargo"
-                className="h-10 w-auto object-contain group-hover:scale-105 transition-transform duration-300"
-              />
+              <div className="flex items-center text-lg sm:text-2xl font-bold tracking-tight">
+                <span className="text-primary group-hover:scale-105 transition-transform duration-300">
+                  NextMove
+                </span>
+                <span className="text-secondary ml-1 group-hover:translate-x-1 transition-transform duration-300">
+                  Cargo
+                </span>
+              </div>
             ) : (
-              <img
-                src="/logo.png"
-                alt="NextMove Cargo"
-                className="h-10 w-auto object-contain group-hover:scale-105 transition-transform duration-300"
-              />
+              <span className="text-lg sm:text-2xl font-bold text-primary">
+                NextMove
+              </span>
             )}
           </Link>
 
