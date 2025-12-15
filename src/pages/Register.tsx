@@ -10,7 +10,8 @@ import {
   Loader2,
   ArrowRight,
   CheckCircle2,
-  Sparkles
+  Sparkles,
+  Gift
 } from "lucide-react";
 import { z } from "zod";
 import { useBranding } from "../contexts/BrandingContext";
