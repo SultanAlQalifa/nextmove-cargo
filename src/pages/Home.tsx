@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
+import CanBanner from "../components/common/CanBanner";
 import {
   ArrowRight,
   ShieldCheck,
@@ -245,6 +246,11 @@ export default function Home() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* CAN Support Banner */}
+      <div className="w-full sticky top-16 z-30">
+        <CanBanner />
       </div>
 
       {/* Stats Section - Clean & Minimal */}

@@ -20,7 +20,6 @@ import {
 import SEOHead from "./seo/SEOHead";
 import NewsTicker from "./common/NewsTicker";
 import ChatWidget from "./common/ChatWidget";
-import CanBanner from "./common/CanBanner";
 
 export default function Layout() {
   const { t } = useTranslation();
@@ -53,9 +52,6 @@ export default function Layout() {
       <div
         className={`fixed top-0 left-0 right-0 z-50 flex flex-col items-center pointer-events-none transition-all duration-300`}
       >
-        <div className="w-full pointer-events-auto">
-          <CanBanner />
-        </div>
         <div
           className={`w-full px-2 sm:px-6 lg:px-8 pb-2 pointer-events-none transition-all duration-300 ${isScrolled ? "pt-1" : "pt-4"}`}
         >
