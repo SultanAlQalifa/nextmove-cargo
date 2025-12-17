@@ -23,7 +23,7 @@ interface ReferralWithProfiles {
 }
 
 export default function AdminReferrals() {
-  const { t } = useTranslation();
+  useTranslation();
   const [stats, setStats] = useState({
     totalReferrals: 0,
     pendingReferrals: 0,

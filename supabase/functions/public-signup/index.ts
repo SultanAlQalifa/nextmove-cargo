@@ -1,5 +1,6 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
+/// <reference lib="deno.ns" />
+import { serve } from "std/http/server.ts"
+import { createClient } from "supabase-js"
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -18,7 +19,19 @@ serve(async (req: Request) => {
             Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
         )
 
-        const { email, password, fullName, role, phone, metadata, transport_modes, referral_code_used, brand_settings } = await req.json()
+        // 1. Parse Body safely
+        let body;
+        try {
+            const rawBody = await req.text();
+            body = rawBody ? JSON.parse(rawBody) : {};
+        } catch (e) {
+            console.error("Failed to parse request body:", e);
+            body = {};
+        }
+
+        const { email, password, fullName, role, phone, metadata, transport_modes, referral_code_used, brand_settings, logo_url } = body;
+
+        console.log('Public Signup Request:', { email, hasPassword: !!password, hasLogo: !!logo_url });
 
         if (!email) {
             return new Response(JSON.stringify({ error: 'Email is required' }), {
@@ -28,9 +41,9 @@ serve(async (req: Request) => {
         }
 
         const finalFullName = fullName || email.split('@')[0];
-        console.log('Public Signup:', { email, isMagicLink: !password, fullName: finalFullName });
 
-        const logoUrl = brand_settings?.logo_url || "https://dkbnmnpxoesvkbnwuyle.supabase.co/storage/v1/object/public/branding/logo.png"; // Fallback logo
+        // Use provided logo_url or fallback to brand_settings or default
+        const logoUrl = logo_url || brand_settings?.logo_url || "https://dkbnmnpxoesvkbnwuyle.supabase.co/storage/v1/object/public/branding/logo.png";
         const siteUrl = Deno.env.get('PUBLIC_SITE_URL') || 'https://nextmovecargo.com';
 
         let user;
@@ -189,14 +202,20 @@ serve(async (req: Request) => {
             // Trigger processor
             const functionUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/process-email-queue`;
             const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
-            fetch(functionUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${serviceKey}`
-                },
-                body: JSON.stringify({ record: emailRecord })
-            }).catch(e => console.error("Queue trigger error:", e));
+            try {
+                const triggerResp = await fetch(functionUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${serviceKey}`
+                    },
+                    body: JSON.stringify({ record: emailRecord })
+                });
+                const triggerResult = await triggerResp.json();
+                console.log("Queue trigger result:", triggerResult);
+            } catch (e) {
+                console.error("Queue trigger error:", e);
+            }
         }
 
         return new Response(JSON.stringify({

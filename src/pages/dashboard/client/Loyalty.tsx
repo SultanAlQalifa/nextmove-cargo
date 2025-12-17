@@ -83,8 +83,13 @@ export default function LoyaltyDashboard() {
                             <span>Progression</span>
                             <span>{Math.round(progress)}%</span>
                         </div>
-                        <div className="w-full h-3 bg-indigo-900/50 rounded-full overflow-hidden">
-                            <div className="h-full bg-gradient-to-r from-yellow-400 to-orange-500 transition-all duration-1000" style={progressBarStyle}></div>
+                        <div
+                            className="w-full h-3 bg-indigo-900/50 rounded-full overflow-hidden"
+                        >
+                            <div
+                                className="h-full bg-gradient-to-r from-yellow-400 to-orange-500 transition-all duration-1000"
+                                style={{ width: progressBarStyle.width }}
+                            ></div>
                         </div>
                         <div className="flex justify-between text-xs mt-2 text-indigo-200">
                             <span>{points} pts</span>

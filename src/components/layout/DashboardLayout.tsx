@@ -101,6 +101,7 @@ export default function DashboardLayout() {
         subscription.unsubscribe();
       };
     }
+    return undefined;
   }, [user]);
   const { openCalculator } = useUI(); // FIX MISSING DESTRUCTURING
   const [sidebarOpen, setSidebarOpen] = useState(false);

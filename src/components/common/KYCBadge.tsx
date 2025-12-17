@@ -1,5 +1,5 @@
 import { ShieldCheck, ShieldAlert, Shield, Clock } from "lucide-react";
-import { useTranslation } from "react-i18next";
+
 
 interface KYCBadgeProps {
   status?: "pending" | "approved" | "rejected" | "verified";
@@ -14,7 +14,7 @@ export default function KYCBadge({
   showLabel = true,
   size = "md",
 }: KYCBadgeProps) {
-  const { t } = useTranslation();
+
 
   // Normalizing 'approved' to 'verified' just in case
   const normalizedStatus = status === "approved" ? "verified" : status;

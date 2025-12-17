@@ -377,8 +377,8 @@ export default function AdminForwarders() {
           <div
             className="fixed z-50 bg-white rounded-xl shadow-xl border border-gray-100 py-1 animate-in fade-in zoom-in duration-200 w-56"
             style={{
-              top: menuPosition.top,
-              right: menuPosition.right,
+              top: `${menuPosition.top}px`,
+              right: `${menuPosition.right}px`,
             }}
           >
             <div className="px-3 py-2 text-xs font-semibold text-gray-400 uppercase">

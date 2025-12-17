@@ -25,11 +25,18 @@ export default function CanConfetti() {
                     borderRadius: Math.random() > 0.5 ? '50%' : '2px', // Mix circles and squares
                 };
                 return (
-                    // eslint-disable-next-line
                     <div
                         key={i}
                         className="absolute top-[-10px] opacity-80 animate-snow"
-                        style={style}
+                        style={{
+                            left: style.left,
+                            animationDuration: style.animationDuration,
+                            animationDelay: style.animationDelay,
+                            width: style.width,
+                            height: style.height,
+                            backgroundColor: style.backgroundColor,
+                            borderRadius: style.borderRadius,
+                        }}
                     />
                 );
             })

@@ -26,7 +26,7 @@ interface Referral {
 }
 
 export default function ReferralDashboard() {
-  const { t } = useTranslation();
+  useTranslation();
   const { user, profile, refreshProfile } = useAuth();
   const { success, error: toastError } = useToast();
   const [stats, setStats] = useState({

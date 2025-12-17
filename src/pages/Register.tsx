@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "../lib/supabase";
@@ -10,15 +9,14 @@ import {
   Loader2,
   ArrowRight,
   CheckCircle2,
-  Sparkles,
-  Gift
+  Sparkles
 } from "lucide-react";
 import { z } from "zod";
 import { useBranding } from "../contexts/BrandingContext";
 import GoogleLoginButton from "../components/auth/GoogleLoginButton";
 
 export default function Register() {
-  const { t } = useTranslation();
+  useTranslation();
   const { settings } = useBranding();
   const { success: showSuccess, error: showError } = useToast();
   const navigate = useNavigate();
@@ -59,7 +57,7 @@ export default function Register() {
     // Validate
     const validation = registerSchema.safeParse({ email, referralCode });
     if (!validation.success) {
-      setError(validation.error.errors[0].message);
+      setError(validation.error.issues[0].message);
       setLoading(false);
       return;
     }
@@ -72,8 +70,7 @@ export default function Register() {
           email,
           referral_code_used: referralCode,
           role: 'client',
-          brand_settings: settings // Pass branding (logo, colors) to Edge Function
-          // No password passed = Magic Link Flow
+          logo_url: settings?.logo_url // Send specific field instead of full object
         }
       });
 
@@ -129,7 +126,7 @@ export default function Register() {
             onClick={() => setSuccess(false)}
             className="text-blue-600 hover:text-blue-700 font-semibold text-sm hover:underline"
           >
-            Je n'ai rien reçu, recommencer
+            Je n'ai rien reçu, renvoyer l'email
           </button>
         </div>
       </div>
@@ -248,7 +245,9 @@ export default function Register() {
                     </div>
                     <input
                       id="email"
+                      name="email"
                       type="email"
+                      autoComplete="email"
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
@@ -264,7 +263,9 @@ export default function Register() {
                   </label>
                   <input
                     id="referral"
+                    name="referralCode"
                     type="text"
+                    autoComplete="off"
                     value={referralCode}
                     onChange={(e) => setReferralCode(e.target.value)}
                     className="block w-full px-4 py-4 border-2 border-transparent bg-white dark:bg-slate-900 rounded-2xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-blue-500/20 focus:ring-4 focus:ring-blue-500/10 shadow-sm shadow-slate-200/50 dark:shadow-none transition-all duration-200"

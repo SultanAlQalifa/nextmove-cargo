@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Zap, MessageSquare, FileCheck, Truck, Lock, AlertCircle, Settings } from "lucide-react"; // Added Lock, AlertCircle
+import { Zap, MessageSquare, FileCheck, Truck, Lock, Settings } from "lucide-react"; // Removed AlertCircle
 import { supabase } from "../../../lib/supabase";
 import { profileService } from "../../../services/profileService";
 import type { AutomationSettings } from "../../../types/profile";
 
 export default function ForwarderAutomations() {
-    const { t } = useTranslation();
+    const { t: _t } = useTranslation();
     const [loading, setLoading] = useState(true);
     const [settings, setSettings] = useState<AutomationSettings>({
         auto_quote_enabled: true,

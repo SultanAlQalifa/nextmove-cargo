@@ -27,7 +27,7 @@ import RichEditor from "../../../components/common/RichEditor";
 import ConfirmationModal from "../../../components/common/ConfirmationModal";
 
 export default function AdminEmails() {
-  const { t } = useTranslation();
+  useTranslation();
   const { success, error: toastError } = useToast();
   const [loading, setLoading] = useState(true);
   const [history, setHistory] = useState<EmailHistoryItem[]>([]);

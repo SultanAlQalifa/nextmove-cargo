@@ -21,11 +21,16 @@ export default function SnowEffect() {
                     height: `${Math.random() * 6 + 2}px`,
                 };
                 return (
-                    // eslint-disable-next-line
                     <div
                         key={i}
                         className="absolute top-[-10px] bg-white rounded-full opacity-80 animate-snow"
-                        style={style}
+                        style={{
+                            left: style.left,
+                            animationDuration: style.animationDuration,
+                            animationDelay: style.animationDelay,
+                            width: style.width,
+                            height: style.height,
+                        }}
                     />
                 );
             })

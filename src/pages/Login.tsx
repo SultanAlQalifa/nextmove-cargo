@@ -4,7 +4,7 @@ import { supabase } from "../lib/supabase";
 import { useAuth } from "../contexts/AuthContext";
 import { useSettings } from "../contexts/SettingsContext";
 import { useTranslation } from "react-i18next";
-import { Mail, Lock, ArrowRight, Loader2, Phone, Eye, EyeOff } from "lucide-react";
+import { Mail, Lock, ArrowRight, Loader2, Eye, EyeOff } from "lucide-react";
 
 import { useBranding } from "../contexts/BrandingContext";
 import GoogleLoginButton from "../components/auth/GoogleLoginButton";
@@ -106,32 +106,7 @@ export default function Login() {
     }
   };
 
-  // Quick Login (Deprecated or kept for dev?) 
-  // keeping it but updating types if needed, simpler to leave unless it uses email implicitly.
-  const handleQuickLogin = async (emailVal: string, passwordVal: string) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email: emailVal,
-        password: passwordVal,
-      });
 
-      if (error) {
-        throw error;
-      }
-      navigate("/dashboard");
-    } catch (err: any) {
-      console.error("Quick login error:", err);
-      setError(
-        err.message === "Invalid login credentials"
-          ? "Compte non trouvé ou mot de passe incorrect."
-          : err.message,
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="h-screen flex bg-white overflow-hidden">

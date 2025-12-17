@@ -58,14 +58,7 @@ const popularCountries: {
 
 export default function MobileCountrySelector() {
   const [isOpen, setIsOpen] = useState(false);
-  const {
-    language,
-    currency,
-    countryCode,
-    setLanguage,
-    setCurrency,
-    setCountryCode,
-  } = useCurrency();
+  const { currency, countryCode } = useCurrency();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Find current country

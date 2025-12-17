@@ -6,7 +6,6 @@ import {
   Plus,
   Search,
   MoreVertical,
-  Mail,
   CheckCircle,
   XCircle,
   Edit2,
@@ -31,7 +30,7 @@ export default function AdminPersonnel() {
   const [activeTab, setActiveTab] = useState<"team" | "roles">("team");
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
-  const [loading, setLoading] = useState(true);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
 
@@ -57,7 +56,6 @@ export default function AdminPersonnel() {
   }, []);
 
   const fetchData = async () => {
-    setLoading(true);
     try {
       const [staffData, rolesData] = await Promise.all([
         personnelService.getStaff(),
@@ -68,8 +66,6 @@ export default function AdminPersonnel() {
     } catch (error) {
       console.error("Error fetching data:", error);
       toastError("Erreur lors du chargement des données");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -337,14 +333,14 @@ export default function AdminPersonnel() {
 
                                 const currentRank = getRoleRank(profile?.role || 'client');
                                 const targetRank = getRoleRank(member.role_details?.name || member.role);
-                                const isSelf = profile?.id === member.id;
+
 
                                 // Allow if Super Admin (Rank 1)
                                 // OR if target rank is lower (higher number) than current rank (e.g. Admin(2) can edit Forwarder(3))
                                 // OR if it is self (users can usually edit their own profile, or at least active/inactive? actually self-deactivation is dangerous, let's keep strict for now)
                                 // Strict Hierarchical: 
                                 const canManage = currentRank === 1 || (currentRank < targetRank);
-                                
+
                                 if (!canManage) {
                                   return (
                                     <div className="px-4 py-2 text-sm text-gray-500 italic flex items-center gap-2">
@@ -354,45 +350,45 @@ export default function AdminPersonnel() {
                                 }
 
                                 return (
-                                <>
-                                  <button
-                                    onClick={() => {
-                                      setSelectedStaff(member);
-                                      setIsAddStaffOpen(true);
-                                      setActiveMenu(null);
-                                    }}
-                                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                                  >
-                                    <Edit2 className="w-4 h-4" /> Modifier
-                                  </button>
-                                  <button
-                                    onClick={() => {
-                                      handleToggleStatus(member);
-                                      setActiveMenu(null);
-                                    }}
-                                    className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2 ${member.status === "active" ? "text-orange-600" : "text-green-600"}`}
-                                  >
-                                    {member.status === "active" ? (
-                                      <>
-                                        <XCircle className="w-4 h-4" /> Désactiver
-                                      </>
-                                    ) : (
-                                      <>
-                                        <CheckCircle className="w-4 h-4" /> Activer
-                                      </>
-                                    )}
-                                  </button>
-                                  <button
-                                    onClick={() => {
-                                      handleDeleteStaff(member);
-                                      setActiveMenu(null);
-                                    }}
-                                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
-                                  >
-                                    <Trash2 className="w-4 h-4" /> Supprimer
-                                  </button>
-                                </>
-                              );
+                                  <>
+                                    <button
+                                      onClick={() => {
+                                        setSelectedStaff(member);
+                                        setIsAddStaffOpen(true);
+                                        setActiveMenu(null);
+                                      }}
+                                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                                    >
+                                      <Edit2 className="w-4 h-4" /> Modifier
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        handleToggleStatus(member);
+                                        setActiveMenu(null);
+                                      }}
+                                      className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2 ${member.status === "active" ? "text-orange-600" : "text-green-600"}`}
+                                    >
+                                      {member.status === "active" ? (
+                                        <>
+                                          <XCircle className="w-4 h-4" /> Désactiver
+                                        </>
+                                      ) : (
+                                        <>
+                                          <CheckCircle className="w-4 h-4" /> Activer
+                                        </>
+                                      )}
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        handleDeleteStaff(member);
+                                        setActiveMenu(null);
+                                      }}
+                                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                                    >
+                                      <Trash2 className="w-4 h-4" /> Supprimer
+                                    </button>
+                                  </>
+                                );
                               })()}
                             </div>
                           </>

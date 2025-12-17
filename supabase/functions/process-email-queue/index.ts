@@ -1,6 +1,7 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { createTransport } from "https://esm.sh/nodemailer@6.9.7";
+/// <reference lib="deno.ns" />
+import { serve } from "std/http/server.ts";
+import { createClient } from "supabase-js";
+import { createTransport } from "nodemailer";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;

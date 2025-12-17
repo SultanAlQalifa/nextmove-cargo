@@ -122,7 +122,7 @@ export const emailService = {
   /**
    * Send a notification when a new RFQ is received (for Forwarders)
    */
-  sendRFQNotification: async (email: string, rfqId: string) => {
+  sendRFQNotification: async (email: string) => {
     const subject = "Nouvelle demande de cotation (RFQ) disponible";
     const html = `
             <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
@@ -139,7 +139,7 @@ export const emailService = {
   /**
    * Send a notification when an offer is received (for Clients)
    */
-  sendOfferNotification: async (email: string, rfqId: string) => {
+  sendOfferNotification: async (email: string) => {
     const subject = "Vous avez reçu une nouvelle offre !";
     const html = `
             <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">

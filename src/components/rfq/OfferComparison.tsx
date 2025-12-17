@@ -1,4 +1,4 @@
-import { useTranslation } from "react-i18next";
+
 import { OfferWithForwarder } from "../../types/rfq";
 import {
   CheckCircle,
@@ -9,9 +9,7 @@ import {
   Box,
   Anchor,
   Star,
-  Building,
-  Plane,
-  Truck
+  Building
 } from "lucide-react";
 
 interface OfferComparisonProps {
@@ -25,7 +23,7 @@ export default function OfferComparison({
   onAccept,
   processingId,
 }: OfferComparisonProps) {
-  const { t } = useTranslation();
+
 
   if (!offers || offers.length === 0) return null;
 

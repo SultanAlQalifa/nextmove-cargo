@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useToast } from "../../../contexts/ToastContext";
 import { rfqService } from "../../../services/rfqService";
-import type { RFQWithOffers, RFQOffer } from "../../../types/rfq";
+import type { RFQWithOffers } from "../../../types/rfq";
 import OfferComparison from "../../../components/rfq/OfferComparison";
 import {
   ArrowLeft,
@@ -20,7 +20,7 @@ import {
   AlertCircle,
   FileText,
   Shield,
-  Box,
+
   Archive,
   LayoutGrid,
   List,
@@ -34,7 +34,7 @@ import { shipmentService, Shipment } from "../../../services/shipmentService";
 export default function RFQDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  useTranslation();
   const { success, error: toastError } = useToast();
   const [rfq, setRfq] = useState<RFQWithOffers | null>(null);
   const [loading, setLoading] = useState(true);

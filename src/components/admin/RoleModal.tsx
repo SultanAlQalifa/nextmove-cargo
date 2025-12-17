@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X, Shield, Info, Check, Save, Users } from "lucide-react";
+import { X, Shield, Info, Check, Save } from "lucide-react";
 import { useToast } from "../../contexts/ToastContext";
 import {
   personnelService,

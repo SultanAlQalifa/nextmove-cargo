@@ -1,5 +1,5 @@
 import { Anchor, Send } from "lucide-react";
-import { useTranslation } from "react-i18next";
+
 
 interface TransportBadgeProps {
   modes?: string[];
@@ -14,7 +14,7 @@ export default function TransportBadge({
   showLabel = true,
   size = "md",
 }: TransportBadgeProps) {
-  const { t } = useTranslation();
+
 
   const hasSea = modes.includes("sea");
   const hasAir = modes.includes("air");
