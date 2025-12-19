@@ -1,15 +1,16 @@
-import Calculator from "../components/Calculator";
+import { lazy, Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ShieldCheck,
-  Clock,
-  TrendingUp,
   Star,
-  CheckCircle,
   Zap,
   Globe,
   Award,
+  Loader2,
 } from "lucide-react";
+
+// Lazy load the heavy Calculator component
+const Calculator = lazy(() => import("../components/Calculator"));
 
 export default function CalculatorPage() {
   const { t } = useTranslation();
@@ -44,14 +45,15 @@ export default function CalculatorPage() {
           <img
             src="https://images.unsplash.com/photo-1494412574643-35d324698420?q=80&w=2070&auto=format&fit=crop"
             alt="Logistics Calculator"
-            className="w-full h-full object-cover scale-105 animate-in fade-in duration-1000"
+            className="w-full h-full object-cover scale-105 animate-in fade-in duration-700"
+            loading="eager"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-slate-900/90 via-slate-900/80 to-slate-50 dark:to-gray-950" />
           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md mb-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <span className="flex h-2.5 w-2.5 relative">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-blue-500"></span>
@@ -61,14 +63,14 @@ export default function CalculatorPage() {
             </span>
           </div>
 
-          <h1 className="text-5xl lg:text-7xl font-bold text-white mb-8 leading-tight tracking-tight max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-6 duration-700 delay-100">
+          <h1 className="text-5xl lg:text-7xl font-bold text-white mb-8 leading-tight tracking-tight max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-6 duration-500 delay-100">
             {t("calculator.pageTitle")}{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">
               en quelques secondes
             </span>
           </h1>
 
-          <p className="text-xl text-slate-300 leading-relaxed font-light max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-6 duration-700 delay-200">
+          <p className="text-xl text-slate-300 leading-relaxed font-light max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-6 duration-500 delay-200">
             {t("calculator.pageSubtitle")}
           </p>
         </div>
@@ -76,8 +78,15 @@ export default function CalculatorPage() {
 
       {/* Floating Calculator Section */}
       <div className="relative z-20 -mt-64 pb-24 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-300">
-          <Calculator />
+        <div className="max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-12 duration-700 delay-300">
+          <Suspense fallback={
+            <div className="min-h-[600px] w-full bg-white dark:bg-gray-900 rounded-[2.5rem] flex flex-col items-center justify-center gap-4 shadow-xl border border-slate-100 dark:border-gray-800">
+              <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
+              <p className="text-slate-500 font-medium">Chargement du calculateur intelligent...</p>
+            </div>
+          }>
+            <Calculator />
+          </Suspense>
         </div>
       </div>
 
@@ -106,13 +115,12 @@ export default function CalculatorPage() {
                 className="group p-10 rounded-[2.5rem] bg-slate-50 dark:bg-gray-800/50 hover:bg-white dark:hover:bg-gray-800 border border-slate-100 dark:border-gray-700 hover:shadow-xl hover:-translate-y-2 transition-all duration-300"
               >
                 <div
-                  className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-8 transition-transform duration-300 group-hover:scale-110 ${
-                    benefit.color === "blue"
-                      ? "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
-                      : benefit.color === "emerald"
-                        ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400"
-                        : "bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400"
-                  }`}
+                  className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-8 transition-transform duration-300 group-hover:scale-110 ${benefit.color === "blue"
+                    ? "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
+                    : benefit.color === "emerald"
+                      ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400"
+                      : "bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400"
+                    }`}
                 >
                   <benefit.icon size={32} />
                 </div>

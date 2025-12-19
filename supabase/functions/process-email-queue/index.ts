@@ -2,6 +2,10 @@
 import { serve } from "std/http/server.ts";
 import { createClient } from "supabase-js";
 import { createTransport } from "nodemailer";
+import { Buffer } from "node:buffer";
+
+// @ts-ignore: Buffer is needed for nodemailer
+globalThis.Buffer = Buffer;
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -172,7 +176,7 @@ serve(async (req: Request) => {
         for (const batch of batches) {
             try {
                 if (smtpConfig?.smtp_host && smtpConfig?.smtp_user) {
-                    // SMTP Mode
+                    console.log(`[EmailQueue] Attempting SMTP delivery for batch of ${batch.length}...`);
                     const transporter = createTransport({
                         host: smtpConfig.smtp_host,
                         port: smtpConfig.smtp_port,
@@ -180,26 +184,32 @@ serve(async (req: Request) => {
                         auth: {
                             user: smtpConfig.smtp_user,
                             pass: smtpConfig.smtp_pass,
-                        }
+                        },
+                        pool: false,
+                        timeout: 15000, // 15s timeout
                     });
 
+                    const fromAddress = `"${smtpConfig.from_name || companyName}" <${smtpConfig.from_email || smtpConfig.smtp_user || 'djeylanidjitte@gmail.com'}>`;
+
                     await transporter.sendMail({
-                        from: `"${smtpConfig.from_name || companyName}" <${smtpConfig.from_email || 'noreply@nextemove.com'}>`,
-                        bcc: batch, // Hidden recipients
+                        from: fromAddress,
+                        to: batch.length === 1 ? batch[0] : fromAddress,
+                        bcc: batch.length > 1 ? batch : undefined,
                         subject: record.subject,
                         html: record.body,
                         attachments: emailAttachments
                     });
                 } else {
                     // Resend Mode
-                    if (!RESEND_API_KEY) throw new Error("No SMTP Config and No RESEND_API_KEY");
+                    if (!RESEND_API_KEY) {
+                        console.error("[EmailQueue] Configuration error: No SMTP provided and RESEND_API_KEY is missing.");
+                        throw new Error("Misconfigured email settings: No SMTP and No Resend API Key.");
+                    }
 
-                    console.log(`Sending batch of ${batch.length} emails via Resend...`);
+                    console.log(`[EmailQueue] Attempting Resend delivery for batch of ${batch.length}...`);
                     const fromEmail = smtpConfig?.from_email ? `"${smtpConfig.from_name || companyName}" <${smtpConfig.from_email}>` : `${companyName} <onboarding@resend.dev>`;
-                    // Use the sender email as the 'To' address to satisfy requirements while using BCC for recipients
-                    const toEmail = smtpConfig?.from_email || "admin@nextmove-cargo.com";
+                    const toEmail = smtpConfig?.from_email || smtpConfig?.smtp_user || "djeylanidjitte@gmail.com";
 
-                    console.log(`Sending batch of ${batch.length} emails via Resend from ${fromEmail}...`);
                     const res = await fetch("https://api.resend.com/emails", {
                         method: "POST",
                         headers: {
@@ -211,7 +221,6 @@ serve(async (req: Request) => {
                             to: [toEmail],
                             bcc: batch,
                             subject: record.subject,
-                            // Professional HTML Template
                             html: `
                                 <!DOCTYPE html>
                                 <html>
@@ -221,31 +230,17 @@ serve(async (req: Request) => {
                                 </head>
                                 <body style="margin: 0; padding: 0; background-color: #f0f2f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; color: #1a1a1a;">
                                     <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-                                        
-                                        <!-- Main Card -->
                                         <div style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.05);">
-                                            
-                                            <!-- Brand Accent -->
                                             <div style="height: 6px; background: linear-gradient(90deg, #0f172a, #3b82f6);"></div>
-                                            
-                                            <!-- Header Spacer -->
                                             <div style="padding: 30px 40px 0 40px;"></div>
-
-                                            <!-- Main Content -->
                                             <div style="padding: 10px 40px 40px 40px; font-size: 15px; line-height: 1.6; color: #374151;">
                                                 ${record.body}
                                             </div>
                                         </div>
-
-                                        <!-- Corporate Footer (Outside Card) -->
                                         <div style="margin-top: 30px; text-align: center; padding: 0 20px;">
-                                            
-                                            <!-- Logo (Larger) -->
                                             <div style="margin-bottom: 25px;">
                                                 <img src="${logoUrl}" alt="${companyName}" style="height: 65px; width: auto; max-width: 220px; object-fit: contain;">
                                             </div>
-
-                                            <!-- Social Media Mockups -->
                                             <div style="margin-bottom: 25px;">
                                                 <a href="${liLink}" style="text-decoration: none; margin: 0 8px; display: inline-block;">
                                                     <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" alt="LinkedIn" width="22" height="22" style="opacity: 0.6; filter: grayscale(100%); transition: opacity 0.2s;">
@@ -257,27 +252,15 @@ serve(async (req: Request) => {
                                                     <img src="https://cdn-icons-png.flaticon.com/512/174/174855.png" alt="Instagram" width="22" height="22" style="opacity: 0.6; filter: grayscale(100%); transition: opacity 0.2s;">
                                                 </a>
                                             </div>
-
-                                            <!-- Address & Contact -->
                                             <div style="margin-bottom: 20px;">
-                                                <p style="font-size: 12px; color: #6b7280; margin: 3px 0;">
-                                                    ${companyName} International
-                                                </p>
-                                                <p style="font-size: 12px; color: #9ca3af; margin: 3px 0;">
-                                                    ${address}
-                                                </p>
+                                                <p style="font-size: 12px; color: #6b7280; margin: 3px 0;">${companyName} International</p>
+                                                <p style="font-size: 12px; color: #9ca3af; margin: 3px 0;">${address}</p>
                                                 <p style="font-size: 12px; color: #9ca3af; margin: 3px 0;">
                                                     <a href="mailto:${emailContact}" style="color: #6b7280; text-decoration: none;">${emailContact}</a>
                                                 </p>
                                             </div>
-
-                                            <!-- Legal -->
                                             <div style="font-size: 11px; color: #9ca3af;">
-                                                <p style="margin: 0;">
-                                                    &copy; ${new Date().getFullYear()} ${companyName}.
-                                                    <span style="margin: 0 6px;">•</span>
-                                                    <a href="#" style="color: #9ca3af; text-decoration: none;">Confidentialité</a>
-                                                </p>
+                                                <p style="margin: 0;">&copy; ${new Date().getFullYear()} ${companyName}.</p>
                                             </div>
                                         </div>
                                     </div>
@@ -289,18 +272,17 @@ serve(async (req: Request) => {
                     });
 
                     const responseData = await res.json();
-
                     if (!res.ok) {
-                        console.error("Resend API Error:", responseData);
-                        throw new Error(`Resend Error: ${JSON.stringify(responseData)}`);
-                    } else {
-                        console.log("Resend Success:", responseData);
+                        console.error("[EmailQueue] Resend API Error Response:", responseData);
+                        throw new Error(`Resend Error (${res.status}): ${responseData.message || JSON.stringify(responseData)}`);
                     }
+                    console.log("[EmailQueue] Resend batch success!");
                 }
                 successCount += batch.length;
             } catch (err) {
-                console.error("Batch failed", err);
+                console.error("[EmailQueue] Batch delivery failed:", err);
                 failCount += batch.length;
+                throw err; // Stop processing further batches if one fails catastrophically
             }
         }
 

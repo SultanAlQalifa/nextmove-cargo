@@ -150,7 +150,7 @@ VALUES (
     ),
     (
         'notifications',
-        '{"email_enabled": true, "sms_enabled": false, "push_enabled": true, "admin_email": "admin@nextemove.com"}'::jsonb
+        '{"email_enabled": true, "sms_enabled": false, "push_enabled": true, "admin_email": "admin@nextmovecargo.com"}'::jsonb
     ),
     (
         'security',

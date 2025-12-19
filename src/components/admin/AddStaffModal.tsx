@@ -120,7 +120,7 @@ export default function AddStaffModal({
                   setFormData({ ...formData, email: e.target.value })
                 }
                 className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                placeholder="jean@nextemove.com"
+                placeholder="jean@nextmovecargo.com"
               />
             </div>
           </div>

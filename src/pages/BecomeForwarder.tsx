@@ -513,16 +513,121 @@ export default function BecomeForwarder() {
           </div>
 
 
-          <div className="py-12">
+          <div className="py-12" id="plans">
             {loading ? (
-              <div className="flex justify-center">
+              <div className="flex justify-center py-20">
                 <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600"></div>
               </div>
+            ) : plans.length > 0 ? (
+              <div className="space-y-12">
+                <div className="flex flex-col items-center gap-6 mb-12">
+                  <div className="flex p-1.5 bg-slate-100 dark:bg-gray-800 rounded-2xl w-fit">
+                    <button
+                      onClick={() => setBillingCycle('monthly')}
+                      className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${billingCycle === 'monthly' ? 'bg-white dark:bg-gray-700 text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                    >
+                      Mensuel
+                    </button>
+                    <button
+                      onClick={() => setBillingCycle('yearly')}
+                      className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${billingCycle === 'yearly' ? 'bg-white dark:bg-gray-700 text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                    >
+                      Annuel <span className="ml-1 text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full">-20%</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  {plans
+                    .filter((p) => p.billing_cycle === billingCycle)
+                    .map((plan) => {
+                      return (
+                        <div
+                          key={plan.id}
+                          className="group bg-white dark:bg-gray-900 rounded-[2.5rem] border border-slate-100 dark:border-gray-800 shadow-xl shadow-slate-200/50 dark:shadow-none p-8 flex flex-col hover:border-blue-500/50 transition-all duration-300 relative overflow-hidden"
+                        >
+                          {plan.name === 'Pro' && (
+                            <div className="absolute top-6 right-6">
+                              <span className="bg-blue-600 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                                Populaire
+                              </span>
+                            </div>
+                          )}
+
+                          <div className="mb-8">
+                            <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{plan.name}</h3>
+                            <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">{plan.description}</p>
+                          </div>
+
+                          <div className="mb-8">
+                            <div className="flex items-baseline gap-1">
+                              <span className="text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                                {new Intl.NumberFormat("fr-XO", {
+                                  style: "currency",
+                                  currency: plan.currency,
+                                  maximumFractionDigits: 0,
+                                }).format(plan.price)}
+                              </span>
+                              <span className="text-slate-500 font-medium">
+                                /{billingCycle === 'monthly' ? 'mois' : 'an'}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="space-y-6 flex-1 mb-10">
+                            {categories.map((cat) => {
+                              const catFeatures = plan.features.filter(f => FEATURE_DEFINITIONS.find(d => d.name === f.name)?.category === cat.id);
+                              if (catFeatures.length === 0) return null;
+
+                              return (
+                                <div key={cat.id} className="space-y-3">
+                                  <div className="flex items-center gap-2">
+                                    <div className={`p-1.5 rounded-lg ${cat.color}`}>
+                                      <cat.icon className="w-3.5 h-3.5" />
+                                    </div>
+                                    <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{cat.label}</h5>
+                                  </div>
+                                  <div className="space-y-3">
+                                    {catFeatures.map((feature, idx) => (
+                                      <div key={idx} className="flex items-start gap-3">
+                                        <div className={`mt-1 flex-shrink-0 ${feature.type === 'limit' ? 'text-blue-500' : 'text-green-500'}`}>
+                                          {feature.type === 'limit' ? <Hash size={14} /> : <CheckCircle size={14} />}
+                                        </div>
+                                        <div className="flex-1">
+                                          <p className="text-sm text-slate-700 dark:text-slate-300 font-medium">{feature.name}</p>
+                                          {feature.type === 'limit' && (
+                                            <p className="text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 rounded-full w-fit mt-1">
+                                              {feature.value}
+                                            </p>
+                                          )}
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+
+                          <button
+                            onClick={() => setIsModalOpen(true)}
+                            className={`w-full py-4 rounded-2xl font-bold transition-all transform active:scale-95 flex items-center justify-center gap-2 ${plan.name === 'Pro'
+                              ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20 hover:bg-blue-500'
+                              : 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-700'
+                              }`}
+                          >
+                            S'abonner maintenant <ArrowRight size={18} />
+                          </button>
+                        </div>
+                      );
+                    })}
+                </div>
+              </div>
             ) : (
-              <div className="text-center">
-                <p className="text-slate-500">Les plans seront bientôt disponibles ici.</p>
-                {/* Force usage of vars to prevent build error */}
-                <div className="hidden">{plans.length} {billingCycle}</div>
+              <div className="text-center py-20 bg-slate-50 dark:bg-gray-800/50 rounded-[3rem] border-2 border-dashed border-slate-200 dark:border-slate-700">
+                <Search size={48} className="mx-auto text-slate-300 mb-4" />
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Aucun plan trouvé</h3>
+                <p className="text-slate-500">Nous reviendrons bientôt avec de nouvelles offres.</p>
               </div>
             )}
           </div>

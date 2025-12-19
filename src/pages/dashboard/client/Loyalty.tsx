@@ -4,13 +4,17 @@ import PageHeader from "../../../components/common/PageHeader";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useToast } from "../../../contexts/ToastContext";
 import { supabase } from "../../../lib/supabase";
+import { useSettings } from "../../../contexts/SettingsContext";
 
 export default function LoyaltyDashboard() {
     const { profile } = useAuth();
+    const { settings } = useSettings();
     const { success, error: toastError } = useToast();
     const [isConvertModalOpen, setIsConvertModalOpen] = useState(false);
     const [convertAmount, setConvertAmount] = useState("");
     const [loading, setLoading] = useState(false);
+
+    const pointValue = settings?.loyalty?.point_value || 10;
 
     const points = profile?.loyalty_points || 0;
     const nextTier = points < 2000 ? 2000 : points < 5000 ? 5000 : 10000;
@@ -39,7 +43,7 @@ export default function LoyaltyDashboard() {
 
             if (error) throw error;
 
-            success(`Succès ! ${pointsToConvert} points convertis en ${pointsToConvert * 10} FCFA.`);
+            success(`Succès ! ${pointsToConvert} points convertis en ${pointsToConvert * pointValue} FCFA.`);
             setIsConvertModalOpen(false);
             setConvertAmount("");
             window.location.reload();
@@ -107,7 +111,7 @@ export default function LoyaltyDashboard() {
                     </div>
                     <Gift className="w-8 h-8 text-purple-500 mb-4" />
                     <h3 className="font-bold text-lg mb-2">Convertir mes points</h3>
-                    <p className="text-slate-500 text-sm mb-6">Échangez vos points contre du crédit portefeuille (1 pt = 10 FCFA).</p>
+                    <p className="text-slate-500 text-sm mb-6">Échangez vos points contre du crédit portefeuille (1 pt = {pointValue} FCFA).</p>
                     <button
                         onClick={() => setIsConvertModalOpen(true)}
                         className="w-full py-2 bg-purple-50 text-purple-600 font-bold rounded-xl text-sm hover:bg-purple-100 transition-colors"
@@ -156,7 +160,7 @@ export default function LoyaltyDashboard() {
                                 <Gift className="w-6 h-6 text-purple-600" />
                             </div>
                             <h3 className="text-lg font-bold text-gray-900">Convertir mes points</h3>
-                            <p className="text-sm text-gray-500 mt-1">1 point = 10 FCFA</p>
+                            <p className="text-sm text-gray-500 mt-1">1 point = {pointValue} FCFA</p>
                         </div>
 
                         <form onSubmit={handleConvert}>
@@ -179,7 +183,7 @@ export default function LoyaltyDashboard() {
                             <div className="bg-purple-50 p-3 rounded-lg flex justify-between items-center mb-6">
                                 <span className="text-sm text-purple-700 font-medium">Vous recevrez :</span>
                                 <span className="text-lg font-bold text-purple-700">
-                                    {parseInt(convertAmount || "0") * 10} FCFA
+                                    {(parseInt(convertAmount || "0") * pointValue).toLocaleString()} FCFA
                                 </span>
                             </div>
 

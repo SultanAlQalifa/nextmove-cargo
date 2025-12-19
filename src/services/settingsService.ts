@@ -36,8 +36,12 @@ export interface SystemSettings {
   referral: {
     program_enabled: boolean;
     points_per_referral: number;
+    point_value: number;
     max_referrals_per_user: number;
     bonus_threshold: number;
+  };
+  loyalty: {
+    point_value: number;
   };
   integrations: {
     whatsapp: {
@@ -59,6 +63,8 @@ export interface SystemSettings {
     founder_offer_title: string;
     founder_offer_price: number;
     founder_offer_description: string;
+    news_ticker_enabled: boolean;
+    news_ticker_messages: string[];
   };
 }
 
@@ -75,7 +81,7 @@ const DEFAULT_SETTINGS: SystemSettings = {
     email_enabled: true,
     sms_enabled: false,
     push_enabled: true,
-    admin_email: "admin@nextemove.com",
+    admin_email: "djeylanidjitte@gmail.com",
   },
   security: {
     min_password_length: 8,
@@ -92,14 +98,18 @@ const DEFAULT_SETTINGS: SystemSettings = {
     smtp_port: 587,
     smtp_user: "",
     smtp_pass: "",
-    from_email: "noreply@nextemove.com",
+    from_email: "djeylanidjitte@gmail.com",
     from_name: "NextMove Cargo",
   },
   referral: {
     program_enabled: true,
     points_per_referral: 100,
+    point_value: 50,
     max_referrals_per_user: 50,
     bonus_threshold: 1000,
+  },
+  loyalty: {
+    point_value: 10,
   },
   integrations: {
     whatsapp: {
@@ -121,6 +131,13 @@ const DEFAULT_SETTINGS: SystemSettings = {
     founder_offer_title: "Pack Fondateur",
     founder_offer_price: 5000,
     founder_offer_description: "Soutenez NextMove Cargo et obtenez le statut Membre Fondateur à vie.",
+    news_ticker_enabled: true,
+    news_ticker_messages: [
+      "Bienvenue sur NextMove Cargo – Votre partenaire logistique global.",
+      "Obtenez des cotations instantanées pour vos expéditions Aériennes et Maritimes.",
+      "Nouveaux partenaires certifiés disponibles !",
+      "Service client disponible 24/7 pour vos besoins urgents."
+    ],
   },
 };
 
@@ -152,6 +169,8 @@ export const settingsService = {
         founder_offer_title: platformRes.data.founder_offer_title,
         founder_offer_price: platformRes.data.founder_offer_price,
         founder_offer_description: platformRes.data.founder_offer_description,
+        news_ticker_enabled: platformRes.data.news_ticker_enabled ?? true,
+        news_ticker_messages: platformRes.data.news_ticker_messages || [],
       };
     }
 
@@ -170,6 +189,8 @@ export const settingsService = {
         founder_offer_title: data.founder_offer_title,
         founder_offer_price: data.founder_offer_price,
         founder_offer_description: data.founder_offer_description,
+        news_ticker_enabled: data.news_ticker_enabled,
+        news_ticker_messages: data.news_ticker_messages,
         updated_at: new Date().toISOString(),
       });
       if (error) throw error;

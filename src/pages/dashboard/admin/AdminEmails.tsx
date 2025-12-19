@@ -710,7 +710,16 @@ export default function AdminEmails() {
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-6 bg-gray-50 dark:bg-gray-900/50">
+            <div className="flex-1 overflow-y-auto p-6 bg-gray-50 dark:bg-gray-900/50 space-y-4">
+              {selectedEmail.status === "failed" && selectedEmail.error_message && (
+                <div className="p-4 bg-red-50 border border-red-100 rounded-xl flex items-start gap-3 text-red-700">
+                  <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
+                  <div className="text-sm">
+                    <p className="font-bold">Erreur de livraison</p>
+                    <p className="mt-1">{selectedEmail.error_message}</p>
+                  </div>
+                </div>
+              )}
               <div
                 className="prose dark:prose-invert max-w-none bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm"
                 dangerouslySetInnerHTML={{

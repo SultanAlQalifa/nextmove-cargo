@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -233,8 +233,8 @@ export default function Calculator() {
     return `${formatPrice(price)} / ${unit}`;
   };
 
-  // Transport mode information
-  const TRANSPORT_MODE_INFO = {
+  // Transport mode information - Memoized to prevent re-renders
+  const TRANSPORT_MODE_INFO = useMemo(() => ({
     sea: {
       icon: Ship,
       label: t("calculator.sea.label"),
@@ -261,25 +261,22 @@ export default function Calculator() {
         t("calculator.air.advantages.urgent"),
       ],
     },
-  };
+  }), [t]);
 
-  // Helper to format price for display (Price is already converted by service)
-  const formatPrice = (amount: number) => {
+  // Helper to format price for display - Memoized
+  const formatPrice = useCallback((amount: number) => {
     return new Intl.NumberFormat("fr-FR", {
       style: "currency",
       currency: currency,
       maximumFractionDigits: 0,
     }).format(amount);
-  };
+  }, [currency]);
 
-  // Dynamic Service Type Information based on selected mode
-  const getServiceDetails = (type: "standard" | "express", mode: string) => {
+  // Dynamic Service Type Information based on selected mode - Memoized
+  const getServiceDetails = useCallback((type: "standard" | "express", mode: string) => {
     const isSea = mode === "sea";
-    // Force XOF Display
     const currencyCode = "XOF";
 
-    // Base approximate prices for UI display (The real calculation happens in backend)
-    // These are just for the "info cards" before calculation
     let price = 0;
     if (type === "standard") {
       price = isSea ? 52500 : 5250;
@@ -288,7 +285,6 @@ export default function Calculator() {
     }
 
     const unit = isSea ? "CBM" : "kg";
-
     const formattedPrice = new Intl.NumberFormat("fr-FR", {
       style: "currency",
       currency: currencyCode,
@@ -312,13 +308,13 @@ export default function Calculator() {
         description: t("calculator.express.description"),
       };
     }
-  };
+  }, [t]);
 
-  const standardDetails = getServiceDetails("standard", selectedMode);
-  const expressDetails = getServiceDetails("express", selectedMode);
+  const standardDetails = useMemo(() => getServiceDetails("standard", selectedMode), [getServiceDetails, selectedMode]);
+  const expressDetails = useMemo(() => getServiceDetails("express", selectedMode), [getServiceDetails, selectedMode]);
 
-  // Service type information
-  const SERVICE_TYPE_INFO = {
+  // Service type information - Memoized
+  const SERVICE_TYPE_INFO = useMemo(() => ({
     standard: {
       label: t("calculator.standard.label"),
       description: standardDetails.description,
@@ -340,13 +336,12 @@ export default function Calculator() {
       ],
       transitNote: expressDetails.transitNote,
     },
-  };
+  }), [t, standardDetails, expressDetails]);
 
-  const onSubmit = async (data: CalculationParams) => {
+  const onSubmit = useCallback(async (data: CalculationParams) => {
     setLoading(true);
     setSearched(true);
     try {
-      // 🔥 NORMALIZE COUNTRY NAMES (Fix for "Chine" vs "China")
       const originNormalized = normalizeCountryName(data.origin);
       const destinationNormalized = normalizeCountryName(data.destination);
 
@@ -362,20 +357,15 @@ export default function Calculator() {
 
       const params: CalculationParams = {
         ...data,
-        // FORCE use of watched state to prevent sync issues
         mode: selectedMode,
         type: selectedType,
         origin: originNormalized,
         destination: destinationNormalized,
-
         volume_cbm: selectedMode === "sea" ? calculatedCBM : undefined,
         weight_kg: selectedMode === "air" ? Number(data.weight_kg) : undefined,
-        // Cargo Value (New)
         cargoValue: data.cargoValue ? Number(data.cargoValue) : undefined,
-
         calculationMode: calculationMode,
-        forwarder_id:
-          calculationMode === "specific" ? selectedForwarder : undefined,
+        forwarder_id: calculationMode === "specific" ? selectedForwarder : undefined,
         targetCurrency: currency,
         additionalServices: selectedServices,
       };
@@ -387,12 +377,11 @@ export default function Calculator() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedMode, selectedType, calculatedCBM, calculationMode, selectedForwarder, currency, selectedServices, t]);
 
   // Auto-Calculate Effect
   useEffect(() => {
     const calculateData = async () => {
-      // Validation
       if (!watch("origin") || !watch("destination")) return;
 
       const originNormalized = normalizeCountryName(watch("origin"));
@@ -407,10 +396,7 @@ export default function Calculator() {
       }
       setError(null);
 
-      // Debounce check is handled by the timeout structure below,
-      // but we also need to ensure we have enough data to calculate.
       if (selectedMode === "air" && !watch("weight_kg")) return;
-      // Sea mode uses dimensions (calculatedCBM) which is always present (starts at 0)
       if (selectedMode === "sea" && calculatedCBM <= 0) return;
 
       setLoading(true);
@@ -420,15 +406,11 @@ export default function Calculator() {
           destination: destinationNormalized,
           mode: selectedMode,
           type: selectedType,
-          weight_kg:
-            selectedMode === "air" ? Number(watch("weight_kg")) : undefined,
+          weight_kg: selectedMode === "air" ? Number(watch("weight_kg")) : undefined,
           volume_cbm: selectedMode === "sea" ? calculatedCBM : undefined,
-          cargoValue: watch("cargoValue")
-            ? Number(watch("cargoValue"))
-            : undefined,
+          cargoValue: watch("cargoValue") ? Number(watch("cargoValue")) : undefined,
           calculationMode: calculationMode,
-          forwarder_id:
-            calculationMode === "specific" ? selectedForwarder : undefined,
+          forwarder_id: calculationMode === "specific" ? selectedForwarder : undefined,
           targetCurrency: currency,
           additionalServices: selectedServices,
         };
@@ -445,7 +427,7 @@ export default function Calculator() {
 
     const timer = setTimeout(() => {
       calculateData();
-    }, 800); // 800ms debounce
+    }, 800);
 
     return () => clearTimeout(timer);
   }, [
@@ -458,8 +440,9 @@ export default function Calculator() {
     calculatedCBM,
     calculationMode,
     selectedForwarder,
-    JSON.stringify(selectedServices), // Deep compare for object
+    JSON.stringify(selectedServices),
     currency,
+    t,
   ]);
 
   return (

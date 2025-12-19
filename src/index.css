@@ -29,6 +29,18 @@
     @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-lg;
   }
 
+  @keyframes bounce-subtle {
+
+    0%,
+    100% {
+      transform: translateY(-35%) translateX(-50%);
+    }
+
+    50% {
+      transform: translateY(-20%) translateX(-50%);
+    }
+  }
+
   @keyframes snow {
     0% {
       transform: translateY(-10px) translateX(0);
@@ -43,6 +55,10 @@
       transform: translateY(100vh) translateX(20px);
       opacity: 0.2;
     }
+  }
+
+  .animate-bounce-subtle {
+    animation: bounce-subtle 3s infinite;
   }
 
   .animate-snow {

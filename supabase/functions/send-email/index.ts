@@ -1,7 +1,11 @@
-// @ts-nocheck
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { createTransport } from "https://esm.sh/nodemailer@6.9.7";
+/// <reference lib="deno.ns" />
+import { serve } from "std/http/server.ts";
+import { createClient } from "supabase-js";
+import { createTransport } from "nodemailer";
+import { Buffer } from "node:buffer";
+
+// @ts-ignore: Buffer is needed for nodemailer
+globalThis.Buffer = Buffer;
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
@@ -77,7 +81,7 @@ serve(async (req: Request) => {
         // 3. Send Email
         if (smtpConfig?.smtp_host && smtpConfig?.smtp_user) {
             // Use SMTP
-            console.log("Sending via SMTP...");
+            console.log(`[SendEmail] Attempting SMTP delivery to ${to}...`);
             const transporter = createTransport({
                 host: smtpConfig.smtp_host,
                 port: smtpConfig.smtp_port,
@@ -86,26 +90,36 @@ serve(async (req: Request) => {
                     user: smtpConfig.smtp_user,
                     pass: smtpConfig.smtp_pass,
                 },
+                pool: false,
+                timeout: 15000, // 15s timeout
             });
 
-            await transporter.sendMail({
-                from: `"${smtpConfig.from_name || 'NextMove Cargo'}" <${smtpConfig.from_email || 'noreply@nextemove.com'}>`,
-                to: to,
-                subject: subject,
-                html: html,
-            });
+            try {
+                await transporter.sendMail({
+                    from: `"${smtpConfig.from_name || 'NextMove Cargo'}" <${smtpConfig.from_email || smtpConfig.smtp_user || 'djeylanidjitte@gmail.com'}>`,
+                    to: to,
+                    subject: subject,
+                    html: html,
+                });
 
-            return new Response(JSON.stringify({ message: "Email sent via SMTP" }), {
-                status: 200,
-                headers: { ...corsHeaders, "Content-Type": "application/json" },
-            });
-
+                console.log(`[SendEmail] SMTP Success for ${to}`);
+                return new Response(JSON.stringify({ message: "Email sent via SMTP" }), {
+                    status: 200,
+                    headers: { ...corsHeaders, "Content-Type": "application/json" },
+                });
+            } catch (smtpErr: any) {
+                console.error(`[SendEmail] SMTP Failed for ${to}:`, smtpErr);
+                throw new Error(`SMTP Error: ${smtpErr.message}`);
+            }
         } else {
             // Fallback to Resend
-            console.log("Sending via Resend...");
+            console.log(`[SendEmail] Attempting Resend delivery to ${to}...`);
             if (!RESEND_API_KEY) {
+                console.error("[SendEmail] Configuration error: No SMTP and No RESEND_API_KEY");
                 throw new Error("Missing RESEND_API_KEY environment variable and no SMTP config found");
             }
+
+            const fromEmail = from || (smtpConfig?.from_email ? `"${smtpConfig.from_name || 'NextMove Cargo'}" <${smtpConfig.from_email}>` : "NextMove Cargo <onboarding@resend.dev>");
 
             const res = await fetch("https://api.resend.com/emails", {
                 method: "POST",
@@ -114,7 +128,7 @@ serve(async (req: Request) => {
                     "Authorization": `Bearer ${RESEND_API_KEY}`,
                 },
                 body: JSON.stringify({
-                    from: from || "NextMove Cargo <onboarding@resend.dev>",
+                    from: fromEmail,
                     to: [to],
                     subject: subject,
                     html: html,
@@ -124,12 +138,16 @@ serve(async (req: Request) => {
             const data = await res.json();
 
             if (!res.ok) {
-                return new Response(JSON.stringify({ error: data }), {
+                console.error(`[SendEmail] Resend API Error for ${to}:`, data);
+                return new Response(JSON.stringify({
+                    error: `Resend Error (${res.status}): ${data.message || JSON.stringify(data)}`
+                }), {
                     status: 400,
                     headers: { ...corsHeaders, "Content-Type": "application/json" },
                 });
             }
 
+            console.log(`[SendEmail] Resend Success for ${to}`);
             return new Response(JSON.stringify(data), {
                 status: 200,
                 headers: { ...corsHeaders, "Content-Type": "application/json" },

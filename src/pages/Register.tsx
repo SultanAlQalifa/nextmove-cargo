@@ -8,8 +8,13 @@ import {
   Mail,
   Loader2,
   ArrowRight,
-  CheckCircle2,
-  Sparkles
+  Sparkles,
+  ChevronRight,
+  ChevronLeft,
+  LayoutDashboard,
+  Calculator,
+  ShieldCheck,
+  Headphones
 } from "lucide-react";
 import { z } from "zod";
 import { useBranding } from "../contexts/BrandingContext";
@@ -26,8 +31,43 @@ export default function Register() {
   const [referralCode, setReferralCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
   const [success, setSuccess] = useState(false);
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  const slides = [
+    {
+      title: "Suivi en temps réel",
+      description: "Visualisez l'emplacement de vos marchandises à chaque étape, de la Chine à votre entrepôt.",
+      icon: <LayoutDashboard className="w-12 h-12 text-blue-400" />,
+      image: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?q=80&w=2070&auto=format&fit=crop"
+    },
+    {
+      title: "Calculateur intelligent",
+      description: "Obtenez des devis instantanés et optimisez vos coûts de transport en quelques clics.",
+      icon: <Calculator className="w-12 h-12 text-emerald-400" />,
+      image: "https://images.unsplash.com/photo-1566576721346-d4a3b4eaad5b?q=80&w=1974&auto=format&fit=crop"
+    },
+    {
+      title: "Gestion sécurisée",
+      description: "Centralisez vos documents de douane et factures dans un coffre-fort numérique hautement sécurisé.",
+      icon: <ShieldCheck className="w-12 h-12 text-blue-500" />,
+      image: "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?q=80&w=2070&auto=format&fit=crop"
+    },
+    {
+      title: "Assistance 24/7",
+      description: "Notre équipe d'experts logistiques est disponible jour et nuit pour vous accompagner.",
+      icon: <Headphones className="w-12 h-12 text-amber-400" />,
+      image: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?q=80&w=2072&auto=format&fit=crop"
+    }
+  ];
+
+  // Auto-play slider
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % slides.length);
+    }, 6000);
+    return () => clearInterval(timer);
+  }, []);
 
   // Pre-fill
   useEffect(() => {
@@ -137,18 +177,25 @@ export default function Register() {
     <div className="h-screen flex bg-white dark:bg-dark-bg overflow-hidden">
       {/* Left Side - Image (Hidden on mobile) */}
       <div className="hidden lg:flex lg:w-1/2 relative bg-slate-900 overflow-hidden">
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
-        <img
-          src={
-            settings?.images.login_background ||
-            "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?q=80&w=2070&auto=format&fit=crop"
-          }
-          alt="Logistics Hub"
-          className="absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-overlay transition-transform duration-1000 hover:scale-105"
-        />
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-900/90 via-slate-900/95 to-black/90"></div>
+        {/* Animated Backgrounds for Slides */}
+        {slides.map((slide, index) => (
+          <div
+            key={index}
+            className={`absolute inset-0 transition-all duration-1000 ease-in-out ${index === currentSlide ? "opacity-100 scale-100" : "opacity-0 scale-110"
+              }`}
+          >
+            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 z-10"></div>
+            <img
+              src={settings?.images.login_background || slide.image}
+              alt={slide.title}
+              className="absolute inset-0 w-full h-full object-cover opacity-30 mix-blend-overlay"
+            />
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-900/90 via-slate-900/95 to-black/90"></div>
+          </div>
+        ))}
 
-        <div className="relative z-10 flex flex-col justify-between p-16 text-white w-full h-full">
+        <div className="relative z-20 flex flex-col justify-between p-16 text-white w-full h-full">
+          {/* Logo Section */}
           <div className="flex items-center space-x-4">
             {settings?.logo_url ? (
               <img
@@ -166,29 +213,70 @@ export default function Register() {
             </span>
           </div>
 
-          <div className="mb-8">
-            <div className="flex items-center gap-2 mb-6 text-blue-300 font-medium tracking-wide text-sm uppercase">
-              <Sparkles className="w-4 h-4" />
-              <span>Rejoignez la révolution</span>
+          {/* Dynamic Content Section */}
+          <div className="max-w-xl">
+            <div className="flex items-center gap-2 mb-8 text-blue-300 font-medium tracking-wide text-sm uppercase">
+              <Sparkles className="w-4 h-4 animate-pulse" />
+              <span>Démonstration des fonctionnalités</span>
             </div>
-            <h2 className="text-4xl lg:text-5xl font-bold mb-6 leading-tight tracking-tight">
-              Expédiez plus vite, <br />
-              <span className="text-blue-400">sans stress.</span>
-            </h2>
-            <div className="space-y-4">
-              <div className="flex items-center gap-3 text-lg font-light text-blue-100">
-                <CheckCircle2 className="w-5 h-5 text-green-400" />
-                <span>Suivi en temps réel de vos colis</span>
+
+            <div className="relative h-64 overflow-hidden">
+              {slides.map((slide, index) => (
+                <div
+                  key={index}
+                  className={`absolute inset-0 transition-all duration-700 ease-in-out transform ${index === currentSlide
+                    ? "translate-x-0 opacity-100"
+                    : index < currentSlide ? "-translate-x-full opacity-0" : "translate-x-full opacity-0"
+                    }`}
+                >
+                  <div className="mb-6">{slide.icon}</div>
+                  <h2 className="text-5xl font-extrabold mb-6 leading-tight tracking-tight text-white drop-shadow-lg">
+                    {slide.title}
+                  </h2>
+                  <p className="text-xl font-light text-blue-100/80 leading-relaxed">
+                    {slide.description}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            {/* Slider Controls */}
+            <div className="mt-12 flex items-center gap-6">
+              <div className="flex gap-2">
+                {slides.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentSlide(index)}
+                    className={`h-1.5 rounded-full transition-all duration-500 ${index === currentSlide ? "w-8 bg-blue-500 shadow-lg shadow-blue-500/50" : "w-2 bg-white/20 hover:bg-white/40"
+                      }`}
+                    aria-label={`Aller à la slide ${index + 1}`}
+                    title={`Slide ${index + 1}`}
+                  />
+                ))}
               </div>
-              <div className="flex items-center gap-3 text-lg font-light text-blue-100">
-                <CheckCircle2 className="w-5 h-5 text-green-400" />
-                <span>Tarifs transparents et compétitifs</span>
-              </div>
-              <div className="flex items-center gap-3 text-lg font-light text-blue-100">
-                <CheckCircle2 className="w-5 h-5 text-green-400" />
-                <span>Support client dédié 24/7</span>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length)}
+                  className="p-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 transition-colors"
+                  aria-label="Slide précédente"
+                  title="Précédent"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={() => setCurrentSlide((prev) => (prev + 1) % slides.length)}
+                  className="p-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 transition-colors"
+                  aria-label="Slide suivante"
+                  title="Suivant"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
               </div>
             </div>
+          </div>
+
+          <div className="text-sm text-blue-200/50 font-light italic">
+            * Vous pouvez explorer ces fonctionnalités dans votre espace client.
           </div>
         </div>
       </div>
@@ -201,13 +289,26 @@ export default function Register() {
         <div className="flex min-h-full flex-col justify-center py-12 px-4 sm:px-6 lg:px-20 xl:px-24 relative z-10">
           <div className="mx-auto w-full max-w-sm lg:w-96">
 
-            <div className="text-center lg:text-left mb-10">
-              <h2 className="text-4xl font-bold text-slate-900 dark:text-white tracking-tight mb-3">
-                Créer un compte
+            <div className="text-center lg:text-left mb-8">
+              <h2 className="text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-3">
+                Commencer l'aventure
               </h2>
-              <p className="text-lg text-slate-500 dark:text-slate-400">
-                Commencez en quelques secondes. Sans mot de passe.
+              <p className="text-lg text-slate-500 dark:text-slate-400 font-medium">
+                Rejoignez 1000+ professionnels du transport.
               </p>
+            </div>
+
+            {/* Value Proposition Box */}
+            <div className="bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800/50 rounded-2xl p-4 mb-8 transform transition-all hover:scale-[1.02]">
+              <div className="flex items-center gap-3 text-blue-800 dark:text-blue-300">
+                <div className="w-10 h-10 bg-blue-100 dark:bg-blue-800 rounded-full flex items-center justify-center shrink-0 shadow-inner">
+                  <Sparkles className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div className="text-sm">
+                  <p className="font-bold text-blue-900 dark:text-blue-200">Le futur du fret est ici</p>
+                  <p className="opacity-80">Configurez votre compte et suivez vos colis en un clin d'œil.</p>
+                </div>
+              </div>
             </div>
 
             <form onSubmit={handleRegister} className="space-y-6">
@@ -223,21 +324,35 @@ export default function Register() {
                 </div>
               )}
 
-              <div className="space-y-4">
-                <GoogleLoginButton text="Continuer avec Google" />
+              <div className="space-y-5">
+                {/* Google Login Section - Highlighted */}
+                <div className="relative group/google">
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-6 py-1.5 bg-blue-600 text-white text-[11px] font-black rounded-full shadow-2xl shadow-blue-500/50 uppercase tracking-[0.2em] z-20 animate-bounce-subtle border-2 border-white dark:border-slate-800">
+                    Solution la plus simple
+                  </div>
+                  <GoogleLoginButton
+                    text="S'inscrire instantanément avec Google"
+                    className="!py-6 !text-xl !px-8 !bg-white dark:!bg-slate-900 !border-[3px] !border-blue-500/30 dark:!border-blue-500/20 shadow-2xl shadow-blue-500/10 dark:shadow-none hover:!border-blue-500 dark:hover:!border-blue-400 hover:!scale-[1.02] active:scale-[0.98] transition-all duration-300 ring-offset-4 ring-offset-slate-50 dark:ring-offset-gray-950 focus:ring-4 focus:ring-blue-500/20"
+                  />
+                  <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-[22px] opacity-0 group-hover/google:opacity-10 blur-xl transition-opacity duration-500 -z-10"></div>
+                  <p className="text-center text-xs text-slate-500 dark:text-slate-400 mt-3 font-semibold flex items-center justify-center gap-2">
+                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+                    Recommandé pour un accès rapide
+                  </p>
+                </div>
 
-                <div className="relative">
+                <div className="relative py-2">
                   <div className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-slate-200 dark:border-slate-800"></div>
                   </div>
-                  <div className="relative flex justify-center text-sm">
-                    <span className="px-4 bg-slate-50 dark:bg-gray-950 text-slate-500 font-medium">Ou avec email</span>
+                  <div className="relative flex justify-center text-xs">
+                    <span className="px-4 bg-slate-50 dark:bg-gray-950 text-slate-400 font-bold uppercase tracking-widest">Ou par email</span>
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <label htmlFor="email" className="block text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">
-                    Email professionnel
+                    Votre email professionnel
                   </label>
                   <div className="relative group">
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">

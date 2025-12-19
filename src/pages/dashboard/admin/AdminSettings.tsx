@@ -15,6 +15,10 @@ import {
   Key,
   Bot,
   Gift,
+  Star,
+  Zap,
+  Plus,
+  Trash2,
 } from "lucide-react";
 import {
   settingsService,
@@ -489,66 +493,185 @@ export default function AdminSettings() {
 
             {activeTab === "marketing" && localSettings.marketing && (
               <div className="space-y-6">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">
-                  Offers & Marketing
-                </h3>
-                <div className="space-y-6 bg-amber-50 rounded-xl p-6 border border-amber-100">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-bold text-gray-900 flex items-center gap-2">
-                        <Gift className="w-5 h-5 text-amber-500" />
-                        Offre "Membre Fondateur"
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-4">
+                    Programmes de Points & Fidélité
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Loyalty Points Config */}
+                    <div className="bg-purple-50 rounded-xl p-6 border border-purple-100">
+                      <p className="font-bold text-gray-900 flex items-center gap-2 mb-4">
+                        <Star className="w-5 h-5 text-purple-500" />
+                        Programme de Fidélité
                       </p>
-                      <p className="text-sm text-gray-500 mt-1">
-                        Afficher le popup promotionnel sur la page d'accueil.
-                      </p>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700">Prix du Point (FCFA)</label>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold">₣</span>
+                          <input
+                            type="number"
+                            aria-label="Prix du point de fidélité"
+                            value={localSettings.loyalty?.point_value || 10}
+                            onChange={(e) => updateSetting("loyalty", "point_value", parseInt(e.target.value))}
+                            className="w-full pl-8 pr-4 py-2 rounded-lg border border-gray-200 focus:border-purple-500 outline-none"
+                          />
+                        </div>
+                        <p className="text-xs text-gray-500">Valeur en FCFA créditée lors de la conversion de 1 point de fidélité.</p>
+                      </div>
                     </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        aria-label="Activer l'offre fondateur"
-                        checked={localSettings.marketing.show_founder_offer}
-                        onChange={(e) =>
-                          updateSetting("marketing", "show_founder_offer", e.target.checked)
-                        }
-                        className="sr-only peer"
-                      />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-amber-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
-                    </label>
-                  </div>
 
-                  {/* Details of the offer */}
-                  <div className={`space-y-4 transition-all duration-300 ${localSettings.marketing.show_founder_offer ? 'opacity-100' : 'opacity-50 pointer-events-none'}`}>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Referral Points Config */}
+                    <div className="bg-blue-50 rounded-xl p-6 border border-blue-100">
+                      <p className="font-bold text-gray-900 flex items-center gap-2 mb-4">
+                        <Gift className="w-5 h-5 text-blue-500" />
+                        Programme de Parrainage
+                      </p>
                       <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700">Titre de l'offre</label>
+                        <label className="text-sm font-medium text-gray-700">Prix du Point (FCFA)</label>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold">₣</span>
+                          <input
+                            type="number"
+                            aria-label="Prix du point de parrainage"
+                            value={localSettings.referral?.point_value || 50}
+                            onChange={(e) => updateSetting("referral", "point_value", parseInt(e.target.value))}
+                            className="w-full pl-8 pr-4 py-2 rounded-lg border border-gray-200 focus:border-blue-500 outline-none"
+                          />
+                        </div>
+                        <p className="text-xs text-gray-500">Valeur en FCFA créditée lors de la conversion de 1 point de parrainage.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-6 border-t border-gray-100">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4">
+                    Offres Promotionnelles
+                  </h3>
+                  <div className="space-y-6 bg-amber-50 rounded-xl p-6 border border-amber-100">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-bold text-gray-900 flex items-center gap-2">
+                          <Gift className="w-5 h-5 text-amber-500" />
+                          Offre "Membre Fondateur"
+                        </p>
+                        <p className="text-sm text-gray-500 mt-1">
+                          Afficher le popup promotionnel sur la page d'accueil.
+                        </p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
                         <input
-                          type="text"
-                          aria-label="Titre de l'offre"
-                          value={localSettings.marketing.founder_offer_title || ""}
-                          onChange={(e) => updateSetting("marketing", "founder_offer_title", e.target.value)}
-                          className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-amber-500 outline-none"
+                          type="checkbox"
+                          aria-label="Activer l'offre fondateur"
+                          checked={localSettings.marketing.show_founder_offer}
+                          onChange={(e) =>
+                            updateSetting("marketing", "show_founder_offer", e.target.checked)
+                          }
+                          className="sr-only peer"
                         />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-amber-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                      </label>
+                    </div>
+
+                    {/* Details of the offer */}
+                    <div className={`space-y-4 transition-all duration-300 ${localSettings.marketing.show_founder_offer ? 'opacity-100' : 'opacity-50 pointer-events-none'}`}>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-gray-700">Titre de l'offre</label>
+                          <input
+                            type="text"
+                            aria-label="Titre de l'offre"
+                            value={localSettings.marketing.founder_offer_title || ""}
+                            onChange={(e) => updateSetting("marketing", "founder_offer_title", e.target.value)}
+                            className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-amber-500 outline-none"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-gray-700">Prix (FCFA)</label>
+                          <input
+                            type="number"
+                            aria-label="Prix de l'offre"
+                            value={localSettings.marketing.founder_offer_price || 0}
+                            onChange={(e) => updateSetting("marketing", "founder_offer_price", parseInt(e.target.value))}
+                            className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-amber-500 outline-none"
+                          />
+                        </div>
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700">Prix (FCFA)</label>
-                        <input
-                          type="number"
-                          aria-label="Prix de l'offre"
-                          value={localSettings.marketing.founder_offer_price || 0}
-                          onChange={(e) => updateSetting("marketing", "founder_offer_price", parseInt(e.target.value))}
-                          className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-amber-500 outline-none"
+                        <label className="text-sm font-medium text-gray-700">Description courte</label>
+                        <textarea
+                          aria-label="Description de l'offre"
+                          value={localSettings.marketing.founder_offer_description || ""}
+                          onChange={(e) => updateSetting("marketing", "founder_offer_description", e.target.value)}
+                          className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-amber-500 outline-none h-20 resize-none"
                         />
                       </div>
                     </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-gray-700">Description courte</label>
-                      <textarea
-                        aria-label="Description de l'offre"
-                        value={localSettings.marketing.founder_offer_description || ""}
-                        onChange={(e) => updateSetting("marketing", "founder_offer_description", e.target.value)}
-                        className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-amber-500 outline-none h-20 resize-none"
-                      />
+                  </div>
+                </div>
+
+                <div className="pt-6 border-t border-gray-100">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <Zap className="w-5 h-5 text-primary" />
+                    Flash Info (Bandeau défilant)
+                  </h3>
+                  <div className="bg-slate-50 rounded-xl p-6 border border-slate-100">
+                    <div className="flex items-center justify-between mb-6">
+                      <div>
+                        <p className="font-bold text-gray-900">Activer le Flash Info</p>
+                        <p className="text-sm text-gray-500">Affiche un bandeau d'actualités défilant en bas du site.</p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          aria-label="Activer le Flash Info"
+                          checked={localSettings.marketing.news_ticker_enabled}
+                          onChange={(e) => updateSetting("marketing", "news_ticker_enabled", e.target.checked)}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                      </label>
+                    </div>
+
+                    <div className={`space-y-4 ${!localSettings.marketing.news_ticker_enabled ? 'opacity-50 pointer-events-none' : ''}`}>
+                      <label className="text-sm font-medium text-gray-700">Messages défilants</label>
+                      <div className="space-y-3">
+                        {localSettings.marketing.news_ticker_messages?.map((message, index) => (
+                          <div key={index} className="flex gap-2">
+                            <input
+                              type="text"
+                              value={message}
+                              onChange={(e) => {
+                                const newMessages = [...localSettings.marketing.news_ticker_messages];
+                                newMessages[index] = e.target.value;
+                                updateSetting("marketing", "news_ticker_messages", newMessages);
+                              }}
+                              className="flex-1 px-4 py-2 rounded-lg border border-gray-200 focus:border-primary outline-none"
+                              placeholder="Entrez un message..."
+                            />
+                            <button
+                              onClick={() => {
+                                const newMessages = localSettings.marketing.news_ticker_messages.filter((_, i) => i !== index);
+                                updateSetting("marketing", "news_ticker_messages", newMessages);
+                              }}
+                              className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Supprimer"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))}
+                        <button
+                          onClick={() => {
+                            const newMessages = [...(localSettings.marketing.news_ticker_messages || []), ""];
+                            updateSetting("marketing", "news_ticker_messages", newMessages);
+                          }}
+                          className="flex items-center gap-2 px-4 py-2 text-primary hover:bg-primary/5 rounded-lg font-medium transition-colors text-sm"
+                        >
+                          <Plus className="w-4 h-4" />
+                          Ajouter un message
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -892,11 +1015,12 @@ export default function AdminSettings() {
                           updateSetting("email", "from_email", e.target.value)
                         }
                         className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                        placeholder="noreply@nextemove.com"
+                        placeholder="djeylanidjitte@gmail.com"
                       />
                     </div>
                   </div>
                 </div>
+
               </div>
             )}
 

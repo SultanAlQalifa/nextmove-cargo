@@ -50,14 +50,10 @@ export default function AdminReferrals() {
 
   const fetchSettings = async () => {
     try {
-      const { data } = await supabase
-        .from("system_settings")
-        .select("value")
-        .eq("key", "referral")
-        .maybeSingle();
-
-      if (data?.value) {
-        setConfig(data.value);
+      const { settingsService } = await import("../../../services/settingsService");
+      const settings = await settingsService.getSettings();
+      if (settings.referral) {
+        setConfig(settings.referral);
       }
     } catch (error) {
       console.error("Error fetching referral settings:", error);
@@ -67,13 +63,8 @@ export default function AdminReferrals() {
   const saveSettings = async () => {
     setSaving(true);
     try {
-      const { error } = await supabase.from("system_settings").upsert({
-        key: "referral",
-        value: config,
-        updated_at: new Date().toISOString(),
-      });
-
-      if (error) throw error;
+      const { settingsService } = await import("../../../services/settingsService");
+      await settingsService.updateSettings("referral", config);
       // Success feedback could be added here
     } catch (error) {
       console.error("Error saving settings:", error);

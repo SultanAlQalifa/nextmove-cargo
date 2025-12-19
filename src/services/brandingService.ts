@@ -245,7 +245,7 @@ const DEFAULT_BRANDING: BrandingSettings = {
     contact: {
       title: "Contactez-nous",
       subtitle: "Notre équipe est là pour vous aider",
-      email: "support@nextmovecargo.com",
+      email: "djeylanidjitte@gmail.com",
       phone: "+221 77 000 00 00",
       address: "Dakar, Sénégal",
       hours: "Lun - Ven: 9h - 18h",

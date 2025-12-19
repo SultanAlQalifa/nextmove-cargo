@@ -4,8 +4,10 @@ import { Loader2 } from "lucide-react";
 
 export default function GoogleLoginButton({
   text = "Continuer avec Google",
+  className = "",
 }: {
   text?: string;
+  className?: string;
 }) {
   const [loading, setLoading] = useState(false);
 
@@ -37,7 +39,7 @@ export default function GoogleLoginButton({
       type="button"
       onClick={handleGoogleLogin}
       disabled={loading}
-      className="w-full flex items-center justify-center gap-3 px-4 py-3.5 border border-slate-200 dark:border-slate-700 rounded-2xl bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-200 transition-all duration-200 transform hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed text-sm"
+      className={`w-full flex items-center justify-center gap-3 px-4 py-3.5 border border-slate-200 dark:border-slate-700 rounded-2xl bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-200 transition-all duration-200 transform hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed text-sm ${className}`}
     >
       {loading ? (
         <Loader2 className="w-5 h-5 animate-spin" />

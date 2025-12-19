@@ -1,10 +1,20 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Fragment } from "react";
 import { forwarderService, ForwarderOption } from "../../services/forwarderService";
 import { Zap, ExternalLink } from "lucide-react";
+import { useSettings } from "../../contexts/SettingsContext";
 
 export default function NewsTicker() {
+    const { settings } = useSettings();
     const [partners, setPartners] = useState<ForwarderOption[]>([]);
-    const [loading, setLoading] = useState(true);
+
+    const messages = settings?.marketing?.news_ticker_messages || [
+        "Bienvenue sur NextMove Cargo – Votre partenaire logistique global.",
+        "Obtenez des cotations instantanées pour vos expéditions Aériennes et Maritimes.",
+        "Nouveaux partenaires certifiés disponibles !",
+        "Service client disponible 24/7 pour vos besoins urgents."
+    ];
+
+    const isEnabled = settings?.marketing?.news_ticker_enabled ?? true;
 
     useEffect(() => {
         const fetchPartners = async () => {
@@ -14,12 +24,12 @@ export default function NewsTicker() {
                 setPartners(data.filter(p => p.logo || p.website_url).slice(0, 10));
             } catch (error) {
                 console.error("Failed to load ticker partners", error);
-            } finally {
-                setLoading(false);
             }
         };
         fetchPartners();
     }, []);
+
+    if (!isEnabled) return null;
 
     return (
         <div className="fixed bottom-0 left-0 w-full bg-slate-900/95 backdrop-blur-md text-white h-10 flex items-center z-40 border-t border-slate-800 shadow-lg">
@@ -33,15 +43,12 @@ export default function NewsTicker() {
             {/* Marquee Section */}
             <div className="flex-1 overflow-hidden relative h-full flex items-center">
                 <div className="whitespace-nowrap animate-marquee flex items-center gap-8 text-xs font-medium text-slate-300">
-                    <span className="text-yellow-400 font-bold">⚽️ 🇸🇳 Allez les Lions ! NextMove Cargo soutient fièrement le Sénégal pour la CAN ! 🏆</span>
-                    <span className="w-1 h-1 bg-slate-600 rounded-full"></span>
-                    <span>Bienvenue sur NextMove Cargo – Votre partenaire logistique global.</span>
-                    <span className="w-1 h-1 bg-slate-600 rounded-full"></span>
-                    <span>Obtenez des cotations instantanées pour vos expéditions Aériennes et Maritimes.</span>
-                    <span className="w-1 h-1 bg-slate-600 rounded-full"></span>
-                    <span>Nouveaux partenaires certifiés disponibles !</span>
-                    <span className="w-1 h-1 bg-slate-600 rounded-full"></span>
-                    <span>Service client disponible 24/7 pour vos besoins urgents.</span>
+                    {messages.map((message, index) => (
+                        <Fragment key={index}>
+                            {index > 0 && <span className="w-1 h-1 bg-slate-600 rounded-full"></span>}
+                            <span>{message}</span>
+                        </Fragment>
+                    ))}
                 </div>
             </div>
 

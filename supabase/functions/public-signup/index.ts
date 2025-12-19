@@ -61,7 +61,7 @@ serve(async (req: Request) => {
                 <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
                     <!-- Logo -->
                     <div style="text-align: center; margin-bottom: 30px; margin-top: 20px;">
-                        <img src="${logoUrl}" alt="NextMove Cargo" style="height: 40px; w: auto; display: inline-block;">
+                        <img src="${logoUrl}" alt="NextMove Cargo" style="height: 40px; width: auto; display: inline-block;">
                     </div>
                     <!-- Card -->
                     <div style="background-color: #ffffff; border-radius: 12px; padding: 40px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
@@ -93,8 +93,8 @@ serve(async (req: Request) => {
 
 
         if (password) {
-            // A. PASSWORD FLOW (Create User + Welcome Email)
-            // ------------------------------------------------
+            // A. PASSWORD FLOW
+            console.log(`[PublicSignup] Starting Password Flow for ${email}...`);
             const { data: userData, error: createError } = await supabaseAdmin.auth.admin.createUser({
                 email,
                 password,
@@ -106,7 +106,10 @@ serve(async (req: Request) => {
                 }
             });
 
-            if (createError) throw createError;
+            if (createError) {
+                console.error("[PublicSignup] Auth Create Error:", createError);
+                throw createError;
+            }
             user = userData.user;
 
             emailSubject = "Bienvenue sur NextMove Cargo ! 🚀";
@@ -120,9 +123,8 @@ serve(async (req: Request) => {
             );
 
         } else {
-            // B. MAGIC LINK FLOW (Generate Link + Magic Link Email)
-            // ----------------------------------------------------
-            // 1. Generate Link (Creates user if not exists)
+            // B. MAGIC LINK FLOW
+            console.log(`[PublicSignup] Starting Magic Link Flow for ${email}...`);
             const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
                 type: 'magiclink',
                 email,
@@ -137,12 +139,19 @@ serve(async (req: Request) => {
                 }
             });
 
-            if (linkError) throw linkError;
+            if (linkError) {
+                console.error("[PublicSignup] Magic Link Generate Error:", linkError);
+                throw linkError;
+            }
             user = linkData.user;
             const actionLink = linkData.properties?.action_link;
 
-            if (!actionLink) throw new Error("Failed to generate magic link");
+            if (!actionLink) {
+                console.error("[PublicSignup] Critical: action_link is missing in linkData.properties");
+                throw new Error("Failed to generate magic link properties");
+            }
 
+            console.log(`[PublicSignup] Magic Link generated successfully for ${email}`);
             emailSubject = "Connexion à NextMove Cargo 🔐";
             emailBody = getHtmlTemplate(
                 "Connexion Sécurisée",
@@ -188,7 +197,7 @@ serve(async (req: Request) => {
         const { data: emailRecord, error: emailError } = await supabaseAdmin
             .from('email_queue')
             .insert({
-                sender_id: user.id,
+                sender_id: null, // System sender to avoid FK race condition with profiles
                 recipient_group: 'specific',
                 recipient_emails: [email],
                 subject: emailSubject,
@@ -197,6 +206,19 @@ serve(async (req: Request) => {
             })
             .select()
             .single();
+
+        if (emailError) {
+            console.error("[PublicSignup] Email insertion error:", emailError);
+            return new Response(JSON.stringify({
+                success: true,
+                message: password ? "Compte créé. Un email de confirmation a été envoyé." : "Lien magique envoyé. Vérifiez votre boîte de réception.",
+                email_error: emailError.message,
+                user
+            }), {
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                status: 200,
+            })
+        }
 
         if (emailRecord) {
             // Trigger processor
