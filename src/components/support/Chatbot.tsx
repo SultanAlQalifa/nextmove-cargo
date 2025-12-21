@@ -22,9 +22,10 @@ export default function Chatbot() {
         if (isOpen && messages.length === 0) {
             setMessages([
                 {
-                    id: 1,
-                    type: "bot",
-                    content: "Bonjour ! Je suis l'assistant virtuel NextMove. Comment puis-je vous aider aujourd'hui ? 👋",
+                    id: "welcome",
+                    role: "assistant",
+                    content: "Bonjour. Je suis l'Expert Logistique de NextMove Cargo. Je peux vous assister sur vos cotations, le suivi de vos conteneurs ou les procédures douanières. Quelle est votre demande ?",
+                    timestamp: new Date(),
                     options: ["Suivre un colis", "Tarifs", "Problème technique", "Facturation"]
                 }
             ]);

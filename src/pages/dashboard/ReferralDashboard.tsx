@@ -12,6 +12,7 @@ import {
 import { useAuth } from "../../contexts/AuthContext";
 import { useToast } from "../../contexts/ToastContext";
 import { supabase } from "../../lib/supabase";
+import { useDataSync } from "../../contexts/DataSyncContext";
 
 interface Referral {
   id: string;
@@ -44,6 +45,14 @@ export default function ReferralDashboard() {
   const [walletBalance, setWalletBalance] = useState(0);
   const [conversionRate, setConversionRate] = useState(50); // Default 50 FCFA
   const [converting, setConverting] = useState(false);
+
+  // Live Sync
+  useDataSync("referrals", () => fetchReferralData());
+  useDataSync("profiles", () => {
+    fetchReferralData();
+    fetchWalletData();
+  });
+  useDataSync("wallets", () => fetchWalletData());
 
   useEffect(() => {
     if (user) {

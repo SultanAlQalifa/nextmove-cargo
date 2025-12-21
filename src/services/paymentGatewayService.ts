@@ -3,7 +3,7 @@ import { supabase } from "../lib/supabase";
 export interface PaymentGateway {
   id: string;
   name: string;
-  provider: "wave" | "wallet";
+  provider: "wave" | "wallet" | "paytech" | "cinetpay" | "bank_transfer";
   is_active: boolean;
   is_test_mode: boolean;
   config: {
@@ -11,6 +11,14 @@ export interface PaymentGateway {
     secret_key?: string;
     merchant_id?: string;
     webhook_secret?: string;
+    apikey?: string; // For CinetPay/PayTech
+    site_id?: string; // For CinetPay
+    // Bank Transfer Fields
+    bank_name?: string;
+    account_name?: string;
+    iban?: string;
+    swift?: string;
+    instructions?: string;
   };
   supported_currencies: string[];
   transaction_fee_percent: number;
@@ -58,6 +66,54 @@ export const paymentGatewayService = {
       });
     }
 
+    // Fallback: PayTech
+    if (!gateways.find((g) => g.provider === "paytech")) {
+      gateways.push({
+        id: "paytech-default",
+        name: "PayTech",
+        provider: "paytech",
+        is_active: false,
+        is_test_mode: true,
+        config: { apikey: "", secret_key: "" },
+        supported_currencies: ["XOF"],
+        transaction_fee_percent: 1.5,
+      });
+    }
+
+    // Fallback: CinetPay
+    if (!gateways.find((g) => g.provider === "cinetpay")) {
+      gateways.push({
+        id: "cinetpay-default",
+        name: "CinetPay",
+        provider: "cinetpay",
+        is_active: false,
+        is_test_mode: true,
+        config: { site_id: "", apikey: "" },
+        supported_currencies: ["XOF", "XAF", "GNF", "USD"],
+        transaction_fee_percent: 2.0,
+      });
+    }
+
+    // Fallback: Bank Transfer
+    if (!gateways.find((g) => g.provider === "bank_transfer")) {
+      gateways.push({
+        id: "bank-transfer-default",
+        name: "Virement Bancaire",
+        provider: "bank_transfer",
+        is_active: false,
+        is_test_mode: false,
+        config: {
+          bank_name: "Banque Agricole",
+          account_name: "",
+          iban: "",
+          swift: "",
+          instructions: "Veuillez effectuer le virement sur le compte ci-dessus.",
+        },
+        supported_currencies: ["XOF", "EUR", "USD"],
+        transaction_fee_percent: 0,
+      });
+    }
+
     return gateways;
   },
 
@@ -95,6 +151,26 @@ export const paymentGatewayService = {
             ...dbUpdates,
             name: "Mon Portefeuille",
             provider: "wallet",
+            is_active: true,
+          },
+        ])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return mapDbGatewayToApp(newGateway);
+    }
+
+    // Generic default handler for new ones
+    if (id.endsWith("-default")) {
+      const provider = id.replace("-default", "").replace("bank-transfer", "bank_transfer");
+      const { data: newGateway, error } = await supabase
+        .from("payment_gateways")
+        .insert([
+          {
+            ...dbUpdates,
+            provider,
+            name: dbUpdates.name || provider.charAt(0).toUpperCase() + provider.slice(1).replace("_", " "),
             is_active: true,
           },
         ])

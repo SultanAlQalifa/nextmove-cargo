@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useDataSync } from "../../../contexts/DataSyncContext";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Package,
@@ -40,6 +41,14 @@ import {
   Legend,
 } from "recharts";
 import { supabase } from "../../../lib/supabase";
+
+const formatCurrency = (amount: number) => {
+  return new Intl.NumberFormat('fr-FR', {
+    style: 'currency',
+    currency: 'XOF',
+    maximumFractionDigits: 0
+  }).format(amount);
+};
 
 export default function ForwarderDashboard() {
   const { success } = useToast();
@@ -100,135 +109,141 @@ export default function ForwarderDashboard() {
     },
   });
 
+  const loadDashboardData = useCallback(async () => {
+    if (!user) return;
+    setLoading(true);
+    try {
+      const data = await shipmentService.getForwarderShipments();
+      setShipments(data);
+
+      // Calculate stats
+      const activeShipments = (data || []).filter((s: Shipment) =>
+        ["pending", "approved", "in_transit", "customs_clearing"].includes(
+          s.status,
+        ),
+      );
+      const completedShipments = (data || []).filter(
+        (s: Shipment) => s.status === "completed",
+      );
+      const totalShipmentsCount = (data || []).length;
+
+      // Calculate total revenue from payments
+      const totalRevenue = (data || []).reduce(
+        (acc: number, curr: Shipment) => {
+          const payment = curr.payment?.[0];
+          return acc + (payment?.amount_forwarder || payment?.amount || 0);
+        },
+        0,
+      );
+
+      const staff = await personnelService.getForwarderStaff();
+
+      setStats({
+        users: {
+          value: staff.length,
+          trend: "+0%",
+          trendUp: true,
+          label: "Personnel actif",
+        },
+        shipments: {
+          value: activeShipments.length,
+          trend: "+5%",
+          trendUp: true,
+          label: "Expéditions actives",
+        },
+        revenue: {
+          value: totalRevenue,
+          trend: "+12%",
+          trendUp: true,
+          label: "Revenu estimé",
+        },
+        conversion: {
+          value:
+            totalShipmentsCount > 0
+              ? Math.round(
+                (completedShipments.length / totalShipmentsCount) * 100,
+              )
+              : 0,
+          trend: "+2%",
+          trendUp: true,
+          label: "Taux de complétion",
+        },
+      });
+
+      // Prepare Chart Data
+      // Revenue (Mock distribution over time based on shipments)
+      const revenueChart = (data || [])
+        .slice(0, 10)
+        .map((s: Shipment) => ({
+          name: new Date(s.created_at || Date.now()).toLocaleDateString(),
+          value:
+            s.payment?.[0]?.amount_forwarder || s.payment?.[0]?.amount || 0,
+        }))
+        .reverse(); // Oldest first
+      setRevenueData(
+        revenueChart.length
+          ? revenueChart
+          : [
+            { name: "Jan", value: 0 },
+            { name: "Feb", value: 0 },
+          ],
+      );
+
+      // Status Distribution
+      const statusCounts: Record<string, number> = {};
+      (data || []).forEach((s: Shipment) => {
+        statusCounts[s.status] = (statusCounts[s.status] || 0) + 1;
+      });
+
+      const colors: Record<string, string> = {
+        pending: "#F59E0B",
+        approved: "#3B82F6",
+        in_transit: "#10B981",
+        customs_clearing: "#8B5CF6",
+        completed: "#059669",
+        cancelled: "#EF4444",
+      };
+
+      const statusChart = Object.entries(statusCounts).map(
+        ([status, count]) => ({
+          name: status,
+          value: count,
+          color: colors[status] || "#CBD5E1",
+        }),
+      );
+      setShipmentStatusData(statusChart);
+
+      // Recent Activity
+      const activity = (data || []).slice(0, 5).map((s: Shipment) => ({
+        id: s.id,
+        type: "shipment",
+        message: `Expédition ${s.tracking_number}: ${s.origin?.country} -> ${s.destination?.country}`,
+        time: s.created_at
+          ? new Date(s.created_at).toLocaleDateString()
+          : "-",
+        icon: Package,
+        color: "text-blue-600",
+        bg: "bg-blue-50",
+        destination: s.destination?.country,
+      }));
+      setRecentActivity(activity);
+    } catch (error) {
+      console.error("Error loading dashboard data:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
+  // Live Sync
+  useDataSync("shipments", loadDashboardData);
+  useDataSync("profiles", loadDashboardData);
+  useDataSync("transactions", loadDashboardData);
+
   useEffect(() => {
-    const loadDashboardData = async () => {
-      setLoading(true);
-      try {
-        const data = await shipmentService.getForwarderShipments();
-        setShipments(data);
-
-        // Calculate stats
-        const activeShipments = (data || []).filter((s: Shipment) =>
-          ["pending", "approved", "in_transit", "customs_clearing"].includes(
-            s.status,
-          ),
-        );
-        const completedShipments = (data || []).filter(
-          (s: Shipment) => s.status === "completed",
-        );
-        const totalShipmentsCount = (data || []).length;
-
-        // Calculate total revenue from payments
-        const totalRevenue = (data || []).reduce(
-          (acc: number, curr: Shipment) => {
-            const payment = curr.payment?.[0];
-            return acc + (payment?.amount_forwarder || payment?.amount || 0);
-          },
-          0,
-        );
-
-        const staff = await personnelService.getForwarderStaff();
-
-        setStats({
-          users: {
-            value: staff.length,
-            trend: "+0%",
-            trendUp: true,
-            label: "Personnel actif",
-          },
-          shipments: {
-            value: activeShipments.length,
-            trend: "+5%",
-            trendUp: true,
-            label: "Expéditions actives",
-          },
-          revenue: {
-            value: totalRevenue,
-            trend: "+12%",
-            trendUp: true,
-            label: "Revenu estimé",
-          },
-          conversion: {
-            value:
-              totalShipmentsCount > 0
-                ? Math.round(
-                  (completedShipments.length / totalShipmentsCount) * 100,
-                )
-                : 0,
-            trend: "+2%",
-            trendUp: true,
-            label: "Taux de complétion",
-          },
-        });
-
-        // Prepare Chart Data
-        // Revenue (Mock distribution over time based on shipments)
-        const revenueChart = (data || [])
-          .slice(0, 10)
-          .map((s: Shipment) => ({
-            name: new Date(s.created_at || Date.now()).toLocaleDateString(),
-            value:
-              s.payment?.[0]?.amount_forwarder || s.payment?.[0]?.amount || 0,
-          }))
-          .reverse(); // Oldest first
-        setRevenueData(
-          revenueChart.length
-            ? revenueChart
-            : [
-              { name: "Jan", value: 0 },
-              { name: "Feb", value: 0 },
-            ],
-        );
-
-        // Status Distribution
-        const statusCounts: Record<string, number> = {};
-        (data || []).forEach((s: Shipment) => {
-          statusCounts[s.status] = (statusCounts[s.status] || 0) + 1;
-        });
-
-        const colors: Record<string, string> = {
-          pending: "#F59E0B",
-          approved: "#3B82F6",
-          in_transit: "#10B981",
-          customs_clearing: "#8B5CF6",
-          completed: "#059669",
-          cancelled: "#EF4444",
-        };
-
-        const statusChart = Object.entries(statusCounts).map(
-          ([status, count]) => ({
-            name: status,
-            value: count,
-            color: colors[status] || "#CBD5E1",
-          }),
-        );
-        setShipmentStatusData(statusChart);
-
-        // Recent Activity
-        const activity = (data || []).slice(0, 5).map((s: Shipment) => ({
-          id: s.id,
-          type: "shipment",
-          message: `Expédition ${s.tracking_number}: ${s.origin?.country} -> ${s.destination?.country}`,
-          time: s.created_at
-            ? new Date(s.created_at).toLocaleDateString()
-            : "-",
-          icon: Package,
-          color: "text-blue-600",
-          bg: "bg-blue-50",
-          destination: s.destination?.country,
-        }));
-        setRecentActivity(activity);
-      } catch (error) {
-        console.error("Error loading dashboard data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     if (user) {
       loadDashboardData();
     }
-  }, [user]);
+  }, [user, loadDashboardData]);
 
   const handleDownloadReport = () => {
     success("Téléchargement du rapport...");

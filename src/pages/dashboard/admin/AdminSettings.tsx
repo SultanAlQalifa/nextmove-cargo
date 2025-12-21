@@ -19,6 +19,8 @@ import {
   Zap,
   Plus,
   Trash2,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import {
   settingsService,
@@ -47,8 +49,8 @@ export default function AdminSettings() {
   const { user, refreshProfile } = useAuth();
 
   const [localSettings, setLocalSettings] = useState<SystemSettings | null>(
-    null,
   );
+  const [showSecrets, setShowSecrets] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [passwordData, setPasswordData] = useState({
     current: "",
@@ -1185,6 +1187,198 @@ export default function AdminSettings() {
                           placeholder="100609..."
                         />
                       </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-t border-gray-100 my-8"></div>
+
+                {/* Intech SMS Integration */}
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900">
+                        Intech SMS (Sénégal)
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                        Envoyez des SMS transactionnels via l'API Intech SMS.
+                      </p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={
+                          localSettings.integrations?.intech_sms?.enabled || false
+                        }
+                        aria-label="Activer l'intégration Intech SMS"
+                        onChange={(e) =>
+                          updateSetting("integrations", "intech_sms", {
+                            ...localSettings.integrations?.intech_sms,
+                            enabled: e.target.checked,
+                          })
+                        }
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    </label>
+                  </div>
+                  <div
+                    className={`space-y-6 ${!localSettings.integrations?.intech_sms?.enabled ? "opacity-50 pointer-events-none grayscale" : ""}`}
+                  >
+                    <div className="p-4 bg-blue-50 text-blue-700 rounded-xl text-sm border border-blue-100">
+                      <p className="font-bold mb-1">Intech SMS Dashboard</p>
+                      <p>
+                        Récupérez votre <strong>App Key</strong> sur votre tableau de bord Intech SMS.
+                        Le format des numéros doit être international (ex: +221...).
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700">
+                          Application Key (app_key)
+                        </label>
+                        <input
+                          type="password"
+                          value={
+                            localSettings.integrations?.intech_sms?.app_key || ""
+                          }
+                          onChange={(e) =>
+                            updateSetting("integrations", "intech_sms", {
+                              ...localSettings.integrations?.intech_sms,
+                              app_key: e.target.value,
+                            })
+                          }
+                          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+                          placeholder="67E811..."
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700">
+                          Nom de l'Expéditeur (Sender)
+                        </label>
+                        <input
+                          type="text"
+                          maxLength={11}
+                          value={
+                            localSettings.integrations?.intech_sms?.sender || ""
+                          }
+                          onChange={(e) =>
+                            updateSetting("integrations", "intech_sms", {
+                              ...localSettings.integrations?.intech_sms,
+                              sender: e.target.value,
+                            })
+                          }
+                          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+                          placeholder="NEXTMOVE"
+                        />
+                        <p className="text-xs text-gray-500">Maximum 11 caractères.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-t border-gray-100 my-8"></div>
+
+                {/* Twilio Integration */}
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900">
+                        Twilio (International)
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                        Pour les SMS internationaux et comme secours si Intech échoue.
+                      </p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={
+                          localSettings.integrations?.twilio?.enabled || false
+                        }
+                        aria-label="Activer l'intégration Twilio"
+                        onChange={(e) =>
+                          updateSetting("integrations", "twilio", {
+                            ...localSettings.integrations?.twilio,
+                            enabled: e.target.checked,
+                          })
+                        }
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                    </label>
+                  </div>
+                  <div
+                    className={`space-y-6 ${!localSettings.integrations?.twilio?.enabled ? "opacity-50 pointer-events-none grayscale" : ""}`}
+                  >
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">
+                        Account SID
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showSecrets ? "text" : "password"}
+                          value={localSettings.integrations?.twilio?.account_sid || ""}
+                          onChange={(e) =>
+                            updateSetting("integrations", "twilio", {
+                              ...localSettings.integrations?.twilio,
+                              account_sid: e.target.value,
+                            })
+                          }
+                          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 outline-none transition-all pr-10"
+                          placeholder="AC..."
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowSecrets(!showSecrets)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        >
+                          {showSecrets ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">
+                        Auth Token
+                      </label>
+                      <div className="relative">
+                        <input
+                          title="Auth Token"
+                          type={showSecrets ? "text" : "password"}
+                          value={localSettings.integrations?.twilio?.auth_token || ""}
+                          onChange={(e) =>
+                            updateSetting("integrations", "twilio", {
+                              ...localSettings.integrations?.twilio,
+                              auth_token: e.target.value,
+                            })
+                          }
+                          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 outline-none transition-all pr-10"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowSecrets(!showSecrets)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        >
+                          {showSecrets ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">
+                        Numéro Expéditeur (From)
+                      </label>
+                      <input
+                        type="text"
+                        value={localSettings.integrations?.twilio?.from_number || ""}
+                        onChange={(e) =>
+                          updateSetting("integrations", "twilio", {
+                            ...localSettings.integrations?.twilio,
+                            from_number: e.target.value,
+                          })
+                        }
+                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 outline-none transition-all"
+                        placeholder="+1..."
+                      />
                     </div>
                   </div>
                 </div>

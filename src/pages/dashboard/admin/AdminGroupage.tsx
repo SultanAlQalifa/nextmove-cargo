@@ -143,7 +143,7 @@ export default function AdminGroupage() {
     return (
       <div className="flex flex-col gap-1 items-start">
         <span
-          className={`inline - flex items - center px - 2.5 py - 0.5 rounded - full text - xs font - medium w - fit ${styles[status as keyof typeof styles] || "bg-gray-100 text-gray-800"} `}
+          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium w-fit ${styles[status as keyof typeof styles] || "bg-gray-100 text-gray-800"}`}
         >
           {labels[status as keyof typeof labels] || status}
         </span>
@@ -363,8 +363,10 @@ export default function AdminGroupage() {
                       {(() => {
                         const width = `${Math.min(((consolidation.current_load_cbm || 0) / (consolidation.total_capacity_cbm || 1)) * 100, 100)}%`;
                         return (
+                          /* eslint-disable-next-line react/forbid-dom-props */
                           <div
                             className="h-full bg-blue-500 rounded-full transition-all duration-500"
+                            /* hint-disable no-inline-styles */
                             style={{ width }}
                           />
                         );

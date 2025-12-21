@@ -549,6 +549,21 @@ export const shipmentService = {
             console.warn("Error triggering WhatsApp function:", err);
           });
 
+        // Trigger SMS Notification
+        supabase.functions
+          .invoke("send-sms", {
+            body: {
+              to: updatedShipment.client.phone,
+              content: `NextMove: Le statut de votre expédition #${updatedShipment.tracking_number} est passé à : ${updates.status.toUpperCase()}.`,
+            },
+          })
+          .then(({ error }) => {
+            if (error) console.warn("Failed to send SMS notification:", error);
+          })
+          .catch((err) => {
+            console.warn("Error triggering SMS function:", err);
+          });
+
         if (updatedShipment.client?.id) {
           notificationService.sendNotification(
             updatedShipment.client.id,

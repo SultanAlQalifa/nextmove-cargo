@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
 import PageHeader from "../../../components/common/PageHeader";
-import { Package, Search, Filter, RefreshCw } from "lucide-react";
+import { Package, Search, RefreshCw } from "lucide-react";
 import { shipmentService, Shipment } from "../../../services/shipmentService";
 import ShipmentCard from "../../../components/shipment/ShipmentCard";
 import PaymentModal from "../../../components/payment/PaymentModal";
 import { useToast } from "../../../contexts/ToastContext";
+import { useDataSync } from "../../../contexts/DataSyncContext";
 
 export default function ClientShipments() {
   const { success } = useToast();
+  useDataSync("shipments", () => loadShipments());
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "active" | "delivered">("all");

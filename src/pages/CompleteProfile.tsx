@@ -6,52 +6,52 @@ import * as z from "zod";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../contexts/AuthContext";
-import { User, Phone, Lock, Save, ArrowRight, Loader2, CheckCircle2 } from "lucide-react";
+import { User, Lock, Save, ArrowRight, Loader2, CheckCircle2 } from "lucide-react";
 import { useBranding } from "../contexts/BrandingContext";
-import { useTranslation } from "react-i18next";
+import { useBranding } from "../contexts/BrandingContext";
 import PhoneInputWithCountry from "../components/auth/PhoneInputWithCountry";
 
-// Base Schema validation (for everyone)
-const baseSchema = z.object({
+// Schema validation
+
+// Improved Schema with refinement that knows about isExternalUser
+// However, since zodResolver(schema) doesn't easily take external context, 
+// we'll keep the schema broad and handle specific validation if needed, 
+// or just use the refinement for password matching.
+const getCompleteProfileSchema = (isExternal: boolean) => z.object({
     firstName: z.string().min(2, "Le prénom est requis"),
     lastName: z.string().min(2, "Le nom est requis"),
     phone: z.string().min(8, "Numéro de téléphone invalide"),
-});
-
-// Full Schema (Email users need password)
-const fullSchema = baseSchema.extend({
-    password: z.string().min(6, "Le mot de passe doit contenir au moins 6 caractères"),
-    confirmPassword: z.string()
-}).refine((data) => data.password === data.confirmPassword, {
+    password: isExternal ? z.string().optional() : z.string().min(6, "Le mot de passe doit contenir au moins 6 caractères"),
+    confirmPassword: z.string().optional(),
+}).refine((data) => {
+    if (!isExternal && data.password !== data.confirmPassword) return false;
+    return true;
+}, {
     message: "Les mots de passe ne correspondent pas",
     path: ["confirmPassword"],
 });
 
-// Google Schema (No password needed)
-const googleSchema = baseSchema;
-
-type CompleteProfileForm = z.infer<typeof fullSchema> & {
+interface CompleteProfileForm {
     firstName: string;
     lastName: string;
     phone: string;
     password?: string;
     confirmPassword?: string;
-};
+}
 
 export default function CompleteProfile() {
     const { user, refreshProfile } = useAuth();
     const { settings } = useBranding();
-    const { t } = useTranslation();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const isGoogleUser = user?.app_metadata?.provider === 'google';
+    const isExternalUser = user?.app_metadata?.provider === 'google' || user?.app_metadata?.provider === 'phone';
 
     // Select schema based on auth provider
-    const schema = useMemo(() => {
-        return isGoogleUser ? googleSchema : fullSchema;
-    }, [isGoogleUser]);
+    const activeSchema = useMemo(() => {
+        return getCompleteProfileSchema(isExternalUser);
+    }, [isExternalUser]);
 
     const {
         register,
@@ -59,8 +59,8 @@ export default function CompleteProfile() {
         setValue,
         watch,
         formState: { errors },
-    } = useForm<CompleteProfileForm>({
-        resolver: zodResolver(schema),
+    } = useForm<any>({
+        resolver: zodResolver(activeSchema),
     });
 
     const phoneValue = watch("phone");
@@ -83,8 +83,8 @@ export default function CompleteProfile() {
         try {
             const fullName = `${data.firstName} ${data.lastName}`.trim();
 
-            // 1. Update Password (ONLY if not Google User)
-            if (!isGoogleUser && data.password) {
+            // 1. Update Password (ONLY if not External User)
+            if (!isExternalUser && data.password) {
                 const { error: authError } = await supabase.auth.updateUser({
                     password: data.password,
                     data: { full_name: fullName }
@@ -245,7 +245,7 @@ export default function CompleteProfile() {
                                             placeholder="Jean"
                                         />
                                     </div>
-                                    {errors.firstName && (<p className="ml-1 text-xs text-red-500 font-medium">{errors.firstName.message}</p>)}
+                                    {errors.firstName && (<p className="ml-1 text-xs text-red-500 font-medium">{errors.firstName.message as any}</p>)}
                                 </div>
 
                                 <div className="space-y-2">
@@ -260,7 +260,7 @@ export default function CompleteProfile() {
                                             placeholder="Dupont"
                                         />
                                     </div>
-                                    {errors.lastName && (<p className="ml-1 text-xs text-red-500 font-medium">{errors.lastName.message}</p>)}
+                                    {errors.lastName && (<p className="ml-1 text-xs text-red-500 font-medium">{errors.lastName.message as any}</p>)}
                                 </div>
                             </div>
 
@@ -273,10 +273,10 @@ export default function CompleteProfile() {
                                     onChange={(val) => setValue("phone", val)}
                                     required
                                 />
-                                {errors.phone && (<p className="ml-1 text-xs text-red-500 font-medium">{errors.phone.message}</p>)}
+                                {errors.phone && (<p className="ml-1 text-xs text-red-500 font-medium">{errors.phone.message as any}</p>)}
                             </div>
 
-                            {!isGoogleUser && (
+                            {!isExternalUser && (
                                 <>
                                     <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800">
                                         <div className="flex gap-3">
@@ -302,7 +302,7 @@ export default function CompleteProfile() {
                                                 placeholder="Nouveau mot de passe"
                                             />
                                         </div>
-                                        {errors.password && (<p className="ml-1 text-xs text-red-500 font-medium">{errors.password.message}</p>)}
+                                        {errors.password && (<p className="ml-1 text-xs text-red-500 font-medium">{errors.password.message as any}</p>)}
 
                                         <div className="relative group">
                                             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -315,7 +315,7 @@ export default function CompleteProfile() {
                                                 placeholder="Confirmer mot de passe"
                                             />
                                         </div>
-                                        {errors.confirmPassword && (<p className="ml-1 text-xs text-red-500 font-medium">{errors.confirmPassword.message}</p>)}
+                                        {errors.confirmPassword && (<p className="ml-1 text-xs text-red-500 font-medium">{errors.confirmPassword.message as any}</p>)}
                                     </div>
                                 </>
                             )}

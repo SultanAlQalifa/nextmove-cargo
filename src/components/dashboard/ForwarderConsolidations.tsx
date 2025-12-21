@@ -8,12 +8,12 @@ import {
   Anchor,
   Plane,
   ArrowRight,
-  Calendar,
   Upload,
 } from "lucide-react";
 import CreateConsolidationModal from "../consolidation/CreateConsolidationModal";
 import BulkUploadModal from "../dashboard/BulkUploadModal";
 import { format } from "date-fns";
+import { useDataSync } from "../../contexts/DataSyncContext";
 
 export default function ForwarderConsolidations() {
   const { user } = useAuth();
@@ -40,6 +40,8 @@ export default function ForwarderConsolidations() {
       setLoading(false);
     }
   };
+
+  useDataSync("consolidations", () => loadConsolidations());
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -147,6 +149,8 @@ export default function ForwarderConsolidations() {
                       <div className="w-24 h-2 bg-gray-100 rounded-full overflow-hidden">
                         <div
                           className="h-full bg-blue-500 rounded-full"
+                          // eslint-disable-next-line react/forbid-dom-props
+                          /* hint-disable no-inline-styles */
                           style={{
                             width: `${Math.min(((item.current_load_cbm || 0) / (item.total_capacity_cbm || 1)) * 100, 100)}%`,
                           }}
@@ -156,7 +160,7 @@ export default function ForwarderConsolidations() {
                         {Math.round(
                           ((item.current_load_cbm || 0) /
                             (item.total_capacity_cbm || 1)) *
-                            100,
+                          100,
                         )}
                         %
                       </span>

@@ -17,10 +17,13 @@ import {
   Clock,
   Eye, // Added Icon
 } from "lucide-react";
+import { useDataSync } from "../../../contexts/DataSyncContext";
 
 export default function AvailableRFQs() {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  useDataSync("rfq_requests", () => loadRFQs());
+  useDataSync("rfq_offers", () => loadRFQs());
   const [rfqs, setRfqs] = useState<RFQRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");

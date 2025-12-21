@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { supabase } from "../../lib/supabase";
+import { useDataSync } from "../../contexts/DataSyncContext";
 import ConfirmationModal from "../common/ConfirmationModal";
 import JoinConsolidationModal from "./JoinConsolidationModal";
 
@@ -94,6 +95,8 @@ export default function ConsolidationList({
       setLoading(false);
     }
   };
+
+  useDataSync("consolidations", () => loadConsolidations());
 
   const getStatusColor = (status: string) => {
     switch (status) {

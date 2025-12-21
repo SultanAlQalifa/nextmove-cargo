@@ -18,7 +18,7 @@ export default function Login() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
 
-  const phoneAuthEnabled = systemSettings?.security?.phone_auth_enabled ?? true;
+  const phoneAuthEnabled = true; // Forcé à true pour garantir la visibilité
 
   const [authMethod, setAuthMethod] = useState<"email" | "phone">("email");
   const [email, setEmail] = useState("");
@@ -28,6 +28,9 @@ export default function Login() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpCode, setOtpCode] = useState("");
+  const [resendTimer, setResendTimer] = useState(0);
 
   useEffect(() => {
     if (!authLoading && user) {
@@ -35,32 +38,60 @@ export default function Login() {
     }
   }, [user, authLoading, navigate]);
 
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (resendTimer > 0) {
+      interval = setInterval(() => {
+        setResendTimer((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [resendTimer]);
+
+  const sendOtp = async () => {
+    if (!phone || phone.length < 8) {
+      throw new Error(t("auth.invalidPhone", "Numéro de téléphone invalide"));
+    }
+    const res = await supabase.auth.signInWithOtp({
+      phone: phone,
+    });
+    if (res.error) throw res.error;
+    setOtpSent(true);
+    setResendTimer(60);
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
     try {
-      let error;
       if (authMethod === 'email') {
-        const res = await supabase.auth.signInWithPassword({
+        const { error: loginError } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
-        error = res.error;
+        if (loginError) throw loginError;
       } else {
         // Phone Auth
-        if (!phone || phone.length < 8) {
-          throw new Error(t("auth.invalidPhone"));
+        if (!otpSent) {
+          await sendOtp();
+          setLoading(false);
+          return;
+        } else {
+          // Verify OTP Step
+          if (!otpCode || otpCode.length < 6) {
+            throw new Error(t("auth.invalidCode", "Code invalide"));
+          }
+          const { error: verifyError } = await supabase.auth.verifyOtp({
+            phone: phone,
+            token: otpCode,
+            type: 'sms',
+          });
+          if (verifyError) throw verifyError;
         }
-        const res = await supabase.auth.signInWithPassword({
-          phone: phone,
-          password,
-        });
-        error = res.error;
       }
 
-      if (error) throw error;
       navigate("/dashboard");
     } catch (err: any) {
       setError(
@@ -105,8 +136,6 @@ export default function Login() {
       setResetLoading(false);
     }
   };
-
-
 
   return (
     <div className="h-screen flex bg-white overflow-hidden">
@@ -285,7 +314,7 @@ export default function Login() {
                   <div className="grid grid-cols-2 gap-2 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
                     <button
                       type="button"
-                      onClick={() => setAuthMethod("email")}
+                      onClick={() => { setAuthMethod("email"); setOtpSent(false); }}
                       className={`py-2 px-4 rounded-lg text-sm font-bold transition-all ${authMethod === "email"
                         ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm"
                         : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
@@ -296,7 +325,7 @@ export default function Login() {
                     {phoneAuthEnabled && (
                       <button
                         type="button"
-                        onClick={() => setAuthMethod("phone")}
+                        onClick={() => { setAuthMethod("phone"); setOtpSent(false); }}
                         className={`py-2 px-4 rounded-lg text-sm font-bold transition-all ${authMethod === "phone"
                           ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm"
                           : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
@@ -334,60 +363,116 @@ export default function Login() {
                     </div>
                   </div>
                 ) : (
-                  <div className="space-y-2">
-                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">
-                      {t("auth.phoneNumber")}
-                    </label>
-                    <PhoneInputWithCountry
-                      value={phone}
-                      onChange={setPhone}
-                      required
-                    />
+                  <div className="space-y-4">
+                    {otpSent ? (
+                      <div className="space-y-2 animate-in slide-in-from-right-2 duration-300">
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">
+                          {t("auth.verificationCode", "Code de vérification")}
+                        </label>
+                        <div className="relative group">
+                          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <Lock className="h-5 w-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+                          </div>
+                          <input
+                            type="text"
+                            value={otpCode}
+                            onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
+                            maxLength={6}
+                            placeholder="000000"
+                            className="block w-full pl-11 pr-4 py-4 border-2 border-transparent bg-white dark:bg-slate-900 rounded-2xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-blue-500/20 focus:ring-4 focus:ring-blue-500/10 shadow-sm shadow-slate-200/50 dark:shadow-none transition-all duration-200 text-center tracking-[0.5em] text-xl font-bold"
+                          />
+                        </div>
+                        <div className="flex justify-between items-center px-1">
+                          <button
+                            type="button"
+                            onClick={() => { setOtpSent(false); setOtpCode(""); }}
+                            className="text-xs text-slate-500 hover:text-blue-600 transition-colors"
+                          >
+                            {t("auth.changePhone", "Changer de numéro")}
+                          </button>
+                          {resendTimer > 0 ? (
+                            <span className="text-xs text-slate-400">
+                              {t("auth.resendIn", "Renvoyer dans")} {resendTimer}s
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                try {
+                                  setError(null);
+                                  await sendOtp();
+                                  setOtpCode("");
+                                  showSuccess?.(t("auth.otpSent", "Code envoyé !"));
+                                } catch (err: any) {
+                                  setError(err.message);
+                                }
+                              }}
+                              className="text-xs text-blue-600 font-bold hover:underline"
+                            >
+                              {t("auth.resendCode", "Renvoyer le code")}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">
+                          {t("auth.phoneNumber")}
+                        </label>
+                        <PhoneInputWithCountry
+                          value={phone}
+                          onChange={setPhone}
+                          required
+                        />
+                      </div>
+                    )}
                   </div>
                 )}
 
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between ml-1">
-                    <label
-                      htmlFor="password"
-                      className="block text-sm font-bold text-slate-700 dark:text-slate-300"
-                    >
-                      {t("auth.password")}
-                    </label>
-                    <div className="text-sm">
+                {authMethod === 'email' && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between ml-1">
+                      <label
+                        htmlFor="password"
+                        className="block text-sm font-bold text-slate-700 dark:text-slate-300"
+                      >
+                        {t("auth.password")}
+                      </label>
+                      <div className="text-sm">
+                        <button
+                          type="button"
+                          onClick={() => setShowForgotPassword(true)}
+                          className="font-medium text-blue-600 hover:text-blue-500 transition-colors"
+                        >
+                          {t("auth.forgotPassword")}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="relative group">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <Lock className="h-5 w-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+                      </div>
+                      <input
+                        id="password"
+                        name="password"
+                        type={showPassword ? "text" : "password"}
+                        autoComplete="current-password"
+                        required
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="block w-full pl-11 pr-12 py-4 border-2 border-transparent bg-white dark:bg-slate-900 rounded-2xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-blue-500/20 focus:ring-4 focus:ring-blue-500/10 shadow-sm shadow-slate-200/50 dark:shadow-none transition-all duration-200"
+                        placeholder="••••••••"
+                      />
                       <button
                         type="button"
-                        onClick={() => setShowForgotPassword(true)}
-                        className="font-medium text-blue-600 hover:text-blue-500 transition-colors"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-blue-500 transition-colors cursor-pointer"
                       >
-                        {t("auth.forgotPassword")}
+                        {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                       </button>
                     </div>
                   </div>
-                  <div className="relative group">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                      <Lock className="h-5 w-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
-                    </div>
-                    <input
-                      id="password"
-                      name="password"
-                      type={showPassword ? "text" : "password"}
-                      autoComplete="current-password"
-                      required
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="block w-full pl-11 pr-12 py-4 border-2 border-transparent bg-white dark:bg-slate-900 rounded-2xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-blue-500/20 focus:ring-4 focus:ring-blue-500/10 shadow-sm shadow-slate-200/50 dark:shadow-none transition-all duration-200"
-                      placeholder="••••••••"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-blue-500 transition-colors cursor-pointer"
-                    >
-                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                    </button>
-                  </div>
-                </div>
+                )}
 
                 <div>
                   <button
@@ -398,11 +483,11 @@ export default function Login() {
                     {loading ? (
                       <>
                         <Loader2 className="animate-spin -ml-1 mr-2 h-5 w-5" />
-                        {t("auth.signingIn")}
+                        {authMethod === 'phone' && !otpSent ? t("auth.sending", "Envoi...") : t("auth.signingIn")}
                       </>
                     ) : (
                       <>
-                        {t("auth.signIn")}
+                        {authMethod === 'phone' && !otpSent ? t("auth.sendCode", "Envoyer le code") : t("auth.signIn")}
                         <ArrowRight className="ml-2 h-5 w-5" />
                       </>
                     )}

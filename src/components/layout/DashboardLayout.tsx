@@ -1036,7 +1036,7 @@ export default function DashboardLayout() {
                               {profile?.email}
                             </p>
                             <div className="mt-2 flex items-center gap-2">
-                              <KYCBadge status={profile?.kyc_status} />
+                              {profile?.role === 'forwarder' && <KYCBadge status={profile?.kyc_status} />}
                               {profile?.role === 'client' && <ClientTierBadge tier={profile?.client_tier || 'bronze'} />}
                             </div>
                           </div>

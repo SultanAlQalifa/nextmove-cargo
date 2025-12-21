@@ -4,7 +4,7 @@ import { subscriptionService } from "../services/subscriptionService";
 import { UserSubscription } from "../types/subscription";
 
 export const useSubscription = () => {
-    const { user, profile, loading: authLoading } = useAuth();
+    const { user, loading: authLoading } = useAuth();
     const [subscription, setSubscription] = useState<UserSubscription | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -32,29 +32,15 @@ export const useSubscription = () => {
     const hasFeature = (featureKey: string): boolean => {
         if (!subscription || !subscription.plan) return false;
 
-        // Handle case where features is array of strings (simple) or JSON object (advanced)
-        // Current implementation in subscriptionFeatures.ts implies mapping but DB might store strings
-        // Let's assume features is an array of strings for simple keys from features list
-
-        // Safely check if features is array
         const features = subscription.plan.features;
         if (Array.isArray(features)) {
-            // Basic Check: exact match
-            if (features.includes(featureKey)) return true;
-
-            // Advanced Check: implicit inclusion? (e.g. Pro has all Starter)
-            // Better to rely on the explicit list in the DB plan.
-            return false;
+            // Check if feature ID exists and is included
+            return (features as any[]).some(f =>
+                (typeof f === 'string' ? f === featureKey : f.id === featureKey && f.included)
+            );
         }
 
         return false;
-    };
-
-    const getFeatureLimit = (featureKey: string): number => {
-        // Placeholder for limits if stored in features JSON
-        // For now, hardcode based on plan name if needed, or rely on logic
-        // Section 7 prompt implies 3 RFQ for Starter, Unlimited for Pro.
-        return 0;
     };
 
     const isStarter = subscription?.plan?.name?.toLowerCase().includes("starter");
@@ -62,7 +48,8 @@ export const useSubscription = () => {
     const isElite = subscription?.plan?.name?.toLowerCase().includes("elite") || subscription?.plan?.name?.toLowerCase().includes("enterprise");
 
     // Derived features from prompt rules
-    const groupageEnabled = isPro || isElite;
+    const groupageEnabled = true; // Enabled for all plans (Starter, Pro, Elite)
+    const groupageLimit = isStarter ? 1 : Infinity;
     const apiAccess = isElite;
     const discountPercentage = isElite ? 10 : (isPro ? 5 : 0);
     const rfqsUnlimited = !isStarter;
@@ -78,6 +65,7 @@ export const useSubscription = () => {
         isElite,
         features: {
             groupageEnabled,
+            groupageLimit,
             apiAccess,
             discountPercentage,
             rfqsUnlimited

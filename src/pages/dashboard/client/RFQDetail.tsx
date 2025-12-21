@@ -30,11 +30,13 @@ import {
 import TransportBadge from "../../../components/common/TransportBadge";
 import KYCBadge from "../../../components/common/KYCBadge";
 import { shipmentService, Shipment } from "../../../services/shipmentService";
+import { QuoteRequest } from "../../../services/quoteService";
+import { useDataSync } from "../../../contexts/DataSyncContext";
 
 export default function RFQDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  useTranslation();
+  const { t } = useTranslation();
   const { success, error: toastError } = useToast();
   const [rfq, setRfq] = useState<RFQWithOffers | null>(null);
   const [loading, setLoading] = useState(true);
@@ -60,6 +62,10 @@ export default function RFQDetail() {
     title: "",
     message: "",
   });
+
+  // Live Sync
+  useDataSync("rfq_offers", () => id && loadRFQ(id));
+  useDataSync("rfq_requests", () => id && loadRFQ(id));
 
   useEffect(() => {
     if (id) {

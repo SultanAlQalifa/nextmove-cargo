@@ -16,12 +16,15 @@ import {
   Transaction,
 } from "../../../services/paymentService";
 import { useToast } from "../../../contexts/ToastContext";
+import { useDataSync } from "../../../contexts/DataSyncContext";
 import InvoiceCard from "../../../components/payment/InvoiceCard";
 import PaymentModal from "../../../components/dashboard/PaymentModal";
 
 export default function ClientPayments() {
   const navigate = useNavigate();
   const { success } = useToast();
+  useDataSync("transactions", () => loadData());
+  useDataSync("shipments", () => loadData());
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);

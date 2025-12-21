@@ -49,6 +49,11 @@ export interface WalletAdjustmentResponse {
   transaction_id: string;
 }
 
+export interface PaymentCheckoutResponse {
+  redirect_url: string;
+  transaction_id: string;
+}
+
 export const paymentService = {
   getClientInvoices: async (): Promise<Invoice[]> => {
     const {
@@ -302,6 +307,79 @@ export const paymentService = {
     throw new Error("Payment timeout. Please check your Wave app.");
   },
 
+  initializePayTechPayment: async (amount: number, currency: string, metadata: any = {}): Promise<PaymentCheckoutResponse> => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("User not authenticated");
+
+    const client_reference = `PAYTECH-${Date.now()}`;
+
+    try {
+      const data = await fetchWithRetry<{ redirect_url: string }>(() =>
+        supabase.functions.invoke("paytech-checkout", {
+          body: {
+            amount,
+            currency,
+            ref_command: client_reference,
+            item_name: metadata.item_name || "Commande NextMove",
+            custom_field: JSON.stringify({ user_id: user.id, ...metadata }),
+            success_url: `${window.location.origin}/dashboard/client/payments?status=success`,
+            cancel_url: `${window.location.origin}/dashboard/client/payments?status=cancel`,
+          },
+        }),
+      );
+
+      if (!data || !data.redirect_url) throw new Error("No redirect URL received from PayTech");
+
+      return {
+        redirect_url: data.redirect_url,
+        transaction_id: client_reference,
+      };
+    } catch (error) {
+      console.error("Error initializing PayTech payment:", error);
+      throw error;
+    }
+  },
+
+  initializeCinetPayPayment: async (amount: number, currency: string, metadata: any = {}): Promise<PaymentCheckoutResponse> => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("User not authenticated");
+
+    const client_reference = `CINET-${Date.now()}`;
+
+    try {
+      const data = await fetchWithRetry<{ payment_url: string }>(() =>
+        supabase.functions.invoke("cinetpay-checkout", {
+          body: {
+            amount,
+            currency,
+            transaction_id: client_reference,
+            description: metadata.description || "Commande NextMove",
+            customer_name: metadata.customer_name || user.user_metadata?.full_name || "Client",
+            customer_surname: metadata.customer_surname || "",
+            customer_email: user.email,
+            customer_phone_number: user.phone || "",
+            customer_address: "Dakar",
+            customer_city: "Dakar",
+            customer_country: "SN",
+            notify_url: `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cinetpay-webhook`,
+            return_url: `${window.location.origin}/dashboard/client/payments?status=success`,
+            metadata: JSON.stringify(metadata),
+          },
+        }),
+      );
+
+      if (!data || !data.payment_url) throw new Error("No redirect URL received from CinetPay");
+
+      return {
+        redirect_url: data.payment_url,
+        transaction_id: client_reference,
+      };
+    } catch (error) {
+      console.error("Error initializing CinetPay payment:", error);
+      throw error;
+    }
+  },
+
   confirmPayment: async (
     shipmentId: string,
     details: PaymentConfirmationDetails,
@@ -363,18 +441,20 @@ export const paymentService = {
         .insert({
           user_id: user.id,
           type: 'payment',
-          status: 'pending', // Will be completed by RPC presumably? Or we mark completed?
+          // status: 'pending', // Removed duplicate, handled below
           // User code says 'pending'.
           amount: finalAmount,
           original_amount: baseAmount, // Custom field, checking if Schema supports it? 
+          // Custom field, checking if Schema supports it? 
           // If Schema doesn't support original_amount, it might error.
           // Safe bet: store in metadata if unsure.
           // User prompt says: amount: finalAmount... original_amount: baseAmount
           // I'll put original_amount in metadata to be safe on schema
           payment_method: details.paymentMethod,
-          method: details.paymentMethod,
+          method: details.paymentMethod === 'bank_transfer' ? 'bank_transfer' : details.paymentMethod,
           currency: shipment?.currency || 'XOF',
-          reference: details.transactionReference || `PAY-${Date.now()}`,
+          reference: details.transactionReference || `${details.paymentMethod === 'bank_transfer' ? 'VIRE' : 'PAY'}-${Date.now()}`,
+          status: details.paymentMethod === 'bank_transfer' ? 'pending_validation' : 'pending',
           discount_applied: discountPercentage, // Checking schema... 'discount_applied' might not exist.
           // Safest to put in metadata
           metadata: {
@@ -382,7 +462,8 @@ export const paymentService = {
             subscription_discount_percent: discountPercentage,
             subscription_discount_amount: discountAmount,
             original_amount: baseAmount,
-            coupon_id: couponId
+            coupon_id: couponId,
+            is_bank_transfer: details.paymentMethod === 'bank_transfer'
           }
         })
         .select()

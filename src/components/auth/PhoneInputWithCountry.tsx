@@ -218,7 +218,7 @@ export default function PhoneInputWithCountry({ value, onChange, required }: Pho
                 <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-xl shadow-lg z-50 max-h-60 overflow-y-auto animate-in fade-in slide-in-from-top-2">
                     {COUNTRY_CODES.map((c) => (
                         <button
-                            key={c.code}
+                            key={c.country}
                             type="button"
                             onClick={() => selectCountry(c.code)}
                             className="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-3 transition-colors"

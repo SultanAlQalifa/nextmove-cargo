@@ -15,6 +15,7 @@ import {
   Globe,
   Info,
   Wallet,
+  Banknote,
 } from "lucide-react";
 import { useSubscription } from "../../hooks/useSubscription";
 
@@ -73,7 +74,7 @@ export default function PaymentModal({
   const loadGateways = async () => {
     try {
       const data = await paymentGatewayService.getGateways();
-      const allowedProviders = ["wave", "wallet"];
+      const allowedProviders = ["wave", "wallet", "paytech", "cinetpay", "bank_transfer", "offline"];
       const active = data.filter(
         (g) => g.is_active && allowedProviders.includes(g.provider),
       );
@@ -102,7 +103,7 @@ export default function PaymentModal({
       const selectedGatewayObj = gateways.find((g) => g.id === selectedGateway);
       const isWalletPayment =
         selectedGateway === "wallet" ||
-        selectedGatewayObj?.provider === "wallet"; // Support legacy/offline 'wallet' string if needed
+        selectedGatewayObj?.provider === "wallet";
 
       if (isWalletPayment) {
         // Direct execution via Escrow RPC (handled by confirmPayment)
@@ -121,7 +122,43 @@ export default function PaymentModal({
         return;
       }
 
-      const isOffline = selectedGateway === "offline";
+      // Handle CinetPay Payment
+      if (selectedGatewayObj?.provider === "cinetpay") {
+        const { redirect_url } = await paymentService.initializeCinetPayPayment(finalAmount, shipment.quotes?.[0]?.currency || "XOF", {
+          item_name: `Shipment ${shipment.number}`,
+          description: `Paiement pour l'expédition ${shipment.number}`,
+        });
+        window.location.href = redirect_url;
+        return;
+      }
+
+      // Handle PayTech Payment
+      if (selectedGatewayObj?.provider === "paytech") {
+        const { redirect_url } = await paymentService.initializePayTechPayment(finalAmount, shipment.quotes?.[0]?.currency || "XOF", {
+          item_name: `Shipment ${shipment.number}`,
+        });
+        window.location.href = redirect_url;
+        return;
+      }
+
+      // Handle Bank Transfer
+      if (selectedGatewayObj?.provider === "bank_transfer") {
+        await paymentService.confirmPayment(
+          shipment.id,
+          {
+            amount: finalAmount,
+            currency: shipment.quotes?.[0]?.currency || "XOF",
+            method: 'bank_transfer',
+            transactionReference: `VIRE-${Date.now()}`
+          },
+          discount?.couponId,
+        );
+        success("Demande de virement enregistrée. Veuillez procéder au virement.");
+        onSuccess();
+        return;
+      }
+
+      const isOffline = selectedGateway === "offline" || selectedGatewayObj?.provider === "offline";
 
       // 1. Initialize (Calculate fees)
       const details = await paymentService.initializePayment(
@@ -199,6 +236,12 @@ export default function PaymentModal({
     switch (provider) {
       case "wave":
         return <Smartphone className="w-6 h-6" />;
+      case "paytech":
+        return <Smartphone className="w-6 h-6 text-orange-500" />;
+      case "cinetpay":
+        return <Globe className="w-6 h-6 text-green-600" />;
+      case "bank_transfer":
+        return <Banknote className="w-6 h-6 text-blue-600" />;
       default:
         return <CreditCard className="w-6 h-6" />;
     }
@@ -418,6 +461,41 @@ export default function PaymentModal({
             </div>
           </div>
 
+          {/* Bank Transfer Instructions */}
+          {selectedGatewayObj?.provider === "bank_transfer" && (
+            <div className="p-4 bg-blue-50 border border-blue-100 rounded-xl space-y-3">
+              <div className="flex items-center gap-2 text-blue-800 font-bold text-sm">
+                <Info className="w-4 h-4" />
+                Coordonnées de Virement ({selectedGatewayObj.config.bank_name || "Banque Agricole"})
+              </div>
+              <div className="space-y-2 text-xs text-blue-700">
+                <div className="flex justify-between">
+                  <span className="opacity-70">Banque:</span>
+                  <span className="font-bold">{selectedGatewayObj.config.bank_name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="opacity-70">Titulaire:</span>
+                  <span className="font-bold">{selectedGatewayObj.config.account_name || "NextMove Cargo Business"}</span>
+                </div>
+                {selectedGatewayObj.config.iban && (
+                  <div className="pt-1 border-t border-blue-200">
+                    <span className="opacity-70 block mb-0.5">IBAN / RIB:</span>
+                    <span className="font-mono font-bold break-all">{selectedGatewayObj.config.iban}</span>
+                  </div>
+                )}
+                {selectedGatewayObj.config.swift && (
+                  <div className="pt-1 border-t border-blue-200">
+                    <span className="opacity-70">SWIFT / BIC:</span>
+                    <span className="font-mono font-bold">{selectedGatewayObj.config.swift}</span>
+                  </div>
+                )}
+              </div>
+              <p className="text-[10px] text-blue-600 italic">
+                {selectedGatewayObj.config.instructions || "Veuillez préciser votre nom et numéro d'expédition dans le libellé du virement."}
+              </p>
+            </div>
+          )}
+
           {/* Offline Disclaimer */}
           {selectedGateway === "offline" && (
             <div className="p-4 bg-orange-50 border border-orange-100 rounded-xl text-sm text-orange-800">
@@ -468,7 +546,9 @@ export default function PaymentModal({
                     ? "Payer avec mon Solde"
                     : selectedGateway
                       ? `Payer avec ${gateways.find((g) => g.id === selectedGateway)?.name}`
-                      : "Choisir un moyen de paiement"}
+                      : selectedGatewayObj?.provider === "bank_transfer"
+                        ? "Confirmer le virement"
+                        : "Choisir un moyen de paiement"}
               </>
             )}
           </button>

@@ -5,6 +5,9 @@ import { useSubscription } from "../../../hooks/useSubscription";
 import ConsolidationList from "../../../components/consolidation/ConsolidationList";
 import CreateConsolidationModal from "../../../components/consolidation/CreateConsolidationModal";
 import { Consolidation } from "../../../types/consolidation";
+import { supabase } from "../../../lib/supabase";
+import { consolidationService } from "../../../services/consolidationService";
+import { useDataSync } from "../../../contexts/DataSyncContext";
 
 export default function ClientGroupage() {
   const [activeTab, setActiveTab] = useState<"marketplace" | "my_requests">(
@@ -16,6 +19,9 @@ export default function ClientGroupage() {
     Consolidation | undefined
   >(undefined);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  // Live Sync
+  useDataSync("consolidations", () => setRefreshTrigger(prev => prev + 1));
 
   const handleCreate = () => {
     setModalMode("create");
@@ -29,64 +35,34 @@ export default function ClientGroupage() {
     setIsModalOpen(true);
   };
 
-  const { features, loading } = useSubscription();
+  const { features, loading, isStarter } = useSubscription();
   const navigate = useNavigate();
+  const [userRequestsCount, setUserRequestsCount] = useState(0);
 
   useEffect(() => {
-    if (!loading && !features.groupageEnabled) {
-      // Redirect or Show Block UI
-    }
-  }, [loading, features.groupageEnabled]);
+    const fetchUserRequestsCount = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const requests = await consolidationService.getMyConsolidations(user.id);
+          // Count only non-cancelled requests for the limit
+          setUserRequestsCount(requests.filter(r => r.status !== 'cancelled').length);
+        }
+      } catch (err) {
+        console.error("Error fetching user requests:", err);
+      }
+    };
+    fetchUserRequestsCount();
+  }, [refreshTrigger]);
 
-  if (loading) return <div>Chargement...</div>;
+  if (loading) return (
+    <div className="flex h-[60vh] flex-col items-center justify-center space-y-4">
+      <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+      <p className="text-slate-500 animate-pulse font-medium">Chargement...</p>
+    </div>
+  );
 
-  if (!features.groupageEnabled) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="max-w-lg w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 text-center">
-          <div className="mb-6">
-            <Lock className="w-16 h-16 mx-auto text-red-500" />
-          </div>
-
-          <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
-            Groupage réservé au plan Pro
-          </h2>
-
-          <p className="text-gray-600 dark:text-gray-300 mb-6">
-            Le groupage de colis permet de réduire vos coûts d'expédition en consolidant
-            plusieurs envois. Cette fonctionnalité est disponible à partir du plan Pro.
-          </p>
-
-          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
-            <p className="text-sm text-blue-800 dark:text-blue-200">
-              <strong>Avec le plan Pro :</strong>
-            </p>
-            <ul className="text-sm text-blue-700 dark:text-blue-300 mt-2 space-y-1 text-left">
-              <li>✓ Groupage illimité</li>
-              <li>✓ Réduction automatique de 5% sur tous vos envois</li>
-              <li>✓ RFQ illimités</li>
-              <li>✓ Support prioritaire sous 24h</li>
-            </ul>
-          </div>
-
-          <button
-            onClick={() => navigate("/subscription/plans")}
-            className="inline-flex items-center justify-center px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition w-full sm:w-auto font-medium"
-          >
-            <Shield className="w-5 h-5 mr-2" />
-            Passer au plan Pro
-          </button>
-
-          <button
-            onClick={() => navigate("/dashboard")}
-            className="block mt-4 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 mx-auto text-sm"
-          >
-            Retour au dashboard
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const isLimitReached = isStarter && userRequestsCount >= (features.groupageLimit || 1);
 
   const handleSuccess = () => {
     setRefreshTrigger((prev) => prev + 1);
@@ -101,15 +77,25 @@ export default function ClientGroupage() {
             Groupage Marketplace
           </h1>
           <p className="text-gray-500 mt-1">
-            Find and join consolidation offers from verified forwarders.
+            Rejoignez ou créez des offres de groupage pour optimiser vos coûts.
           </p>
+          {isStarter && (
+            <p className="text-xs font-medium text-amber-600 mt-2 bg-amber-50 px-2 py-1 rounded w-fit border border-amber-100 italic">
+              Plan Starter : Limite de {features.groupageLimit} demande active {userRequestsCount >= (features.groupageLimit || 1) ? "(Limite atteinte)" : ""}
+            </p>
+          )}
         </div>
         <button
           onClick={handleCreate}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center gap-2"
+          disabled={isLimitReached}
+          className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${isLimitReached
+            ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+            : "bg-blue-600 text-white hover:bg-blue-700"
+            }`}
+          title={isLimitReached ? "Limite de demande atteinte pour votre plan" : "Créer une demande"}
         >
           <Plus className="h-4 w-4" />
-          Create Request
+          {isLimitReached ? "Limite atteinte" : "Créer une Demande"}
         </button>
       </div>
 

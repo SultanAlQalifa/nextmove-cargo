@@ -131,7 +131,7 @@ p-4 rounded-xl border cursor-pointer transition-all
                   >
                     {gateway.provider === "wallet" ? (
                       <Wallet className="w-5 h-5" />
-                    ) : gateway.provider === "offline" ? (
+                    ) : gateway.provider === "offline" || gateway.provider === "bank_transfer" ? (
                       <Banknote className="w-5 h-5" />
                     ) : (
                       <CreditCard className="w-5 h-5" />
@@ -256,6 +256,173 @@ p-4 rounded-xl border cursor-pointer transition-all
                         </div>
                       </div>
                     </>
+                  )}
+
+                  {selectedGateway.provider === "paytech" && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          API Key
+                        </label>
+                        <input
+                          type="text"
+                          value={selectedGateway.config.apikey || ""}
+                          onChange={(e) =>
+                            updateConfig("apikey", e.target.value)
+                          }
+                          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-mono text-sm"
+                          placeholder="Votre API Key PayTech"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          API Secret
+                        </label>
+                        <div className="relative">
+                          <input
+                            type={showSecret ? "text" : "password"}
+                            value={selectedGateway.config.secret_key || ""}
+                            onChange={(e) =>
+                              updateConfig("secret_key", e.target.value)
+                            }
+                            className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-mono text-sm pr-10"
+                            placeholder="Votre API Secret PayTech"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowSecret(!showSecret)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                          >
+                            {showSecret ? (
+                              <EyeOff className="w-4 h-4" />
+                            ) : (
+                              <Eye className="w-4 h-4" />
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {selectedGateway.provider === "cinetpay" && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Site ID
+                        </label>
+                        <input
+                          type="text"
+                          value={selectedGateway.config.site_id || ""}
+                          onChange={(e) =>
+                            updateConfig("site_id", e.target.value)
+                          }
+                          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-mono text-sm"
+                          placeholder="Votre Site ID CinetPay"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          API Key
+                        </label>
+                        <div className="relative">
+                          <input
+                            type={showSecret ? "text" : "password"}
+                            value={selectedGateway.config.apikey || ""}
+                            onChange={(e) =>
+                              updateConfig("apikey", e.target.value)
+                            }
+                            className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-mono text-sm pr-10"
+                            placeholder="Votre API Key CinetPay"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowSecret(!showSecret)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                          >
+                            {showSecret ? (
+                              <EyeOff className="w-4 h-4" />
+                            ) : (
+                              <Eye className="w-4 h-4" />
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {selectedGateway.provider === "bank_transfer" && (
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Nom de la Banque
+                        </label>
+                        <input
+                          type="text"
+                          value={selectedGateway.config.bank_name || ""}
+                          onChange={(e) =>
+                            updateConfig("bank_name", e.target.value)
+                          }
+                          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all text-sm"
+                          placeholder="Ex: Banque Agricole"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Titulaire du Compte
+                        </label>
+                        <input
+                          type="text"
+                          value={selectedGateway.config.account_name || ""}
+                          onChange={(e) =>
+                            updateConfig("account_name", e.target.value)
+                          }
+                          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all text-sm"
+                          placeholder="Nom exact de la société"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          IBAN / RIB
+                        </label>
+                        <input
+                          type="text"
+                          value={selectedGateway.config.iban || ""}
+                          onChange={(e) =>
+                            updateConfig("iban", e.target.value)
+                          }
+                          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-mono text-sm"
+                          placeholder="Votre IBAN ou RIB complet"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          SWIFT / BIC
+                        </label>
+                        <input
+                          type="text"
+                          value={selectedGateway.config.swift || ""}
+                          onChange={(e) =>
+                            updateConfig("swift", e.target.value)
+                          }
+                          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-mono text-sm"
+                          placeholder="Code SWIFT"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Instructions
+                        </label>
+                        <textarea
+                          value={selectedGateway.config.instructions || ""}
+                          onChange={(e) =>
+                            updateConfig("instructions", e.target.value)
+                          }
+                          rows={3}
+                          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all text-sm"
+                          placeholder="Instructions pour le client..."
+                        />
+                      </div>
+                    </div>
                   )}
 
                   {selectedGateway.provider === "wallet" && (

@@ -19,15 +19,25 @@ import {
 import { z } from "zod";
 import { useBranding } from "../contexts/BrandingContext";
 import GoogleLoginButton from "../components/auth/GoogleLoginButton";
+import PhoneInputWithCountry from "../components/auth/PhoneInputWithCountry";
+
+import { useSettings } from "../contexts/SettingsContext";
 
 export default function Register() {
-  useTranslation();
+  const { t } = useTranslation();
+  const { settings: systemSettings } = useSettings();
+  const phoneAuthEnabled = true; // Forcé à true pour garantir la visibilité
   const { settings } = useBranding();
   const { success: showSuccess, error: showError } = useToast();
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
 
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [authMethod, setAuthMethod] = useState<"email" | "phone">("email");
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpCode, setOtpCode] = useState("");
+  const [resendTimer, setResendTimer] = useState(0);
   const [referralCode, setReferralCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -63,11 +73,14 @@ export default function Register() {
 
   // Auto-play slider
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % slides.length);
-    }, 6000);
-    return () => clearInterval(timer);
-  }, []);
+    let interval: NodeJS.Timeout;
+    if (resendTimer > 0) {
+      interval = setInterval(() => {
+        setResendTimer((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [resendTimer]);
 
   // Pre-fill
   useEffect(() => {
@@ -89,28 +102,78 @@ export default function Register() {
     referralCode: z.string().optional(),
   });
 
+  const sendOtp = async () => {
+    if (!phone || phone.length < 8) {
+      throw new Error(t("auth.invalidPhone", "Numéro de téléphone invalide"));
+    }
+    const { error: otpError } = await supabase.auth.signInWithOtp({
+      phone,
+      options: {
+        data: {
+          full_name: email.split('@')[0], // Fallback name
+          role: 'client',
+          referral_code_used: referralCode,
+        }
+      }
+    });
+    if (otpError) throw otpError;
+    setOtpSent(true);
+    setResendTimer(60);
+  };
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
     // Validate
-    const validation = registerSchema.safeParse({ email, referralCode });
-    if (!validation.success) {
-      setError(validation.error.issues[0].message);
-      setLoading(false);
-      return;
+    if (authMethod === 'email') {
+      const validation = registerSchema.safeParse({ email, referralCode });
+      if (!validation.success) {
+        setError(validation.error.issues[0].message);
+        setLoading(false);
+        return;
+      }
+    } else {
+      if (!phone || phone.length < 8) {
+        setError(t("auth.invalidPhone", "Numéro de téléphone invalide"));
+        setLoading(false);
+        return;
+      }
     }
 
     try {
-      // Use Edge Function to handle signup + custom email delivery
-      // This bypasses Supabase default SMTP which is currently unstable
+      if (authMethod === 'phone') {
+        if (!otpSent) {
+          await sendOtp();
+          showSuccess("Code envoyé !");
+          setLoading(false);
+          return;
+        } else {
+          // Verify OTP Step
+          if (!otpCode || otpCode.length < 6) {
+            throw new Error(t("auth.invalidCode", "Code invalide"));
+          }
+          const { error: verifyError } = await supabase.auth.verifyOtp({
+            phone,
+            token: otpCode,
+            type: 'sms',
+          });
+          if (verifyError) throw verifyError;
+
+          // Redirect is handled by AuthContext listener
+          navigate("/dashboard");
+          return;
+        }
+      }
+
+      // Email Flow (Existing)
       const { data, error: fnError } = await supabase.functions.invoke('public-signup', {
         body: {
           email,
           referral_code_used: referralCode,
           role: 'client',
-          logo_url: settings?.logo_url // Send specific field instead of full object
+          logo_url: settings?.logo_url
         }
       });
 
@@ -326,13 +389,13 @@ export default function Register() {
 
               <div className="space-y-5">
                 {/* Google Login Section - Highlighted */}
-                <div className="relative group/google">
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-6 py-1.5 bg-blue-600 text-white text-[11px] font-black rounded-full shadow-2xl shadow-blue-500/50 uppercase tracking-[0.2em] z-20 animate-bounce-subtle border-2 border-white dark:border-slate-800">
+                <div className="relative group/google pt-8">
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 px-6 py-2 bg-blue-600 text-white text-[11px] font-black rounded-full shadow-2xl shadow-blue-500/50 uppercase tracking-[0.2em] z-20 animate-bounce-subtle border-2 border-white dark:border-slate-800 whitespace-nowrap">
                     Solution la plus simple
                   </div>
                   <GoogleLoginButton
-                    text="S'inscrire instantanément avec Google"
-                    className="!py-6 !text-xl !px-8 !bg-white dark:!bg-slate-900 !border-[3px] !border-blue-500/30 dark:!border-blue-500/20 shadow-2xl shadow-blue-500/10 dark:shadow-none hover:!border-blue-500 dark:hover:!border-blue-400 hover:!scale-[1.02] active:scale-[0.98] transition-all duration-300 ring-offset-4 ring-offset-slate-50 dark:ring-offset-gray-950 focus:ring-4 focus:ring-blue-500/20"
+                    text="S'inscrire avec Google"
+                    className="!py-6 !text-lg !px-8 !bg-white dark:!bg-slate-900 !border-[3px] !border-blue-500/30 dark:!border-blue-500/20 shadow-2xl shadow-blue-500/10 dark:shadow-none hover:!border-blue-500 dark:hover:!border-blue-400 hover:!scale-[1.02] active:scale-[0.98] transition-all duration-300 ring-offset-4 ring-offset-slate-50 dark:ring-offset-gray-950 focus:ring-4 focus:ring-blue-500/20"
                   />
                   <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-[22px] opacity-0 group-hover/google:opacity-10 blur-xl transition-opacity duration-500 -z-10"></div>
                   <p className="text-center text-xs text-slate-500 dark:text-slate-400 mt-3 font-semibold flex items-center justify-center gap-2">
@@ -346,31 +409,117 @@ export default function Register() {
                     <div className="w-full border-t border-slate-200 dark:border-slate-800"></div>
                   </div>
                   <div className="relative flex justify-center text-xs">
-                    <span className="px-4 bg-slate-50 dark:bg-gray-950 text-slate-400 font-bold uppercase tracking-widest">Ou par email</span>
+                    <span className="px-4 bg-slate-50 dark:bg-gray-950 text-slate-400 font-bold uppercase tracking-widest">Ou s'inscrire via</span>
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <label htmlFor="email" className="block text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">
-                    Votre email professionnel
-                  </label>
-                  <div className="relative group">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                      <Mail className="h-5 w-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
-                    </div>
-                    <input
-                      id="email"
-                      name="email"
-                      type="email"
-                      autoComplete="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="block w-full pl-11 pr-4 py-4 border-2 border-transparent bg-white dark:bg-slate-900 rounded-2xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-blue-500/20 focus:ring-4 focus:ring-blue-500/10 shadow-sm shadow-slate-200/50 dark:shadow-none transition-all duration-200"
-                      placeholder="vous@exemple.com"
-                    />
+                {/* Auth Method Toggle */}
+                {phoneAuthEnabled && (
+                  <div className="grid grid-cols-2 gap-2 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+                    <button
+                      type="button"
+                      onClick={() => { setAuthMethod("email"); setOtpSent(false); }}
+                      className={`py-2 px-4 rounded-lg text-sm font-bold transition-all ${authMethod === "email"
+                        ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm"
+                        : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                        }`}
+                    >
+                      Email
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setAuthMethod("phone"); setOtpSent(false); }}
+                      className={`py-2 px-4 rounded-lg text-sm font-bold transition-all ${authMethod === "phone"
+                        ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm"
+                        : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                        }`}
+                    >
+                      {t("auth.phone", "Téléphone")}
+                    </button>
                   </div>
-                </div>
+                )}
+
+                {authMethod === 'email' ? (
+                  <div className="space-y-2">
+                    <label htmlFor="email" className="block text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">
+                      Votre email professionnel
+                    </label>
+                    <div className="relative group">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <Mail className="h-5 w-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+                      </div>
+                      <input
+                        id="email"
+                        name="email"
+                        type="email"
+                        autoComplete="email"
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="block w-full pl-11 pr-4 py-4 border-2 border-transparent bg-white dark:bg-slate-900 rounded-2xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-blue-500/20 focus:ring-4 focus:ring-blue-500/10 shadow-sm shadow-slate-200/50 dark:shadow-none transition-all duration-200"
+                        placeholder="vous@exemple.com"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {otpSent ? (
+                      <div className="space-y-2 animate-in slide-in-from-right-2">
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">
+                          Code de vérification
+                        </label>
+                        <input
+                          type="text"
+                          value={otpCode}
+                          onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
+                          maxLength={6}
+                          placeholder="000000"
+                          className="block w-full px-4 py-4 border-2 border-transparent bg-white dark:bg-slate-900 rounded-2xl text-slate-900 dark:text-white text-center tracking-[0.5em] text-xl font-bold focus:outline-none focus:border-blue-500/20 focus:ring-4 focus:ring-blue-500/10 shadow-sm transition-all"
+                        />
+                        <div className="flex justify-between items-center px-1">
+                          <button
+                            type="button"
+                            onClick={() => { setOtpSent(false); setOtpCode(""); }}
+                            className="text-xs text-slate-500 hover:text-blue-600"
+                          >
+                            Changer de numéro
+                          </button>
+                          {resendTimer > 0 ? (
+                            <span className="text-xs text-slate-400">Renvoyer dans {resendTimer}s</span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                try {
+                                  setError(null);
+                                  await sendOtp();
+                                  setOtpCode("");
+                                  showSuccess("Code envoyé !");
+                                } catch (err: any) {
+                                  setError(err.message);
+                                }
+                              }}
+                              className="text-xs text-blue-600 font-bold hover:underline"
+                            >
+                              Renvoyer le code
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">
+                          Votre numéro de téléphone
+                        </label>
+                        <PhoneInputWithCountry
+                          value={phone}
+                          onChange={setPhone}
+                          required
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 <div className="space-y-2">
                   <label htmlFor="referral" className="block text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">
@@ -398,7 +547,7 @@ export default function Register() {
                   <Loader2 className="animate-spin h-5 w-5" />
                 ) : (
                   <>
-                    Rejoindre NextMove Cargo
+                    {authMethod === 'phone' && !otpSent ? "Envoyer le code" : "Rejoindre NextMove Cargo"}
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </>
                 )}

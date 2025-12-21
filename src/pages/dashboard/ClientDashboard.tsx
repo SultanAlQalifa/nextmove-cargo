@@ -6,11 +6,9 @@ import ChatWindow from "../../components/dashboard/ChatWindow";
 import { quoteService, QuoteRequest } from "../../services/quoteService";
 import { supabase } from "../../lib/supabase";
 import PageHeader from "../../components/common/PageHeader";
-import DashboardControls from "../../components/dashboard/DashboardControls";
 import {
   Package,
   Truck,
-  CheckCircle,
   FileText,
   Plus,
   ArrowRight,
@@ -18,20 +16,16 @@ import {
   TrendingUp,
   Calculator,
   ArrowUpRight,
-  Search,
   X,
   Star,
   Crown,
   Wallet,
-  Bell,
   Activity,
   Sparkles
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
-  BarChart,
-  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -46,7 +40,7 @@ import {
 } from "recharts";
 import { useToast } from "../../contexts/ToastContext";
 import ConfirmationModal from "../../components/common/ConfirmationModal";
-import { Quote } from "../../services/quoteService";
+import { useDataSync } from "../../contexts/DataSyncContext";
 
 export default function ClientDashboard() {
   const { t } = useTranslation();
@@ -59,7 +53,7 @@ export default function ClientDashboard() {
   const [selectedRequestQuotes, setSelectedRequestQuotes] = useState<any[] | null>(null);
   const [paymentShipment, setPaymentShipment] = useState<any | null>(null);
   const [activeChat, setActiveChat] = useState<{ chatId: string; recipientName: string; } | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -76,6 +70,11 @@ export default function ClientDashboard() {
       setLoading(false);
     }
   };
+
+  // Live Refresh Logic
+  useDataSync('shipments', () => loadData());
+  useDataSync('quote_requests', () => loadData());
+  useDataSync('profiles', () => loadData());
 
   const loadRequests = async () => {
     if (!user) return;
@@ -177,6 +176,15 @@ export default function ClientDashboard() {
   ], []);
 
 
+  if (loading) {
+    return (
+      <div className="flex h-[60vh] flex-col items-center justify-center space-y-4">
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+        <p className="text-slate-500 animate-pulse font-medium">Chargement de votre tableau de bord...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8 pb-12">
       <PageHeader
@@ -254,8 +262,8 @@ export default function ClientDashboard() {
           </div>
 
           {/* eslint-disable-next-line react/forbid-dom-props */}
-          <div className="relative z-10 w-full h-[250px]">
-            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={100} debounce={300}>
+          <div className="relative z-10 w-full h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData}>
                 <defs>
                   <linearGradient id="colorExp" x1="0" y1="0" x2="0" y2="1">

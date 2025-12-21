@@ -50,6 +50,17 @@ export interface SystemSettings {
       phone_number_id: string;
       business_account_id: string;
     };
+    intech_sms: {
+      enabled: boolean;
+      app_key: string;
+      sender: string;
+    };
+    twilio: {
+      enabled: boolean;
+      account_sid: string;
+      auth_token: string;
+      from_number: string;
+    };
     ai_chat: {
       enabled: boolean;
       provider: "openai" | "anthropic";
@@ -118,12 +129,28 @@ const DEFAULT_SETTINGS: SystemSettings = {
       phone_number_id: "",
       business_account_id: "",
     },
+    intech_sms: {
+      enabled: false,
+      app_key: "",
+      sender: "NextMove",
+    },
+    twilio: {
+      enabled: false,
+      account_sid: "",
+      auth_token: "",
+      from_number: "",
+    },
     ai_chat: {
       enabled: false,
       provider: "openai",
       api_key: "",
       assistant_name: "NextMove Assistant",
-      system_prompt: "You are a helpful assistant for a logistics company.",
+      system_prompt: `Tu es l'Expert Logistique Senior de NextMove Cargo.
+Ton rôle est d'agir comme un consultant d'élite : précis, stratégique et extrêmement serviable.
+Tu parles STRICTEMENT en Français par défaut.
+Ton : Professionnel, Autoritaire mais Bienveillant.
+Expertise : Incoterms, dédouanement, groupage, supply chain.
+Objectif : Inciter à la demande de cotation.`,
     },
   },
   marketing: {

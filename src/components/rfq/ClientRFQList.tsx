@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { rfqService } from "../../services/rfqService";
 import type { RFQRequest } from "../../types/rfq";
+import { useDataSync } from "../../contexts/DataSyncContext";
 import {
   FileText,
   Plus,
@@ -65,6 +66,9 @@ export default function ClientRFQList() {
       setLoading(false);
     }
   };
+
+  useDataSync("rfq_requests", () => loadRFQs());
+  useDataSync("rfq_offers", () => loadRFQs());
 
   const handlePublish = async (id: string) => {
     try {

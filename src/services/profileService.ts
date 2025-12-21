@@ -32,6 +32,11 @@ export const profileService = {
         throw new Error("Profile not found");
       }
 
+      // Apply virtual verification for clients
+      if (data && data.role === 'client') {
+        data.kyc_status = 'verified';
+      }
+
       // Cache the result
       localStorage.setItem(`user_profile_${userId}`, JSON.stringify(data));
       return data;
@@ -54,6 +59,7 @@ export const profileService = {
           full_name: user.user_metadata?.full_name || "User",
           role: user.user_metadata?.role || "client",
           avatar_url: user.user_metadata?.avatar_url,
+          kyc_status: "verified",
           loyalty_points: 0,
           tier: "Bronze",
         };
@@ -258,7 +264,7 @@ export const profileService = {
       // Map DB columns to interface
       return data.map((profile) => ({
         ...profile,
-        kyc_status: profile.kyc_status || "pending",
+        kyc_status: profile.role === 'client' ? 'verified' : (profile.kyc_status || "pending"),
       }));
     } catch (error) {
       console.error("Error fetching all profiles:", error);

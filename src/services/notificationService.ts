@@ -79,5 +79,18 @@ export const notificationService = {
         callback
       )
       .subscribe();
+  },
+
+  sendNotification: async (userId: string, title: string, message: string, type: string = "info", link?: string) => {
+    const { error } = await supabase.from("notifications").insert({
+      user_id: userId,
+      title,
+      message,
+      type,
+      link,
+      read_at: null
+    });
+
+    if (error) throw error;
   }
 };

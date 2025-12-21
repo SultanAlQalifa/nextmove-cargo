@@ -11,6 +11,7 @@ import {
 import { supabase } from "../../../lib/supabase";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useToast } from "../../../contexts/ToastContext";
+import { useDataSync } from "../../../contexts/DataSyncContext";
 import TopUpModal from "../../../components/dashboard/TopUpModal";
 
 import { Transaction } from "../../../types/transaction";
@@ -22,6 +23,10 @@ export default function ClientWallet() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [isTopUpOpen, setIsTopUpOpen] = useState(false);
+
+  // Live Sync
+  useDataSync("transactions", () => fetchWalletData());
+  useDataSync("profiles", () => fetchWalletData());
 
   useEffect(() => {
     if (user) {

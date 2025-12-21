@@ -374,8 +374,11 @@ export default function AdminForwarders() {
             onClick={() => setActiveMenu(null)}
           ></div>
 
+          {/* eslint-disable-next-line react/forbid-dom-props */}
           <div
             className="fixed z-50 bg-white rounded-xl shadow-xl border border-gray-100 py-1 animate-in fade-in zoom-in duration-200 w-56"
+            // eslint-disable-next-line react/forbid-dom-props
+            /* hint-disable no-inline-styles */
             style={{
               top: `${menuPosition.top}px`,
               right: `${menuPosition.right}px`,
