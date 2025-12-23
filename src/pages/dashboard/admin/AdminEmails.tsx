@@ -15,6 +15,7 @@ import {
   Trash2,
   Eye,
   Repeat,
+  AlertTriangle,
 } from "lucide-react";
 import DOMPurify from "dompurify";
 import { useToast } from "../../../contexts/ToastContext";

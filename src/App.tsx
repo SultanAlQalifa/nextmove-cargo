@@ -81,6 +81,9 @@ const ClientSupport = lazy(
 const ClientGroupage = lazy(
   () => import("./pages/dashboard/client/ClientGroupage"),
 );
+const ClientSavedQuotes = lazy(
+  () => import("./pages/dashboard/client/ClientSavedQuotes"),
+);
 const ClientSettings = lazy(
   () => import("./pages/dashboard/client/ClientSettings"),
 );
@@ -159,6 +162,7 @@ const AdminRFQList = lazy(() => import("./pages/dashboard/admin/AdminRFQList"));
 const AdminShipments = lazy(
   () => import("./pages/dashboard/admin/AdminShipments"),
 );
+const AdminBlog = lazy(() => import("./pages/dashboard/admin/AdminBlog"));
 const AdminPayments = lazy(
   () => import("./pages/dashboard/admin/AdminPayments"),
 );
@@ -210,6 +214,10 @@ const AdminEmails = lazy(() => import("./pages/dashboard/admin/AdminEmails"));
 const AdminReferrals = lazy(
   () => import("./pages/dashboard/admin/AdminReferrals"),
 );
+const AdminTestimonials = lazy(
+  () => import("./pages/dashboard/admin/AdminTestimonials"),
+);
+const AdminFAQ = lazy(() => import("./pages/dashboard/admin/AdminFAQ"));
 const AdminSecurity = lazy(
   () => import("./pages/dashboard/admin/AdminSecurity"),
 );
@@ -221,6 +229,9 @@ const PendingCashPayments = lazy(
 );
 const AdminInvoices = lazy(
   () => import("./pages/dashboard/admin/AdminInvoices"),
+);
+const AdminSavedQuotes = lazy(
+  () => import("./pages/dashboard/admin/AdminSavedQuotes"),
 );
 
 import "./i18n";
@@ -339,6 +350,10 @@ function App() {
                                         <Route
                                           path="client/rfq/create"
                                           element={<CreateRFQForm />}
+                                        />
+                                        <Route
+                                          path="client/saved-quotes"
+                                          element={<ClientSavedQuotes />}
                                         />
                                         <Route
                                           path="client/rfq/:id"
@@ -533,6 +548,10 @@ function App() {
                                           element={<AdminGroupage />}
                                         />
                                         <Route
+                                          path="admin/saved-quotes"
+                                          element={<AdminSavedQuotes />}
+                                        />
+                                        <Route
                                           path="admin/shipments"
                                           element={<AdminShipments />}
                                         />
@@ -613,6 +632,10 @@ function App() {
                                           element={<AdminEmails />}
                                         />
                                         <Route
+                                          path="admin/blog"
+                                          element={<AdminBlog />}
+                                        />
+                                        <Route
                                           path="admin/referrals"
                                           element={<AdminReferrals />}
                                         />
@@ -631,6 +654,14 @@ function App() {
                                         <Route
                                           path="admin/invoices"
                                           element={<AdminInvoices />}
+                                        />
+                                        <Route
+                                          path="admin/testimonials"
+                                          element={<AdminTestimonials />}
+                                        />
+                                        <Route
+                                          path="admin/faq"
+                                          element={<AdminFAQ />}
                                         />
                                       </Route>
 

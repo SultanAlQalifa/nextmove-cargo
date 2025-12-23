@@ -3,6 +3,7 @@ import { supabase } from "../lib/supabase";
 export interface BrandingSettings {
   platform_name: string;
   logo_url: string;
+  logo_nexus_url: string;
   favicon_url: string;
   primary_color: string;
   secondary_color: string;
@@ -112,6 +113,9 @@ export interface BrandingSettings {
     theme_color: string;
     background_color: string;
     icon_url: string;
+    start_url: string;
+    display: string;
+    orientation: string;
   };
   social_media: {
     facebook: string;
@@ -120,6 +124,7 @@ export interface BrandingSettings {
     linkedin: string;
     tiktok: string;
     youtube: string;
+    whatsapp_number: string;
   };
   seo: {
     meta_title_template: string;
@@ -136,11 +141,15 @@ export interface BrandingSettings {
     invoice_footer_text: string;
     default_tax_rate: number;
   };
+  id?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 const DEFAULT_BRANDING: BrandingSettings = {
   platform_name: "NextMove Cargo",
   logo_url: "https://via.placeholder.com/150x50?text=NextMove",
+  logo_nexus_url: "https://via.placeholder.com/50x50?text=N",
   favicon_url: "https://via.placeholder.com/32x32",
   primary_color: "#2563eb", // blue-600
   secondary_color: "#1e40af", // blue-800
@@ -263,6 +272,9 @@ const DEFAULT_BRANDING: BrandingSettings = {
     theme_color: "#1e40af",
     background_color: "#ffffff",
     icon_url: "",
+    start_url: "/",
+    display: "standalone",
+    orientation: "portrait",
   },
   social_media: {
     facebook: "",
@@ -271,6 +283,7 @@ const DEFAULT_BRANDING: BrandingSettings = {
     linkedin: "",
     tiktok: "",
     youtube: "",
+    whatsapp_number: "221771234567",
   },
   seo: {
     meta_title_template: "%s | NextMove Cargo",
@@ -290,6 +303,9 @@ const DEFAULT_BRANDING: BrandingSettings = {
       "Merci de votre confiance. Facture générée informatiquement.",
     default_tax_rate: 18,
   },
+  id: "default",
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
 };
 
 export const brandingService = {

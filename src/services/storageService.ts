@@ -132,4 +132,45 @@ export const storageService = {
       publicUrl,
     };
   },
+
+  /**
+   * Uploads a POD photo.
+   */
+  async uploadPODPhoto(shipmentId: string, file: File) {
+    const fileExt = file.name.split(".").pop();
+    const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+    const filePath = `${shipmentId}/${fileName}`;
+
+    await this.uploadFile("pods", filePath, file);
+
+    const { data } = supabase.storage.from("pods").getPublicUrl(filePath);
+    return data.publicUrl;
+  },
+
+  /**
+   * Uploads an APK or IPA file for app distribution.
+   */
+  async uploadMobileBinary(file: File, platform: "android" | "ios") {
+    const fileName = platform === "android" ? "nextmove-cargo.apk" : "nextmove-cargo.ipa";
+    const filePath = `latest/${fileName}`;
+
+    await this.uploadFile("apks", filePath, file);
+
+    const { data } = supabase.storage.from("apks").getPublicUrl(filePath);
+    return data.publicUrl;
+  },
+
+  /**
+   * Uploads an image for a blog post.
+   */
+  async uploadBlogImage(file: File) {
+    const fileExt = file.name.split(".").pop();
+    const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+    const filePath = `blog/${fileName}`;
+
+    await this.uploadFile("news", filePath, file);
+
+    const { data } = supabase.storage.from("news").getPublicUrl(filePath);
+    return data.publicUrl;
+  },
 };

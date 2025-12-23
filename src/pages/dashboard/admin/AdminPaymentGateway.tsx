@@ -47,8 +47,21 @@ export default function AdminPaymentGateway() {
   }, []);
 
   const handleToggle = async (id: string) => {
-    await paymentGatewayService.toggleGateway(id);
-    await fetchGateways();
+    try {
+      await paymentGatewayService.toggleGateway(id);
+      const updatedGateways = await paymentGatewayService.getGateways();
+      setGateways(updatedGateways);
+
+      // Important: Update the currently selected gateway if it was the one toggled
+      if (selectedGateway?.id === id || (id.endsWith("-default") && selectedGateway?.provider === id.split("-")[0])) {
+        const updated = updatedGateways.find(g => g.id === id || (id.endsWith("-default") && g.provider === id.split("-")[0]));
+        if (updated) setSelectedGateway(updated);
+      }
+
+      success("Statut mis à jour !");
+    } catch (error: any) {
+      toastError("Erreur lors du basculement: " + error.message);
+    }
   };
 
   const handleSaveConfig = async () => {

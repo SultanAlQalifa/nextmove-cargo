@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import PageHeader from "../../../components/common/PageHeader";
 import {
   Users,
@@ -374,15 +375,14 @@ export default function AdminForwarders() {
             onClick={() => setActiveMenu(null)}
           ></div>
 
-          {/* eslint-disable-next-line react/forbid-dom-props */}
-          <div
-            className="fixed z-50 bg-white rounded-xl shadow-xl border border-gray-100 py-1 animate-in fade-in zoom-in duration-200 w-56"
-            // eslint-disable-next-line react/forbid-dom-props
-            /* hint-disable no-inline-styles */
-            style={{
-              top: `${menuPosition.top}px`,
-              right: `${menuPosition.right}px`,
+          <motion.div
+            className="fixed z-50 bg-white rounded-xl shadow-xl border border-gray-100 py-1 w-56 transform"
+            initial={false}
+            animate={{
+              top: menuPosition.top,
+              right: menuPosition.right,
             }}
+            transition={{ type: "spring", stiffness: 400, damping: 40 }}
           >
             <div className="px-3 py-2 text-xs font-semibold text-gray-400 uppercase">
               KYC
@@ -430,7 +430,7 @@ export default function AdminForwarders() {
                 <XCircle className="w-4 h-4" /> Suspendre
               </button>
             )}
-          </div>
+          </motion.div>
         </>
       )}
 

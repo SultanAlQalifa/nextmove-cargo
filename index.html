@@ -3,13 +3,13 @@
 
 <head>
   <meta charset="UTF-8" />
-  <link rel="icon" type="image/png" href="/logo.png" />
+  <link rel="icon" type="image/png" href="/logo-nexus.png" />
   <meta http-equiv="Content-Security-Policy"
-    content="default-src 'self' https://*.supabase.co https://*.unsplash.com https://flagcdn.com; img-src 'self' data: blob: https://*.supabase.co https://*.unsplash.com https://flagcdn.com https://www.transparenttextures.com; manifest-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' https://maps.googleapis.com; connect-src 'self' https://*.supabase.co https://api.mapbox.com wss://*.supabase.co;">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    content="default-src 'self' https://*.supabase.co https://*.supabase.in https://*.wave.com https://*.google.com https://*.googleapis.com wss://*.supabase.co; connect-src 'self' https://*.supabase.co https://*.supabase.in wss://*.supabase.co https://*.wave.com https://*.google.com https://*.googleapis.com https://api.openai.com https://*.sentry.io https://*.ingest.sentry.io https://*.ingest.de.sentry.io; img-src 'self' data: blob: https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.google.com https://*.gstatic.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; manifest-src 'self' blob:;">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="description"
     content="NextMove - La plateforme logistique digitale pour vos expéditions maritimes et aériennes. Suivi en temps réel, paiements sécurisés et gestion simplifiée." />
-  <link rel="apple-touch-icon" href="/pwa-192x192.png" />
+  <link rel="apple-touch-icon" href="/logo-nexus.png" />
   <title>NextMove - Logistique Digitale</title>
 
   <!-- SEO & OGP -->
@@ -39,6 +39,19 @@
       const autoTheme = hour >= 6 && hour < 18 ? "light" : "dark";
       const theme = savedTheme || autoTheme;
       document.documentElement.classList.add(theme);
+
+      // FORCE CLEAR CACHE & SW (Debug)
+      if (window.location.search.includes('clear')) {
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations().then(regs => {
+            for (let reg of regs) reg.unregister();
+          });
+        }
+        caches.keys().then(names => {
+          for (let name of names) caches.delete(name);
+        });
+        window.location.href = window.location.pathname;
+      }
     })();
   </script>
 </head>

@@ -37,8 +37,11 @@ export const aiService = {
      * @param content User's message content
      * @returns Promise resolving to the AI's response message
      */
-    sendMessage: async (content: string, context?: string, imageData?: string): Promise<AIMessage> => {
-        if (!OPENAI_API_KEY) {
+    sendMessage: async (content: string, context?: string, imageData?: string, options?: { apiKey?: string; systemPrompt?: string }): Promise<AIMessage> => {
+        const apiKey = options?.apiKey || OPENAI_API_KEY;
+        const systemPromptToUse = options?.systemPrompt || SYSTEM_PROMPT;
+
+        if (!apiKey) {
             console.warn("OpenAI API Key is missing");
             return {
                 id: crypto.randomUUID(),
@@ -85,8 +88,8 @@ export const aiService = {
         try {
             // Mix System Prompt with Dynamic Context
             const finalSystemPrompt = context
-                ? `${SYSTEM_PROMPT}\n${context}`
-                : SYSTEM_PROMPT;
+                ? `${systemPromptToUse}\n${context}`
+                : systemPromptToUse;
 
             // Prepare messages array
             const messages: any[] = [
@@ -117,18 +120,21 @@ export const aiService = {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${OPENAI_API_KEY}`
+                    'Authorization': `Bearer ${apiKey}`
                 },
                 body: JSON.stringify({
-                    model: 'gpt-4o', // ALWAYS use GPT-4o for best quality
+                    model: 'gpt-4o-mini', // More accessible than gpt-4o
                     messages: messages,
                     temperature: 0.7,
-                    max_tokens: 500, // Limit response for images
+                    max_tokens: 500,
                 })
             });
 
             if (!response.ok) {
-                throw new Error(`OpenAI API error: ${response.statusText}`);
+                const errorData = await response.json().catch(() => ({}));
+                console.error("OpenAI API Error:", errorData);
+                const errorMsg = errorData.error?.message || response.statusText;
+                throw new Error(`Erreur API (${response.status}): ${errorMsg}`);
             }
 
             const data = await response.json();
@@ -141,12 +147,21 @@ export const aiService = {
                 timestamp: new Date(),
             };
 
-        } catch (error) {
+        } catch (error: any) {
             console.error("AI Service Error:", error);
+
+            let friendlyMessage = "Désolé, j'ai rencontré un problème technique. Veuillez réessayer dans quelques instants.";
+
+            if (error.message?.includes("429")) {
+                friendlyMessage = "Mon quota de réflexion est temporairement épuisé 🧠. Je serai de nouveau opérationnel dès que mes crédits seront rechargés. Merci de votre patience !";
+            } else if (error.message?.includes("401") || error.message?.includes("Clé API")) {
+                friendlyMessage = "Je rencontre un problème de configuration (Clé API). Veuillez contacter l'administrateur.";
+            }
+
             return {
                 id: crypto.randomUUID(),
                 role: 'assistant',
-                content: "Oups ! J'ai eu un petit problème de connexion. Veuillez réessayer plus tard ou contacter le support humain.",
+                content: friendlyMessage,
                 timestamp: new Date(),
             };
         }
@@ -159,7 +174,7 @@ export const aiService = {
         return {
             id: 'welcome',
             role: 'assistant',
-            content: "Bonjour. Je suis l'Expert Logistique de NextMove Cargo. Je peux vous assister sur vos cotations, le suivi de vos conteneurs ou les procédures douanières. Quelle est votre demande ?",
+            content: "Bonjour. Je suis l'Expert Logistique de NextMove Cargo (v2.3). Je peux vous assister sur vos cotations, le suivi de vos conteneurs ou les procédures douanières. Quelle est votre demande ?",
             timestamp: new Date(),
         };
     }

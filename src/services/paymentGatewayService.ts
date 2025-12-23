@@ -3,7 +3,7 @@ import { supabase } from "../lib/supabase";
 export interface PaymentGateway {
   id: string;
   name: string;
-  provider: "wave" | "wallet" | "paytech" | "cinetpay" | "bank_transfer";
+  provider: "wave" | "wallet" | "paytech" | "cinetpay" | "bank_transfer" | "offline";
   is_active: boolean;
   is_test_mode: boolean;
   config: {
@@ -132,7 +132,7 @@ export const paymentGatewayService = {
             ...dbUpdates,
             name: "Wave",
             provider: "wave",
-            is_active: true,
+            is_active: dbUpdates.is_active !== undefined ? dbUpdates.is_active : true,
           },
         ])
         .select()
@@ -151,7 +151,7 @@ export const paymentGatewayService = {
             ...dbUpdates,
             name: "Mon Portefeuille",
             provider: "wallet",
-            is_active: true,
+            is_active: dbUpdates.is_active !== undefined ? dbUpdates.is_active : true,
           },
         ])
         .select()
@@ -171,7 +171,7 @@ export const paymentGatewayService = {
             ...dbUpdates,
             provider,
             name: dbUpdates.name || provider.charAt(0).toUpperCase() + provider.slice(1).replace("_", " "),
-            is_active: true,
+            is_active: dbUpdates.is_active !== undefined ? dbUpdates.is_active : true,
           },
         ])
         .select()
@@ -193,6 +193,20 @@ export const paymentGatewayService = {
   },
 
   toggleGateway: async (id: string): Promise<void> => {
+    if (id.endsWith("-default")) {
+      // If it's a default, we need to create it in the DB to store the preference
+      // We'll get the current default state first
+      const gateways = await paymentGatewayService.getGateways();
+      const current = gateways.find(g => g.id === id);
+      if (current) {
+        await paymentGatewayService.updateGateway(id, {
+          ...current,
+          is_active: !current.is_active
+        });
+      }
+      return;
+    }
+
     // First get current status
     const { data: current, error: fetchError } = await supabase
       .from("payment_gateways")

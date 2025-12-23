@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../contexts/AuthContext";
+import { useToast } from "../contexts/ToastContext";
 import { useSettings } from "../contexts/SettingsContext";
 import { useTranslation } from "react-i18next";
 import { Mail, Lock, ArrowRight, Loader2, Eye, EyeOff } from "lucide-react";
@@ -12,9 +13,10 @@ import PhoneInputWithCountry from "../components/auth/PhoneInputWithCountry";
 
 export default function Login() {
   const { t } = useTranslation();
+  const { success: showSuccess } = useToast();
   const { settings } = useBranding();
   // We use the global settings context for security flags
-  const { settings: systemSettings } = useSettings();
+  const { settings: _systemSettings } = useSettings();
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
 

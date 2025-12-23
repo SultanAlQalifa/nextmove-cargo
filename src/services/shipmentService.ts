@@ -298,18 +298,30 @@ export const shipmentService = {
   /**
    * Assign a driver to a shipment (Mock implementation for now as Driver system is separate)
    */
-  assignDriver: async (shipmentId: string, _driverId: string): Promise<void> => {
+  assignDriver: async (shipmentId: string, driverId: string): Promise<void> => {
     try {
-      // We can simulate an event update
-      // Using straight await here as standard try/catch is enough for writes
-      const { error } = await supabase.from("shipment_events").insert({
+      // 1. Update shipment with driver_id
+      const { error: updateError } = await supabase
+        .from("shipments")
+        .update({
+          driver_id: driverId,
+          status: "picked_up" // Transition status on assignment
+        })
+        .eq("id", shipmentId);
+
+      if (updateError) throw updateError;
+
+      // 2. Add tracking event
+      const { error: eventError } = await supabase.from("shipment_events").insert({
         shipment_id: shipmentId,
-        status: "in_transit",
+        status: "picked_up",
         location: "Warehouse",
-        description: "Chauffeur assigné pour enlèvement",
+        description: "Expédition assignée au chauffeur pour livraison.",
       });
 
-      if (error) throw error;
+      if (eventError) throw eventError;
+
+      // 3. Notify driver (optional/future)
     } catch (error) {
       console.error("Error assigning driver:", error);
       throw error;
@@ -319,7 +331,7 @@ export const shipmentService = {
   /**
    * Get shipments assigned to a specific driver
    */
-  getShipmentsForDriver: async (_driverId: string): Promise<Shipment[]> => {
+  getShipmentsForDriver: async (driverId: string): Promise<Shipment[]> => {
     try {
       const data = await fetchWithRetry<any[]>(() =>
         supabase
@@ -327,11 +339,12 @@ export const shipmentService = {
           .select(
             `
           *,
-            events: shipment_events(*)
+            events: shipment_events(*),
+            client: profiles!client_id(id, full_name, phone, email)
             `,
           )
-          // .eq('driver_id', driverId) // Uncomment when column exists
-          .limit(5),
+          .eq('driver_id', driverId)
+          .order('created_at', { ascending: false })
       );
 
       return (data || []).map(mapDbShipmentToApp);
@@ -353,26 +366,54 @@ export const shipmentService = {
     longitude: number;
     driver_notes?: string;
   }): Promise<void> => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("Not authenticated");
+
     try {
       // 1. Update shipment status to delivered
       const { error: shipmentError } = await supabase
         .from("shipments")
-        .update({ status: "delivered" })
+        .update({
+          status: "delivered",
+          arrival_actual_date: podData.delivered_at
+        })
         .eq("id", podData.shipment_id);
 
       if (shipmentError) throw shipmentError;
 
-      // 2. Create POD record (assuming a 'pods' table exists, or just log event)
+      // 2. Create POD record
+      const { error: podError } = await supabase
+        .from("shipment_pods")
+        .insert({
+          shipment_id: podData.shipment_id,
+          driver_id: user.id,
+          recipient_name: podData.recipient_name,
+          photo_urls: podData.photo_urls,
+          latitude: podData.latitude,
+          longitude: podData.longitude,
+          notes: podData.driver_notes,
+          delivered_at: podData.delivered_at
+        });
+
+      if (podError) throw podError;
+
+      // 3. Create delivery event
       const { error: eventError } = await supabase
         .from("shipment_events")
         .insert({
           shipment_id: podData.shipment_id,
           status: "delivered",
-          location: `Lat: ${podData.latitude}, Lng: ${podData.longitude}`,
-          description: `Livré à ${podData.recipient_name}.Notes: ${podData.driver_notes || "Aucune"}`,
+          location: `Lat: ${podData.latitude.toFixed(4)}, Lng: ${podData.longitude.toFixed(4)}`,
+          description: `Livré à ${podData.recipient_name}. Notes: ${podData.driver_notes || "Aucune"}`,
         });
 
       if (eventError) throw eventError;
+
+      // 4. Trigger automation (already handled by updateShipment hook but we call it manually for POD too if needed)
+      // Actually shipmentService.updateShipment handles it. 
+      // But submitPOD is separate. We should ensure consistency.
+      automationService.handleShipmentDelivery(podData.shipment_id, user.id);
+
     } catch (error) {
       console.error("Error submitting POD:", error);
       throw error;

@@ -20,6 +20,7 @@ import {
 import SEOHead from "./seo/SEOHead";
 import NewsTicker from "./common/NewsTicker";
 import ChatWidget from "./common/ChatWidget";
+import WhatsAppButton from "./common/WhatsAppButton";
 
 export default function Layout() {
   const { t } = useTranslation();
@@ -50,7 +51,7 @@ export default function Layout() {
       {/* Ultra-Premium Fixed Floating Navbar */}
       <PWAInstallPrompt />
       <div
-        className={`fixed top-0 left-0 right-0 z-50 flex flex-col items-center pointer-events-none transition-all duration-300`}
+        className={`fixed top-0 left-0 right-0 z-50 flex flex-col items-center pointer-events-none transition-all duration-300 pt-safe`}
       >
         <div
           className={`w-full px-2 sm:px-6 lg:px-8 pb-2 pointer-events-none transition-all duration-300 ${isScrolled ? "pt-1" : "pt-4"}`}
@@ -320,10 +321,11 @@ export default function Layout() {
 
       <footer className="bg-gray-900 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-4 gap-8 mb-8">
-            <div className="md:col-span-2">
-              <h3 className="text-2xl font-bold mb-4">
-                {settings?.platform_name || "NextMove Cargo"}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 mb-8">
+            <div className="lg:col-span-2">
+              <h3 className="text-2xl font-bold mb-4 flex items-center">
+                <span className="text-primary">NextMove</span>
+                <span className="text-secondary ml-1">Cargo</span>
               </h3>
               <p className="text-gray-400 mb-4">
                 {settings?.footer?.tagline ||
@@ -367,30 +369,48 @@ export default function Layout() {
               </h4>
               <ul className="space-y-2 text-gray-400">
                 <li>
-                  <Link
-                    to="/about"
-                    className="hover:text-white transition-colors"
-                  >
+                  <Link to="/about" className="hover:text-white transition-colors">
                     À Propos
                   </Link>
                 </li>
                 <li>
-                  <Link
-                    to="/contact"
-                    className="hover:text-white transition-colors"
-                  >
+                  <Link to="/contact" className="hover:text-white transition-colors">
                     Contact
                   </Link>
                 </li>
                 <li>
-                  <Link
-                    to="/privacy"
-                    className="hover:text-white transition-colors"
-                  >
+                  <Link to="/privacy" className="hover:text-white transition-colors">
                     Politique de Confidentialité
                   </Link>
                 </li>
               </ul>
+            </div>
+            <div>
+              <h4 className="font-bold mb-4">Apps Mobiles</h4>
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={() => setShowInstallGuide(true)}
+                  className="transition-transform hover:scale-105 active:scale-95 duration-200 text-left"
+                >
+                  <img
+                    src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Download_on_the_App_Store_Badge.svg"
+                    alt="App Store"
+                    className="h-8 w-auto opacity-70 hover:opacity-100 transition-opacity"
+                  />
+                </button>
+                <a
+                  href="https://dkbnmnpxoesvkbnwuyle.supabase.co/storage/v1/object/public/apks/latest/nextmove-cargo.apk"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="transition-transform hover:scale-105 active:scale-95 duration-200"
+                >
+                  <img
+                    src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg"
+                    alt="Google Play"
+                    className="h-8 w-auto opacity-70 hover:opacity-100 transition-opacity"
+                  />
+                </a>
+              </div>
             </div>
           </div>
           <div className="border-t border-gray-800 pt-8 text-center text-gray-400">
@@ -437,7 +457,9 @@ export default function Layout() {
       />
 
       <NewsTicker />
-      <ChatWidget /> {/* NEW */}
+      <NewsTicker />
+      <ChatWidget />
+      <WhatsAppButton /> {/* NEW */}
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { supabase } from "../lib/supabase";
 import { fetchWithRetry } from "../utils/supabaseHelpers";
 import { Profile as UserProfile, AutomationSettings } from "../types/profile";
+import { auditService } from "./auditService";
 
 export type { UserProfile };
 
@@ -24,7 +25,7 @@ export const profileService = {
     try {
       // 2. Fetch from Supabase with retry logic
       const data = await fetchWithRetry<UserProfile>(() =>
-        supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
+        supabase.from("profiles").select("*, staff_role:staff_roles(*)").eq("id", userId).maybeSingle(),
       );
 
       if (!data) {
@@ -98,6 +99,15 @@ export const profileService = {
       await fetchWithRetry(() =>
         supabase.from("profiles").update(updates).eq("id", userId),
       );
+
+      // Audit Log
+      await auditService.logAction(
+        "profile_update",
+        "profile",
+        userId,
+        { updates },
+        { severity: "info" }
+      );
     } catch (error) {
       console.error("Error updating profile:", error);
       // Re-throw to let caller handle generic errors, but we keep the optimistic update strategy
@@ -111,7 +121,7 @@ export const profileService = {
     if (error) throw error;
   },
 
-  uploadAvatar: async (userId: string, file: File): Promise<string> => {
+  uploadAvatar: async (_userId: string, file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -131,19 +141,16 @@ export const profileService = {
 
     try {
       // Fetch from BOTH sources in parallel
-      // Define wrapper type for query result
-      type ProfileWrapper = { user: UserProfile };
-
       const [shipmentClients, explicitClients] = await Promise.all([
         // Source 1: Clients from Shipments
-        fetchWithRetry<ProfileWrapper[]>(() =>
+        fetchWithRetry<any[]>(() =>
           supabase
             .from("shipments")
             .select(`user:profiles!client_id(*)`)
             .eq("forwarder_id", user.id),
         ),
         // Source 2: Explicitly added clients
-        fetchWithRetry<ProfileWrapper[]>(() =>
+        fetchWithRetry<any[]>(() =>
           supabase
             .from("forwarder_clients")
             .select(`user:profiles!client_id(*)`)
@@ -234,6 +241,14 @@ export const profileService = {
           .eq("id", userId),
       );
 
+      await auditService.logAction(
+        "role_upgrade",
+        "profile",
+        userId,
+        { new_role: "forwarder" },
+        { severity: "medium" }
+      );
+
       // Also update local storage to reflect the change immediately
       const cachedProfileStr = localStorage.getItem(`user_profile_${userId}`);
       if (cachedProfileStr) {
@@ -282,6 +297,14 @@ export const profileService = {
           .from("profiles")
           .update({ account_status: status })
           .eq("id", userId),
+      );
+
+      await auditService.logAction(
+        "status_change",
+        "profile",
+        userId,
+        { new_status: status },
+        { severity: "high" }
       );
     } catch (error) {
       console.error("Error updating status:", error);

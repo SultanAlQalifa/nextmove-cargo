@@ -270,8 +270,8 @@ export default function ForwarderSubscription() {
                   onClick={() => setPaymentModal({ isOpen: true, plan })}
                   disabled={isCurrent}
                   className={`w-full py-4 rounded-2xl font-bold text-sm transition-all duration-300 transform active:scale-95 ${isCurrent
-                      ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-                      : "bg-primary text-white hover:bg-blue-800 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30"
+                    ? "bg-slate-100 text-slate-400 cursor-not-allowed"
+                    : "bg-primary text-white hover:bg-blue-800 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30"
                     }`}
                 >
                   {isCurrent ? "Votre Plan" : "Choisir " + plan.name}
@@ -290,7 +290,7 @@ export default function ForwarderSubscription() {
           planName={paymentModal.plan.name}
           amount={paymentModal.plan.price}
           currency={paymentModal.plan.currency}
-          allowedMethods={["wave", "wallet"]}
+          allowedMethods={["wave", "wallet", "cinetpay", "paytech"]}
         />
       )}
     </div>

@@ -47,6 +47,7 @@ import {
   Wallet,
   Building2,
   Banknote,
+  Newspaper,
 } from "lucide-react";
 import { Zap } from "lucide-react";
 import NewsTicker from "../common/NewsTicker";
@@ -54,10 +55,12 @@ import NewsTicker from "../common/NewsTicker";
 import NotificationCenter from "../notifications/NotificationCenter";
 import MobileCountrySelector from "../MobileCountrySelector";
 import ChatWidget from "../common/ChatWidget";
+import WhatsAppButton from "../common/WhatsAppButton";
 
 import KYCBadge from "../common/KYCBadge";
 import ClientTierBadge from "../common/ClientTierBadge";
 import GlobalErrorBoundary from "../common/GlobalErrorBoundary";
+import AppDownloadLinks from "../common/AppDownloadLinks";
 
 import { useUI } from "../../contexts/UIContext";
 import { useChat } from "../../contexts/ChatContext";
@@ -198,6 +201,11 @@ export default function DashboardLayout() {
               path: "#calculator",
               icon: Calculator,
             },
+            {
+              name: "Devis Sauvegardés",
+              path: "/dashboard/client/saved-quotes",
+              icon: FileText,
+            },
           ],
         },
         {
@@ -255,7 +263,13 @@ export default function DashboardLayout() {
     }
 
     if (role === "forwarder") {
-      return [
+      const hasPermission = (permission: string) => {
+        if (!profile?.staff_role_id) return true; // Master Account has full access
+        const staffPermissions = profile.staff_role?.permissions || [];
+        return staffPermissions.includes(permission) || staffPermissions.includes("all");
+      };
+
+      const sections: NavSection[] = [
         {
           title: t("dashboard.menu.main"),
           items: [
@@ -266,7 +280,11 @@ export default function DashboardLayout() {
             },
           ],
         },
-        {
+      ];
+
+      // Parrainage (Finance/Admin)
+      if (hasPermission('finance.view') || hasPermission('referrals.view')) {
+        sections.push({
           title: "Parrainage & Gains",
           items: [
             {
@@ -275,132 +293,73 @@ export default function DashboardLayout() {
               icon: Gift,
             },
           ],
-        },
-        {
-          title: t("dashboard.menu.operations"),
-          items: [
-            {
-              name: t("dashboard.menu.availableRfq"),
-              path: "/dashboard/forwarder/rfq",
-              icon: FileText,
-            },
-            {
-              name: t("dashboard.menu.groupage"),
-              path: "/dashboard/forwarder/groupage",
-              icon: Package,
-            },
-            {
-              name: t("dashboard.menu.myOffers"),
-              path: "/dashboard/forwarder/offers",
-              icon: FileText,
-              isAutomated: true,
-            },
-            {
-              name: "Mes Tarifs Standards",
-              path: "/dashboard/forwarder/rates",
-              icon: Tag,
-              isAutomated: true,
-            },
-            {
-              name: t("dashboard.menu.shipments"),
-              path: "/dashboard/forwarder/shipments",
-              icon: Truck,
-            },
-            {
-              name: t("dashboard.menu.documents"),
-              path: "/dashboard/forwarder/documents",
-              icon: FileText,
-            },
-            {
-              name: t("dashboard.menu.pod"),
-              path: "/dashboard/forwarder/pod",
-              icon: FileText,
-              isAutomated: true,
-            },
-            {
-              name: "Automatisations",
-              path: "/dashboard/forwarder/automations",
-              icon: Zap,
-              isAutomated: true,
-            },
-          ],
-        },
-        {
-          title: t("dashboard.menu.management"),
-          items: [
-            {
-              name: "Entrepôts",
-              path: "/dashboard/forwarder/addresses",
-              icon: Building2,
-            },
-            {
-              name: t("dashboard.menu.personnel"),
-              path: "/dashboard/forwarder/personnel",
-              icon: User,
-            },
-            {
-              name: t("dashboard.menu.myClients"),
-              path: "/dashboard/forwarder/clients",
-              icon: User,
-            },
-            {
-              name: "Documents Légaux",
-              path: "/dashboard/forwarder/kyc",
-              icon: Shield,
-            },
-          ],
-        },
-        {
+        });
+      }
+
+      // Operations
+      const operationItems: NavItem[] = [];
+      if (hasPermission('shipments.view')) {
+        operationItems.push(
+          { name: t("dashboard.menu.availableRfq"), path: "/dashboard/forwarder/rfq", icon: FileText },
+          { name: t("dashboard.menu.groupage"), path: "/dashboard/forwarder/groupage", icon: Package },
+          { name: t("dashboard.menu.myOffers"), path: "/dashboard/forwarder/offers", icon: FileText, isAutomated: true },
+          { name: "Mes Tarifs Standards", path: "/dashboard/forwarder/rates", icon: Tag, isAutomated: true },
+          { name: t("dashboard.menu.shipments"), path: "/dashboard/forwarder/shipments", icon: Truck },
+          { name: t("dashboard.menu.documents"), path: "/dashboard/forwarder/documents", icon: FileText },
+          { name: t("dashboard.menu.pod"), path: "/dashboard/forwarder/pod", icon: FileText, isAutomated: true },
+        );
+      }
+      if (hasPermission('settings.view')) { // Automations usually admin/settings
+        operationItems.push({ name: "Automatisations", path: "/dashboard/forwarder/automations", icon: Zap, isAutomated: true });
+      }
+
+      if (operationItems.length > 0) {
+        sections.push({ title: t("dashboard.menu.operations"), items: operationItems });
+      }
+
+      // Management
+      const managementItems: NavItem[] = [];
+      if (hasPermission('settings.view')) {
+        managementItems.push({ name: "Entrepôts", path: "/dashboard/forwarder/addresses", icon: Building2 });
+      }
+      if (hasPermission('personnel.view')) {
+        managementItems.push({ name: t("dashboard.menu.personnel"), path: "/dashboard/forwarder/personnel", icon: User });
+        // Assuming client management is related to personnel/sales permissions
+        managementItems.push({ name: t("dashboard.menu.myClients"), path: "/dashboard/forwarder/clients", icon: User });
+      }
+      if (hasPermission('settings.view')) { // KYC is legal/settings
+        managementItems.push({ name: "Documents Légaux", path: "/dashboard/forwarder/kyc", icon: Shield });
+      }
+
+      if (managementItems.length > 0) {
+        sections.push({ title: t("dashboard.menu.management"), items: managementItems });
+      }
+
+      // Finances
+      if (hasPermission('finance.view')) {
+        sections.push({
           title: t("dashboard.menu.finances"),
           items: [
-            {
-              name: t("dashboard.menu.payments"),
-              path: "/dashboard/forwarder/payments",
-              icon: CreditCard,
-            },
-            {
-              name: "Portefeuille",
-              path: "/dashboard/forwarder/wallet",
-              icon: Wallet,
-            },
-            {
-              name: t("dashboard.menu.fundCalls"),
-              path: "/dashboard/forwarder/fund-calls",
-              icon: Bell,
-            },
-            {
-              name: t("dashboard.menu.subscriptions"),
-              path: "/dashboard/forwarder/subscription",
-              icon: CreditCard,
-            },
-            {
-              name: t("dashboard.menu.coupons"),
-              path: "/dashboard/forwarder/coupons",
-              icon: Tag,
-            },
-          ],
-        },
-        {
-          title: t("dashboard.menu.support"),
-          items: [
-            {
-              name: t("dashboard.menu.messages"),
-              path: "/dashboard/forwarder/messages",
-              icon: MessageCircle,
-            },
-            {
-              name: t("dashboard.menu.support"),
-              path: "/dashboard/forwarder/support",
-              icon: HelpCircle,
-            },
-            {
-              name: t("dashboard.menu.settings"),
-              path: "/dashboard/forwarder/settings",
-              icon: Settings,
-            },
-          ],
-        },
+            { name: t("dashboard.menu.payments"), path: "/dashboard/forwarder/payments", icon: CreditCard },
+            { name: "Portefeuille", path: "/dashboard/forwarder/wallet", icon: Wallet },
+            { name: t("dashboard.menu.fundCalls"), path: "/dashboard/forwarder/fund-calls", icon: Bell },
+            { name: t("dashboard.menu.subscriptions"), path: "/dashboard/forwarder/subscription", icon: CreditCard },
+            { name: t("dashboard.menu.coupons"), path: "/dashboard/forwarder/coupons", icon: Tag },
+          ]
+        });
+      }
+
+      // Support & Settings
+      const supportItems: NavItem[] = [
+        { name: t("dashboard.menu.messages"), path: "/dashboard/forwarder/messages", icon: MessageCircle },
+        { name: t("dashboard.menu.support"), path: "/dashboard/forwarder/support", icon: HelpCircle },
       ];
+      if (hasPermission('settings.view')) {
+        supportItems.push({ name: t("dashboard.menu.settings"), path: "/dashboard/forwarder/settings", icon: Settings });
+      }
+      sections.push({ title: t("dashboard.menu.support"), items: supportItems });
+
+      return sections;
     }
 
     if (role === "admin" || role === "super-admin") {
@@ -434,6 +393,11 @@ export default function DashboardLayout() {
               icon: Package,
             },
             {
+              name: "Devis Clients",
+              path: "/dashboard/admin/saved-quotes",
+              icon: Calculator,
+            },
+            {
               name: t("dashboard.menu.pod"),
               path: "/dashboard/admin/pod",
               icon: FileText,
@@ -460,9 +424,24 @@ export default function DashboardLayout() {
             },
             { name: "Emails", path: "/dashboard/admin/emails", icon: Mail },
             {
+              name: "Gestion du Blog",
+              path: "/dashboard/admin/blog",
+              icon: Newspaper,
+            },
+            {
               name: "Sécurité (Audit)",
               path: "/dashboard/admin/security",
               icon: Shield,
+            },
+            {
+              name: t("dashboard.menu.testimonials"),
+              path: "/dashboard/admin/testimonials",
+              icon: Star,
+            },
+            {
+              name: t("dashboard.menu.faq"),
+              path: "/dashboard/admin/faq",
+              icon: HelpCircle,
             },
           ],
         },
@@ -678,20 +657,26 @@ export default function DashboardLayout() {
       >
         {/* Logo Area */}
         <div
-          className={`h-20 flex items-center ${isCollapsed ? "justify-center px-0" : "px-8"} border-b border-gray-50/50 dark:border-gray-700/50 transition-all duration-300 relative`}
+          className={`min-h-[5rem] pt-safe flex items-center ${isCollapsed ? "justify-center px-0" : "px-8"} border-b border-gray-50/50 dark:border-gray-700/50 transition-all duration-300 relative`}
         >
           <Link
             to="/"
             className="flex items-center gap-3 group overflow-hidden relative"
           >
-            {settings?.logo_url ? (
-              <div className="flex items-center text-2xl font-bold tracking-tight">
-                <span className="text-primary">N</span>
-                {!isCollapsed && (
-                  <span className="flex items-center animate-in fade-in duration-300">
-                    <span className="text-primary">extMove</span>
-                    <span className="text-secondary ml-1">Cargo</span>
-                  </span>
+            {settings?.logo_url || settings?.logo_nexus_url ? (
+              <div className={`flex items-center ${isCollapsed ? "justify-center" : "gap-3"}`}>
+                {isCollapsed ? (
+                  <img
+                    src={settings.logo_nexus_url || settings.logo_url}
+                    alt="Logo Icon"
+                    className="w-10 h-10 object-contain animate-in zoom-in duration-300"
+                  />
+                ) : (
+                  <img
+                    src={settings.logo_url}
+                    alt={settings.platform_name}
+                    className="h-10 object-contain animate-in slide-in-from-left duration-300"
+                  />
                 )}
               </div>
             ) : (
@@ -807,6 +792,11 @@ export default function DashboardLayout() {
           ))}
         </nav>
 
+        {/* Mobile App Download Links */}
+        <div className="px-4 pb-4 mt-auto">
+          <AppDownloadLinks isCollapsed={isCollapsed} />
+        </div>
+
         {/* Bottom Actions */}
         <div className="p-4 border-t border-gray-50 dark:border-gray-700">
           <button
@@ -825,39 +815,43 @@ export default function DashboardLayout() {
       </aside>
 
       {/* Main Content Wrapper */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-slate-50/50 dark:bg-dark-bg transition-colors duration-500">
+      < div className="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-slate-50/50 dark:bg-dark-bg transition-colors duration-500" >
 
         {/* Offline Banner */}
-        {isOffline && (
-          <div className="bg-slate-800 text-white px-4 py-2 text-sm font-medium flex items-center justify-center gap-2 shadow-sm animate-in slide-in-from-top duration-300 relative z-50">
-            <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-            <span>Mode Hors-Ligne : Certaines fonctionnalités peuvent être limitées.</span>
-          </div>
-        )}
+        {
+          isOffline && (
+            <div className="bg-slate-800 text-white px-4 py-2 text-sm font-medium flex items-center justify-center gap-2 shadow-sm animate-in slide-in-from-top duration-300 relative z-50">
+              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+              <span>Mode Hors-Ligne : Certaines fonctionnalités peuvent être limitées.</span>
+            </div>
+          )
+        }
 
         {/* Trial Banner */}
-        {showTrialBanner && (
-          <div className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white px-4 py-3 sm:py-2 text-sm font-medium flex flex-col sm:flex-row items-center justify-center gap-2 shadow-sm relative z-50 text-center sm:text-left">
-            <div className="flex items-center gap-2">
-              <Gift className="w-4 h-4 animate-bounce shrink-0" />
-              <span>
-                Période d'essai activée : Il vous reste <span className="font-bold underline">{daysLeft} jours</span> gratuits.
-              </span>
+        {
+          showTrialBanner && (
+            <div className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white px-4 py-3 sm:py-2 text-sm font-medium flex flex-col sm:flex-row items-center justify-center gap-2 shadow-sm relative z-50 text-center sm:text-left">
+              <div className="flex items-center gap-2">
+                <Gift className="w-4 h-4 animate-bounce shrink-0" />
+                <span>
+                  Période d'essai activée : Il vous reste <span className="font-bold underline">{daysLeft} jours</span> gratuits.
+                </span>
+              </div>
+              <Link
+                to="/upgrade"
+                className="mt-1 sm:mt-0 ml-0 sm:ml-2 bg-white/20 hover:bg-white/30 px-3 py-1 rounded-full text-xs transition-colors border border-white/20 whitespace-nowrap"
+              >
+                Passer en Pro
+              </Link>
             </div>
-            <Link
-              to="/upgrade"
-              className="mt-1 sm:mt-0 ml-0 sm:ml-2 bg-white/20 hover:bg-white/30 px-3 py-1 rounded-full text-xs transition-colors border border-white/20 whitespace-nowrap"
-            >
-              Passer en Pro
-            </Link>
-          </div>
-        )}
+          )
+        }
 
         {/* Ambient Background Gradient */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent pointer-events-none" />
 
         {/* Top Navbar - Ultra-Premium Floating Glass Design (v4) */}
-        <div className="px-4 md:px-6 pt-4 pb-2 animate-in slide-in-from-top-4 duration-700 fade-in z-40">
+        <div className="px-4 md:px-6 pt-4 pb-2 pt-safe animate-in slide-in-from-top-4 duration-700 fade-in z-40">
           <header className="bg-white/70 dark:bg-dark-card/70 backdrop-blur-2xl border border-white/20 dark:border-white/10 shadow-sm rounded-3xl h-16 flex items-center justify-between px-4 md:px-6 transition-all duration-500 hover:bg-white/80 dark:hover:bg-dark-card/80 hover:shadow-md hover:border-white/40 group/navbar relative pointer-events-auto">
             {/* Subtle Gradient Overlay */}
             <div className="absolute inset-0 bg-gradient-to-r from-white/40 via-transparent to-white/40 dark:from-white/5 dark:to-white/5 pointer-events-none rounded-3xl" />
@@ -1099,14 +1093,17 @@ export default function DashboardLayout() {
           </div>
         </main>
 
-        {!isMessagesPage && window.innerWidth >= 1024 && (
-          <div className="fixed bottom-8 right-8 z-40 animate-in slide-in-from-bottom-4 duration-1000">
-            <ChatWidget />
-          </div>
-        )}
+        {
+          !isMessagesPage && window.innerWidth >= 1024 && (
+            <div className="fixed bottom-8 right-8 z-40 animate-in slide-in-from-bottom-4 duration-1000">
+              <ChatWidget />
+              <WhatsAppButton />
+            </div>
+          )
+        }
 
         <NewsTicker />
-      </div>
-    </div>
+      </div >
+    </div >
   );
 }

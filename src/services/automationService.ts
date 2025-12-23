@@ -82,7 +82,8 @@ export const automationService = {
                         .eq('status', 'active')
                         .single();
 
-                    const planName = sub?.plan?.name?.toLowerCase() || '';
+                    const planObj = Array.isArray(sub?.plan) ? sub?.plan[0] : sub?.plan;
+                    const planName = planObj?.name?.toLowerCase() || '';
                     let discount = 0;
                     if (planName.includes('elite') || planName.includes('enterprise')) discount = 0.10;
                     else if (planName.includes('pro')) discount = 0.05;
@@ -226,16 +227,52 @@ export const automationService = {
     },
 
     /**
-     * Checks for unpaid invoices > 48h and sends reminders. (Stub)
+     * Checks for unpaid invoices > 48h and sends reminders.
      */
-    checkOverdueInvoices: async (userId: string): Promise<void> => {
+    checkOverdueInvoices: async (): Promise<void> => {
         try {
-            const { data: profile } = await supabase.from('profiles').select('automation_settings').eq('id', userId).single();
-            if (profile?.automation_settings?.invoice_reminder_enabled === false) return;
+            // Find invoices with status 'unpaid' or 'overdue' where due_date has passed by at least 48h
+            const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
 
+            const { data: invoices, error } = await supabase
+                .from('invoices')
+                .select('*, profile:profiles!user_id(email, full_name, automation_settings)')
+                .in('status', ['unpaid', 'overdue'])
+                .lt('due_date', fortyEightHoursAgo);
 
-            // Logic to find invoices and likely call 'send-email' edge function
-        } catch (e) { console.error(e); }
+            if (error) throw error;
+
+            for (const invoice of (invoices || [])) {
+                // Check if reminders are enabled for this user
+                if (invoice.profile?.automation_settings?.invoice_reminder_enabled === false) continue;
+
+                const subject = `Rappel de Paiement : Facture ${invoice.number}`;
+                const body = `
+                    <div style="font-family: sans-serif; padding: 20px;">
+                        <h2 style="color: #ef4444;">Rappel de Paiement</h2>
+                        <p>Bonjour ${invoice.profile?.full_name || 'Utilisateur'},</p>
+                        <p>Votre facture <strong>${invoice.number}</strong> d'un montant de <strong>${invoice.amount} ${invoice.currency}</strong> est arrivée à échéance le ${new Date(invoice.due_date).toLocaleDateString()}.</p>
+                        <p>Merci de régulariser votre situation dans les plus brefs délais pour éviter toute interruption de service.</p>
+                        <div style="margin-top: 20px;">
+                            <a href="${window.location.origin}/dashboard/client/billing" style="background-color: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+                                Voir ma facture
+                            </a>
+                        </div>
+                    </div>
+                `;
+
+                await supabase.from('email_queue').insert({
+                    recipient_emails: [invoice.profile?.email || invoice.user_id],
+                    subject,
+                    body,
+                    status: 'pending'
+                });
+
+                logger.info(`[Automation] Reminder queued for invoice ${invoice.number}`);
+            }
+        } catch (e) {
+            logger.error("[Automation] Error checking overdue invoices:", e);
+        }
     },
 
     /**
@@ -246,31 +283,74 @@ export const automationService = {
             const { data: profile } = await supabase.from('profiles').select('automation_settings').eq('id', userId).single();
             if (profile?.automation_settings?.weather_alert_enabled === false) return;
 
-
-            // Logic to check external API
-        } catch (e) { console.error(e); }
+            // In a real app, this would call a weather API (OpenWeather)
+            // For now, we remain as a conceptual stub or log it.
+            logger.info("[Automation] Weather check simulation for user", userId);
+        } catch (e) { logger.error(e); }
     },
 
     /**
-    * Sends auto-response for new ticket. (Stub)
+    * Sends auto-response for new ticket.
     */
     handleNewTicket: async (ticketId: string, forwarderId: string): Promise<void> => {
         try {
             const { data: profile } = await supabase.from('profiles').select('automation_settings').eq('id', forwarderId).single();
             if (profile?.automation_settings?.ticket_auto_ack_enabled === false) return;
 
+            const autoReply = "Merci pour votre message. Notre équipe a bien reçu votre ticket et l'étudie actuellement. Nous reviendrons vers vous dans les plus brefs délais.";
 
-            // Logic to insert 'auto-reply' message into ticket_messages
-        } catch (e) { console.error(e); }
+            await supabase.from('ticket_messages').insert({
+                ticket_id: ticketId,
+                sender_id: forwarderId,
+                content: autoReply
+            });
+
+            logger.info(`[Automation] Auto-reply sent for ticket ${ticketId}`);
+        } catch (e) {
+            logger.error("[Automation] Error handling new ticket auto-ack:", e);
+        }
     },
 
     /**
      * Checks for stale RFQs (no offers > 48h) and notifies the user.
-     * This would typically be a scheduled job, but we can simulate/trigger it on dashboard load.
      */
-    checkStaleRFQs: async (userId: string): Promise<void> => {
-        // Implementation placeholder for scheduled checks
-        // In frontend-only, we might run this when the user visits the "My RFQs" page
-        // to show a "Boost" button suggestion.
+    checkStaleRFQs: async (): Promise<void> => {
+        try {
+            const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+
+            // Find RFQs created > 48h ago that are still pending
+            const { data: staleRFQs, error } = await supabase
+                .from('rfq_requests')
+                .select('*, profile:profiles!client_id(email, full_name)')
+                .eq('status', 'pending')
+                .lt('created_at', fortyEightHoursAgo);
+
+            if (error) throw error;
+
+            for (const rfq of (staleRFQs || [])) {
+                // Check if there are truly 0 offers
+                const { count } = await supabase
+                    .from('rfq_offers')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('rfq_id', rfq.id);
+
+                if (count === 0) {
+                    // Send notification to client
+                    await supabase.from('notifications').insert({
+                        user_id: rfq.client_id,
+                        type: 'rfq_stale',
+                        title: 'Votre demande est sans réponse',
+                        message: `Votre demande RFQ ${rfq.id.slice(0, 8)} n'a pas encore reçu d'offres. Souhaitez-vous la modifier ?`,
+                        link: `/dashboard/client/rfq/${rfq.id}`,
+                        read: false
+                    });
+
+                    // Optionnally queue an email if preferred
+                    logger.info(`[Automation] Stale RFQ notification sent for ${rfq.id}`);
+                }
+            }
+        } catch (e) {
+            logger.error("[Automation] Error checking stale RFQs:", e);
+        }
     }
 };

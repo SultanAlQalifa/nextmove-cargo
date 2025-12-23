@@ -29,8 +29,19 @@ export const DEFAULT_BRANDING: BrandingSettings = {
     background_color: "#ffffff",
     start_url: "/",
     display: "standalone",
-    orientation: "portrait"
-  }
+    orientation: "portrait",
+    icon_url: ""
+  },
+  social_media: {
+    facebook: "",
+    twitter: "",
+    instagram: "",
+    linkedin: "",
+    tiktok: "",
+    youtube: "",
+    whatsapp_number: "221771234567"
+  },
+  favicon_url: "/logo.png"
 };
 
 export function BrandingProvider({ children }: { children: React.ReactNode }) {
@@ -74,12 +85,28 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
     root.style.setProperty("--color-secondary", data.secondary_color);
     root.style.setProperty("--color-accent", data.accent_color);
 
-    // Update favicon
-    const favicon = document.querySelector(
+    // Update favicons (Standard and Apple)
+    const icons = document.querySelectorAll(
       "link[rel*='icon']",
-    ) as HTMLLinkElement;
-    if (favicon && data.favicon_url) {
-      favicon.href = data.favicon_url;
+    );
+    icons.forEach(icon => {
+      if (data.favicon_url) {
+        // Force refresh by creating a new link element
+        const newLink = document.createElement('link');
+        newLink.rel = (icon as HTMLLinkElement).rel;
+        newLink.type = (icon as HTMLLinkElement).type;
+        newLink.href = `${data.favicon_url}?v=${new Date().getTime()}`;
+        document.head.removeChild(icon);
+        document.head.appendChild(newLink);
+      }
+    });
+
+    // If no icon found, create one
+    if (icons.length === 0 && data.favicon_url) {
+      const newLink = document.createElement('link');
+      newLink.rel = 'icon';
+      newLink.href = data.favicon_url;
+      document.head.appendChild(newLink);
     }
 
     // Update title

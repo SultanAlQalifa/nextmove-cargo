@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
-import { Plus, Lock, Shield } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Plus } from "lucide-react";
+
 import { useSubscription } from "../../../hooks/useSubscription";
 import ConsolidationList from "../../../components/consolidation/ConsolidationList";
 import CreateConsolidationModal from "../../../components/consolidation/CreateConsolidationModal";
 import { Consolidation } from "../../../types/consolidation";
 import { supabase } from "../../../lib/supabase";
+
 import { consolidationService } from "../../../services/consolidationService";
 import { useDataSync } from "../../../contexts/DataSyncContext";
 
@@ -36,7 +37,6 @@ export default function ClientGroupage() {
   };
 
   const { features, loading, isStarter } = useSubscription();
-  const navigate = useNavigate();
   const [userRequestsCount, setUserRequestsCount] = useState(0);
 
   useEffect(() => {

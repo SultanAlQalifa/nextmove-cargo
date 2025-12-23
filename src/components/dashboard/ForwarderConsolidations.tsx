@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { useAuth } from "../../contexts/AuthContext";
 import { consolidationService } from "../../services/consolidationService";
 import { Consolidation } from "../../types/consolidation";
@@ -147,13 +148,10 @@ export default function ForwarderConsolidations() {
                     <span className="text-gray-500">Rempli</span>
                     <div className="flex items-center gap-2">
                       <div className="w-24 h-2 bg-gray-100 rounded-full overflow-hidden">
-                        <div
+                        <motion.div
                           className="h-full bg-blue-500 rounded-full"
-                          // eslint-disable-next-line react/forbid-dom-props
-                          /* hint-disable no-inline-styles */
-                          style={{
-                            width: `${Math.min(((item.current_load_cbm || 0) / (item.total_capacity_cbm || 1)) * 100, 100)}%`,
-                          }}
+                          initial={{ width: 0 }}
+                          animate={{ width: `${Math.min(((item.current_load_cbm || 0) / (item.total_capacity_cbm || 1)) * 100, 100)}%` }}
                         />
                       </div>
                       <span className="font-medium text-gray-900">

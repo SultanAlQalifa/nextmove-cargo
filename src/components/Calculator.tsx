@@ -40,6 +40,7 @@ import {
 import { useCurrency } from "../contexts/CurrencyContext";
 import { locationService, Location } from "../services/locationService";
 import { normalizeCountryName } from "../constants/countries";
+import SavedQuoteModal from "./common/SavedQuoteModal";
 
 export default function Calculator() {
   const { t } = useTranslation();
@@ -64,7 +65,12 @@ export default function Calculator() {
   const [destSearch, setDestSearch] = useState("");
   const [showOriginDropdown, setShowOriginDropdown] = useState(false);
   const [showDestDropdown, setShowDestDropdown] = useState(false);
+
   const [activeFees, setActiveFees] = useState<FeeConfig[]>([]);
+
+  // Saved Quote Modal State
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [quoteToSave, setQuoteToSave] = useState<QuoteResult | null>(null);
 
   // Fee loading
   useEffect(() => {
@@ -1336,7 +1342,9 @@ export default function Calculator() {
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-3 mt-5">
+
+
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-5">
                         <button
                           onClick={() => {
                             const text = `Devis NextMove Cargo\nTransitaire: ${quote.forwarder_name}\nTotal: ${formatPrice(quote.total_cost)}\nDurée: ${quote.transit_time}`;
@@ -1346,6 +1354,15 @@ export default function Calculator() {
                           className="px-4 py-3 border border-slate-200 dark:border-gray-700 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-gray-800 transition-colors"
                         >
                           Partager
+                        </button>
+                        <button
+                          onClick={() => {
+                            setQuoteToSave(quote);
+                            setShowSaveModal(true);
+                          }}
+                          className="px-4 py-3 border border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-900/10 rounded-xl text-sm font-bold text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/20 transition-colors"
+                        >
+                          Sauvegarder
                         </button>
                         <button
                           onClick={() => {
@@ -1422,6 +1439,12 @@ export default function Calculator() {
           </div>
         </div>
       </div>
-    </div>
+
+      <SavedQuoteModal
+        isOpen={showSaveModal}
+        onClose={() => setShowSaveModal(false)}
+        quoteDetails={quoteToSave}
+      />
+    </div >
   );
 }

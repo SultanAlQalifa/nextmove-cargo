@@ -6,6 +6,7 @@ export interface AutomationSettings {
     weather_alert_enabled?: boolean;
     ticket_auto_ack_enabled?: boolean;
     shipment_update_enabled?: boolean;
+    whatsapp_enabled?: boolean;
     // Array of feature keys that are disabled by admin
     // e.g. ['auto_quote', 'smart_closure']
     admin_disabled: string[];
@@ -41,6 +42,15 @@ export interface Profile {
     is_founder?: boolean;
 
     subscription_status?: "active" | "inactive" | "past_due" | "canceled";
+
+    // Staff / Sub-account fields
+    staff_role_id?: string;
+    staff_role?: {
+        id: string;
+        name: string;
+        permissions: string[];
+        role_family?: string;
+    };
 
     created_at?: string;
     updated_at?: string;

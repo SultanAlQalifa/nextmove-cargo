@@ -102,7 +102,7 @@ export const messageService = {
     } = await supabase.auth.getUser();
     if (!user) return null;
 
-    const { data, error } = await supabase
+    const { data: message, error } = await supabase
       .from("messages")
       .insert({
         conversation_id: conversationId,
@@ -132,7 +132,30 @@ export const messageService = {
       })
       .eq("id", conversationId);
 
-    return data;
+    // 4. Check for External Integration (JavaScript-side trigger)
+    try {
+      const { data: participantData } = await supabase
+        .from("conversation_participants")
+        .select("user:profiles(id, phone, full_name, automation_settings)")
+        .eq("conversation_id", conversationId)
+        .neq("user_id", user.id)
+        .single();
+
+      const recipient = (participantData as any)?.user;
+
+      if (recipient && recipient.phone && recipient.automation_settings?.whatsapp_enabled !== false) {
+        await supabase.functions.invoke('send-whatsapp', {
+          body: {
+            to: recipient.phone,
+            message: content,
+          }
+        });
+      }
+    } catch (err) {
+      console.warn("Failed to trigger WhatsApp outbound:", err);
+    }
+
+    return message;
   },
 
   /**

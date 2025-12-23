@@ -12,7 +12,14 @@ type SyncTable =
     | 'transactions'
     | 'profiles'
     | 'wallets'
-    | 'referrals';
+    | 'referrals'
+    | 'testimonials'
+    | 'faqs'
+    | 'blog_posts'
+    | 'fee_configs'
+    | 'system_settings'
+    | 'platform_settings'
+    | 'coupons';
 
 interface DataSyncContextType {
     subscribe: (table: SyncTable, callback: () => void) => () => void;
@@ -96,6 +103,41 @@ export const DataSyncProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                 'postgres_changes',
                 { event: '*', schema: 'public', table: 'referrals' },
                 (payload) => handlePayload(payload, 'referrals')
+            )
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'testimonials' },
+                (payload) => handlePayload(payload, 'testimonials')
+            )
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'faqs' },
+                (payload) => handlePayload(payload, 'faqs')
+            )
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'blog_posts' },
+                (payload) => handlePayload(payload, 'blog_posts')
+            )
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'fee_configs' },
+                (payload) => handlePayload(payload, 'fee_configs')
+            )
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'system_settings' },
+                (payload) => handlePayload(payload, 'system_settings')
+            )
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'platform_settings' },
+                (payload) => handlePayload(payload, 'platform_settings')
+            )
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'coupons' },
+                (payload) => handlePayload(payload, 'coupons')
             )
             .subscribe();
 

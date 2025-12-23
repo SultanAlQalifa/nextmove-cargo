@@ -55,6 +55,12 @@ export default function ClientDashboard() {
   const [activeChat, setActiveChat] = useState<{ chatId: string; recipientName: string; } | null>(null);
   const [searchQuery] = useState("");
   const [loading, setLoading] = useState(true);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsMounted(true), 150);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -157,23 +163,65 @@ export default function ClientDashboard() {
     }, 0)
   }), [shipments, requests]);
 
-  // Chart Data (Mocked but structured for real data) - Stable seed based on stats to avoid random jumps
+  // Chart Data (Real Data Aggregation)
   const chartData = useMemo(() => {
     const months = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Août", "Sep", "Oct", "Nov", "Déc"];
-    return months.map((month, i) => ({
-      name: month,
-      expeditions: Math.max(1, (stats.activeShipments + i) % 5), // Deterministic mock
-      demandes: Math.max(2, (stats.pendingRequests + i) % 8),   // Deterministic mock
-    }));
-  }, [stats]);
+    const now = new Date();
+    const currentYear = now.getFullYear();
 
-  // Pie Chart Data
-  const pieData = useMemo(() => [
-    { name: 'Chine', value: 45, color: '#4F46E5' },
-    { name: 'Turquie', value: 25, color: '#F59E0B' },
-    { name: 'France', value: 20, color: '#10B981' },
-    { name: 'Autres', value: 10, color: '#64748B' },
-  ], []);
+    // Initialize counts
+    const monthCounts = months.map(m => ({ name: m, expeditions: 0, demandes: 0 }));
+
+    // Aggregate Shipments
+    shipments.forEach(s => {
+      const d = new Date(s.created_at);
+      if (d.getFullYear() === currentYear) {
+        monthCounts[d.getMonth()].expeditions++;
+      }
+    });
+
+    // Aggregate Requests
+    requests.forEach(r => {
+      const d = new Date(r.created_at);
+      if (d.getFullYear() === currentYear) {
+        monthCounts[d.getMonth()].demandes++;
+      }
+    });
+
+    return monthCounts;
+  }, [shipments, requests]);
+
+  // Pie Chart Data (Real Data by Origin)
+  const pieData = useMemo(() => {
+    const originCounts: Record<string, number> = {};
+    shipments.forEach(s => {
+      const origin = s.origin_country || "Inconnu";
+      originCounts[origin] = (originCounts[origin] || 0) + 1;
+    });
+
+    // Top 3 + Others
+    const sorted = Object.entries(originCounts).sort((a, b) => b[1] - a[1]);
+    const top3 = sorted.slice(0, 3);
+    const others = sorted.slice(3).reduce((acc, curr) => acc + curr[1], 0);
+
+    const colors = ['#4F46E5', '#F59E0B', '#10B981', '#64748B'];
+
+    const result = top3.map((item, index) => ({
+      name: item[0],
+      value: item[1],
+      color: colors[index]
+    }));
+
+    if (others > 0) {
+      result.push({ name: 'Autres', value: others, color: colors[3] });
+    }
+
+    if (result.length === 0) {
+      return [{ name: 'Aucune donnée', value: 1, color: '#E2E8F0' }];
+    }
+
+    return result;
+  }, [shipments]);
 
 
   if (loading) {
@@ -263,29 +311,31 @@ export default function ClientDashboard() {
 
           {/* eslint-disable-next-line react/forbid-dom-props */}
           <div className="relative z-10 w-full h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData}>
-                <defs>
-                  <linearGradient id="colorExp" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#4F46E5" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#4F46E5" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="colorReq" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#F59E0B" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" opacity={0.5} />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 12 }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 12 }} />
-                <Tooltip
-                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                  cursor={{ stroke: '#CBD5E1', strokeWidth: 1, strokeDasharray: '4 4' }}
-                />
-                <Area type="monotone" dataKey="expeditions" stackId="1" stroke="#4F46E5" strokeWidth={3} fill="url(#colorExp)" />
-                <Area type="monotone" dataKey="demandes" stackId="1" stroke="#F59E0B" strokeWidth={3} fill="url(#colorReq)" />
-              </AreaChart>
-            </ResponsiveContainer>
+            {isMounted && (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={chartData}>
+                  <defs>
+                    <linearGradient id="colorExp" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#4F46E5" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#4F46E5" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="colorReq" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#F59E0B" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" opacity={0.5} />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 12 }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 12 }} />
+                  <Tooltip
+                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                    cursor={{ stroke: '#CBD5E1', strokeWidth: 1, strokeDasharray: '4 4' }}
+                  />
+                  <Area type="monotone" dataKey="expeditions" stackId="1" stroke="#4F46E5" strokeWidth={3} fill="url(#colorExp)" />
+                  <Area type="monotone" dataKey="demandes" stackId="1" stroke="#F59E0B" strokeWidth={3} fill="url(#colorReq)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
           </div>
           {/* Decorative bg blobs */}
           <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors pointer-events-none"></div>
@@ -295,27 +345,29 @@ export default function ClientDashboard() {
         <div className="md:col-span-1 lg:col-span-1 row-span-2 bg-white/80 dark:bg-dark-card/80 backdrop-blur-xl rounded-3xl p-6 border border-white/40 dark:border-white/10 shadow-sm relative overflow-hidden hover:shadow-md transition-shadow">
           <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-2">Volume par Origine</h3>
           <div className="w-full h-[250px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {pieData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
-                  ))}
-                </Pie>
-                <Tooltip
-                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                />
-                <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
-              </PieChart>
-            </ResponsiveContainer>
+            {isMounted && (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={pieData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {pieData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                  />
+                  <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
 

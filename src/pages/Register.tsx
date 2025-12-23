@@ -25,7 +25,7 @@ import { useSettings } from "../contexts/SettingsContext";
 
 export default function Register() {
   const { t } = useTranslation();
-  const { settings: systemSettings } = useSettings();
+  const { settings: _systemSettings } = useSettings();
   const phoneAuthEnabled = true; // Forcé à true pour garantir la visibilité
   const { settings } = useBranding();
   const { success: showSuccess, error: showError } = useToast();

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import PageHeader from "../../../components/common/PageHeader";
 import { consolidationService } from "../../../services/consolidationService";
 import { Consolidation } from "../../../types/consolidation";
@@ -363,11 +364,11 @@ export default function AdminGroupage() {
                       {(() => {
                         const width = `${Math.min(((consolidation.current_load_cbm || 0) / (consolidation.total_capacity_cbm || 1)) * 100, 100)}%`;
                         return (
-                          /* eslint-disable-next-line react/forbid-dom-props */
-                          <div
-                            className="h-full bg-blue-500 rounded-full transition-all duration-500"
-                            /* hint-disable no-inline-styles */
-                            style={{ width }}
+                          <motion.div
+                            className="h-full bg-blue-500 rounded-full"
+                            initial={{ width: 0 }}
+                            animate={{ width }}
+                            transition={{ duration: 0.5 }}
                           />
                         );
                       })()}

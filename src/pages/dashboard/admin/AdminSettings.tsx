@@ -135,6 +135,18 @@ export default function AdminSettings() {
 
         await refreshSettings();
         setSuccessMessage("Paramètres de sécurité mis à jour !");
+      } else if (activeTab === "marketing") {
+        if (!localSettings) return;
+
+        // Save all categories managed in the Marketing tab
+        await Promise.all([
+          settingsService.updateSettings("marketing", localSettings.marketing),
+          settingsService.updateSettings("loyalty", localSettings.loyalty),
+          settingsService.updateSettings("referral", localSettings.referral),
+        ]);
+
+        await refreshSettings();
+        setSuccessMessage("Paramètres de marketing et fidélité mis à jour !");
       } else {
         if (!localSettings) return;
         await settingsService.updateSettings(
@@ -1120,12 +1132,14 @@ export default function AdminSettings() {
                   <div
                     className={`space-y-6 ${!localSettings.integrations?.whatsapp?.enabled ? "opacity-50 pointer-events-none grayscale" : ""}`}
                   >
-                    <div className="p-4 bg-green-50 text-green-700 rounded-xl text-sm border border-green-100">
-                      <p className="font-bold mb-1">Meta for Developers</p>
-                      <p>
-                        Vous avez besoin d'un compte Meta Developer configuré
-                        avec l'API WhatsApp Cloud.
-                      </p>
+                    <div className="p-4 bg-green-50 text-green-700 rounded-xl text-sm border border-green-100 mb-6">
+                      <p className="font-bold mb-2">Configuration Meta for Developers</p>
+                      <ul className="list-disc pl-5 space-y-1">
+                        <li><strong>Webhook URL :</strong> <code>https://[PROJECT_REF].supabase.co/functions/v1/whatsapp-webhook</code></li>
+                        <li><strong>Verify Token :</strong> <code>nextmove_cargo_secret_token</code></li>
+                        <li><strong>Champs Webhook :</strong> Cochez <code>messages</code>.</li>
+                      </ul>
+                      <p className="mt-2 text-xs opacity-80">Remplacez [PROJECT_REF] par votre ID projet Supabase.</p>
                     </div>
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-gray-700">

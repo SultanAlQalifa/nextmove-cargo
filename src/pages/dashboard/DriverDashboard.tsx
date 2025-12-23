@@ -21,7 +21,9 @@ import {
   ArrowDownRight,
   Star,
   X,
+  Loader2,
 } from "lucide-react";
+import { storageService } from "../../services/storageService";
 
 export default function DriverDashboard() {
   const { user } = useAuth();
@@ -39,7 +41,7 @@ export default function DriverDashboard() {
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(
     null,
   );
-  const [simulating, setSimulating] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isScannerOpen, setIsScannerOpen] = useState(false);
 
@@ -123,10 +125,16 @@ export default function DriverDashboard() {
       return;
     }
 
+    setSubmitting(true);
     try {
+      let photoUrl = "";
+      if (podForm.photo) {
+        photoUrl = await storageService.uploadPODPhoto(selectedShipment.id, podForm.photo);
+      }
+
       await shipmentService.submitPOD({
         shipment_id: selectedShipment.id,
-        photo_urls: [], // No mock photo
+        photo_urls: photoUrl ? [photoUrl] : [],
         recipient_name: podForm.recipient_name,
         delivered_at: new Date().toISOString(),
         latitude: location.lat,
@@ -136,10 +144,14 @@ export default function DriverDashboard() {
 
       success("POD soumis avec succès !");
       setSelectedShipment(null);
+      setPodForm({ recipient_name: "", notes: "", photo: null });
+      setLocation(null);
       loadShipments();
     } catch (error) {
       console.error("Error submitting POD:", error);
       toastError("Échec de la soumission du POD.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -356,24 +368,36 @@ export default function DriverDashboard() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    Photo de preuve
-                  </label>
-                  <div className="mt-1 flex justify-center px-6 pt-8 pb-8 border-2 border-gray-200 border-dashed rounded-2xl hover:bg-gray-50 transition-colors cursor-pointer group">
-                    <div className="space-y-2 text-center">
-                      <div className="mx-auto w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center group-hover:bg-white group-hover:shadow-sm transition-all">
-                        <Camera className="h-6 w-6 text-gray-400 group-hover:text-primary" />
+                  <div className="mt-1">
+                    <input
+                      type="file"
+                      id="photo-upload"
+                      accept="image/*"
+                      {...({ capture: "environment" } as any)}
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) setPodForm({ ...podForm, photo: file });
+                      }}
+                    />
+                    <label
+                      htmlFor="photo-upload"
+                      className={`flex justify-center px-6 pt-8 pb-8 border-2 border-dashed rounded-2xl hover:bg-gray-50 transition-colors cursor-pointer group ${podForm.photo ? "border-green-500 bg-green-50/50" : "border-gray-200"}`}
+                    >
+                      <div className="space-y-2 text-center">
+                        <div className={`mx-auto w-12 h-12 rounded-full flex items-center justify-center group-hover:bg-white group-hover:shadow-sm transition-all ${podForm.photo ? "bg-green-100 text-green-600" : "bg-gray-100 text-gray-400 group-hover:text-primary"}`}>
+                          {podForm.photo ? <CheckCircle className="h-6 w-6" /> : <Camera className="h-6 w-6" />}
+                        </div>
+                        <div className="flex text-sm text-gray-600 justify-center">
+                          <span className="relative font-medium text-primary hover:text-blue-500">
+                            {podForm.photo ? "Changer la photo" : "Prendre une photo"}
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-500">
+                          {podForm.photo ? podForm.photo.name : "PNG, JPG jusqu'à 10MB"}
+                        </p>
                       </div>
-                      <div className="flex text-sm text-gray-600 justify-center">
-                        <span className="relative font-medium text-primary hover:text-blue-500">
-                          Prendre une photo
-                        </span>
-                        <p className="pl-1">ou glisser-déposer</p>
-                      </div>
-                      <p className="text-xs text-gray-500">
-                        PNG, JPG jusqu'à 10MB
-                      </p>
-                    </div>
+                    </label>
                   </div>
                 </div>
 
@@ -395,9 +419,17 @@ export default function DriverDashboard() {
                 <div className="pt-4 border-t border-gray-100">
                   <button
                     type="submit"
-                    className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-primary/30 text-sm font-bold text-white bg-primary hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all transform hover:-translate-y-0.5"
+                    disabled={submitting}
+                    className="w-full flex justify-center items-center gap-2 py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-primary/30 text-sm font-bold text-white bg-primary hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Valider la Livraison
+                    {submitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Traitement en cours...
+                      </>
+                    ) : (
+                      "Valider la Livraison"
+                    )}
                   </button>
                 </div>
               </form>

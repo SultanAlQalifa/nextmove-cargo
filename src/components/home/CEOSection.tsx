@@ -37,15 +37,15 @@ export default function CEOSection() {
                                 </div>
 
                                 <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white leading-tight">
-                                    "Bâtir les ponts logistiques de demain."
+                                    "Le Nexus Logistique de l'Afrique Nouvelle."
                                 </h2>
 
-                                <p className="text-lg text-slate-600 dark:text-slate-300 leading-relaxed italic">
-                                    "Bienvenue chez NextMove Cargo. Notre mission dépasse le simple transport : nous brisons les barrières pour libérer le potentiel commercial de l'Afrique. Vitesse, sécurité et transparence ne sont pas des options, ce sont nos fondations."
+                                <p className="text-lg text-slate-600 dark:text-slate-300 leading-relaxed italic font-light">
+                                    "NextMove Cargo ne transporte pas simplement des conteneurs ; nous pilotons la connectivité du continent. En fusionnant la puissance du fret multimodal avec l'intelligence digitale, nous construisons un Nexus où chaque marchandise circule sans friction. Notre mission est d'effacer les frontières entre les centres de production mondiaux et les entrepreneurs africains."
                                 </p>
 
-                                <p className="text-base text-slate-500 dark:text-slate-400">
-                                    Ensemble, connectons les marchés et créons de nouvelles opportunités sans frontières. Merci de votre confiance.
+                                <p className="text-base text-slate-500 dark:text-slate-400 font-medium">
+                                    Plus qu'une plateforme, c'est l'infrastructure de votre succès international. Bienvenue dans l'avenir de la logistique mondiale.
                                 </p>
 
                                 <div className="pt-6">

@@ -1,5 +1,8 @@
 import { supabase } from "../lib/supabase";
 import { fetchWithRetry } from "../utils/supabaseHelpers";
+import { auditService } from "./auditService";
+import { notificationService } from "./notificationService";
+import { automationService } from "./automationService";
 
 export interface Invoice {
   id: string;
@@ -25,6 +28,9 @@ export interface Transaction {
   status: "completed" | "pending" | "failed";
   reference: string;
   invoice_number?: string;
+  category?: string;
+  release_status?: string;
+  shipment_id?: string;
   user?: {
     full_name: string;
     email: string;
@@ -180,6 +186,15 @@ export const paymentService = {
       });
 
       if (error) throw error;
+
+      await auditService.logAction(
+        "fund_release",
+        "transaction",
+        shipmentId,
+        { shipment_id: shipmentId },
+        { severity: "high" }
+      );
+
       return data as { success: boolean; message: string };
     } catch (error) {
       console.error("Error releasing funds:", error);
@@ -187,7 +202,7 @@ export const paymentService = {
     }
   },
 
-  getInvoicePdfUrl: async (invoiceId: string): Promise<string> => {
+  getInvoicePdfUrl: async (_invoiceId: string): Promise<string> => {
     // Mock PDF generation/retrieval
     return "#";
   },
@@ -195,7 +210,7 @@ export const paymentService = {
   // validateCoupon removed - Use couponService.validateCoupon instead
 
   initializePayment: async (
-    shipmentId: string,
+    _shipmentId: string,
     amount: number,
     currency: string,
   ) => {
@@ -436,7 +451,7 @@ export const paymentService = {
       const finalAmount = Math.max(0, baseAmount - discountAmount);
 
       // 3. Create Transaction Record (User requested this)
-      const { data: transaction, error: txError } = await supabase
+      const { data: _transaction, error: txError } = await supabase
         .from('transactions')
         .insert({
           user_id: user.id,
@@ -496,6 +511,15 @@ export const paymentService = {
           ]);
       }
 
+
+      await auditService.logAction(
+        "payment_confirmation",
+        "transaction",
+        data.transaction_id || shipmentId,
+        { shipment_id: shipmentId, amount: finalAmount, method: details.paymentMethod },
+        { severity: "medium" }
+      );
+
       return data as { success: boolean; transaction_id: string };
     } catch (error) {
       console.error("Error confirming payment:", error);
@@ -533,6 +557,15 @@ export const paymentService = {
     });
 
     if (error) throw error;
+
+    await auditService.logAction(
+      "admin_wallet_adjust",
+      "wallet",
+      userId,
+      { amount, type, description },
+      { severity: "high" }
+    );
+
     return data;
   },
 
@@ -544,6 +577,15 @@ export const paymentService = {
     });
 
     if (error) throw error;
+
+    await auditService.logAction(
+      "refund_processed",
+      "transaction",
+      paymentId,
+      { amount, reason },
+      { severity: "high" }
+    );
+
     return data;
   },
 
@@ -609,16 +651,35 @@ export const paymentService = {
 
       }
 
-      // 3. Créer une notification pour l'admin (Simulé via insert ou appel RPC broadcast)
-      // On insère pour que l'admin le voie dans son dashboard
-      /* 
-      await supabase.from("notifications").insert({
-        user_id: "ADMIN_ID", // TODO: Need mechanism to notify admins
-        type: "admin_alert",
-        title: "Nouveau paiement Cash",
-        message: `Transaction ${transaction.id}`,
-      });
-      */
+      // 3. Créer une notification pour les admins
+      try {
+        const { data: admins } = await supabase
+          .from("profiles")
+          .select("id")
+          .in("role", ["admin", "super-admin"]);
+
+        if (admins && admins.length > 0) {
+          for (const admin of admins) {
+            await notificationService.sendNotification(
+              admin.id,
+              "Nouveau paiement Cash",
+              `Une transaction en espèces (${details.discountAmount || 0} ${details.currency || 'XOF'}) est en attente de validation pour l'expédition ${finalShipmentId}.`,
+              "warning",
+              `/dashboard/admin/payments`
+            );
+          }
+        }
+      } catch (notifErr) {
+        console.warn("Failed to notify admins about cash payment:", notifErr);
+      }
+
+      await auditService.logAction(
+        "cash_payment_initiated",
+        "transaction",
+        transaction.id,
+        { shipment_id: finalShipmentId, amount: details.discountAmount || 0 },
+        { severity: "medium" }
+      );
 
       return {
         success: true,

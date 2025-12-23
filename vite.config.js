@@ -42,8 +42,15 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        output: {
-          // manualChunks removed to prevent React instance conflicts
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('recharts')) return 'charts';
+            if (id.includes('xlsx')) return 'excel';
+            if (id.includes('jspdf')) return 'pdf';
+            if (id.includes('html5-qrcode')) return 'qrcode';
+            if (id.includes('canvas-confetti')) return 'confetti';
+            if (id.includes('lucide-react')) return 'icons';
+          }
         }
       }
     },

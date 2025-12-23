@@ -1,4 +1,4 @@
-/// <reference lib="deno.ns" />
+
 import { serve } from "std/http/server.ts"
 import { createClient } from "supabase-js"
 
@@ -69,9 +69,16 @@ serve(async (req: Request) => {
         // SECURITY: Privilege Escalation Prevention
         // If the creator is a FORWARDER, they can ONLY create CLIENTS.
         if (profile.role === 'forwarder') {
-            console.log('Security Enforcement: Requester is Forwarder. Forcing new user role to "client".');
-            baseRole = 'client';
-            staffRoleId = null;
+            // Forwarders can create 'client' OR 'forwarder' (staff)
+            if (role === 'client') {
+                baseRole = 'client';
+                staffRoleId = null;
+            } else {
+                // Assume it's a staff member
+                console.log('Forwarder creating staff member.');
+                baseRole = 'forwarder';
+                staffRoleId = role; // The UUID of the staff role
+            }
         } else {
             // Logic for Admins/System
             if (role === 'client') {

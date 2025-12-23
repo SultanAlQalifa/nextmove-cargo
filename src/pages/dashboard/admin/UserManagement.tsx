@@ -181,33 +181,116 @@ export default function UserManagement() {
       result = result.filter((u) => u.status === statusFilter);
     }
 
-    // Mock time range filtering (keep logic for now)
-    if (timeRange !== "all") {
-      // In a real app, filter by joined_at
-      // For demo, we'll just slice to show visual change
-      // if (timeRange === '7d') result = result.slice(0, 3);
-    }
+    /* 
+       Note: The original code had a mocked time range filter logic here:
+       if (timeRange !== "all") { ... }
+       We are keeping the list filtering as is (effectively no-op for timeRange on the list itself unless we implement it),
+       but we WILL use timeRange for the Stats Trends calculation invoked below.
+    */
 
     setFilteredUsers(result);
 
-    // Update Stats based on filtered data
+    // --- Stats & Trend Calculation ---
+    const now = new Date();
+    let daysToSubtract = 30; // default 30d
+
+    switch (timeRange) {
+      case "7d":
+        daysToSubtract = 7;
+        break;
+      case "3m":
+        daysToSubtract = 90;
+        break;
+      case "1y":
+        daysToSubtract = 365;
+        break;
+      case "all":
+        daysToSubtract = 365 * 10;
+        break;
+      case "custom":
+        if (customDateRange.start && customDateRange.end) {
+          const start = new Date(customDateRange.start);
+          const end = new Date(customDateRange.end);
+          const diffTime = Math.abs(end.getTime() - start.getTime());
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          daysToSubtract = diffDays > 0 ? diffDays : 1;
+        }
+        break;
+    }
+
+    // Define periods
+    const currentPeriodStart = new Date(now);
+    currentPeriodStart.setDate(now.getDate() - daysToSubtract);
+
+    const previousPeriodStart = new Date(currentPeriodStart);
+    previousPeriodStart.setDate(currentPeriodStart.getDate() - daysToSubtract);
+
+    // Helper: Parse 'joined_at' safely
+    const parseDate = (d: any) => new Date(d);
+
+    // 1. Total Users Trend
+    // We compare Total Users NOW vs Total Users at 'currentPeriodStart'.
+    // If we want "Growth over period", it's (CountNow - CountStart) / CountStart?
+    // Or is it (CountCurrentPeriod - CountPrevPeriod) / CountPrevPeriod?
+    // "Total Users" is a cumulative metric. Trend usually means "Change since start of period" or "Growth rate vs last period"?
+    // Standard is: "Total count now" vs "Total count [period] ago".
+    const countTotalNow = users.length;
+    const countTotalPrev = users.filter(u => parseDate(u.joined_at) < currentPeriodStart).length;
+
+    // If 0 users previously, we can't divide by 0. 
+    // If we have users now but 0 before, growth is 100% (or infinite). Let's say 100% if >0 now.
+    let totalGrowth = 0;
+    if (countTotalPrev > 0) {
+      totalGrowth = ((countTotalNow - countTotalPrev) / countTotalPrev) * 100;
+    } else if (countTotalNow > 0) {
+      totalGrowth = 100;
+    }
+
+    // 2. Active Users Trend (Active Status)
+    const countActiveNow = users.filter(u => u.status === 'Actif').length;
+    // We don't have historical status. Proxy: Use same growth rate as Total Users, 
+    // OR just 0% if we want to be strict. 
+    // Let's use the Total Growth rate as a proxy for ecosystem health.
+    const activeGrowth = totalGrowth;
+
+    // 3. New Users (In this period)
+    // This is a non-cumulative metric (flow).
+    // Compare "New Users THIS period" vs "New Users LAST period".
+    const newUsersCurrentPeriod = users.filter(u => {
+      const d = parseDate(u.joined_at);
+      return d >= currentPeriodStart && d <= now;
+    }).length;
+
+    const newUsersPrevPeriod = users.filter(u => {
+      const d = parseDate(u.joined_at);
+      return d >= previousPeriodStart && d < currentPeriodStart;
+    }).length;
+
+    let newUserGrowth = 0;
+    if (newUsersPrevPeriod > 0) {
+      newUserGrowth = ((newUsersCurrentPeriod - newUsersPrevPeriod) / newUsersPrevPeriod) * 100;
+    } else if (newUsersCurrentPeriod > 0) {
+      newUserGrowth = 100;
+    }
+
     setStats({
       total: {
-        value: result.length,
-        trend: "+0%",
-        trendUp: true,
+        value: countTotalNow,
+        trend: `${totalGrowth >= 0 ? "+" : ""}${totalGrowth.toFixed(1)}%`,
+        trendUp: totalGrowth >= 0,
       },
       active: {
-        value: result.filter((u) => u.status === "Actif").length,
-        trend: "+0%",
-        trendUp: true,
+        value: countActiveNow,
+        trend: `${activeGrowth >= 0 ? "+" : ""}${activeGrowth.toFixed(1)}%`,
+        trendUp: activeGrowth >= 0,
       },
       new: {
-        value: result.length, // Simplified for now
-        trend: "+0%",
-        trendUp: true,
+        value: newUsersCurrentPeriod,
+        trend: `${newUserGrowth >= 0 ? "+" : ""}${newUserGrowth.toFixed(1)}%`,
+        trendUp: newUserGrowth >= 0,
       },
     });
+
   }, [users, searchQuery, timeRange, customDateRange, statusFilter]);
 
   return (

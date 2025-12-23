@@ -10,10 +10,19 @@
     "preview": "vite preview",
     "type-check": "npx tsc --noEmit",
     "audit": "npx tsx scripts/audit-report.ts",
-    "autofix": "npx tsx scripts/autofix.ts"
+    "autofix": "npx tsx scripts/autofix.ts",
+    "cap:sync": "npx cap sync",
+    "cap:open:android": "npx cap open android",
+    "cap:open:ios": "npx cap open ios",
+    "mobile:build": "npm run build && npx cap sync"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
+    "@capacitor/core": "^6.0.0",
+    "@capacitor/ios": "^6.0.0",
+    "@capacitor/android": "^6.0.0",
+    "@capacitor/status-bar": "^6.0.0",
+    "@capacitor/splash-screen": "^6.0.0",
     "@sentry/react": "^10.30.0",
     "@supabase/supabase-js": "^2.78.0",
     "@types/canvas-confetti": "^1.9.0",
@@ -45,6 +54,7 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
+    "@capacitor/cli": "^6.0.0",
     "@eslint/js": "^9.39.1",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",

@@ -29,7 +29,7 @@ interface PaymentModalProps {
   shipmentId?: string;
 }
 
-type PaymentMethod = "wave" | "wallet" | "cash";
+type PaymentMethod = "wave" | "wallet" | "cash" | "paytech" | "cinetpay";
 
 export default function PaymentModal({
   isOpen,
@@ -38,7 +38,7 @@ export default function PaymentModal({
   planName,
   amount,
   currency,
-  allowedMethods = ["wave", "wallet", "cash"],
+  allowedMethods = ["wave", "wallet", "cash", "paytech", "cinetpay"],
   shipmentId,
 }: PaymentModalProps) {
   const { success: showSuccess, error: showError } = useToast();
@@ -202,17 +202,41 @@ export default function PaymentModal({
           );
         }
 
-        if (appliedCoupon && !shipmentId) {
-          await couponService.updateCoupon(appliedCoupon.id, {
-            usage_count: appliedCoupon.usage_count + 1,
-          });
-        }
-
         setStep("success");
         setTimeout(() => {
           onSuccess();
           onClose();
         }, 2000);
+      } else if (selectedMethod === "cinetpay") {
+        // CinetPay Flow
+        const { redirect_url } = await paymentService.initializeCinetPayPayment(
+          totalAmount,
+          currency,
+          {
+            plan_name: planName, // Metadata
+            user_id: (await supabase.auth.getUser()).data.user?.id
+          }
+        );
+        if (redirect_url) {
+          window.open(redirect_url, "_self"); // Redirect current tab as it's a hosted page
+        } else {
+          throw new Error("Erreur URL CinetPay");
+        }
+      } else if (selectedMethod === "paytech") {
+        // PayTech Flow
+        const { redirect_url } = await paymentService.initializePayTechPayment(
+          totalAmount,
+          currency,
+          {
+            item_name: `Abonnement ${planName}`,
+            user_id: (await supabase.auth.getUser()).data.user?.id
+          }
+        );
+        if (redirect_url) {
+          window.location.href = redirect_url;
+        } else {
+          throw new Error("Erreur URL PayTech");
+        }
       } else {
         // Should not happen as types are restricted, but for safety:
         throw new Error("Méthode de paiement non supportée");
@@ -472,6 +496,58 @@ export default function PaymentModal({
                     </div>
                   </button>
                 )}
+
+                {allowedMethods.includes("cinetpay") && (
+                  <button
+                    onClick={() => setSelectedMethod("cinetpay")}
+                    className={`w-full p-4 rounded-xl border flex items-center gap-4 transition-all ${selectedMethod === "cinetpay" ? "border-emerald-500 bg-emerald-50 ring-1 ring-emerald-500" : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"}`}
+                  >
+                    <div className="w-10 h-10 rounded-lg bg-emerald-600 flex items-center justify-center text-white font-bold text-xs">
+                      CP
+                    </div>
+                    <div className="text-left flex-1">
+                      <p className="font-medium text-gray-900">
+                        CinetPay (CB, Mobile)
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Cartes Bancaires, Orange Money, MTN...
+                      </p>
+                    </div>
+                    <div
+                      className={`w-5 h-5 rounded-full border flex items-center justify-center ${selectedMethod === "cinetpay" ? "border-emerald-600 bg-emerald-600" : "border-gray-300"}`}
+                    >
+                      {selectedMethod === "cinetpay" && (
+                        <div className="w-2 h-2 bg-white rounded-full" />
+                      )}
+                    </div>
+                  </button>
+                )}
+
+                {allowedMethods.includes("paytech") && (
+                  <button
+                    onClick={() => setSelectedMethod("paytech")}
+                    className={`w-full p-4 rounded-xl border flex items-center gap-4 transition-all ${selectedMethod === "paytech" ? "border-blue-500 bg-blue-50 ring-1 ring-blue-500" : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"}`}
+                  >
+                    <div className="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-xs">
+                      PT
+                    </div>
+                    <div className="text-left flex-1">
+                      <p className="font-medium text-gray-900">
+                        PayTech
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Agrégateur Paiement Sénégal
+                      </p>
+                    </div>
+                    <div
+                      className={`w-5 h-5 rounded-full border flex items-center justify-center ${selectedMethod === "paytech" ? "border-blue-600 bg-blue-600" : "border-gray-300"}`}
+                    >
+                      {selectedMethod === "paytech" && (
+                        <div className="w-2 h-2 bg-white rounded-full" />
+                      )}
+                    </div>
+                  </button>
+                )}
               </div>
 
               {selectedMethod === "wave" && (
@@ -566,6 +642,6 @@ export default function PaymentModal({
           )}
         </div>
       </div>
-    </div>
+    </div >
   );
 }

@@ -16,18 +16,16 @@ import {
 import { useToast } from "../../contexts/ToastContext";
 import { aiService } from "../../services/aiService";
 import { shipmentContext } from "../../services/shipmentContext"; // NEW
+import { messageService, Message, Conversation } from "../../services/messageService";
+import { supabase } from "../../lib/supabase";
+import { useSettings } from "../../contexts/SettingsContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { useChat } from "../../contexts/ChatContext";
-import {
-  messageService,
-  Message,
-  Conversation,
-} from "../../services/messageService";
-import { supabase } from "../../lib/supabase";
 
 export default function ChatWidget() {
   const { error: toastError } = useToast();
   const { user } = useAuth();
+  const { settings } = useSettings();
   const {
     isOpen,
     setIsOpen,
@@ -95,7 +93,10 @@ export default function ChatWidget() {
         content: welcomeMsg.content,
         created_at: welcomeMsg.timestamp.toISOString(),
         is_read: true,
-        sender: { full_name: 'Assistant IA', email: 'ai@nextmove.com' }
+        sender: {
+          full_name: settings?.integrations?.ai_chat?.assistant_name || 'Assistant IA',
+          email: 'ai@nextmove.com'
+        }
       } as Message]);
     }
 
@@ -122,10 +123,8 @@ export default function ChatWidget() {
     if (!replyContent.trim()) return;
 
     try {
-      if (activeTab === 'ai') { // CHANGED from isAIConversation
-        // Use guest ID if no user
+      if (activeTab === 'ai') {
         const senderId = user ? user.id : 'guest-user';
-
         const userMsg: Message = {
           id: crypto.randomUUID(),
           conversation_id: 'ai-chat',
@@ -137,9 +136,19 @@ export default function ChatWidget() {
 
         setAiMessages(prev => [...prev, userMsg]);
         setReplyContent("");
+        setLoading(true);
 
-        // Get AI response WITH CONTEXT (Context is empty for guest)
-        const aiResponse = await aiService.sendMessage(userMsg.content, userContext, selectedImage || undefined); // Pass Image
+        const aiConfig = settings?.integrations?.ai_chat;
+        const aiResponse = await aiService.sendMessage(
+          userMsg.content,
+          userContext,
+          selectedImage || undefined,
+          {
+            apiKey: aiConfig?.enabled ? aiConfig.api_key : undefined,
+            systemPrompt: aiConfig?.enabled ? aiConfig.system_prompt : undefined
+          }
+        );
+
         const aiMsg: Message = {
           id: aiResponse.id,
           conversation_id: 'ai-chat',
@@ -147,19 +156,33 @@ export default function ChatWidget() {
           content: aiResponse.content,
           created_at: aiResponse.timestamp.toISOString(),
           is_read: true,
-          sender: { full_name: 'Assistant IA', email: 'ai@nextmove.com' }
+          sender: {
+            full_name: aiConfig?.assistant_name || 'Assistant IA',
+            email: 'ai@nextmove.com'
+          }
         };
 
         setAiMessages(prev => [...prev, aiMsg]);
-        setSelectedImage(null); // Clear image after send
-
+        setSelectedImage(null);
       } else if (selectedConversation && user) {
-        // Send to existing conversation (USER ONLY)
         await messageService.sendMessage(selectedConversation, replyContent);
         setReplyContent("");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error sending message:", error);
+      if (activeTab === 'ai') {
+        setAiMessages(prev => [...prev, {
+          id: crypto.randomUUID(),
+          conversation_id: 'ai-chat',
+          sender_id: 'ai-bot',
+          content: "Désolé, je rencontre une difficulté technique pour répondre. Pouvez-vous reformuler ou rafraîchir la page ?",
+          created_at: new Date().toISOString(),
+          is_read: true,
+          sender: { full_name: 'Système', email: 'system@nextmove.com' }
+        } as Message]);
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -334,13 +357,24 @@ export default function ChatWidget() {
                       const isMe = msg.sender_id !== 'ai-bot';
                       return (
                         <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
-                          <div className={`max-w-[80%] rounded-2xl p-3 text-sm ${isMe ? "bg-primary text-white rounded-br-none" : "bg-white text-gray-700 border border-gray-100 rounded-bl-none shadow-sm"}`}>
-                            <p>{msg.content}</p>
+                          <div className={`max-w-[85%] rounded-2xl p-3 text-sm break-words whitespace-pre-wrap ${isMe ? "bg-primary text-white rounded-br-none" : "bg-white text-gray-700 border border-gray-100 rounded-bl-none shadow-sm"}`}>
+                            <p className="leading-relaxed">{msg.content}</p>
                             <p className={`text-[10px] mt-1 ${isMe ? "text-white/70" : "text-gray-400"}`}>{new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                           </div>
                         </div>
                       );
                     })}
+                    {loading && (
+                      <div className="flex justify-start">
+                        <div className="bg-white text-gray-700 border border-gray-100 rounded-2xl rounded-bl-none p-3 shadow-sm flex items-center gap-2">
+                          <div className="flex gap-1">
+                            <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"></span>
+                            <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:0.2s]"></span>
+                            <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:0.4s]"></span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                     <div ref={messagesEndRef} />
                   </div>
 
@@ -416,8 +450,8 @@ export default function ChatWidget() {
                       <div className="flex-1 overflow-y-auto p-4 bg-gray-50 space-y-4">
                         {messages.map((msg) => (
                           <div key={msg.id} className={`flex ${msg.sender_id === user?.id ? "justify-end" : "justify-start"}`}>
-                            <div className={`max-w-[80%] rounded-2xl p-3 text-sm ${msg.sender_id === user?.id ? "bg-primary text-white rounded-br-none" : "bg-white text-gray-700 border border-gray-100 rounded-bl-none shadow-sm"}`}>
-                              <p>{msg.content}</p>
+                            <div className={`max-w-[85%] rounded-2xl p-3 text-sm break-words whitespace-pre-wrap ${msg.sender_id === user?.id ? "bg-primary text-white rounded-br-none" : "bg-white text-gray-700 border border-gray-100 rounded-bl-none shadow-sm"}`}>
+                              <p className="leading-relaxed">{msg.content}</p>
                               <p className={`text-[10px] mt-1 ${msg.sender_id === user?.id ? "text-white/70" : "text-gray-400"}`}>{new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                             </div>
                           </div>

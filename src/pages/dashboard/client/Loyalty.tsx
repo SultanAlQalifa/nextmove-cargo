@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { Crown, Star, Gift, TrendingUp, History, X } from "lucide-react";
 import PageHeader from "../../../components/common/PageHeader";
 import { useAuth } from "../../../contexts/AuthContext";
@@ -92,13 +93,12 @@ export default function LoyaltyDashboard() {
                         <div
                             className="w-full h-3 bg-indigo-900/50 rounded-full overflow-hidden"
                         >
-                            {/* eslint-disable-next-line react/forbid-dom-props */}
-                            // eslint-disable-next-line react/forbid-dom-props
-                            /* hint-disable no-inline-styles */
-                            <div
-                                className="h-full bg-gradient-to-r from-yellow-400 to-orange-500 transition-all duration-1000"
-                                style={{ width: `${progress}%` }}
-                            ></div>
+                            <motion.div
+                                className="h-full bg-gradient-to-r from-yellow-400 to-orange-500"
+                                initial={{ width: 0 }}
+                                animate={{ width: `${progress}%` }}
+                                transition={{ duration: 1, ease: "easeOut" }}
+                            />
                         </div>
                         <div className="flex justify-between text-xs mt-2 text-indigo-200">
                             <span>{points} pts</span>

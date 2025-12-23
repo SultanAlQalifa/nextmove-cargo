@@ -303,7 +303,7 @@ export default function ForwarderAutomations() {
                             <div className="flex-1">
                                 <div className="flex justify-between items-center mb-2">
                                     <h3 className="font-bold text-gray-900 dark:text-white text-lg">
-                                        Notification de Statut
+                                        Notification par Email
                                     </h3>
                                     <div className="flex items-center gap-3">
                                         <Badge active={settings.shipment_update_enabled || false} locked={isLocked('shipment_update_enabled')} />
@@ -315,7 +315,37 @@ export default function ForwarderAutomations() {
                                     </div>
                                 </div>
                                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                                    Notifie automatiquement le client par email/WhatsApp à chaque changement de statut de ses expéditions.
+                                    Notifie automatiquement le client par email à chaque changement de statut de ses expéditions.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Rule 8: WhatsApp Notifications */}
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                            <MessageSquare className="w-24 h-24" />
+                        </div>
+                        <div className="flex items-start gap-4">
+                            <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-xl">
+                                <MessageSquare className="w-6 h-6 text-green-600 dark:text-green-400" />
+                            </div>
+                            <div className="flex-1">
+                                <div className="flex justify-between items-center mb-2">
+                                    <h3 className="font-bold text-gray-900 dark:text-white text-lg">
+                                        Notification WhatsApp
+                                    </h3>
+                                    <div className="flex items-center gap-3">
+                                        <Badge active={settings.whatsapp_enabled !== false} locked={isLocked('whatsapp_enabled')} />
+                                        <Toggle
+                                            active={settings.whatsapp_enabled !== false}
+                                            locked={isLocked('whatsapp_enabled')}
+                                            onChange={() => handleToggle('whatsapp_enabled')}
+                                        />
+                                    </div>
+                                </div>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">
+                                    Envoie une copie des messages et des suivis critiques directement sur WhatsApp.
                                 </p>
                             </div>
                         </div>

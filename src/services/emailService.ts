@@ -86,20 +86,58 @@ export const emailService = {
   /**
    * Send an email using the Supabase Edge Function
    */
-  sendEmail: async (
-    data: EmailData,
-  ): Promise<{ success: boolean; error?: any }> => {
-    try {
-      const { error } = await supabase.functions.invoke("send-email", {
-        body: data,
-      });
+  async sendEmail(to: string, subject: string, content: string, attachments: any[] = []) {
+    const { data, error } = await supabase.functions.invoke("process-email-queue", {
+      body: {
+        to,
+        subject,
+        message: content, // This will now be HTML
+        attachments
+      },
+    });
+    if (error) throw error;
+    return data;
+  },
 
-      if (error) throw error;
-      return { success: true };
-    } catch (error) {
-      console.error("Error sending email:", error);
-      return { success: false, error };
-    }
+  /**
+   * Generates a professional HTML email wrapper.
+   */
+  getHtmlTemplate(title: string, bodyContent: string, actionUrl?: string, actionLabel?: string) {
+    const primaryColor = "#2563eb"; // Should ideally come from branding
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; line-height: 1.6; color: #334155; margin: 0; padding: 0; background-color: #f8fafc; }
+    .container { max-width: 600px; margin: 20px auto; background: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+    .header { background: ${primaryColor}; padding: 32px; text-align: center; color: white; }
+    .content { padding: 40px; }
+    .footer { padding: 24px; text-align: center; font-size: 12px; color: #64748b; background: #f1f5f9; }
+    .button { display: inline-block; padding: 12px 24px; background-color: ${primaryColor}; color: white !important; text-decoration: none; border-radius: 8px; font-weight: bold; margin-top: 20px; }
+    .logo { font-size: 24px; font-weight: bold; margin-bottom: 8px; }
+    h1 { color: #1e293b; margin-top: 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo">NextMove Cargo</div>
+      <div>Plateforme Logistique Innovante</div>
+    </div>
+    <div class="content">
+      <h1>${title}</h1>
+      ${bodyContent}
+      ${actionUrl ? `<center><a href="${actionUrl}" class="button">${actionLabel || 'Voir Détails'}</a></center>` : ''}
+    </div>
+    <div class="footer">
+      &copy; ${new Date().getFullYear()} NextMove Cargo. Tous droits réservés.<br>
+      Ce message est automatique, merci de ne pas y répondre directement.
+    </div>
+  </div>
+</body>
+</html>`;
   },
 
   /**

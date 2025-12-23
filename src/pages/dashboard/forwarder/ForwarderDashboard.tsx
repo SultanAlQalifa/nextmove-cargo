@@ -57,6 +57,12 @@ export default function ForwarderDashboard() {
   const [timeRange, setTimeRange] = useState<TimeRange>("30d");
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsMounted(true), 200);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Self-Repair: Ensure profile exists in DB
   useEffect(() => {
@@ -116,18 +122,94 @@ export default function ForwarderDashboard() {
       const data = await shipmentService.getForwarderShipments();
       setShipments(data);
 
-      // Calculate stats
+      // Calculate stats with Trends
+      const now = new Date();
+      let daysToSubtract = 30;
+      switch (timeRange) {
+        case "7d": daysToSubtract = 7; break;
+        case "30d": daysToSubtract = 30; break;
+        case "3m": daysToSubtract = 90; break;
+        case "1y": daysToSubtract = 365; break;
+        case "all": daysToSubtract = 365 * 2; break; // approximate
+        default: daysToSubtract = 30;
+      }
+
+      const currentPeriodStart = new Date(now);
+      currentPeriodStart.setDate(now.getDate() - daysToSubtract);
+      const previousPeriodStart = new Date(currentPeriodStart);
+      previousPeriodStart.setDate(currentPeriodStart.getDate() - daysToSubtract);
+
+      const parseDate = (d: any) => new Date(d);
+
+      // helper for growth
+      const calculateGrowth = (current: number, previous: number) => {
+        if (previous === 0) return current > 0 ? 100 : 0;
+        return ((current - previous) / previous) * 100;
+      };
+
+      // 1. Staff Stats
+      const staff = await personnelService.getForwarderStaff();
+      // Assuming staff objects have created_at. If not, we fall back to 0% trend.
+      // We will try to filter if created_at exists.
+      const currentStaffCount = staff.length;
+      const prevStaffCount = staff.filter((s: any) => s.created_at && parseDate(s.created_at) < currentPeriodStart).length;
+      // If we can't determine prev count (missing created_at), we assume 0 growth or just 0.
+      // But let's check if we can rely on total count if no dates.
+      // If staff doesn't have dates, we'll show 0%.
+      const staffGrowth = calculateGrowth(currentStaffCount, prevStaffCount);
+
+      // 2. Shipments Stats & Trends (Active Shipments)
       const activeShipments = (data || []).filter((s: Shipment) =>
         ["pending", "approved", "in_transit", "customs_clearing"].includes(
           s.status,
         ),
       );
-      const completedShipments = (data || []).filter(
-        (s: Shipment) => s.status === "completed",
-      );
-      const totalShipmentsCount = (data || []).length;
+      // For Active Shipments Trend: Compare current active count vs previous active count?
+      // Hard to know historical status. Alternatives:
+      // A) Growth in "Shipments Created"
+      // B) Growth in "Shipments Completed"
+      // C) Logic: Active shipments created in current period vs active shipments created in prev period? No.
+      // Let's use "Shipments Intake" (New Shipments) trend as a proxy for activity velocity,
+      // OR mostly correctly: "Total Active Now" vs "Total Active Then". "Then" is hard.
+      // Let's use "New Shipments Created" growth rate for the trend indicator on this card.
+      const newShipmentsCurrent = (data || []).filter((s: Shipment) => parseDate(s.created_at) >= currentPeriodStart).length;
+      const newShipmentsPrev = (data || []).filter((s: Shipment) => {
+        const d = parseDate(s.created_at);
+        return d >= previousPeriodStart && d < currentPeriodStart;
+      }).length;
+      const shipmentGrowth = calculateGrowth(newShipmentsCurrent, newShipmentsPrev);
 
-      // Calculate total revenue from payments
+
+      // 3. Revenue Stats
+      // Revenue is sum of payments. Check payment dates? 
+      // Shipment payment array: s.payment?.[0]?.created_at ?? s.created_at
+      const getRevenueDate = (s: Shipment) => s.payment?.[0]?.created_at ? parseDate(s.payment[0].created_at) : parseDate(s.created_at);
+      // If unknown payment date, use shipment creation date as fallback.
+
+      const revenueCurrent = (data || []).reduce((acc: number, s: Shipment) => {
+        const date = getRevenueDate(s);
+        if (date >= currentPeriodStart) {
+          return acc + (s.payment?.[0]?.amount_forwarder || s.payment?.[0]?.amount || 0);
+        }
+        return acc;
+      }, 0);
+
+      const revenuePrev = (data || []).reduce((acc: number, s: Shipment) => {
+        const date = getRevenueDate(s);
+        if (date >= previousPeriodStart && date < currentPeriodStart) {
+          return acc + (s.payment?.[0]?.amount_forwarder || s.payment?.[0]?.amount || 0);
+        }
+        return acc;
+      }, 0);
+
+      // Note: The main card displays TOTAL Revenue (lifetime) or Period Revenue?
+      // The original code was:
+      /* 
+       const totalRevenue = (data || []).reduce(...) -> This was LIFETIME revenue (no date filter).
+       If the main card shows LIFETIME revenue, the trend should probably be "Growth vs Last Month" or just "Period Revenue"?
+       Usually "Total Revenue" card shows lifetime, and trend shows "This month vs Last month".
+       Let's keep showing LIFETIME Revenue in 'value', and use monthly growth for 'trend'.
+      */
       const totalRevenue = (data || []).reduce(
         (acc: number, curr: Shipment) => {
           const payment = curr.payment?.[0];
@@ -135,37 +217,47 @@ export default function ForwarderDashboard() {
         },
         0,
       );
+      const revenueGrowth = calculateGrowth(revenueCurrent, revenuePrev);
 
-      const staff = await personnelService.getForwarderStaff();
+
+      // 4. Conversion (Completion Rate)
+      const completedShipments = (data || []).filter(
+        (s: Shipment) => s.status === "completed",
+      );
+      const totalShipmentsCount = (data || []).length;
+
+      const rateCurrent = totalShipmentsCount > 0 ? (completedShipments.length / totalShipmentsCount) * 100 : 0;
+
+      // Calculate prev rate
+      const prevTotal = (data || []).filter(s => parseDate(s.created_at) < currentPeriodStart).length;
+      const prevCompleted = (data || []).filter(s => s.status === 'completed' && parseDate(s.created_at) < currentPeriodStart).length; // Approximate, using creation date
+      const ratePrev = prevTotal > 0 ? (prevCompleted / prevTotal) * 100 : 0;
+
+      const conversionGrowth = rateCurrent - ratePrev; // Percentage point difference
 
       setStats({
         users: {
           value: staff.length,
-          trend: "+0%",
-          trendUp: true,
+          trend: `${staffGrowth >= 0 ? "+" : ""}${staffGrowth.toFixed(1)}%`,
+          trendUp: staffGrowth >= 0,
           label: "Personnel actif",
         },
         shipments: {
           value: activeShipments.length,
-          trend: "+5%",
-          trendUp: true,
+          trend: `${shipmentGrowth >= 0 ? "+" : ""}${shipmentGrowth.toFixed(1)}%`,
+          trendUp: shipmentGrowth >= 0,
           label: "Expéditions actives",
         },
         revenue: {
           value: totalRevenue,
-          trend: "+12%",
-          trendUp: true,
+          trend: `${revenueGrowth >= 0 ? "+" : ""}${revenueGrowth.toFixed(1)}%`,
+          trendUp: revenueGrowth >= 0,
           label: "Revenu estimé",
         },
         conversion: {
-          value:
-            totalShipmentsCount > 0
-              ? Math.round(
-                (completedShipments.length / totalShipmentsCount) * 100,
-              )
-              : 0,
-          trend: "+2%",
-          trendUp: true,
+          value: Math.round(rateCurrent),
+          trend: `${conversionGrowth >= 0 ? "+" : ""}${conversionGrowth.toFixed(1)}%`,
+          trendUp: conversionGrowth >= 0,
           label: "Taux de complétion",
         },
       });
@@ -477,69 +569,61 @@ export default function ForwarderDashboard() {
               </div>
               <div className="h-80 w-full">
                 {revenueData.length > 0 && (
-                  <ResponsiveContainer width="100%" height={320}>
-                    <AreaChart data={revenueData}>
-                      <defs>
-                        <linearGradient
-                          id="colorRevenue"
-                          x1="0"
-                          y1="0"
-                          x2="0"
-                          y2="1"
-                        >
-                          <stop
-                            offset="5%"
-                            stopColor="#0052CC"
-                            stopOpacity={0.1}
-                          />
-                          <stop
-                            offset="95%"
-                            stopColor="#0052CC"
-                            stopOpacity={0}
-                          />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid
-                        strokeDasharray="3 3"
-                        vertical={false}
-                        stroke="#E2E8F0"
-                      />
-                      <XAxis
-                        dataKey="name"
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fill: "#64748B", fontSize: 12 }}
-                        dy={10}
-                      />
-                      <YAxis
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fill: "#64748B", fontSize: 12 }}
-                        tickFormatter={(value) => `${value / 1000}k`}
-                      />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: "#fff",
-                          borderRadius: "12px",
-                          border: "none",
-                          boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
-                        }}
-                        formatter={(value: number) => [
-                          formatCurrency(value),
-                          "Revenu",
-                        ]}
-                      />
-                      <Area
-                        type="monotone"
-                        dataKey="value"
-                        stroke="#0052CC"
-                        strokeWidth={3}
-                        fillOpacity={1}
-                        fill="url(#colorRevenue)"
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                )}
+                  isMounted && (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart
+                        data={revenueData}
+                        margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                      >
+                        <defs>
+                          <linearGradient
+                            id="colorRevenue"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop offset="5%" stopColor="#10B981" stopOpacity={0.1} />
+                            <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid
+                          strokeDasharray="3 3"
+                          vertical={false}
+                          stroke="#F3F4F6"
+                        />
+                        <XAxis
+                          dataKey="name"
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fill: "#9CA3AF", fontSize: 12 }}
+                          dy={10}
+                        />
+                        <YAxis
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fill: "#9CA3AF", fontSize: 12 }}
+                          tickFormatter={(value) => `${value / 1000}k`}
+                        />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: "#FFF",
+                            border: "none",
+                            borderRadius: "8px",
+                            boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+                          }}
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="value"
+                          stroke="#10B981"
+                          strokeWidth={2}
+                          fillOpacity={1}
+                          fill="url(#colorRevenue)"
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  ))}
               </div>
             </div>
 
@@ -555,26 +639,27 @@ export default function ForwarderDashboard() {
               </div>
               <div className="h-64 w-full relative">
                 {shipmentStatusData.length > 0 && (
-                  <ResponsiveContainer width="100%" height={256}>
-                    <PieChart>
-                      <Pie
-                        data={shipmentStatusData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={80}
-                        paddingAngle={5}
-                        dataKey="value"
-                      >
-                        {shipmentStatusData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                      <Legend verticalAlign="bottom" height={36} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                )}
+                  isMounted && (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={shipmentStatusData}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={60}
+                          outerRadius={80}
+                          paddingAngle={5}
+                          dataKey="value"
+                        >
+                          {shipmentStatusData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                        <Legend verticalAlign="bottom" height={36} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  ))}
                 {/* Center Text */}
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none mb-8">
                   <p className="text-2xl font-bold text-gray-900">

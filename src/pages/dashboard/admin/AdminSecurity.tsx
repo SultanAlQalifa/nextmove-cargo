@@ -1,249 +1,277 @@
-import React, { useState, useEffect } from "react";
-import { supabase } from "../../../lib/supabase";
+import { useState, useEffect } from "react";
+import PageHeader from "../../../components/common/PageHeader";
 import {
-  Shield,
   Search,
-  Filter,
-  Clock,
-  AlertTriangle,
+  Calendar,
+  Eye,
+  FileJson,
+  X,
   User,
-  Database,
-  CreditCard,
-  Lock,
+  Filter
 } from "lucide-react";
-import { useTranslation } from "react-i18next";
-
-interface AuditLog {
-  id: string;
-  table_name: string;
-  record_id: string;
-  operation: "INSERT" | "UPDATE" | "DELETE";
-  old_data: any;
-  new_data: any;
-  changed_at: string;
-  changed_by_user?: {
-    email: string;
-    role: string;
-  };
-}
+import { auditService, AuditLog } from "../../../services/auditService";
+import { useToast } from "../../../contexts/ToastContext";
 
 export default function AdminSecurity() {
-  const { t } = useTranslation();
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filterTable, setFilterTable] = useState("all");
-  const [filterOperation, setFilterOperation] = useState("all");
+
+  // Filters
+  const [searchQuery, setSearchQuery] = useState("");
+  const [dateRange, setDateRange] = useState<{ start: string; end: string }>({
+    start: "",
+    end: "",
+  });
+
+  // Modals
+  const [detailsModal, setDetailsModal] = useState<{
+    isOpen: boolean;
+    log: AuditLog | null;
+  }>({
+    isOpen: false,
+    log: null,
+  });
+
+  const { error: toastError } = useToast();
 
   useEffect(() => {
     fetchLogs();
-  }, [filterTable, filterOperation]);
+  }, [dateRange]);
 
   const fetchLogs = async () => {
     setLoading(true);
     try {
-      let query = supabase
-        .from("audit_logs")
-        .select(
-          `
-                    *,
-                    changed_by_user:profiles (
-                        email,
-                        role
-                    )
-                `,
-        )
-        .order("changed_at", { ascending: false })
-        .limit(100);
+      const filters: any = {
+        limit: 100 // Default limit for now
+      };
 
-      if (filterTable !== "all") {
-        query = query.eq("table_name", filterTable);
-      }
-      if (filterOperation !== "all") {
-        query = query.eq("operation", filterOperation);
-      }
+      if (dateRange.start) filters.startDate = new Date(dateRange.start).toISOString();
+      if (dateRange.end) filters.endDate = new Date(dateRange.end).toISOString();
+      if (searchQuery) filters.action = searchQuery; // Basic search mapping
 
-      const { data, error } = await query;
-
-      if (error) throw error;
-      setLogs(data || []);
+      const { data } = await auditService.getLogs(filters);
+      setLogs(data);
     } catch (error) {
-      console.error("Error fetching audit logs:", error);
+      console.error("Error fetching logs:", error);
+      toastError("Erreur lors du chargement des logs");
     } finally {
       setLoading(false);
     }
   };
 
-  const getIconForTable = (tableName: string) => {
-    switch (tableName) {
-      case "transactions":
-        return <CreditCard className="w-4 h-4 text-green-500" />;
-      case "profiles":
-        return <User className="w-4 h-4 text-blue-500" />;
-      case "system_settings":
-        return <Lock className="w-4 h-4 text-red-500" />;
-      default:
-        return <Database className="w-4 h-4 text-gray-500" />;
-    }
-  };
-
-  const formatDataDiff = (oldData: any, newData: any) => {
-    if (!oldData && newData)
-      return <span className="text-green-600">Created Record</span>;
-    if (oldData && !newData)
-      return <span className="text-red-600">Deleted Record</span>;
-
-    // If both are missing or newData is not an object, nothing to show
-    if (!newData || typeof newData !== "object") return null;
-
-    const changes: string[] = [];
-    // Simple comparison for demo. Ideally use a deep diff util.
-    Object.keys(newData).forEach((key) => {
-      if (JSON.stringify(oldData[key]) !== JSON.stringify(newData[key])) {
-        changes.push(
-          `${key}: ${JSON.stringify(oldData[key])} -> ${JSON.stringify(newData[key])}`,
-        );
-      }
-    });
-
+  // Filter client-side for search query to be more responsive on small datasets
+  // or if API search is limited
+  const filteredLogs = logs.filter((log) => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
     return (
-      <div className="text-xs font-mono space-y-1">
-        {changes.slice(0, 3).map((change, i) => (
-          <div key={i} className="truncate" title={change}>
-            {change}
-          </div>
-        ))}
-        {changes.length > 3 && (
-          <div className="text-gray-400">+{changes.length - 3} more...</div>
-        )}
-      </div>
+      log.action.toLowerCase().includes(query) ||
+      log.resource.toLowerCase().includes(query) ||
+      log.user?.full_name?.toLowerCase().includes(query) ||
+      log.user?.email?.toLowerCase().includes(query)
     );
-  };
+  });
 
   return (
-    <div className="p-6">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-          <Shield className="w-8 h-8 text-indigo-600" />
-          Iron Dome Security Logs
-        </h1>
-        <p className="text-gray-500 dark:text-gray-400 mt-1">
-          Immutable audit trail of all sensitive system actions.
-        </p>
+    <div className="space-y-6">
+      <PageHeader
+        title="Journal d'Audit"
+        subtitle="Suivi de la sécurité et des actions critiques"
+      />
+
+      {/* Filters Bar */}
+      <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col md:flex-row gap-4 items-center justify-between">
+        <div className="relative flex-1 w-full md:max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Rechercher (Action, Utilisateur, Ressource)..."
+            className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-transparent focus:bg-white focus:border-primary/20 rounded-xl text-sm focus:outline-none transition-all"
+          />
+        </div>
+
+        <div className="flex items-center gap-2 w-full md:w-auto">
+          <div className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-xl border border-gray-100">
+            <Calendar className="w-4 h-4 text-gray-500" />
+            <input
+              type="date"
+              aria-label="Date de début"
+              value={dateRange.start}
+              onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
+              className="bg-transparent border-none text-sm text-gray-700 focus:outline-none w-32"
+            />
+            <span className="text-gray-400">-</span>
+            <input
+              type="date"
+              aria-label="Date de fin"
+              value={dateRange.end}
+              onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
+              className="bg-transparent border-none text-sm text-gray-700 focus:outline-none w-32"
+            />
+          </div>
+          <button
+            onClick={fetchLogs}
+            className="p-2 bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors"
+            title="Rafraîchir"
+            aria-label="Rafraîchir les logs"
+          >
+            <Filter className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex gap-4 mb-6">
-        <select
-          aria-label="Filter by Table"
-          title="Filter by Table"
-          value={filterTable}
-          onChange={(e) => setFilterTable(e.target.value)}
-          className="px-4 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700"
-        >
-          <option value="all">All Tables</option>
-          <option value="transactions">Transactions</option>
-          <option value="profiles">Profiles</option>
-          <option value="shipments">Shipments</option>
-          <option value="platform_rates">Platform Rates</option>
-          <option value="system_settings">System Settings</option>
-        </select>
-
-        <select
-          aria-label="Filter by Operation"
-          title="Filter by Operation"
-          value={filterOperation}
-          onChange={(e) => setFilterOperation(e.target.value)}
-          className="px-4 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700"
-        >
-          <option value="all">All Operations</option>
-          <option value="INSERT">Create (INSERT)</option>
-          <option value="UPDATE">Modify (UPDATE)</option>
-          <option value="DELETE">Remove (DELETE)</option>
-        </select>
+      {/* Logs Table */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        {loading ? (
+          <div className="flex justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="bg-gray-50/50 border-b border-gray-100">
+                  <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Date & Heure
+                  </th>
+                  <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Utilisateur
+                  </th>
+                  <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Action
+                  </th>
+                  <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Ressource
+                  </th>
+                  <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">
+                    Détails
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {filteredLogs.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
+                      Aucun log trouvé pour cette période
+                    </td>
+                  </tr>
+                ) : (
+                  filteredLogs.map((log) => (
+                    <tr key={log.id} className="hover:bg-gray-50/50 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {new Date(log.created_at).toLocaleString()}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-gray-500">
+                            <User className="w-3 h-3" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">
+                              {log.user?.full_name || "Système / Inconnu"}
+                            </p>
+                            <p className="text-xs text-gray-400">
+                              {log.user?.email}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 capitalize">
+                          {log.action.replace(/_/g, " ")}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-600">
+                        {log.resource} <span className="text-gray-400 text-xs">({log.resource_id?.slice(0, 8)}...)</span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <button
+                          onClick={() => setDetailsModal({ isOpen: true, log })}
+                          className="p-2 text-gray-400 hover:text-primary hover:bg-blue-50 rounded-lg transition-colors"
+                          title="Voir les détails JSON"
+                          aria-label="Voir les détails"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
-      {/* Table */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden border border-gray-100 dark:border-gray-700">
-        <table className="w-full text-left">
-          <thead className="bg-gray-50 dark:bg-gray-700/50">
-            <tr>
-              <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">
-                Timestamp
-              </th>
-              <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">
-                Actor
-              </th>
-              <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">
-                Action
-              </th>
-              <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">
-                Details
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-            {logs.map((log) => (
-              <tr
-                key={log.id}
-                className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors"
+      {/* Details Modal */}
+      {detailsModal.isOpen && detailsModal.log && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-xl flex flex-col">
+            <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-purple-50 text-purple-600 rounded-lg">
+                  <FileJson className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900">Détails de l'événement</h3>
+                  <p className="text-sm text-gray-500">ID: {detailsModal.log.id}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setDetailsModal({ isOpen: false, log: null })}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                aria-label="Fermer"
               >
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-                    <Clock className="w-4 h-4" />
-                    {new Date(log.changed_at).toLocaleString()}
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto bg-gray-50/50">
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-white p-3 rounded-xl border border-gray-100">
+                    <span className="text-xs text-gray-400 uppercase font-semibold">Action</span>
+                    <p className="font-medium text-gray-900">{detailsModal.log.action}</p>
                   </div>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="text-sm font-medium text-gray-900 dark:text-white">
-                    {log.changed_by_user?.email || "System / Anonymous"}
+                  <div className="bg-white p-3 rounded-xl border border-gray-100">
+                    <span className="text-xs text-gray-400 uppercase font-semibold">Ressource</span>
+                    <p className="font-medium text-gray-900">{detailsModal.log.resource}</p>
                   </div>
-                  <div className="text-xs text-gray-500">
-                    {log.changed_by_user?.role || "Unknown"}
+                </div>
+
+                <div>
+                  <span className="text-sm font-semibold text-gray-700 mb-2 block">Données brutes (JSON)</span>
+                  <div className="bg-gray-900 rounded-xl p-4 overflow-x-auto">
+                    <pre className="text-xs text-green-400 font-mono">
+                      {JSON.stringify(detailsModal.log.details, null, 2)}
+                    </pre>
                   </div>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`px-2 py-1 rounded text-xs font-bold 
-                                            ${log.operation === "INSERT"
-                          ? "bg-green-100 text-green-700"
-                          : log.operation === "DELETE"
-                            ? "bg-red-100 text-red-700"
-                            : "bg-blue-100 text-blue-700"
-                        }`}
-                    >
-                      {log.operation}
-                    </span>
-                    <span className="flex items-center gap-1 text-sm font-medium text-gray-700 dark:text-gray-300">
-                      {getIconForTable(log.table_name)}
-                      {log.table_name}
-                    </span>
+                </div>
+
+                {detailsModal.log.metadata && Object.keys(detailsModal.log.metadata).length > 0 && (
+                  <div>
+                    <span className="text-sm font-semibold text-gray-700 mb-2 block">Métadonnées</span>
+                    <div className="bg-white rounded-xl p-4 border border-gray-100 text-sm text-gray-600">
+                      {JSON.stringify(detailsModal.log.metadata, null, 2)}
+                    </div>
                   </div>
-                  <div className="text-xs text-gray-400 mt-1 font-mono">
-                    ID: {log.record_id.substring(0, 8)}...
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  {formatDataDiff(log.old_data, log.new_data)}
-                </td>
-              </tr>
-            ))}
-            {logs.length === 0 && !loading && (
-              <tr>
-                <td
-                  colSpan={4}
-                  className="px-6 py-12 text-center text-gray-500"
-                >
-                  <div className="flex flex-col items-center gap-2">
-                    <Shield className="w-12 h-12 text-gray-300" />
-                    <p>No audit logs found matching criteria.</p>
-                  </div>
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+                )}
+              </div>
+            </div>
+
+            <div className="p-4 border-t border-gray-100 bg-white flex justify-end">
+              <button
+                onClick={() => setDetailsModal({ isOpen: false, log: null })}
+                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-colors"
+              >
+                Fermer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

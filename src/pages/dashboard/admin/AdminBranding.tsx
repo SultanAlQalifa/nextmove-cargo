@@ -441,6 +441,48 @@ export default function AdminBranding() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Logo (Nexus / Icone)
+                      </label>
+                      <div className="flex items-start gap-4">
+                        <div className="w-12 h-12 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-center overflow-hidden">
+                          {settings.logo_nexus_url ? (
+                            <img
+                              src={settings.logo_nexus_url}
+                              alt="Nexus Logo"
+                              className="max-w-full max-h-full object-contain"
+                            />
+                          ) : (
+                            <span className="text-xs text-gray-400">
+                              Aucun
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <input
+                            type="file"
+                            id="logo-nexus-upload"
+                            className="hidden"
+                            accept="image/*"
+                            onChange={(e) =>
+                              e.target.files?.[0] &&
+                              handleFileUpload("logo_nexus_url", e.target.files[0])
+                            }
+                          />
+                          <label
+                            htmlFor="logo-nexus-upload"
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer text-sm font-medium text-gray-700 shadow-sm"
+                          >
+                            <Upload className="w-4 h-4" />
+                            Changer l'icône
+                          </label>
+                          <p className="mt-1 text-xs text-gray-500">
+                            SVG, PNG Carré (pour Sidebar réduite)
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
                         Favicon
                       </label>
                       <div className="flex items-start gap-4">
@@ -1491,6 +1533,24 @@ export default function AdminBranding() {
                     }
                     className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                     placeholder="https://youtube.com/c/votrechaine"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="social_media_whatsapp"
+                    className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2"
+                  >
+                    <Smartphone className="w-4 h-4 text-[#25D366]" /> WhatsApp (Support)
+                  </label>
+                  <input
+                    id="social_media_whatsapp"
+                    type="text"
+                    value={settings.social_media?.whatsapp_number || ""}
+                    onChange={(e) =>
+                      handleChange("social_media.whatsapp_number", e.target.value)
+                    }
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                    placeholder="221770000000"
                   />
                 </div>
               </div>
