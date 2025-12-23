@@ -678,20 +678,13 @@ export default function DashboardLayout() {
                 )}
               </div>
             ) : (
-              <div className="flex items-center gap-3 animate-in fade-in slide-in-from-left duration-500">
-                {(settings?.logo_nexus_url || settings?.logo_url) && (
-                  <img
-                    src={settings.logo_nexus_url || settings.logo_url}
-                    alt="Logo"
-                    className="w-10 h-10 object-contain"
-                  />
-                )}
+              <div className="animate-in fade-in slide-in-from-left duration-500">
                 <div className="flex flex-col">
                   <div className="flex items-center text-xl font-black tracking-tight leading-none">
                     <span className="text-primary">NextMove</span>
                     <span className="text-secondary ml-1">Cargo</span>
                   </div>
-                  <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mt-0.5">
+                  <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mt-1">
                     Logistique Premium
                   </span>
                 </div>
