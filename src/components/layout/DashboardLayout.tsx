@@ -663,25 +663,38 @@ export default function DashboardLayout() {
             to="/"
             className="flex items-center gap-3 group overflow-hidden relative"
           >
-            {settings?.logo_url || settings?.logo_nexus_url ? (
-              <div className={`flex items-center ${isCollapsed ? "justify-center" : "gap-3"}`}>
-                {isCollapsed ? (
+            {isCollapsed ? (
+              <div className="flex items-center justify-center">
+                {settings?.logo_nexus_url || settings?.logo_url ? (
                   <img
                     src={settings.logo_nexus_url || settings.logo_url}
                     alt="Logo Icon"
                     className="w-10 h-10 object-contain animate-in zoom-in duration-300"
                   />
                 ) : (
-                  <img
-                    src={settings.logo_url}
-                    alt={settings.platform_name}
-                    className="h-10 object-contain animate-in slide-in-from-left duration-300"
-                  />
+                  <div className="bg-primary/10 p-2 rounded-xl">
+                    <Package className="w-8 h-8 text-primary" />
+                  </div>
                 )}
               </div>
             ) : (
-              <div className="bg-primary/10 p-2 rounded-xl group-hover:bg-primary/20 transition-colors">
-                <Package className="w-8 h-8 text-primary" />
+              <div className="flex items-center gap-3 animate-in fade-in slide-in-from-left duration-500">
+                {(settings?.logo_nexus_url || settings?.logo_url) && (
+                  <img
+                    src={settings.logo_nexus_url || settings.logo_url}
+                    alt="Logo"
+                    className="w-10 h-10 object-contain"
+                  />
+                )}
+                <div className="flex flex-col">
+                  <div className="flex items-center text-xl font-black tracking-tight leading-none">
+                    <span className="text-primary">NextMove</span>
+                    <span className="text-secondary ml-1">Cargo</span>
+                  </div>
+                  <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mt-0.5">
+                    Logistique Premium
+                  </span>
+                </div>
               </div>
             )}
           </Link>
