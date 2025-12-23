@@ -865,7 +865,7 @@ export default function Home() {
                   }}
                 >
                   <img
-                    src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Download_on_the_App_Store_Badge.svg"
+                    src="/assets/app-store-badge.svg"
                     alt="Installer sur iPhone"
                     className="h-[52px] w-auto"
                   />
@@ -878,7 +878,7 @@ export default function Home() {
                   title="Télécharger l'APK pour Android"
                 >
                   <img
-                    src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg"
+                    src="/assets/google-play-badge.svg"
                     alt="Télécharger pour Android (APK)"
                     className="h-[52px] w-auto"
                   />

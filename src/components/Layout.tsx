@@ -393,7 +393,7 @@ export default function Layout() {
                   className="transition-transform hover:scale-105 active:scale-95 duration-200 text-left"
                 >
                   <img
-                    src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Download_on_the_App_Store_Badge.svg"
+                    src="/assets/app-store-badge.svg"
                     alt="App Store"
                     className="h-8 w-auto opacity-70 hover:opacity-100 transition-opacity"
                   />
@@ -405,7 +405,7 @@ export default function Layout() {
                   className="transition-transform hover:scale-105 active:scale-95 duration-200"
                 >
                   <img
-                    src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg"
+                    src="/assets/google-play-badge.svg"
                     alt="Google Play"
                     className="h-8 w-auto opacity-70 hover:opacity-100 transition-opacity"
                   />
