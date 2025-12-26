@@ -18,7 +18,7 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "camera=(), microphone=(), geolocation=(self)"
-    Content-Security-Policy = "default-src 'self' blob: https://*.supabase.co https://*.supabase.in https://*.wave.com https://*.google.com https://*.googleapis.com wss://*.supabase.co; connect-src 'self' https://*.supabase.co https://*.supabase.in wss://*.supabase.co https://*.wave.com https://*.google.com https://*.googleapis.com https://api.openai.com; img-src 'self' data: blob: https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.google.com https://*.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; manifest-src 'self' blob:;"
+    Content-Security-Policy = "default-src 'self'; connect-src 'self' https://*.supabase.co https://*.supabase.in https://*.wave.com https://*.google.com https://*.googleapis.com wss://*.supabase.co https://api.openai.com https://*.sentry.io https://*.ingest.sentry.io https://*.ingest.de.sentry.io https://*.ingest.us.sentry.io https://*.google-analytics.com; img-src 'self' data: blob: https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.google.com https://*.gstatic.com blob:; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; manifest-src 'self' blob:; frame-src 'self' https://*.supabase.co;"
 
 # Force reload for index.html (Entry point)
 [[headers]]
@@ -47,7 +47,7 @@
     # CSP: Allow Supabase, Google Fonts, and Maps. Block everything else.
     # Note: 'unsafe-inline' is currently allowed for styles due to FOUC script and some libraries. 
     # 'unsafe-eval' might be needed for some dev tools but should be removed in strict prod if possible. keeping for now to avoid breakage.
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.supabase.co https://*.google.com https://*.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://*.supabase.co https://*.unsplash.com https://flagcdn.com https://www.transparenttextures.com; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co https://*.google-analytics.com https://*.googleapis.com wss://*.supabase.co https://api.openai.com; frame-src 'self' https://*.supabase.co; manifest-src 'self' blob:;"
+    Content-Security-Policy = "default-src 'self'; connect-src 'self' https://*.supabase.co https://*.supabase.in https://*.wave.com https://*.google.com https://*.googleapis.com wss://*.supabase.co https://api.openai.com https://*.sentry.io https://*.ingest.sentry.io https://*.ingest.de.sentry.io https://*.ingest.us.sentry.io https://*.google-analytics.com; img-src 'self' data: blob: https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.google.com https://*.gstatic.com blob:; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; manifest-src 'self' blob:; frame-src 'self' https://*.supabase.co;"
     
     Cache-Control = "public, max-age=0, must-revalidate"
 
