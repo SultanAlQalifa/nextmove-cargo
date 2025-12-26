@@ -52,7 +52,7 @@ export default defineConfig({
             if (id.includes('lucide-react')) return 'icons';
             if (id.includes('@supabase')) return 'supabase';
             if (id.includes('i18next')) return 'i18n';
-            if (id.includes('react-dom')) return 'vendor-react';
+            if (id.includes('react-dom') || id.includes('react/') || id.includes('react-is')) return 'vendor-react';
           }
         }
       }
