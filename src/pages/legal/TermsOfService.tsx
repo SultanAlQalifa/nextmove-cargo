@@ -55,6 +55,16 @@ export default function TermsOfService() {
                         </p>
                     </div>
 
+                    <div>
+                        <h3 className="flex items-center gap-2 text-xl font-bold text-slate-900 mb-4">
+                            <ShieldCheck className="w-5 h-5 text-primary" />
+                            5. Conformité KYC et Anti-Blanchiment (AML)
+                        </h3>
+                        <p>
+                            Conformément aux réglementations internationales de lutte contre le blanchiment de capitaux et le financement du terrorisme, NextMove Cargo impose une procédure <strong>KYC (Know Your Customer)</strong> obligatoire pour tout utilisateur dont le volume de transactions cumulé dépasse <strong>1.000.000 FCFA par mois</strong>. Dans ce cadre, la fourniture d'une pièce d'identité valide (CNI, Passeport, Permis) est requise pour valider toute opération excédant ce seuil.
+                        </p>
+                    </div>
+
                     <div className="mt-8 p-4 bg-orange-50 rounded-xl border border-orange-100 text-sm text-orange-800">
                         <div className="flex items-center gap-2 font-bold mb-1">
                             <FileCheck className="w-4 h-4" />

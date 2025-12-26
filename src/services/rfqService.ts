@@ -276,7 +276,9 @@ export async function getRFQWithOffers(id: string): Promise<RFQWithOffers> {
                 phone,
                 avatar_url,
                 transport_modes,
-                kyc_status
+                kyc_status,
+                rating,
+                review_count
             )
         `,
     )
@@ -459,7 +461,11 @@ export async function getOffersForRFQ(
                 id,
                 company_name,
                 email,
-                phone
+                phone,
+                avatar_url,
+                rating,
+                review_count,
+                kyc_status
             )
         `,
     )

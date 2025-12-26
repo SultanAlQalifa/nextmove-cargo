@@ -6,12 +6,9 @@ import type { OfferWithRFQ } from "../../../types/rfq";
 import {
   FileText,
   Search,
-  Filter,
   Calendar,
-  DollarSign,
   ArrowRight,
   Clock,
-  Eye,
   CheckCircle,
   XCircle,
 } from "lucide-react";
@@ -102,8 +99,8 @@ export default function ForwarderOffers() {
               key={status}
               onClick={() => setStatusFilter(status)}
               className={`px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-colors ${statusFilter === status
-                  ? "bg-gray-900 text-white"
-                  : "bg-gray-50 text-gray-600 hover:bg-gray-100"
+                ? "bg-gray-900 text-white"
+                : "bg-gray-50 text-gray-600 hover:bg-gray-100"
                 }`}
             >
               {status === "all"

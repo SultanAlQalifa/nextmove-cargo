@@ -223,6 +223,7 @@ export interface OfferWithForwarder extends RFQOffer {
     phone?: string;
     avatar_url?: string;
     rating?: number;
+    review_count?: number;
     total_shipments?: number;
     transport_modes?: string[];
     kyc_status?: "pending" | "approved" | "rejected" | "verified";

@@ -15,7 +15,7 @@ export interface AutomationSettings {
 export interface Profile {
     id: string;
     email: string;
-    role: "client" | "forwarder" | "admin" | "driver" | "super-admin";
+    role: "client" | "forwarder" | "admin" | "driver" | "super-admin" | "support" | "manager" | "supplier";
     full_name?: string;
     company_name?: string;
     phone?: string;
@@ -27,7 +27,18 @@ export interface Profile {
     account_status?: "active" | "suspended" | "inactive" | "banned" | "pending_approval";
     // Specific fields
     transport_modes?: string[];
-    kyc_status?: "pending" | "approved" | "rejected" | "verified";
+    kyc_status?: "unverified" | "pending" | "verified" | "rejected";
+    rating?: number;
+    review_count?: number;
+    kyc_data?: {
+        id_number?: string;
+        id_type?: string;
+        dob?: string;
+        first_name?: string;
+        last_name?: string;
+    };
+    kyc_documents?: string[];
+    kyc_rejection_reason?: string;
     client_tier?: "standard" | "premium" | "enterprise";
     trial_ends_at?: string; // ISO Date string
     tier?: "Bronze" | "Silver" | "Gold" | "Platinum"; // Legacy/Loyalty tier

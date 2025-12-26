@@ -146,11 +146,11 @@ export interface BrandingSettings {
   updated_at?: string;
 }
 
-const DEFAULT_BRANDING: BrandingSettings = {
+export const DEFAULT_BRANDING: BrandingSettings = {
   platform_name: "NextMove Cargo",
-  logo_url: "https://via.placeholder.com/150x50?text=NextMove",
-  logo_nexus_url: "https://via.placeholder.com/50x50?text=N",
-  favicon_url: "https://via.placeholder.com/32x32",
+  logo_url: "/logo.png",
+  logo_nexus_url: "/logo-nexus.png",
+  favicon_url: "/logo-nexus.png",
   primary_color: "#2563eb", // blue-600
   secondary_color: "#1e40af", // blue-800
   accent_color: "#f59e0b", // amber-500

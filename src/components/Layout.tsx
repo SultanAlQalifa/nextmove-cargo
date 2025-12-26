@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import PWAInstallPrompt from "./common/PWAInstallPrompt";
 import InstallGuideModal from "./common/InstallGuideModal";
 import { createPortal } from "react-dom";
-import { Outlet, Link, useNavigate } from "react-router-dom";
+import { Outlet, Link, useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../contexts/AuthContext";
 import { useBranding } from "../contexts/BrandingContext";
@@ -31,6 +31,21 @@ export default function Layout() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [showInstallGuide, setShowInstallGuide] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const getLinkClass = (path: string) => {
+    const isActive = location.pathname === path;
+    return isActive
+      ? "hidden sm:flex items-center px-4 py-2 rounded-xl text-sm font-bold text-orange-600 bg-orange-50 dark:bg-orange-900/20 shadow-sm transition-all duration-300"
+      : "hidden sm:flex items-center px-4 py-2 rounded-xl text-sm font-medium text-gray-600 hover:text-primary hover:bg-white/50 hover:shadow-sm transition-all duration-300";
+  };
+
+  const getMobileLinkClass = (path: string, defaultBg: string = "bg-gray-50", activeBg: string = "bg-orange-50") => {
+    const isActive = location.pathname === path;
+    return isActive
+      ? `px-4 py-3 rounded-xl ${activeBg} text-orange-700 font-bold flex items-center gap-3 transition-colors border border-orange-100`
+      : `px-4 py-3 rounded-xl ${defaultBg} text-gray-700 hover:bg-gray-100 font-medium flex items-center gap-3 transition-colors`;
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -46,7 +61,7 @@ export default function Layout() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+    <div className="min-h-screen flex flex-col bg-white dark:bg-slate-950 transition-colors duration-200">
       <SEOHead />
       {/* Ultra-Premium Fixed Floating Navbar */}
       <PWAInstallPrompt />
@@ -111,7 +126,7 @@ export default function Layout() {
               {(!user || profile?.role === "client") && (
                 <Link
                   to="/become-forwarder"
-                  className="hidden md:flex items-center px-4 py-2 rounded-xl text-sm font-medium text-gray-600 hover:text-primary hover:bg-white/50 hover:shadow-sm transition-all duration-300"
+                  className={getLinkClass("/become-forwarder").replace("hidden sm:flex", "hidden md:flex")}
                 >
                   Devenir Transitaire
                 </Link>
@@ -119,16 +134,17 @@ export default function Layout() {
 
               <Link
                 to="/calculator"
-                className="hidden sm:flex items-center px-4 py-2 rounded-xl text-sm font-medium text-gray-600 hover:text-primary hover:bg-white/50 hover:shadow-sm transition-all duration-300"
+                className={getLinkClass("/calculator")}
               >
                 {t("calculator")}
               </Link>
 
               <Link
                 to="/tracking"
-                className="hidden sm:flex items-center px-4 py-2 rounded-xl text-sm font-medium text-gray-600 hover:text-primary hover:bg-white/50 hover:shadow-sm transition-all duration-300"
+                className="hidden sm:flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-orange-600 hover:bg-orange-500 shadow-lg shadow-orange-200 hover:shadow-orange-300 hover:-translate-y-0.5 transition-all duration-300 active:translate-y-0 active:scale-95"
               >
-                Suivre un colis
+                <Package className="w-4 h-4" />
+                <span>Suivre un colis</span>
               </Link>
 
               {user ? (
@@ -265,9 +281,9 @@ export default function Layout() {
                     <Link
                       to="/calculator"
                       onClick={() => setUserMenuOpen(false)}
-                      className="px-4 py-3 rounded-xl bg-gray-50 text-gray-700 hover:bg-gray-100 font-medium flex items-center gap-3 transition-colors"
+                      className={getMobileLinkClass("/calculator")}
                     >
-                      <div className="p-2 bg-white rounded-lg text-primary shadow-sm">
+                      <div className={`p-2 rounded-lg shadow-sm ${location.pathname === "/calculator" ? "bg-white text-orange-600" : "bg-white text-primary"}`}>
                         <LayoutDashboard className="w-5 h-5" />
                       </div>
                       <span className="text-lg">{t("calculator")}</span>
@@ -275,9 +291,9 @@ export default function Layout() {
                     <Link
                       to="/become-forwarder"
                       onClick={() => setUserMenuOpen(false)}
-                      className="px-4 py-3 rounded-xl bg-gray-50 text-gray-700 hover:bg-gray-100 font-medium flex items-center gap-3 transition-colors"
+                      className={getMobileLinkClass("/become-forwarder")}
                     >
-                      <div className="p-2 bg-white rounded-lg text-primary shadow-sm">
+                      <div className={`p-2 rounded-lg shadow-sm ${location.pathname === "/become-forwarder" ? "bg-white text-orange-600" : "bg-white text-primary"}`}>
                         <User className="w-5 h-5" />
                       </div>
                       <span className="text-lg">Devenir Transitaire</span>
@@ -285,9 +301,9 @@ export default function Layout() {
                     <Link
                       to="/tracking"
                       onClick={() => setUserMenuOpen(false)}
-                      className="px-4 py-3 rounded-xl bg-gray-50 text-gray-700 hover:bg-gray-100 font-medium flex items-center gap-3 transition-colors"
+                      className="px-4 py-3 rounded-xl bg-orange-50 text-orange-700 hover:bg-orange-100 font-bold flex items-center gap-3 transition-colors border border-orange-100"
                     >
-                      <div className="p-2 bg-white rounded-lg text-primary shadow-sm">
+                      <div className="p-2 bg-white rounded-lg text-orange-600 shadow-sm">
                         <Package className="w-5 h-5" />
                       </div>
                       <span className="text-lg">Suivre un colis</span>
@@ -393,9 +409,9 @@ export default function Layout() {
                   className="transition-transform hover:scale-105 active:scale-95 duration-200 text-left"
                 >
                   <img
-                    src="/assets/app-store-badge.svg"
-                    alt="App Store"
-                    className="h-8 w-auto opacity-70 hover:opacity-100 transition-opacity"
+                    src="/assets/app-store-badge-fr.svg"
+                    alt="Télécharger dans l'App Store"
+                    className="h-10 w-auto opacity-80 hover:opacity-100 transition-opacity"
                   />
                 </button>
                 <a
@@ -405,9 +421,9 @@ export default function Layout() {
                   className="transition-transform hover:scale-105 active:scale-95 duration-200"
                 >
                   <img
-                    src="/assets/google-play-badge.svg"
-                    alt="Google Play"
-                    className="h-8 w-auto opacity-70 hover:opacity-100 transition-opacity"
+                    src="/assets/google-play-badge-fr.svg"
+                    alt="DISPONIBLE SUR Google Play"
+                    className="h-10 w-auto opacity-80 hover:opacity-100 transition-opacity"
                   />
                 </a>
               </div>
@@ -456,7 +472,6 @@ export default function Layout() {
         onClose={() => setShowInstallGuide(false)}
       />
 
-      <NewsTicker />
       <NewsTicker />
       <ChatWidget />
       <WhatsAppButton /> {/* NEW */}

@@ -249,14 +249,14 @@ export default function ClientDashboard() {
             onClick={openCalculator}
             className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-slate-600 bg-white/50 hover:bg-white border border-slate-200 hover:border-primary/20 rounded-xl transition-all shadow-sm hover:shadow-md backdrop-blur-sm group"
           >
-            <div className="p-1 bg-slate-100 rounded-lg group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+            <div className="p-1 bg-slate-100 rounded-lg group-hover:bg-orange-50 group-hover:text-orange-600 transition-colors">
               <Calculator className="w-4 h-4" />
             </div>
-            <span className="hidden sm:inline">Calculateur</span>
+            <span className="hidden sm:inline group-hover:text-orange-600 transition-colors">Calculateur</span>
           </button>
           <Link
             to="/dashboard/client/groupage"
-            className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-slate-900 hover:bg-slate-800 rounded-xl transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
+            className="flex items-center gap-2 px-4 py-2.5 text-sm font-bold text-white bg-orange-600 hover:bg-orange-500 rounded-xl transition-all shadow-md hover:shadow-lg hover:shadow-orange-200 hover:-translate-y-0.5"
           >
             <Package className="w-4 h-4" />
             <span className="hidden sm:inline">Groupage</span>
@@ -316,12 +316,12 @@ export default function ClientDashboard() {
                 <AreaChart data={chartData}>
                   <defs>
                     <linearGradient id="colorExp" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#4F46E5" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#4F46E5" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#FB923C" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#FB923C" stopOpacity={0} />
                     </linearGradient>
                     <linearGradient id="colorReq" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#F59E0B" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" opacity={0.5} />
@@ -331,8 +331,8 @@ export default function ClientDashboard() {
                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                     cursor={{ stroke: '#CBD5E1', strokeWidth: 1, strokeDasharray: '4 4' }}
                   />
-                  <Area type="monotone" dataKey="expeditions" stackId="1" stroke="#4F46E5" strokeWidth={3} fill="url(#colorExp)" />
-                  <Area type="monotone" dataKey="demandes" stackId="1" stroke="#F59E0B" strokeWidth={3} fill="url(#colorReq)" />
+                  <Area type="monotone" dataKey="expeditions" stackId="1" stroke="#FB923C" strokeWidth={3} fill="url(#colorExp)" />
+                  <Area type="monotone" dataKey="demandes" stackId="1" stroke="#3B82F6" strokeWidth={3} fill="url(#colorReq)" />
                 </AreaChart>
               </ResponsiveContainer>
             )}

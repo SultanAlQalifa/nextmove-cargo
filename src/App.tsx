@@ -15,7 +15,6 @@ const Register = lazy(() => import("./pages/Register"));
 const CompleteProfile = lazy(() => import("./pages/CompleteProfile"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const About = lazy(() => import("./pages/About"));
-const Contact = lazy(() => import("./pages/Contact"));
 
 const PrivacyPolicy = lazy(() => import("./pages/legal/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./pages/legal/TermsOfService"));
@@ -89,6 +88,11 @@ const ClientSettings = lazy(
 );
 const UpgradeToPro = lazy(() => import("./pages/UpgradeToPro"));
 const FounderPayment = lazy(() => import("./pages/FounderPayment"));
+const Academy = lazy(() => import("./pages/Academy"));
+const AcademyDashboard = lazy(
+  () => import("./components/academy/AcademyDashboard"),
+);
+const LessonView = lazy(() => import("./pages/academy/LessonView"));
 const DocumentCenter = lazy(
   () => import("./pages/dashboard/documents/DocumentCenter"),
 );
@@ -233,6 +237,12 @@ const AdminInvoices = lazy(
 const AdminSavedQuotes = lazy(
   () => import("./pages/dashboard/admin/AdminSavedQuotes"),
 );
+const AdminKYCReview = lazy(
+  () => import("./pages/dashboard/admin/AdminKYCReview"),
+);
+const AdminAcademy = lazy(
+  () => import("./pages/dashboard/admin/AdminAcademy"),
+);
 
 import "./i18n";
 import { SettingsProvider } from "./contexts/SettingsContext";
@@ -245,6 +255,9 @@ import { ToastProvider } from "./contexts/ToastContext";
 import { NotificationProvider } from "./contexts/NotificationContext";
 import { DataSyncProvider } from "./contexts/DataSyncContext";
 import LoadingSpinner from "./components/common/LoadingSpinner";
+
+
+const MyCertificates = lazy(() => import("./pages/academy/MyCertificates"));
 
 function App() {
   return (
@@ -296,7 +309,10 @@ function App() {
                                       element={<ResetPassword />}
                                     />
                                     <Route path="about" element={<About />} />
-                                    <Route path="contact" element={<Contact />} />
+                                    <Route path="/founder-pack/payment" element={<FounderPayment />} />
+                                    <Route path="/academy" element={<Academy />} />
+                                    <Route path="/academy/lesson/:id" element={<LessonView />} />
+
                                     {/* Legal & Content Routes */}
                                     <Route path="privacy" element={<PrivacyPolicy />} />
                                     <Route path="legal/privacy" element={<PrivacyPolicy />} />
@@ -380,6 +396,10 @@ function App() {
                                           element={<ClientWallet />}
                                         />
                                         <Route
+                                          path="client/academy"
+                                          element={<AcademyDashboard />}
+                                        />
+                                        <Route
                                           path="client/messages"
                                           element={<ClientMessages />}
                                         />
@@ -411,6 +431,7 @@ function App() {
                                           path="client/founder-payment"
                                           element={<FounderPayment />}
                                         />
+                                        <Route path="certificates" element={<MyCertificates />} />
                                       </Route>
 
                                       {/* Forwarder routes */}
@@ -662,6 +683,14 @@ function App() {
                                         <Route
                                           path="admin/faq"
                                           element={<AdminFAQ />}
+                                        />
+                                        <Route
+                                          path="admin/kyc"
+                                          element={<AdminKYCReview />}
+                                        />
+                                        <Route
+                                          path="admin/academy"
+                                          element={<AdminAcademy />}
                                         />
                                       </Route>
 

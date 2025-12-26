@@ -61,8 +61,15 @@ export interface Shipment {
   };
   client?: {
     id: string;
+    company_name?: string;
     full_name?: string;
     phone?: string;
+    email?: string;
+  };
+  forwarder?: {
+    id: string;
+    company_name?: string;
+    full_name?: string;
     email?: string;
   };
   cargo: {
@@ -138,6 +145,14 @@ function mapDbShipmentToApp(dbRecord: any): Shipment {
         email: dbRecord.client.email,
       }
       : undefined,
+    forwarder: dbRecord.forwarder
+      ? {
+        id: dbRecord.forwarder.id,
+        company_name: dbRecord.forwarder.company_name,
+        full_name: dbRecord.forwarder.full_name,
+        email: dbRecord.forwarder.email,
+      }
+      : undefined,
     children: (dbRecord.children || []).map(mapDbShipmentToApp),
   };
 }
@@ -207,6 +222,12 @@ export const shipmentService = {
           *,
             events: shipment_events(*),
             payment: transactions(*),
+            forwarder: profiles!forwarder_id(
+                id,
+                company_name,
+                full_name,
+                email
+            ),
             children: shipments!parent_shipment_id(*)
               `,
           )
@@ -260,6 +281,23 @@ export const shipmentService = {
     } catch (error) {
       console.error("Error fetching shipment by RFQ ID:", error);
       return undefined;
+    }
+  },
+
+  /**
+   * Public tracking search
+   */
+  getShipmentByTracking: async (trackingNumber: string): Promise<any | null> => {
+    try {
+      const { data, error } = await supabase.rpc('get_public_shipment_tracking', {
+        tracking_code_input: trackingNumber
+      });
+
+      if (error) throw error;
+      return data && data.length > 0 ? data[0] : null;
+    } catch (error) {
+      console.error("Error in getShipmentByTracking:", error);
+      return null;
     }
   },
 

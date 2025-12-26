@@ -86,6 +86,14 @@ export interface QuoteResult {
   price_per_unit: number;
   unit: "cbm" | "kg";
 
+  // Detailed fees breakdown
+  detailed_fees: {
+    name: string;
+    amount: number;
+    category: string;
+    recipient: "platform" | "forwarder";
+  }[];
+
   // UI Metadata
   is_platform_rate: boolean;
   is_featured: boolean;
@@ -350,37 +358,100 @@ export const calculatorService = {
     // 2. Resolve Cargo Value in XOF
     const cargoValueXOF = (params.cargoValue || 0) / EXCHANGE_RATES[targetCurrency];
 
-    // 3. Additional Services (XOF) - STRICT DB LOOKUP
+    // 3. Detailed Fees Breakdown (XOF)
+    const detailed_fees_xof: { name: string; amount: number; category: string; recipient: "platform" | "forwarder" }[] = [];
+
     let insuranceXOF = 0;
     let otherServicesXOF = 0;
 
     if (params.additionalServices) {
-      // Insurance
-      if (params.additionalServices.insurance && params.cargoValue) {
-        // Priority: DB Fee Config > Calculated
-        insuranceXOF = resolveFeeCost(fees, "insurance", cargoValueXOF);
+      // Insurance (Garantie Plateforme) -> Platform
+      if (params.additionalServices.insurance) {
+        const cost = resolveFeeCost(fees, "insurance", cargoValueXOF);
+        // Even if cost is 0, we can show it if the user selected it,
+        // but typically we show it if there's a value or if we want to confirm it's 0%.
+        // Let's at least show it if the checkbox is checked.
+        detailed_fees_xof.push({
+          name: "Assurance (Garantie Plateforme)",
+          amount: cost,
+          category: "insurance",
+          recipient: "platform"
+        });
+        insuranceXOF = cost;
       }
 
-      // Other services
-      if (params.additionalServices.packaging)
-        otherServicesXOF += resolveFeeCost(fees, "packaging", baseCostXOF); // Usually fixed, but supports %
+      // Packaging -> Forwarder
+      if (params.additionalServices.packaging) {
+        const cost = resolveFeeCost(fees, "packaging", baseCostXOF);
+        if (cost > 0) {
+          otherServicesXOF += cost;
+          detailed_fees_xof.push({
+            name: "Emballage Renforcé",
+            amount: cost,
+            category: "packaging",
+            recipient: "forwarder"
+          });
+        }
+      }
 
-      if (params.additionalServices.priority)
-        otherServicesXOF += resolveFeeCost(fees, "priority", baseCostXOF);
+      // Priority -> Platform
+      if (params.additionalServices.priority) {
+        const cost = resolveFeeCost(fees, "priority", baseCostXOF);
+        if (cost > 0) {
+          otherServicesXOF += cost;
+          detailed_fees_xof.push({
+            name: "Traitement Prioritaire",
+            amount: cost,
+            category: "priority",
+            recipient: "platform"
+          });
+        }
+      }
 
-      if (params.additionalServices.inspection)
-        otherServicesXOF += resolveFeeCost(fees, "inspection", baseCostXOF);
+      // Inspection -> Forwarder
+      if (params.additionalServices.inspection) {
+        const cost = resolveFeeCost(fees, "inspection", baseCostXOF);
+        if (cost > 0) {
+          otherServicesXOF += cost;
+          detailed_fees_xof.push({
+            name: "Inspection Qualité",
+            amount: cost,
+            category: "inspection",
+            recipient: "forwarder"
+          });
+        }
+      }
 
-      if (params.additionalServices.door_to_door)
-        otherServicesXOF += resolveFeeCost(fees, "door_to_door", baseCostXOF);
+      // Door to Door -> Forwarder
+      if (params.additionalServices.door_to_door) {
+        const cost = resolveFeeCost(fees, "door_to_door", baseCostXOF);
+        if (cost > 0) {
+          otherServicesXOF += cost;
+          detailed_fees_xof.push({
+            name: "Livraison Door-to-Door",
+            amount: cost,
+            category: "door_to_door",
+            recipient: "forwarder"
+          });
+        }
+      }
 
-      if (params.additionalServices.storage)
-        otherServicesXOF += resolveFeeCost(fees, "storage", baseCostXOF);
+      // Storage -> Forwarder
+      if (params.additionalServices.storage) {
+        const cost = resolveFeeCost(fees, "storage", baseCostXOF);
+        if (cost > 0) {
+          otherServicesXOF += cost;
+          detailed_fees_xof.push({
+            name: "Stockage",
+            amount: cost,
+            category: "storage",
+            recipient: "forwarder"
+          });
+        }
+      }
     }
 
     // 4. Tax (XOF) - Calculated on (Base + Services + Insurance)
-    // Note: Some jurisdictions tax only service fees, others the whole amount. 
-    // Defaulting to taxing the Total Service Value (Base + Extras).
     const taxableAmount = baseCostXOF + insuranceXOF + otherServicesXOF;
     const taxXOF = resolveFeeCost(fees, "tax", taxableAmount);
 
@@ -389,6 +460,12 @@ export const calculatorService = {
     const insurance_cost = convertFromXOF(insuranceXOF, targetCurrency);
     const other_services_cost = convertFromXOF(otherServicesXOF, targetCurrency);
     const tax_cost_final = convertFromXOF(taxXOF, targetCurrency);
+
+    // Convert Detailed Fees to Target Currency
+    const detailed_fees = detailed_fees_xof.map(f => ({
+      ...f,
+      amount: convertFromXOF(f.amount, targetCurrency)
+    }));
 
     return {
       id: rateData.id,
@@ -400,6 +477,7 @@ export const calculatorService = {
       insurance_cost,
       tax_cost: tax_cost_final,
       additional_services_cost: other_services_cost,
+      detailed_fees,
       total_cost:
         base_cost + insurance_cost + other_services_cost + tax_cost_final,
       currency: targetCurrency,
@@ -408,7 +486,7 @@ export const calculatorService = {
       unit: rateData.unit,
       is_platform_rate: isPlatform,
       is_featured: rateData.is_featured || false,
-      rating: isPlatform ? 4.9 : 5.0, // Mock for now, or fetch from profiles
+      rating: isPlatform ? 4.9 : 5.0,
       review_count: isPlatform ? 1250 : 25,
     };
   },

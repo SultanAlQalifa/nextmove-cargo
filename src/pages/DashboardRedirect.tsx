@@ -9,8 +9,10 @@ export default function DashboardRedirect() {
   useEffect(() => {
     if (!loading && profile) {
 
-      // Force Profile Completion
-      if (!profile.full_name || profile.full_name.trim().length === 0 || !profile.phone) {
+      // Force Profile Completion (Skip for admins and internal staff)
+      const isInternalRole = ['admin', 'super-admin', 'support', 'manager', 'driver'].includes(profile.role);
+
+      if (!isInternalRole && (!profile.full_name || profile.full_name.trim().length === 0 || !profile.phone)) {
         navigate("/complete-profile", { replace: true });
         return;
       }
@@ -25,6 +27,8 @@ export default function DashboardRedirect() {
           break;
         case "admin":
         case "super-admin":
+        case "support":
+        case "manager":
           navigate("/dashboard/admin", { replace: true });
           break;
         case "driver":

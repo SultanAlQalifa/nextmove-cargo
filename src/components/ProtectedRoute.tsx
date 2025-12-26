@@ -7,7 +7,9 @@ type UserRole =
   | "admin"
   | "super-admin"
   | "supplier"
-  | "driver";
+  | "driver"
+  | "support"
+  | "manager";
 
 interface ProtectedRouteProps {
   children?: React.ReactNode;

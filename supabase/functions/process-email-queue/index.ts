@@ -1,14 +1,21 @@
+// @ts-nocheck
 /// <reference lib="deno.ns" />
+// @ts-ignore
 import { serve } from "std/http/server.ts";
+// @ts-ignore
 import { createClient } from "supabase-js";
+// @ts-ignore
 import { createTransport } from "nodemailer";
 import { Buffer } from "node:buffer";
 
 // @ts-ignore: Buffer is needed for nodemailer
 globalThis.Buffer = Buffer;
 
+// @ts-ignore
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+// @ts-ignore
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+// @ts-ignore
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 const corsHeaders = {
@@ -116,7 +123,24 @@ serve(async (req: Request) => {
                 // Determine Recipients
                 let targetEmails: string[] = [];
                 if (record.recipient_group === 'specific') {
-                    targetEmails = record.recipient_emails || [];
+                    const RawEmails = record.recipient_emails || [];
+
+                    // Split between actual emails and potential UUIDs
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    const resolvedEmails = RawEmails.filter(e => emailRegex.test(e));
+                    const potentialIds = RawEmails.filter(e => !emailRegex.test(e) && e.length >= 36);
+
+                    if (potentialIds.length > 0) {
+                        const { data: profiles } = await supabaseAdmin
+                            .from('profiles')
+                            .select('email')
+                            .in('id', potentialIds);
+
+                        if (profiles) {
+                            resolvedEmails.push(...profiles.map((p: any) => p.email).filter(Boolean));
+                        }
+                    }
+                    targetEmails = resolvedEmails;
                 } else {
                     let query = supabaseAdmin.from('profiles').select('email');
                     if (record.recipient_group === 'clients') query = query.eq('role', 'client');
@@ -138,6 +162,10 @@ serve(async (req: Request) => {
                     filename: att.name,
                     path: att.publicUrl
                 })) || [];
+
+                // Wrap in template if not already a full HTML document
+                const isFullHtml = record.body.toLowerCase().includes('<!doctype') || record.body.toLowerCase().includes('<html');
+                const finalHtml = isFullHtml ? record.body : getHtmlTemplate(record.body, logoUrl, companyName, address, emailContact, fbLink, liLink, instaLink);
 
                 // Send Batches (BCC)
                 const BATCH_SIZE = 50;
@@ -164,9 +192,7 @@ serve(async (req: Request) => {
                                 to: fromAddress, // Send to self, BCC others
                                 bcc: batch,
                                 subject: record.subject,
-                                html: record.body, // Assuming body is full HTML or we wrap it below? 
-                                // Ideally we wrap it in the template here, but for brevity using record.body if it's already templated. 
-                                // Wait, the previous code wrapped it. I should preserve the wrapper.
+                                html: finalHtml,
                                 attachments: emailAttachments
                             });
                         } else {
@@ -174,8 +200,6 @@ serve(async (req: Request) => {
                             if (!RESEND_API_KEY) throw new Error("No SMTP and no RESEND_API_KEY");
 
                             const fromEmail = smtpConfig?.from_email ? `"${companyName}" <${smtpConfig.from_email}>` : `${companyName} <onboarding@resend.dev>`;
-                            // Resend doesn't support generic batch BCC well if not verified domain.
-                            // But let's assume valid config.
 
                             const res = await fetch("https://api.resend.com/emails", {
                                 method: "POST",
@@ -188,7 +212,7 @@ serve(async (req: Request) => {
                                     to: ["delivered@resend.dev"], // Safe sink
                                     bcc: batch,
                                     subject: record.subject,
-                                    html: getHtmlTemplate(record.body, logoUrl, companyName, address, emailContact, fbLink, liLink, instaLink),
+                                    html: finalHtml,
                                     attachments: emailAttachments
                                 })
                             });

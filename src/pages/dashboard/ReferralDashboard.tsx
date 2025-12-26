@@ -11,20 +11,8 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useToast } from "../../contexts/ToastContext";
-import { supabase } from "../../lib/supabase";
 import { useDataSync } from "../../contexts/DataSyncContext";
-
-interface Referral {
-  id: string;
-  referred_id: string;
-  status: string;
-  created_at: string;
-  points_earned: number;
-  referred_profile?: {
-    full_name: string;
-    created_at: string;
-  };
-}
+import { referralService, Referral } from "../../services/referralService";
 
 export default function ReferralDashboard() {
   useTranslation();
@@ -62,7 +50,6 @@ export default function ReferralDashboard() {
   }, [user]);
 
   useEffect(() => {
-    // Sync local code with profile if profile updates
     if (profile?.referral_code) {
       setLocalCode(profile.referral_code);
     }
@@ -71,31 +58,14 @@ export default function ReferralDashboard() {
   const fetchWalletData = async () => {
     if (!user) return;
     try {
-      // Fetch Wallet Balance
-      const { data: walletData } = await supabase
-        .from("wallets")
-        .select("balance")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      if (walletData) {
-        setWalletBalance(Number(walletData.balance));
-      }
-
-      // Fetch Conversion Rate
-      const { data: settingsData } = await supabase
-        .from("system_settings")
-        .select("value")
-        .eq("key", "referral")
-        .maybeSingle();
-
-      if (settingsData?.value?.point_value) {
-        setConversionRate(Number(settingsData.value.point_value));
-      }
+      const data = await referralService.getWalletData(user.id);
+      setWalletBalance(Number(data.balance));
+      setConversionRate(Number(data.conversionRate));
     } catch (error) {
       console.error("Error fetching wallet data:", error);
     }
   };
+
   const [showConfirm, setShowConfirm] = useState(false);
 
   const handleConvertPoints = async () => {
@@ -103,13 +73,7 @@ export default function ReferralDashboard() {
 
     setConverting(true);
     try {
-      const { error } = await supabase.rpc("convert_points_to_wallet", {
-        p_user_id: user.id,
-        p_points: stats.totalPoints,
-        p_conversion_rate: conversionRate,
-      });
-
-      if (error) throw error;
+      await referralService.convertPointsToWallet(user.id, stats.totalPoints, conversionRate);
 
       // Success
       await refreshProfile();
@@ -127,70 +91,23 @@ export default function ReferralDashboard() {
   };
 
   const fetchReferralData = async () => {
+    if (!user) return;
     try {
       setLoading(true);
 
-      // 1. Check if user needs a code generated (Self-Healing)
-      let currentCode = profile?.referral_code;
-
-      if (!currentCode && user) {
-        const normalizedName = (profile?.full_name || "USR")
-          .replace(/[^a-zA-Z]/g, "")
-          .toUpperCase();
-        const prefix =
-          normalizedName.length >= 3
-            ? normalizedName.substring(0, 3)
-            : (normalizedName + "USR").substring(0, 3);
-        const random = Math.random().toString(36).substring(2, 7).toUpperCase();
-        const newCode = `${prefix}${random} `;
-
-        const { error: updateError } = await supabase
-          .from("profiles")
-          .update({ referral_code: newCode })
-          .eq("id", user.id);
-
-        if (!updateError) {
-          currentCode = newCode;
-          setLocalCode(newCode); // Force update local display immediately
-
-          // Optional: Trigger profile refresh if context allows, or just rely on local override
-        } else {
-          console.error("Failed to auto-generate referral code:", updateError);
-        }
-      } else if (currentCode) {
-        setLocalCode(currentCode);
+      // Self-Healing: Generate code if missing
+      if (!profile?.referral_code && !localCode) {
+        const newCode = await referralService.generateReferralCode(user.id, profile?.full_name || "Utilisateur");
+        setLocalCode(newCode);
       }
 
-      const { data, error } = await supabase
-        .from("referrals")
-        .select(
-          `
-    *,
-    referred_profile: profiles!referred_id(full_name, created_at)
-                `,
-        )
-        .eq("referrer_id", user!.id)
-        .order("created_at", { ascending: false });
+      const [referralStats, referralList] = await Promise.all([
+        referralService.getStats(user.id),
+        referralService.getReferrals(user.id)
+      ]);
 
-      if (error) throw error;
-
-      // Fetch latest points directly from DB to ensure it's up to date
-      const { data: profileData } = await supabase
-        .from("profiles")
-        .select("referral_points")
-        .eq("id", user!.id)
-        .single();
-
-      const refs = data || [];
-      setReferrals(refs);
-      setStats({
-        total: refs.length,
-        pending: refs.filter((r) => r.status === "pending").length,
-        completed: refs.filter(
-          (r) => r.status === "completed" || r.status === "rewarded",
-        ).length,
-        totalPoints: profileData?.referral_points || 0,
-      });
+      setStats(referralStats);
+      setReferrals(referralList);
     } catch (error) {
       console.error("Error fetching referrals:", error);
     } finally {

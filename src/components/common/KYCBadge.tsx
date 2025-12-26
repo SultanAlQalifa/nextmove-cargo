@@ -2,7 +2,7 @@ import { ShieldCheck, ShieldAlert, Shield, Clock } from "lucide-react";
 
 
 interface KYCBadgeProps {
-  status?: "pending" | "approved" | "rejected" | "verified";
+  status?: "pending" | "approved" | "rejected" | "verified" | "unverified";
   className?: string; // Additional classes
   showLabel?: boolean;
   size?: "sm" | "md" | "lg";

@@ -110,6 +110,8 @@ const resources = {
         "No rates found for these criteria. Try adjusting your search.",
       "calculator.noQuotesFound":
         "No quotes found. Please check your criteria.",
+      "calculator.compareRates": "Compare Rates",
+      "calculator.quoteOnly": "Quote Only",
       "calculator.measure": "Measure",
       "calculator.tariff": "Tariff",
       "calculator.duration": "Duration",
@@ -541,6 +543,8 @@ const resources = {
         "Aucun tarif trouvé pour ces critères. Essayez d'ajuster votre recherche.",
       "calculator.noQuotesFound":
         "Aucun devis trouvé. Veuillez vérifier vos critères.",
+      "calculator.compareRates": "Comparer les tarifs",
+      "calculator.quoteOnly": "Sur Devis",
       "calculator.measure": "Mesure",
       "calculator.tariff": "Tarif",
       "calculator.duration": "Durée",

@@ -4,7 +4,7 @@
 
 @layer base {
   body {
-    @apply bg-gray-50 text-gray-900 dark:bg-dark-bg dark:text-gray-100 transition-colors duration-200;
+    @apply bg-white text-gray-900 dark:bg-slate-950 dark:text-gray-100 transition-colors duration-200;
   }
 }
 
@@ -145,41 +145,66 @@
   .animate-snow {
     animation: snow linear infinite;
   }
-
-  @keyframes fade-in-up {
-    0% {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-
-    100% {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  .animate-fade-in-up {
-    animation: fade-in-up 0.8s ease-out forwards;
-  }
-
-  .delay-100 {
-    animation-delay: 100ms;
-  }
-
-  .delay-200 {
-    animation-delay: 200ms;
-  }
-
-  .delay-300 {
-    animation-delay: 300ms;
-  }
-
-  .delay-400 {
-    animation-delay: 400ms;
-  }
 }
 
 @layer utilities {
+  /* Removed mesh-gradients to avoid visual 'spots' */
+
+  .glass-card-premium {
+    @apply bg-white/70 dark:bg-slate-900/40 backdrop-blur-3xl border border-slate-200/50 dark:border-white/10;
+    box-shadow: 0 32px 64px -12px rgba(0, 0, 0, 0.08);
+  }
+
+  .dark .glass-card-premium {
+    box-shadow: 0 32px 64px -12px rgba(0, 0, 0, 0.5);
+  }
+
+  @keyframes float-premium {
+
+    0%,
+    100% {
+      transform: translateY(0) rotate(0deg);
+    }
+
+    33% {
+      transform: translateY(-10px) rotate(1deg);
+    }
+
+    66% {
+      transform: translateY(-5px) rotate(-1deg);
+    }
+  }
+
+  .animate-float-premium {
+    animation: float-premium 10s ease-in-out infinite;
+  }
+
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  .animate-shimmer {
+    animation: shimmer 2s infinite;
+  }
+
+  .bg-size-200 {
+    background-size: 200%;
+  }
+
+  .bg-pos-0 {
+    background-position: 0% center;
+  }
+
+  .bg-pos-100 {
+    background-position: 100% center;
+  }
+
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
@@ -187,7 +212,6 @@
   .scrollbar-hide {
     -ms-overflow-style: none;
 
-    /* IE and Edge */
     @supports (scrollbar-width: none) {
       scrollbar-width: none;
     }

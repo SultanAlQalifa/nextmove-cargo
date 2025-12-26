@@ -48,8 +48,10 @@ import {
   Building2,
   Banknote,
   Newspaper,
+  GraduationCap,
+  Award,
 } from "lucide-react";
-import { Zap } from "lucide-react";
+import { Zap, ShieldCheck } from "lucide-react";
 import NewsTicker from "../common/NewsTicker";
 
 import NotificationCenter from "../notifications/NotificationCenter";
@@ -61,6 +63,9 @@ import KYCBadge from "../common/KYCBadge";
 import ClientTierBadge from "../common/ClientTierBadge";
 import GlobalErrorBoundary from "../common/GlobalErrorBoundary";
 import AppDownloadLinks from "../common/AppDownloadLinks";
+import KYCVerificationModal from "../profile/KYCVerificationModal";
+import PWAInstallPrompt from "../common/PWAInstallPrompt";
+import InstallGuideModal from "../common/InstallGuideModal";
 
 import { useUI } from "../../contexts/UIContext";
 import { useChat } from "../../contexts/ChatContext";
@@ -83,7 +88,7 @@ interface NavSection {
 
 export default function DashboardLayout() {
   const { t } = useTranslation();
-  const { user, profile, signOut } = useAuth();
+  const { user, profile, signOut, refreshProfile } = useAuth();
   const { isOpen: isChatOpen } = useChat(); // FIX DESTRUCTURING
   const { settings } = useBranding();
   const { theme, toggleTheme } = useTheme();
@@ -110,7 +115,28 @@ export default function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [isOffline, setIsOffline] = useState(!navigator.onLine); // NEW: Offline State
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [kycModalOpen, setKycModalOpen] = useState(false);
+  const [showInstallGuide, setShowInstallGuide] = useState(false);
+
+  useEffect(() => {
+    const handleOpenKYC = () => setKycModalOpen(true);
+    const handleOpenInstallGuide = () => setShowInstallGuide(true);
+
+    window.addEventListener('open-kyc-modal', handleOpenKYC);
+    window.addEventListener('open-install-guide', handleOpenInstallGuide);
+
+    // Auto-trigger PWA check after 5 seconds
+    const pwaTimeout = setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('check-pwa-install'));
+    }, 5000);
+
+    return () => {
+      window.removeEventListener('open-kyc-modal', handleOpenKYC);
+      window.removeEventListener('open-install-guide', handleOpenInstallGuide);
+      clearTimeout(pwaTimeout);
+    };
+  }, []);
 
 
 
@@ -154,6 +180,11 @@ export default function DashboardLayout() {
               name: t("dashboard.menu.dashboard"),
               path: "/dashboard/client",
               icon: LayoutDashboard,
+            },
+            {
+              name: "Académie",
+              path: "/dashboard/client/academy",
+              icon: GraduationCap,
             },
           ],
         },
@@ -362,7 +393,7 @@ export default function DashboardLayout() {
       return sections;
     }
 
-    if (role === "admin" || role === "super-admin") {
+    if (['admin', 'super-admin', 'support', 'manager'].includes(role || '')) {
       return [
         {
           title: t("dashboard.menu.main"),
@@ -371,6 +402,16 @@ export default function DashboardLayout() {
               name: t("dashboard.menu.dashboard"),
               path: "/dashboard/admin",
               icon: LayoutDashboard,
+            },
+            {
+              name: "Académie",
+              path: "/dashboard/admin/academy",
+              icon: GraduationCap,
+            },
+            {
+              name: "Mes certificats",
+              path: "/dashboard/certificates",
+              icon: Award,
             },
           ],
         },
@@ -442,6 +483,11 @@ export default function DashboardLayout() {
               name: t("dashboard.menu.faq"),
               path: "/dashboard/admin/faq",
               icon: HelpCircle,
+            },
+            {
+              name: "Revue KYC",
+              path: "/dashboard/admin/kyc",
+              icon: ShieldCheck,
             },
           ],
         },
@@ -638,6 +684,18 @@ export default function DashboardLayout() {
   return (
     <div className="h-screen overflow-hidden bg-slate-50 dark:bg-dark-bg flex transition-colors duration-300">
       <CalculatorModal />
+      <KYCVerificationModal
+        isOpen={kycModalOpen}
+        onClose={() => setKycModalOpen(false)}
+        onSuccess={() => {
+          refreshProfile?.();
+        }}
+      />
+      <PWAInstallPrompt />
+      <InstallGuideModal
+        isOpen={showInstallGuide}
+        onClose={() => setShowInstallGuide(false)}
+      />
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div
@@ -748,15 +806,15 @@ export default function DashboardLayout() {
                       className={`
                                                 group flex items-center ${isCollapsed ? "justify-center px-2" : "justify-between px-4"} py-3 rounded-xl transition-all duration-200 relative
                                                 ${active
-                          ? "bg-primary text-white shadow-lg shadow-primary/30"
-                          : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-primary dark:hover:text-primary"
+                          ? "bg-orange-50 text-orange-600 border border-orange-100 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800 shadow-sm"
+                          : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-primary dark:hover:text-primary border border-transparent"
                         }
                                             `}
                       title={isCollapsed ? item.name : ""}
                     >
                       <div className="flex items-center gap-3.5">
                         <Icon
-                          className={`w-5 h-5 min-w-[1.25rem] ${active ? "text-white" : "text-gray-400 group-hover:text-primary transition-colors"}`}
+                          className={`w-5 h-5 min-w-[1.25rem] ${active ? "text-orange-600 dark:text-orange-400" : "text-gray-400 group-hover:text-primary transition-colors"}`}
                         />
                         {!isCollapsed && (
                           <span className="font-medium text-sm whitespace-nowrap animate-in fade-in duration-200">
@@ -946,6 +1004,19 @@ export default function DashboardLayout() {
 
             {/* Right Actions - Premium Glass Buttons */}
             <div className="flex items-center gap-3 relative z-10">
+
+              <Link
+                to={profile?.role === 'client' ? "/dashboard/client/referrals" : profile?.role === 'forwarder' ? "/dashboard/forwarder/referrals" : "/dashboard/admin/referrals"}
+                className="hidden md:flex items-center gap-2 px-3 py-2 rounded-xl text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-all group/ref"
+                title="Parrainage & Gains"
+              >
+                <div className="bg-white dark:bg-blue-900/40 p-1.5 rounded-lg shadow-sm group-hover/ref:scale-110 transition-transform">
+                  <Gift className="w-4 h-4" />
+                </div>
+                <span className="hidden lg:inline text-xs font-bold uppercase tracking-wider">Inviter</span>
+              </Link>
+
+              <div className="h-8 w-px bg-slate-200 dark:bg-slate-700 mx-1 hidden md:block"></div>
 
               {/* Theme Toggle */}
               <button

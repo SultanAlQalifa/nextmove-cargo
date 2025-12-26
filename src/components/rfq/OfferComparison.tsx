@@ -8,9 +8,9 @@ import {
   Shield,
   Box,
   Anchor,
-  Star,
   Building
 } from "lucide-react";
+import StarRating from "../common/StarRating";
 
 interface OfferComparisonProps {
   offers: OfferWithForwarder[];
@@ -112,10 +112,8 @@ export default function OfferComparison({
                         </div>
                       )}
                     </div>
-                    <div className="flex items-center gap-1 text-xs text-gray-500">
-                      <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
-                      <span className="font-medium">4.8</span> • <span className="text-gray-400">120+ avis</span>
-                    </div>
+                    <StarRating rating={offer.forwarder?.rating || 0} size="sm" />
+                    <span className="font-medium">{offer.forwarder?.rating?.toFixed(1) || "N/A"}</span> • <span className="text-gray-400">{offer.forwarder?.review_count || 0} avis</span>
                   </div>
                 </div>
               </div>

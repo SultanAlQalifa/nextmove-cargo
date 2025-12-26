@@ -8,10 +8,8 @@ import {
     Clock,
     Truck,
     CheckCircle2,
-    AlertCircle,
     FileText,
     ShieldCheck,
-    Download,
     CreditCard
 } from "lucide-react";
 import { shipmentService, Shipment } from "../../../services/shipmentService";
@@ -21,6 +19,8 @@ import ConfirmationModal from "../../../components/common/ConfirmationModal";
 import { invoiceService } from "../../../services/invoiceService";
 import PaymentModal from "../../../components/payment/PaymentModal";
 import { addressService, ForwarderAddress } from "../../../services/addressService";
+import ReviewModal from "../../../components/shipments/ReviewModal";
+import { reviewService } from "../../../services/reviewService";
 
 // Helper Component for Addresses
 const ForwarderAddressesDisplay = ({ forwarderId, originCountry, destCountry }: { forwarderId: string, originCountry: string, destCountry: string }) => {
@@ -77,6 +77,8 @@ export default function ClientShipmentDetail() {
     const [loading, setLoading] = useState(true);
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+    const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+    const [hasReviewed, setHasReviewed] = useState(false);
 
     useEffect(() => {
         if (id) {
@@ -93,6 +95,12 @@ export default function ClientShipmentDetail() {
                 return;
             }
             setShipment(data);
+
+            // Check if reviewed
+            if (data.status === 'completed') {
+                const existingReview = await reviewService.getReviewForShipment(shipmentId);
+                setHasReviewed(!!existingReview);
+            }
         } catch (err) {
             console.error("Error loading shipment:", err);
             error("Erreur lors du chargement de l'expédition");
@@ -109,6 +117,8 @@ export default function ClientShipmentDetail() {
             success("Réception confirmée ! Merci.");
             setIsConfirmModalOpen(false);
             loadShipment(shipment.id);
+            // Prompt for review
+            setIsReviewModalOpen(true);
         } catch (e) {
             console.error("Confirmation failed:", e);
             error("Erreur lors de la confirmation");
@@ -215,7 +225,7 @@ export default function ClientShipmentDetail() {
                     name: shipment.forwarder?.company_name || shipment.carrier.name,
                     address: [shipment.origin.country, shipment.origin.port], // Mock address
                     email: shipment.forwarder?.email || "contact@forwarder.com",
-                    currency: shipment.quotes?.[0]?.currency || "XOF",
+                    currency: "XOF",
                     phone: "+221 00 000 00 00" // Mock phone
                 },
                 client: {
@@ -233,7 +243,7 @@ export default function ClientShipmentDetail() {
                 subtotal: shipment.price,
                 tax: 0, // Mock tax
                 total: shipment.price,
-                currency: shipment.quotes?.[0]?.currency || "XOF",
+                currency: "XOF",
                 notes: `Ref Colis: ${shipment.tracking_number}`
             };
 
@@ -307,6 +317,16 @@ export default function ClientShipmentDetail() {
                         >
                             <ShieldCheck className="w-4 h-4" />
                             Confirmer la Réception
+                        </button>
+                    )}
+
+                    {shipment.status === 'completed' && !hasReviewed && (
+                        <button
+                            onClick={() => setIsReviewModalOpen(true)}
+                            className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-white font-medium rounded-xl hover:bg-amber-600 transition-colors shadow-sm animate-bounce"
+                        >
+                            <ShieldCheck className="w-4 h-4" />
+                            Laisser un avis
                         </button>
                     )}
                 </div>
@@ -439,16 +459,38 @@ export default function ClientShipmentDetail() {
             />
 
             {shipment && (
-                <PaymentModal
-                    isOpen={isPaymentModalOpen}
-                    onClose={() => setIsPaymentModalOpen(false)}
-                    onSuccess={handlePaymentSuccess}
-                    planName={`Expédition ${shipment.tracking_number}`}
-                    amount={shipment.price}
-                    currency={shipment.service_type === 'express' ? 'XOF' : 'XOF'} // Force XOF or use logic
-                    allowedMethods={['wave', 'wallet', 'cash']}
-                    shipmentId={shipment.id}
-                />
+                <>
+                    <PaymentModal
+                        isOpen={isPaymentModalOpen}
+                        onClose={() => setIsPaymentModalOpen(false)}
+                        onSuccess={handlePaymentSuccess}
+                        planName={`Expédition ${shipment.tracking_number}`}
+                        amount={shipment.price}
+                        currency={shipment.service_type === 'express' ? 'XOF' : 'XOF'}
+                        allowedMethods={['wave', 'wallet', 'cash']}
+                        shipmentId={shipment.id}
+                    />
+
+                    {shipment.forwarder && (
+                        <ReviewModal
+                            isOpen={isReviewModalOpen}
+                            onClose={() => setIsReviewModalOpen(false)}
+                            shipment={{
+                                id: shipment.id,
+                                tracking_number: shipment.tracking_number,
+                                forwarder_id: shipment.forwarder.id,
+                                forwarder: {
+                                    company_name: shipment.forwarder.company_name || "",
+                                    full_name: shipment.forwarder.full_name || ""
+                                }
+                            }}
+                            onSuccess={() => {
+                                setHasReviewed(true);
+                                loadShipment(shipment.id);
+                            }}
+                        />
+                    )}
+                </>
             )}
         </div>
     );

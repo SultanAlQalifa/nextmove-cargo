@@ -21,6 +21,8 @@ export interface ForwarderProfile {
   isPromoted?: boolean;
   website_url?: string;
   avatar_url?: string;
+  rating?: number;
+  review_count?: number;
 }
 
 export interface ForwarderOption {
@@ -28,6 +30,8 @@ export interface ForwarderOption {
   name: string;
   website_url?: string;
   logo?: string;
+  rating?: number;
+  review_count?: number;
 }
 
 export const forwarderService = {
@@ -57,7 +61,7 @@ export const forwarderService = {
   getAllActiveForwarders: async (): Promise<ForwarderOption[]> => {
     const { data, error } = await supabase
       .from("profiles")
-      .select("id, company_name, full_name, website_url, avatar_url")
+      .select("id, company_name, full_name, website_url, avatar_url, rating, review_count")
       .eq("role", "forwarder")
       .eq("account_status", "active")
       .order("company_name");
@@ -69,6 +73,8 @@ export const forwarderService = {
       name: f.company_name || f.full_name || "Transitaire Inconnu",
       website_url: f.website_url,
       logo: f.avatar_url,
+      rating: f.rating || 0,
+      review_count: f.review_count || 0,
     }));
   },
 
@@ -155,7 +161,7 @@ export const forwarderService = {
   /**
    * Invite a new forwarder (Mock for now - usually involves Auth API)
    */
-  inviteForwarder: async (email: string): Promise<void> => {
+  inviteForwarder: async (_email: string): Promise<void> => {
     // In a real app, this would call a Supabase Edge Function to send an invite email
     // or use supabase.auth.admin.inviteUserByEmail()
 
@@ -337,5 +343,7 @@ function mapDbForwarderToApp(dbRecord: any): ForwarderProfile {
     isPromoted: dbRecord.is_promoted,
     website_url: dbRecord.website_url,
     avatar_url: dbRecord.avatar_url,
+    rating: dbRecord.rating || 0,
+    review_count: dbRecord.review_count || 0,
   };
 }

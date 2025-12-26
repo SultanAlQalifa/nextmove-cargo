@@ -8,6 +8,9 @@ echo "🚀 INITIALISATION DE LA SÉQUENCE DE DÉPLOIEMENT"
 echo "==============================================="
 echo " "
 
+# Ensure /usr/local/bin is in the PATH
+export PATH=$PATH:/usr/local/bin
+
 # 1. Vérification Qualité
 echo "🔍 Étape 1/3 : Vérification de la qualité du code (Lint)..."
 npm run lint

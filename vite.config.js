@@ -8,7 +8,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+      includeAssets: ['logo-nexus.png', 'logo.png', 'og-image.jpg'],
       manifest: {
         name: 'NextMove Cargo',
         short_name: 'NextMove',
@@ -50,6 +50,9 @@ export default defineConfig({
             if (id.includes('html5-qrcode')) return 'qrcode';
             if (id.includes('canvas-confetti')) return 'confetti';
             if (id.includes('lucide-react')) return 'icons';
+            if (id.includes('@supabase')) return 'supabase';
+            if (id.includes('i18next')) return 'i18n';
+            if (id.includes('react-dom')) return 'vendor-react';
           }
         }
       }

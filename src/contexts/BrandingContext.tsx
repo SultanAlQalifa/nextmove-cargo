@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { brandingService, BrandingSettings } from "../services/brandingService";
+import { brandingService, BrandingSettings, DEFAULT_BRANDING } from "../services/brandingService";
 
 interface BrandingContextType {
   settings: BrandingSettings | null;
@@ -12,37 +12,6 @@ const BrandingContext = createContext<BrandingContextType | undefined>(
 );
 
 import { showNotification } from "../components/common/NotificationToast";
-
-export const DEFAULT_BRANDING: BrandingSettings = {
-  id: "default",
-  primary_color: "#dc2626", // Crisis Red
-  secondary_color: "#1f2937", // Gray 900
-  accent_color: "#ef4444", // Red 500
-  platform_name: "NextMove Cargo",
-  logo_url: "", // Use component fallback or empty
-  created_at: new Date().toISOString(),
-  updated_at: new Date().toISOString(),
-  pwa: {
-    name: "NextMove Cargo",
-    short_name: "NextMove",
-    theme_color: "#dc2626",
-    background_color: "#ffffff",
-    start_url: "/",
-    display: "standalone",
-    orientation: "portrait",
-    icon_url: ""
-  },
-  social_media: {
-    facebook: "",
-    twitter: "",
-    instagram: "",
-    linkedin: "",
-    tiktok: "",
-    youtube: "",
-    whatsapp_number: "221771234567"
-  },
-  favicon_url: "/logo.png"
-};
 
 export function BrandingProvider({ children }: { children: React.ReactNode }) {
   const [settings, setSettings] = useState<BrandingSettings | null>(null);

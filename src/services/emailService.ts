@@ -86,12 +86,13 @@ export const emailService = {
   /**
    * Send an email using the Supabase Edge Function
    */
-  async sendEmail(to: string, subject: string, content: string, attachments: any[] = []) {
+  async sendEmail(args: { to: string, subject: string, html?: string, message?: string, attachments?: any[] }) {
+    const { to, subject, html, message, attachments = [] } = args;
     const { data, error } = await supabase.functions.invoke("process-email-queue", {
       body: {
         to,
         subject,
-        message: content, // This will now be HTML
+        message: html || message, // This will now be HTML
         attachments
       },
     });

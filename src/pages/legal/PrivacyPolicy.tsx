@@ -23,6 +23,7 @@ export default function PrivacyPolicy() {
                         Nous collectons les informations nécessaires au bon fonctionnement de nos services logistiques, notamment :
                         <ul className="list-disc pl-5 mt-2 space-y-1">
                             <li>Informations d'identité (Nom, Entreprise, NINEA/RC)</li>
+                            <li>Documents officiels (CNI, Passeport, Permis) pour la procédure <strong>KYC</strong></li>
                             <li>Coordonnées (Email, Téléphone, Adresse)</li>
                             <li>Détails des expéditions et documents douaniers</li>
                         </ul>

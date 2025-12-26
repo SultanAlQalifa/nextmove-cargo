@@ -14,6 +14,7 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Download,
+  ShieldCheck,
 } from "lucide-react";
 import {
   AreaChart,
@@ -68,6 +69,10 @@ export const AdminDashboard = () => {
       trendUp: true,
       label: "Taux de conversion",
     },
+    kycPending: {
+      value: 0,
+      label: "KYC en attente",
+    },
   });
 
   const loadDashboardData = useCallback(async () => {
@@ -89,6 +94,13 @@ export const AdminDashboard = () => {
       // 4. RFQs
       const { data: rfqs, error: rfqsError } = await supabase.from('rfq_requests').select('created_at, status');
       if (rfqsError) console.error("Error fetching rfqs:", rfqsError);
+
+      // 5. Pending KYC
+      const { count: kycCount, error: kycError } = await supabase
+        .from('kyc_submissions')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'pending');
+      if (kycError) console.error("Error fetching kyc count:", kycError);
 
       // --- Calculation Logic ---
       const now = new Date();
@@ -200,6 +212,10 @@ export const AdminDashboard = () => {
           trend: `${conversionGrowth >= 0 ? "+" : ""}${conversionGrowth.toFixed(1)}%`,
           trendUp: conversionGrowth >= 0,
           label: "Offres acceptées / RFQ",
+        },
+        kycPending: {
+          value: kycCount || 0,
+          label: "KYC en attente",
         },
       });
 
@@ -407,6 +423,27 @@ export const AdminDashboard = () => {
             </p>
           </div>
         ))}
+
+        {/* KYC Stat Card */}
+        <Link
+          to="/dashboard/admin/kyc"
+          className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:border-blue-500 transition-all group"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-3 bg-red-50 rounded-lg group-hover:bg-red-100 transition-colors">
+              <ShieldCheck className="w-6 h-6 text-red-600" />
+            </div>
+            {stats.kycPending.value > 0 && (
+              <div className="flex items-center space-x-1 text-xs font-bold text-red-600 animate-pulse">
+                Action requise
+              </div>
+            )}
+          </div>
+          <h3 className="text-gray-500 text-sm font-medium">{stats.kycPending.label}</h3>
+          <p className="text-2xl font-bold text-gray-900 mt-1">
+            {stats.kycPending.value}
+          </p>
+        </Link>
       </div>
 
       {/* Charts Section */}

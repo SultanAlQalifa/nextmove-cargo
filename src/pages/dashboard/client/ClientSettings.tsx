@@ -12,6 +12,7 @@ import {
   Key,
   Building,
   Briefcase,
+  Shield,
 } from "lucide-react";
 import { useAuth } from "../../../contexts/AuthContext";
 import { profileService, UserProfile } from "../../../services/profileService";
@@ -248,6 +249,7 @@ export default function ClientSettings() {
                         type="file"
                         className="hidden"
                         accept="image/*"
+                        title="Upload photo de profil"
                         onChange={(e) =>
                           e.target.files?.[0] &&
                           handleAvatarUpload(e.target.files[0])
@@ -259,19 +261,76 @@ export default function ClientSettings() {
                     <h3 className="text-lg font-bold text-gray-900">
                       {userProfile.full_name || "Client"}
                     </h3>
-                    <p className="text-gray-500 text-sm capitalize">Client</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <p className="text-gray-500 text-sm capitalize">Client</p>
+                      <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
+
+                      {/* KYC Badge in Info Header */}
+                      {userProfile.kyc_status === 'verified' ? (
+                        <span className="flex items-center gap-1 text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                          <Shield className="w-3 h-3" /> Vérifié
+                        </span>
+                      ) : userProfile.kyc_status === 'pending' ? (
+                        <span className="flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                          <Shield className="w-3 h-3" /> En examen
+                        </span>
+                      ) : userProfile.kyc_status === 'rejected' ? (
+                        <span className="flex items-center gap-1 text-[10px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-full uppercase tracking-wider font-montserrat">
+                          <Shield className="w-3 h-3" /> Rejeté
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1 text-[10px] font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                          <Shield className="w-3 h-3" /> Non vérifié
+                        </span>
+                      )}
+                    </div>
                   </div>
+                </div>
+
+                {/* KYC Status Banner */}
+                <div className={`p-5 rounded-2xl border-2 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 ${userProfile.kyc_status === 'verified' ? 'bg-green-50/30 border-green-100' :
+                  userProfile.kyc_status === 'rejected' ? 'bg-red-50/30 border-red-100' :
+                    userProfile.kyc_status === 'pending' ? 'bg-amber-50/30 border-amber-100' : 'bg-slate-50/30 border-slate-100'
+                  }`}>
+                  <div className="flex items-start gap-4">
+                    <div className={`p-3 rounded-xl ${userProfile.kyc_status === 'verified' ? 'bg-green-100 text-green-600' :
+                      userProfile.kyc_status === 'rejected' ? 'bg-red-100 text-red-600' :
+                        userProfile.kyc_status === 'pending' ? 'bg-amber-100 text-amber-600' : 'bg-slate-100 text-slate-600'
+                      }`}>
+                      <Shield className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-slate-900">Vérification d'Identité (KYC)</h4>
+                      <p className="text-sm text-slate-500 mt-0.5">
+                        {userProfile.kyc_status === 'verified' ? "Votre identité est confirmée. Vous n'avez aucune limite de transaction." :
+                          userProfile.kyc_status === 'rejected' ? `Dossier rejeté : ${userProfile.kyc_rejection_reason || "Documents invalides"}` :
+                            userProfile.kyc_status === 'pending' ? "Vos documents sont en cours d'examen par nos services." :
+                              "Obligatoire pour les transactions supérieures à 1.000.000 FCFA/mois."}
+                      </p>
+                    </div>
+                  </div>
+                  {(userProfile.kyc_status === 'unverified' || userProfile.kyc_status === 'rejected') && (
+                    <button
+                      onClick={() => {
+                        window.dispatchEvent(new CustomEvent('open-kyc-modal'));
+                      }}
+                      className="px-5 py-2.5 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/20 hover:scale-105 transition-transform text-sm"
+                    >
+                      {userProfile.kyc_status === 'rejected' ? "Soumettre à nouveau" : "Vérifier mon identité"}
+                    </button>
+                  )}
                 </div>
 
                 {/* Personal Info */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="full_name" className="block text-sm font-medium text-gray-700">
                       Nom complet
                     </label>
                     <div className="relative">
                       <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                       <input
+                        id="full_name"
                         type="text"
                         value={userProfile.full_name || ""}
                         onChange={(e) =>
@@ -285,12 +344,13 @@ export default function ClientSettings() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                       Email
                     </label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                       <input
+                        id="email"
                         type="email"
                         value={userProfile.email || ""}
                         disabled
@@ -299,12 +359,13 @@ export default function ClientSettings() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
                       Téléphone
                     </label>
                     <div className="relative">
                       <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                       <input
+                        id="phone"
                         type="tel"
                         value={userProfile.phone || ""}
                         onChange={(e) =>
@@ -318,12 +379,13 @@ export default function ClientSettings() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="company" className="block text-sm font-medium text-gray-700">
                       Entreprise
                     </label>
                     <div className="relative">
                       <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                       <input
+                        id="company"
                         type="text"
                         value={userProfile.company_name || ""}
                         onChange={(e) =>
@@ -338,6 +400,45 @@ export default function ClientSettings() {
                     </div>
                   </div>
                 </div>
+
+                {activeTab === "profile" && userProfile.role === "client" && (
+                  <div className="mt-8 pt-8 border-t border-gray-100">
+                    <div className="bg-blue-50 rounded-xl p-6 border border-blue-100">
+                      <div className="flex items-start gap-4">
+                        <div className="p-3 bg-blue-100 rounded-xl text-blue-600">
+                          <Briefcase className="w-6 h-6" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-lg font-bold text-gray-900 mb-2">
+                            Devenir Transitaire
+                          </h3>
+                          <p className="text-gray-600 mb-4">
+                            Vous souhaitez proposer vos services de transport sur
+                            notre plateforme ? Passez à un compte professionnel pour
+                            gérer vos expéditions, publier des offres de groupage et
+                            développer votre activité.
+                          </p>
+                          <button
+                            onClick={() =>
+                              setConfirmModal({
+                                isOpen: true,
+                                type: "upgrade",
+                                id: user?.id || null,
+                                title: "Passer au compte Transitaire",
+                                message:
+                                  "En devenant transitaire, vous aurez accès à un tableau de bord dédié. Vous devrez ensuite souscrire à un abonnement et valider votre KYC pour commencer à opérer. Voulez-vous continuer ?",
+                                variant: "info",
+                              })
+                            }
+                            className="px-4 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors shadow-sm shadow-blue-200"
+                          >
+                            Passer au compte Pro
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -358,6 +459,7 @@ export default function ClientSettings() {
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input
+                        id="notif_email"
                         type="checkbox"
                         checked={notifications.email_enabled}
                         onChange={(e) =>
@@ -367,8 +469,9 @@ export default function ClientSettings() {
                           })
                         }
                         className="sr-only peer"
+                        aria-label="Activer les notifications par email"
                       />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary" aria-hidden="true"></div>
                     </label>
                   </div>
                   <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
@@ -382,6 +485,7 @@ export default function ClientSettings() {
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input
+                        id="notif_offers"
                         type="checkbox"
                         checked={notifications.offers_enabled}
                         onChange={(e) =>
@@ -391,8 +495,9 @@ export default function ClientSettings() {
                           })
                         }
                         className="sr-only peer"
+                        aria-label="Activer les notifications pour les nouvelles offres"
                       />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary" aria-hidden="true"></div>
                     </label>
                   </div>
                 </div>
@@ -407,12 +512,13 @@ export default function ClientSettings() {
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <label className="block text-sm font-medium text-gray-700">
+                      <label htmlFor="new_password" title="Nouveau mot de passe" className="block text-sm font-medium text-gray-700">
                         Nouveau mot de passe
                       </label>
                       <div className="relative">
                         <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                         <input
+                          id="new_password"
                           type="password"
                           autoComplete="new-password"
                           value={passwordData.new}
@@ -428,12 +534,13 @@ export default function ClientSettings() {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <label className="block text-sm font-medium text-gray-700">
+                      <label htmlFor="confirm_password" title="Confirmer mot de passe" className="block text-sm font-medium text-gray-700">
                         Confirmer le mot de passe
                       </label>
                       <div className="relative">
                         <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                         <input
+                          id="confirm_password"
                           type="password"
                           autoComplete="new-password"
                           value={passwordData.confirm}
@@ -447,45 +554,6 @@ export default function ClientSettings() {
                           placeholder="••••••••"
                         />
                       </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {activeTab === "profile" && userProfile.role === "client" && (
-              <div className="mt-8 pt-8 border-t border-gray-100">
-                <div className="bg-blue-50 rounded-xl p-6 border border-blue-100">
-                  <div className="flex items-start gap-4">
-                    <div className="p-3 bg-blue-100 rounded-xl text-blue-600">
-                      <Briefcase className="w-6 h-6" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-lg font-bold text-gray-900 mb-2">
-                        Devenir Transitaire
-                      </h3>
-                      <p className="text-gray-600 mb-4">
-                        Vous souhaitez proposer vos services de transport sur
-                        notre plateforme ? Passez à un compte professionnel pour
-                        gérer vos expéditions, publier des offres de groupage et
-                        développer votre activité.
-                      </p>
-                      <button
-                        onClick={() =>
-                          setConfirmModal({
-                            isOpen: true,
-                            type: "upgrade",
-                            id: user?.id || null,
-                            title: "Passer au compte Transitaire",
-                            message:
-                              "En devenant transitaire, vous aurez accès à un tableau de bord dédié. Vous devrez ensuite souscrire à un abonnement et valider votre KYC pour commencer à opérer. Voulez-vous continuer ?",
-                            variant: "info",
-                          })
-                        }
-                        className="px-4 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors shadow-sm shadow-blue-200"
-                      >
-                        Passer au compte Pro
-                      </button>
                     </div>
                   </div>
                 </div>

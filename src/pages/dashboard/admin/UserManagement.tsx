@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import PageHeader from "../../../components/common/PageHeader";
 import CreateUserModal from "../../../components/admin/CreateUserModal";
 import UserProfileModal from "../../../components/admin/UserProfileModal";
@@ -23,6 +24,7 @@ import {
 } from "lucide-react";
 
 export default function UserManagement() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const { profile } = useAuth();
   const { success, error: toastError } = useToast();
   // Data State
@@ -110,6 +112,21 @@ export default function UserManagement() {
       setLoading(false);
     }
   };
+
+  // Handle deep-linking to a specific profile
+  useEffect(() => {
+    const viewProfileId = searchParams.get('viewProfile');
+    if (viewProfileId && users.length > 0) {
+      const userToView = users.find(u => u.id === viewProfileId);
+      if (userToView) {
+        setSelectedUser(userToView);
+        // Clear the param from URL without refreshing for a clean experience
+        const newParams = new URLSearchParams(searchParams);
+        newParams.delete('viewProfile');
+        setSearchParams(newParams, { replace: true });
+      }
+    }
+  }, [users, searchParams]);
 
   const handleToggleStatus = async (userId: string, currentStatus: string) => {
     try {

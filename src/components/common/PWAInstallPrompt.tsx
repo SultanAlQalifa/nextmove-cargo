@@ -7,22 +7,40 @@ export default function PWAInstallPrompt() {
 
   useEffect(() => {
     const handler = (e: any) => {
-      // Prevent the mini-infobar from appearing on mobile
       e.preventDefault();
-      // Stash the event so it can be triggered later.
       setDeferredPrompt(e);
-      // Update UI notify the user they can install the PWA
       setIsVisible(true);
     };
 
+    const handleIOSTrigger = () => {
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+      const isStandalone = (window.navigator as any).standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+
+      if (isIOS && !isStandalone) {
+        // For iOS, we don't have beforeinstallprompt, so we might show a subtle hint
+        // or wait for a specific user action. For now, let's just listen for a custom event.
+        setIsVisible(true);
+      }
+    };
+
     window.addEventListener("beforeinstallprompt", handler);
+    window.addEventListener("check-pwa-install", handleIOSTrigger);
 
     return () => {
       window.removeEventListener("beforeinstallprompt", handler);
+      window.removeEventListener("check-pwa-install", handleIOSTrigger);
     };
   }, []);
 
   const handleInstallClick = async () => {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+
+    if (isIOS) {
+      window.dispatchEvent(new CustomEvent("open-install-guide"));
+      setIsVisible(false);
+      return;
+    }
+
     if (!deferredPrompt) return;
 
     // Show the install prompt

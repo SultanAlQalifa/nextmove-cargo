@@ -67,19 +67,19 @@ export default function SavedQuoteModal({
                             </p>
                             <button
                                 onClick={onClose}
-                                className="mt-6 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all"
+                                className="mt-6 px-6 py-2.5 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-orange-500/30"
                             >
-                                Fermer
+                                Parfait, merci !
                             </button>
                         </div>
                     ) : (
                         <div className="space-y-6">
                             <div className="text-center">
-                                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <Save className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                                <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center mx-auto mb-4 animate-in zoom-in duration-300">
+                                    <Save className="w-6 h-6 text-orange-600 dark:text-orange-400" />
                                 </div>
                                 <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                                    Sauvegarder ce devis
+                                    Sauvegarder & Recevoir
                                 </h3>
                                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
                                     Recevez ce devis par email et sauvegardez-le pour plus tard.
@@ -97,7 +97,7 @@ export default function SavedQuoteModal({
                                     </div>
                                     <div className="flex justify-between">
                                         <span>Total Estimé:</span>
-                                        <span className="font-bold text-blue-600">
+                                        <span className="font-bold text-orange-600 text-lg">
                                             {new Intl.NumberFormat("fr-FR", {
                                                 style: "currency",
                                                 currency: "XOF",
@@ -121,7 +121,7 @@ export default function SavedQuoteModal({
                                             value={email}
                                             onChange={(e) => setEmail(e.target.value)}
                                             readOnly={!!user?.email}
-                                            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                                            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all"
                                             placeholder="nom@exemple.com"
                                         />
                                     </div>
@@ -141,15 +141,16 @@ export default function SavedQuoteModal({
                                 <button
                                     type="submit"
                                     disabled={loading || !email}
-                                    className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2"
+                                    className="w-full py-3 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow-lg shadow-orange-500/20 hover:shadow-orange-500/40 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
+
                                 >
                                     {loading ? (
                                         <>
                                             <Loader2 className="w-5 h-5 animate-spin" />
-                                            Sauvegarde...
+                                            Envoi en cours...
                                         </>
                                     ) : (
-                                        "Sauvegarder le devis"
+                                        "Recevoir mon devis"
                                     )}
                                 </button>
                             </form>
@@ -157,6 +158,6 @@ export default function SavedQuoteModal({
                     )}
                 </div>
             </div>
-        </div>
+        </div >
     );
 }

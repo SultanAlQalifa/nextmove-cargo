@@ -8,7 +8,6 @@ import ConfirmationModal from "../common/ConfirmationModal";
 export default function RateManager() {
   const { user } = useAuth();
   const [rates, setRates] = useState<Rate[]>([]);
-  const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [confirmation, setConfirmation] = useState<{
@@ -38,7 +37,6 @@ export default function RateManager() {
     } catch (error) {
       console.error("Error loading rates:", error);
     } finally {
-      setLoading(false);
     }
   };
 

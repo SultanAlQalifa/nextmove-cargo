@@ -26,6 +26,7 @@ import { testimonialService, Testimonial } from "../services/testimonialService"
 import { faqService, FAQ } from "../services/faqService";
 import MarketplaceShowcase from "../components/home/MarketplaceShowcase";
 import CEOSection from "../components/home/CEOSection";
+import EcommerceAcademy from "../components/home/EcommerceAcademy";
 import FounderPackModal from "../components/marketing/FounderPackModal";
 
 import { motion, AnimatePresence } from "framer-motion";
@@ -390,70 +391,6 @@ export default function Home() {
           </div>
         </div>
       </div>
-      {/* Global Network Section - NEW PREMIUM SECTION */}
-      <div className="py-32 bg-slate-900 border-t border-white/5 relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-20 items-center">
-            <motion.div
-              initial={{ opacity: 0, x: -50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              className="space-y-8"
-            >
-              <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-[0.3em]">
-                Expansion Globale
-              </div>
-              <h2 className="text-4xl lg:text-6xl font-black text-white leading-tight tracking-tight">
-                Connecter <span className="text-gradient">l'Afrique</span> au Reste du Monde.
-              </h2>
-              <p className="text-xl text-slate-400 font-light leading-relaxed">
-                Notre infrastructure ne se limite pas aux ports. Nous créons des ponts numériques sécurisés entre les plus grands centres de production mondiaux et vos marchés locaux.
-              </p>
-
-              <div className="grid grid-cols-2 gap-8">
-                <div>
-                  <div className="text-3xl font-black text-white mb-2">24/7</div>
-                  <div className="text-sm text-slate-500 uppercase tracking-widest font-bold">Surveillance Live</div>
-                </div>
-                <div>
-                  <div className="text-3xl font-black text-white mb-2">15+</div>
-                  <div className="text-sm text-slate-500 uppercase tracking-widest font-bold">Hubs Logistiques</div>
-                </div>
-              </div>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              className="relative group"
-            >
-              <img
-                src="/assets/network-map.png"
-                alt="Global Network Map"
-                className="relative z-10 w-full rounded-[3rem] border border-white/10 shadow-2xl transform group-hover:scale-[1.02] transition-transform duration-700"
-              />
-              {/* Trust badges overlay */}
-              <div className="absolute -bottom-10 -left-10 glass p-6 rounded-3xl border border-white/10 z-20 shadow-2xl backdrop-blur-3xl">
-                <div className="flex items-center gap-4">
-                  <div className="flex -space-x-3">
-                    <div className="w-10 h-10 rounded-full bg-slate-800 border-2 border-slate-900 flex items-center justify-center text-[10px] text-white font-bold">CN</div>
-                    <div className="w-10 h-10 rounded-full bg-slate-800 border-2 border-slate-900 flex items-center justify-center text-[10px] text-white font-bold">SN</div>
-                    <div className="w-10 h-10 rounded-full bg-slate-800 border-2 border-slate-900 flex items-center justify-center text-[10px] text-white font-bold">CI</div>
-                  </div>
-                  <div className="text-xs font-bold text-white uppercase tracking-widest">Axe Stratégique</div>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        </div>
-      </div>
-
-      {/* CEO's Word Section Header */}
-      <div className="bg-slate-50 dark:bg-gray-950 pt-20">
-        <CEOSection />
-      </div>
-
       {/* Marketplace Showcase Section */}
       <MarketplaceShowcase />
 
@@ -510,125 +447,6 @@ export default function Home() {
                 </div>
               </motion.div>
             ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Wave Payment Highlight Section - Refined */}
-      <div className="py-32 bg-sky-50/50 dark:bg-slate-900/50 border-y border-sky-100 dark:border-slate-800 relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-          <div className="grid md:grid-cols-2 gap-24 items-center">
-            <div>
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400 font-bold text-sm mb-8">
-                <ShieldCheck className="w-4 h-4" /> Recommandé pour l'Afrique
-              </div>
-              <h2 className="text-4xl lg:text-6xl font-bold text-slate-900 dark:text-white mb-8 leading-tight tracking-tight">
-                Payez avec <span className="text-[#1DA1F2]">Wave</span>
-              </h2>
-              <p className="text-xl text-slate-600 dark:text-slate-300 mb-12 leading-relaxed font-light">
-                NextMove Cargo intègre Wave pour offrir une expérience de
-                paiement fluide, sécurisée et adaptée aux besoins des
-                entreprises africaines.
-              </p>
-
-              <div className="space-y-8 mb-12">
-                {[
-                  {
-                    title: "Transactions Instantanées",
-                    desc: "Vos paiements sont validés en temps réel.",
-                  },
-                  {
-                    title: "Frais Réduits (1%)",
-                    desc: "Profitez des frais les plus bas du marché.",
-                  },
-                  {
-                    title: "Sécurité Maximale",
-                    desc: "Vos fonds sont protégés par les standards bancaires.",
-                  },
-                ].map((item, i) => (
-                  <div key={i} className="flex items-start gap-5">
-                    <div className="p-3 rounded-2xl bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400 mt-1">
-                      <CheckCircle className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-slate-900 dark:text-white text-xl mb-1">
-                        {item.title}
-                      </h4>
-                      <p className="text-slate-500 dark:text-slate-400">
-                        {item.desc}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <Link
-                to="/register"
-                className="inline-flex items-center justify-center px-10 py-5 text-lg font-bold rounded-2xl text-white bg-[#1DA1F2] hover:bg-[#1a91da] shadow-xl shadow-[#1DA1F2]/20 transition-all transform hover:scale-105"
-              >
-                Commencer maintenant
-              </Link>
-            </div>
-
-            <div className="relative group perspective-1000">
-              <div className="absolute inset-0 bg-gradient-to-tr from-[#1DA1F2]/20 to-transparent rounded-[3rem] transform rotate-6 scale-95 group-hover:rotate-3 transition-transform duration-700"></div>
-              <div className="relative bg-white dark:bg-slate-800 rounded-[3rem] shadow-2xl p-12 border border-slate-100 dark:border-slate-700 transform transition-transform duration-500 hover:scale-[1.02]">
-                <div className="flex items-center justify-between mb-12 border-b border-slate-100 dark:border-slate-700 pb-8">
-                  <div className="flex items-center gap-5">
-                    <div className="w-16 h-16 bg-[#1DA1F2] rounded-2xl flex items-center justify-center text-white shadow-lg shadow-[#1DA1F2]/30 overflow-hidden">
-                      <img
-                        src="/assets/wave-icon.png"
-                        alt="Wave"
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div>
-                      <div className="font-bold text-slate-900 dark:text-white text-2xl">
-                        Wave Money
-                      </div>
-                      <div className="text-slate-500 dark:text-slate-400">
-                        Paiement Sécurisé
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-[#1DA1F2] font-bold bg-[#1DA1F2]/10 px-4 py-2 rounded-full">
-                    1% Frais
-                  </div>
-                </div>
-
-                <div className="space-y-8">
-                  <div className="bg-slate-50 dark:bg-slate-900/50 p-6 rounded-3xl flex justify-between items-center">
-                    <span className="text-slate-500 dark:text-slate-400 font-medium">
-                      Montant
-                    </span>
-                    <span className="font-bold text-slate-900 dark:text-white text-3xl">
-                      500.000 FCFA
-                    </span>
-                  </div>
-                  <div className="bg-slate-50 dark:bg-slate-900/50 p-6 rounded-3xl flex justify-between items-center">
-                    <span className="text-slate-500 dark:text-slate-400 font-medium">
-                      Destinataire
-                    </span>
-                    <span className="font-bold text-slate-900 dark:text-white text-lg">
-                      NextMove Cargo
-                    </span>
-                  </div>
-
-                  <div className="py-4">
-                    <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-2.5 mb-4 overflow-hidden">
-                      <div className="bg-[#1DA1F2] h-full rounded-full w-3/4 animate-[shimmer_2s_infinite] bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.5),transparent)]"></div>
-                    </div>
-                    <div className="text-center text-sm text-slate-500 dark:text-slate-400 font-medium">
-                      Validation sécurisée en cours...
-                    </div>
-                  </div>
-
-                  <button className="w-full py-6 bg-[#1DA1F2] text-white rounded-3xl font-bold text-xl shadow-xl shadow-[#1DA1F2]/20 hover:shadow-[#1DA1F2]/40 transition-all hover:-translate-y-1">
-                    Confirmer le paiement
-                  </button>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -802,6 +620,187 @@ export default function Home() {
         </div>
       </div>
 
+      {/* Global Network Section - NEW PREMIUM SECTION */}
+      <div className="py-32 bg-slate-900 border-t border-white/5 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="grid lg:grid-cols-2 gap-20 items-center">
+            <motion.div
+              initial={{ opacity: 0, x: -50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="space-y-8"
+            >
+              <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-[0.3em]">
+                Expansion Globale
+              </div>
+              <h2 className="text-4xl lg:text-6xl font-black text-white leading-tight tracking-tight">
+                Connecter <span className="text-gradient">l'Afrique</span> au Reste du Monde.
+              </h2>
+              <p className="text-xl text-slate-400 font-light leading-relaxed">
+                Notre infrastructure ne se limite pas aux ports. Nous créons des ponts numériques sécurisés entre les plus grands centres de production mondiaux et vos marchés locaux.
+              </p>
+
+              <div className="grid grid-cols-2 gap-8">
+                <div>
+                  <div className="text-3xl font-black text-white mb-2">24/7</div>
+                  <div className="text-sm text-slate-500 uppercase tracking-widest font-bold">Surveillance Live</div>
+                </div>
+                <div>
+                  <div className="text-3xl font-black text-white mb-2">15+</div>
+                  <div className="text-sm text-slate-500 uppercase tracking-widest font-bold">Hubs Logistiques</div>
+                </div>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              className="relative group"
+            >
+              <img
+                src="/assets/network-map.png"
+                alt="Global Network Map"
+                className="relative z-10 w-full rounded-[3rem] border border-white/10 shadow-2xl transform group-hover:scale-[1.02] transition-transform duration-700"
+              />
+              {/* Trust badges overlay */}
+              <div className="absolute -bottom-10 -left-10 glass p-6 rounded-3xl border border-white/10 z-20 shadow-2xl backdrop-blur-3xl">
+                <div className="flex items-center gap-4">
+                  <div className="flex -space-x-3">
+                    <div className="w-10 h-10 rounded-full bg-slate-800 border-2 border-slate-900 flex items-center justify-center text-[10px] text-white font-bold">CN</div>
+                    <div className="w-10 h-10 rounded-full bg-slate-800 border-2 border-slate-900 flex items-center justify-center text-[10px] text-white font-bold">SN</div>
+                    <div className="w-10 h-10 rounded-full bg-slate-800 border-2 border-slate-900 flex items-center justify-center text-[10px] text-white font-bold">CI</div>
+                  </div>
+                  <div className="text-xs font-bold text-white uppercase tracking-widest">Axe Stratégique</div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </div>
+
+      {/* Wave Payment Highlight Section - Refined */}
+      <div className="py-32 bg-sky-50/50 dark:bg-slate-900/50 border-y border-sky-100 dark:border-slate-800 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+          <div className="grid md:grid-cols-2 gap-24 items-center">
+            <div>
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400 font-bold text-sm mb-8">
+                <ShieldCheck className="w-4 h-4" /> Recommandé pour l'Afrique
+              </div>
+              <h2 className="text-4xl lg:text-6xl font-bold text-slate-900 dark:text-white mb-8 leading-tight tracking-tight">
+                Payez avec <span className="text-[#1DA1F2]">Wave</span>
+              </h2>
+              <p className="text-xl text-slate-600 dark:text-slate-300 mb-12 leading-relaxed font-light">
+                NextMove Cargo intègre Wave pour offrir une expérience de
+                paiement fluide, sécurisée et adaptée aux besoins des
+                entreprises africaines.
+              </p>
+
+              <div className="space-y-8 mb-12">
+                {[
+                  {
+                    title: "Transactions Instantanées",
+                    desc: "Vos paiements sont validés en temps réel.",
+                  },
+                  {
+                    title: "Frais Réduits (1%)",
+                    desc: "Profitez des frais les plus bas du marché.",
+                  },
+                  {
+                    title: "Sécurité Maximale",
+                    desc: "Vos fonds sont protégés par les standards bancaires.",
+                  },
+                ].map((item, i) => (
+                  <div key={i} className="flex items-start gap-5">
+                    <div className="p-3 rounded-2xl bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400 mt-1">
+                      <CheckCircle className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-slate-900 dark:text-white text-xl mb-1">
+                        {item.title}
+                      </h4>
+                      <p className="text-slate-500 dark:text-slate-400">
+                        {item.desc}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <Link
+                to="/register"
+                className="inline-flex items-center justify-center px-10 py-5 text-lg font-bold rounded-2xl text-white bg-[#1DA1F2] hover:bg-[#1a91da] shadow-xl shadow-[#1DA1F2]/20 transition-all transform hover:scale-105"
+              >
+                Commencer maintenant
+              </Link>
+            </div>
+
+            <div className="relative group perspective-1000">
+              <div className="absolute inset-0 bg-gradient-to-tr from-[#1DA1F2]/20 to-transparent rounded-[3rem] transform rotate-6 scale-95 group-hover:rotate-3 transition-transform duration-700"></div>
+              <div className="relative bg-white dark:bg-slate-800 rounded-[3rem] shadow-2xl p-12 border border-slate-100 dark:border-slate-700 transform transition-transform duration-500 hover:scale-[1.02]">
+                <div className="flex items-center justify-between mb-12 border-b border-slate-100 dark:border-slate-700 pb-8">
+                  <div className="flex items-center gap-5">
+                    <div className="w-16 h-16 bg-[#1DA1F2] rounded-2xl flex items-center justify-center text-white shadow-lg shadow-[#1DA1F2]/30 overflow-hidden">
+                      <img
+                        src="/assets/wave-icon.png"
+                        alt="Wave"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div>
+                      <div className="font-bold text-slate-900 dark:text-white text-2xl">
+                        Wave Money
+                      </div>
+                      <div className="text-slate-500 dark:text-slate-400">
+                        Paiement Sécurisé
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-[#1DA1F2] font-bold bg-[#1DA1F2]/10 px-4 py-2 rounded-full">
+                    1% Frais
+                  </div>
+                </div>
+
+                <div className="space-y-8">
+                  <div className="bg-slate-50 dark:bg-slate-900/50 p-6 rounded-3xl flex justify-between items-center">
+                    <span className="text-slate-500 dark:text-slate-400 font-medium">
+                      Montant
+                    </span>
+                    <span className="font-bold text-slate-900 dark:text-white text-3xl">
+                      500.000 FCFA
+                    </span>
+                  </div>
+                  <div className="bg-slate-50 dark:bg-slate-900/50 p-6 rounded-3xl flex justify-between items-center">
+                    <span className="text-slate-500 dark:text-slate-400 font-medium">
+                      Destinataire
+                    </span>
+                    <span className="font-bold text-slate-900 dark:text-white text-lg">
+                      NextMove Cargo
+                    </span>
+                  </div>
+
+                  <div className="py-4">
+                    <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-2.5 mb-4 overflow-hidden">
+                      <div className="bg-[#1DA1F2] h-full rounded-full w-3/4 animate-[shimmer_2s_infinite] bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.5),transparent)]"></div>
+                    </div>
+                    <div className="text-center text-sm text-slate-500 dark:text-slate-400 font-medium">
+                      Validation sécurisée en cours...
+                    </div>
+                  </div>
+
+                  <button className="w-full py-6 bg-[#1DA1F2] text-white rounded-3xl font-bold text-xl shadow-xl shadow-[#1DA1F2]/20 hover:shadow-[#1DA1F2]/40 transition-all hover:-translate-y-1">
+                    Confirmer le paiement
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Ecommerce Academy Section */}
+      <EcommerceAcademy />
+
       {/* Mobile App Section - NEW */}
       <div className="py-32 bg-white dark:bg-gray-900 border-y border-gray-100 dark:border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -883,6 +882,101 @@ export default function Home() {
                     className="h-[52px] w-auto"
                   />
                 </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* CEO's Word Section Header */}
+      <div className="bg-slate-50 dark:bg-gray-950 pt-20">
+        <CEOSection />
+      </div>
+
+      {/* Referral Program Section - NEW PREMIUM SECTION (Light Version) */}
+      <div className="py-32 relative overflow-hidden bg-white dark:bg-gray-900 border-y border-slate-100 dark:border-slate-800">
+        {/* Abstract Background - Light */}
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03] dark:opacity-[0.05]"></div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="grid lg:grid-cols-2 gap-20 items-center">
+            <div className="order-2 lg:order-1 relative">
+              <div className="relative z-10 glass-card p-10 rounded-[3rem] border-slate-200 dark:border-white/5 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl shadow-2xl shadow-blue-500/10">
+                <div className="absolute -top-10 -right-10 w-24 h-24 bg-gradient-to-br from-primary to-secondary rounded-3xl rotate-12 flex items-center justify-center shadow-2xl z-20 animate-float">
+                  <Star className="w-10 h-10 text-white fill-white" />
+                </div>
+
+                <div className="space-y-8">
+                  <div className="flex items-center gap-6 p-4 bg-white/5 rounded-2xl border border-white/10">
+                    <div className="w-12 h-12 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center">
+                      <Plus className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <div className="text-white font-bold text-lg">Nouvelle Commission</div>
+                      <div className="text-slate-400 text-sm">Il y a 2 minutes</div>
+                    </div>
+                    <div className="ml-auto text-green-400 font-bold text-xl">+ 15.000 F</div>
+                  </div>
+
+                  <div className="flex items-center gap-6 p-4 bg-white/5 rounded-2xl border border-white/10 opacity-60">
+                    <div className="w-12 h-12 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center">
+                      <Plus className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <div className="text-white font-bold text-lg">Nouvelle Commission</div>
+                      <div className="text-slate-400 text-sm">Il y a 2 heures</div>
+                    </div>
+                    <div className="ml-auto text-green-400 font-bold text-xl">+ 25.000 F</div>
+                  </div>
+
+                  <div className="p-6 bg-gradient-to-r from-primary to-secondary rounded-2xl shadow-xl mt-8 text-center relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity"></div>
+                    <div className="text-white/90 text-sm font-bold uppercase tracking-widest mb-1">Gains Totaux</div>
+                    <div className="text-4xl font-black text-white">450.000 FCFA</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="order-1 lg:order-2 space-y-8">
+              <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-blue-100 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-500/30 text-blue-600 dark:text-blue-400 text-[10px] font-black uppercase tracking-[0.3em]">
+                Programme Partenaire
+              </div>
+              <h2 className="text-4xl lg:text-6xl font-black text-slate-900 dark:text-white leading-tight">
+                Gagnez avec <span className="text-primary">NextMove</span> <span className="text-secondary">Cargo</span>.
+              </h2>
+              <p className="text-xl text-slate-600 dark:text-slate-300 font-light leading-relaxed">
+                Rejoignez notre programme d'affiliation exclusif. Recommandez NextMove Cargo à votre réseau et touchez des commissions sur chaque opération.
+              </p>
+
+              <div className="space-y-6 pt-4">
+                {[
+                  { title: "Lien Unique", desc: "Partagez votre lien de parrainage.", icon: Globe },
+                  { title: "Suivi en Temps Réel", desc: "Suivez vos filleuls et vos gains depuis votre dashboard.", icon: Smartphone },
+                  { title: "Retraits Rapides", desc: "Récupérez vos gains par Wave, Orange Money ou virement.", icon: CheckCircle }
+                ].map((item, i) => (
+                  <div key={i} className="flex items-start gap-4">
+                    <div className="mt-1 p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg text-blue-600 dark:text-blue-400">
+                      <item.icon className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="text-slate-900 dark:text-white font-bold text-lg">{item.title}</h4>
+                      <p className="text-slate-500 dark:text-slate-400">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="pt-8">
+                <Link
+                  to="/register?role=partner"
+                  className="inline-flex items-center justify-center px-8 py-4 text-lg font-bold rounded-2xl text-white bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-blue-600 dark:hover:bg-blue-100 transition-all transform hover:scale-105 shadow-xl hover:shadow-blue-500/25"
+                >
+                  Devenir Partenaire
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Link>
               </div>
             </div>
           </div>

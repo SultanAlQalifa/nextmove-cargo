@@ -8,7 +8,6 @@ import { supabase } from "../lib/supabase";
 import { useAuth } from "../contexts/AuthContext";
 import { User, Lock, Save, ArrowRight, Loader2, CheckCircle2 } from "lucide-react";
 import { useBranding } from "../contexts/BrandingContext";
-import { useBranding } from "../contexts/BrandingContext";
 import PhoneInputWithCountry from "../components/auth/PhoneInputWithCountry";
 
 // Schema validation
@@ -40,11 +39,21 @@ interface CompleteProfileForm {
 }
 
 export default function CompleteProfile() {
-    const { user, refreshProfile } = useAuth();
+    const { user, profile, refreshProfile, loading: authLoading } = useAuth();
     const { settings } = useBranding();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    // Skip for admins and internal staff
+    useEffect(() => {
+        if (!authLoading && profile) {
+            const isInternalRole = ['admin', 'super-admin', 'support', 'manager', 'driver'].includes(profile.role);
+            if (isInternalRole) {
+                navigate("/dashboard", { replace: true });
+            }
+        }
+    }, [profile, authLoading, navigate]);
 
     const isExternalUser = user?.app_metadata?.provider === 'google' || user?.app_metadata?.provider === 'phone';
 

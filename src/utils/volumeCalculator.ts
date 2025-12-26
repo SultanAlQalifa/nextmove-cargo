@@ -33,8 +33,8 @@ export function calculateCBM(dimensions: Dimensions): number {
   // Calculate CBM
   const cbm = lengthM * widthM * heightM;
 
-  // Round to 4 decimal places to support small packages (e.g. 10cm x 10cm x 10cm = 0.001 CBM)
-  return Math.round(cbm * 10000) / 10000;
+  // Round to 6 decimal places to support small packages (e.g. 1cm x 1cm x 1cm = 0.000001 CBM)
+  return Math.round(cbm * 1000000) / 1000000;
 }
 
 /**
