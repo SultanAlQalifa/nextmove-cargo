@@ -441,7 +441,7 @@ export default function AdminBranding() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Logo (Nexus / Icone)
+                        Logo Icone (Sidebar)
                       </label>
                       <div className="flex items-start gap-4">
                         <div className="w-12 h-12 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-center overflow-hidden">
