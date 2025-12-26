@@ -258,6 +258,7 @@ import LoadingSpinner from "./components/common/LoadingSpinner";
 
 
 const MyCertificates = lazy(() => import("./pages/academy/MyCertificates"));
+const VerifyCertificate = lazy(() => import("./pages/academy/VerifyCertificate"));
 
 function App() {
   return (
@@ -312,6 +313,7 @@ function App() {
                                     <Route path="/founder-pack/payment" element={<FounderPayment />} />
                                     <Route path="/academy" element={<Academy />} />
                                     <Route path="/academy/lesson/:id" element={<LessonView />} />
+                                    <Route path="/academy/verify/:code" element={<VerifyCertificate />} />
 
                                     {/* Legal & Content Routes */}
                                     <Route path="privacy" element={<PrivacyPolicy />} />

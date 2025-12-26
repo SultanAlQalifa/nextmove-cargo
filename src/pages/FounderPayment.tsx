@@ -1,19 +1,19 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useTranslation } from "react-i18next";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../contexts/AuthContext";
 import { useToast } from "../contexts/ToastContext";
-import { Award, Check, ShieldCheck, ArrowRight, Sparkles, Loader2 } from "lucide-react";
+import { Check, ShieldCheck, ArrowRight, Sparkles, Loader2, CreditCard } from "lucide-react";
 import confetti from "canvas-confetti";
+import PaymentModal from "../components/payment/PaymentModal";
 
 export default function FounderPayment() {
-    const { t } = useTranslation();
     const navigate = useNavigate();
     const { user, refreshProfile } = useAuth();
     const { success, error: showError } = useToast();
     const [loading, setLoading] = useState(false);
     const [settings, setSettings] = useState<any>(null);
+    const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
     useEffect(() => {
         loadSettings();
@@ -24,35 +24,23 @@ export default function FounderPayment() {
         if (data) setSettings(data);
     };
 
-    const handlePayment = async () => {
+    const handlePaymentSuccess = async () => {
         setLoading(true);
         try {
-            // 1. Create a transaction record (simulated for Wave)
-            // In a real app, this would call the Wave API
-            const amount = settings?.founder_offer_price || 5000;
-
-            // Simulate API call delay
-            await new Promise((resolve) => setTimeout(resolve, 2000));
-
-            // 2. Grant badge by updating profile (using RPC or direct update if allowed)
-            // We'll update metadata or a flag. For now, let's assume a 'is_founder' column or similar.
-            // Since we might not have that column, we'll store it in metadata or just log it.
-            // Ideally, we'd have a 'badges' array.
-
-            // Let's use a specific RPC if available, or just update metadata.
+            // Grant badge by updating profile
             const { error: updateError } = await supabase.auth.updateUser({
                 data: { is_founder: true }
             });
 
             if (updateError) throw updateError;
 
-            // Also update the public profile if possible
+            // Also update the public profile
             await supabase
                 .from('profiles')
-                .update({ is_founder: true } as any) // Cast as any if column doesn't exist yet, but we should add it.
+                .update({ is_founder: true } as any)
                 .eq('id', user?.id);
 
-            // 3. Success Feedback
+            // Success Feedback
             confetti({
                 particleCount: 150,
                 spread: 70,
@@ -67,8 +55,8 @@ export default function FounderPayment() {
             setTimeout(() => navigate("/dashboard/client"), 2000);
 
         } catch (err: any) {
-            console.error("Payment error:", err);
-            showError("Échec du paiement. Veuillez réessayer.");
+            console.error("Profile update error after payment:", err);
+            showError("Paiement reçu, mais erreur lors de l'activation du badge. Contactez le support.");
         } finally {
             setLoading(false);
         }
@@ -79,6 +67,8 @@ export default function FounderPayment() {
             <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
         </div>
     );
+
+    const price = settings?.founder_offer_price || 25000;
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-gray-900 flex flex-col items-center justify-center p-4">
@@ -129,42 +119,46 @@ export default function FounderPayment() {
                     <div className="text-center mb-10">
                         <p className="text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wider text-xs mb-2">Montant à régler</p>
                         <div className="text-5xl font-bold text-slate-900 dark:text-white">
-                            {(settings.founder_offer_price || 5000).toLocaleString()} <span className="text-2xl text-slate-400">FCFA</span>
+                            {price.toLocaleString()} <span className="text-2xl text-slate-400">FCFA</span>
                         </div>
                         <p className="text-xs text-slate-400 mt-2">Paiement unique • Satisfait ou remboursé</p>
                     </div>
 
                     <div className="space-y-4">
                         <button
-                            onClick={handlePayment}
+                            onClick={() => setIsPaymentModalOpen(true)}
                             disabled={loading}
-                            className="group w-full py-5 px-6 bg-[#1DA1F2] hover:bg-[#1a91da] text-white rounded-2xl font-bold text-lg shadow-xl shadow-blue-500/20 transition-all transform hover:-translate-y-1 flex items-center justify-center gap-3"
+                            className="group w-full py-5 px-6 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl font-bold text-lg shadow-xl shadow-amber-500/20 transition-all transform hover:-translate-y-1 flex items-center justify-center gap-3"
                         >
                             {loading ? (
                                 <Loader2 className="w-6 h-6 animate-spin" />
                             ) : (
                                 <>
-                                    <span>Payer avec Wave</span>
-                                    <img src="/assets/wave-icon.png" alt="" className="w-6 h-6 object-contain bg-white rounded-full p-0.5" />
+                                    <span>Payer maintenant</span>
+                                    <CreditCard className="w-6 h-6" />
                                 </>
                             )}
                         </button>
 
-                        <button
-                            onClick={handlePayment}
-                            disabled={loading}
-                            className="w-full py-5 px-6 bg-orange-500 hover:bg-orange-600 text-white rounded-2xl font-bold text-lg shadow-xl shadow-orange-500/20 transition-all transform hover:-translate-y-1"
-                        >
-                            Payer avec Orange Money
-                        </button>
-
                         <p className="text-center text-xs text-slate-400 mt-6 flex items-center justify-center gap-2">
-                            <ShieldCheck className="w-4 h-4" /> Connexion sécurisée 256-bit SSL
+                            <ShieldCheck className="w-4 h-4" /> Connexion sécurisée SSL
                         </p>
                     </div>
                 </div>
 
             </div>
+
+            <PaymentModal
+                isOpen={isPaymentModalOpen}
+                onClose={() => setIsPaymentModalOpen(false)}
+                onSuccess={handlePaymentSuccess}
+                planName="Membre Fondateur"
+                amount={price}
+                currency="XOF"
+                allowedMethods={["wave", "wallet", "paytech", "cinetpay"]}
+                showCoupons={false}
+                showVAT={false}
+            />
         </div>
     );
 }

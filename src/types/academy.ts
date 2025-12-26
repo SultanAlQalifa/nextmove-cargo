@@ -25,6 +25,7 @@ export interface AcademyCourse {
     academy_lessons?: AcademyLesson[];
     students?: number;
     rating?: number;
+    certificate_price?: number;
 }
 
 export interface AcademyEnrollment {
@@ -65,9 +66,36 @@ export interface AcademyLessonComment {
     lesson_id: string;
     user_id: string;
     content: string;
+    parent_id?: string;
     created_at: string;
     profiles?: {
         full_name: string;
         avatar_url: string;
     };
+    replies?: AcademyLessonComment[];
+}
+
+export interface AcademyQuiz {
+    id: string;
+    lesson_id: string;
+    title: string;
+    description?: string;
+    passing_score: number;
+    questions?: AcademyQuizQuestion[];
+}
+
+export interface AcademyQuizQuestion {
+    id: string;
+    quiz_id: string;
+    question_text: string;
+    order_index: number;
+    options?: AcademyQuizOption[];
+}
+
+export interface AcademyQuizOption {
+    id: string;
+    question_id: string;
+    option_text: string;
+    is_correct: boolean;
+    order_index: number;
 }

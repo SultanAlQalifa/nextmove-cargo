@@ -2,7 +2,6 @@ import { supabase } from "../lib/supabase";
 import { fetchWithRetry } from "../utils/supabaseHelpers";
 import { auditService } from "./auditService";
 import { notificationService } from "./notificationService";
-import { automationService } from "./automationService";
 
 export interface Invoice {
   id: string;
@@ -44,6 +43,8 @@ export interface WaveCheckoutResponse {
 }
 
 export interface PaymentConfirmationDetails {
+  amount?: number;
+  currency?: string;
   discountAmount?: number;
   paymentMethod: string;
   transactionReference?: string;

@@ -1,5 +1,5 @@
 import { supabase } from "../lib/supabase";
-import { AcademyCourse, AcademyLesson, AcademyReview, AcademyLessonComment } from "../types/academy";
+import { AcademyCourse, AcademyLesson, AcademyReview, AcademyLessonComment, AcademyEnrollment, AcademyQuiz } from "../types/academy";
 
 export const academyService = {
     /**
@@ -57,6 +57,7 @@ export const academyService = {
                 description: course.description,
                 category: course.category,
                 cover_image_url: course.cover_image_url,
+                certificate_price: course.certificate_price,
                 status: course.status || 'draft',
                 updated_at: new Date().toISOString()
             })
@@ -178,6 +179,60 @@ export const academyService = {
 
         if (error) throw error;
         return data as any[];
+    },
+
+    /**
+     * Fetch all reviews (for admin)
+     */
+    async getAllReviews(): Promise<any[]> {
+        const { data, error } = await supabase
+            .from('academy_reviews')
+            .select('*, profiles(full_name, avatar_url), academy_courses(title)')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        return data as any[];
+    },
+
+    /**
+     * Reorder lessons
+     */
+    async reorderLessons(lessonOrders: { id: string, order_index: number }[]) {
+        const { error } = await supabase
+            .from('academy_lessons')
+            .upsert(lessonOrders.map(lo => ({ id: lo.id, order_index: lo.order_index })));
+
+        if (error) throw error;
+    },
+
+    /**
+     * Fetch all comments (for admin)
+     */
+    async getAdminComments(): Promise<any[]> {
+        const { data, error } = await supabase
+            .from('academy_lesson_comments')
+            .select('*, profiles(full_name, avatar_url), academy_lessons(title, course_id, academy_courses(title))')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        return data as any[];
+    },
+
+    /**
+     * Get statistics
+     */
+    async getAcademyStats() {
+        const { data: enrollments, error: enrollError } = await supabase
+            .from('academy_enrollments')
+            .select('certified_at, enrolled_at, course_id');
+
+        if (enrollError) throw enrollError;
+
+        return {
+            totalStudents: enrollments?.length || 0,
+            certificates: enrollments?.filter(e => e.certified_at).length || 0,
+            enrollments: enrollments || []
+        };
     },
 
     /**
@@ -452,6 +507,117 @@ export const academyService = {
             .eq('id', enrollmentId)
             .select()
             .single();
+
+        if (error) throw error;
+        return data;
+    },
+
+    /**
+     * QUIZ: Fetch quiz for a lesson
+     */
+    async getLessonQuiz(lessonId: string): Promise<AcademyQuiz | null> {
+        const { data, error } = await supabase
+            .from('academy_quizzes')
+            .select('*, academy_quiz_questions(*, academy_quiz_options(*))')
+            .eq('lesson_id', lessonId)
+            .maybeSingle();
+
+        if (error) throw error;
+        return data as any;
+    },
+
+    /**
+     * QUIZ: Save/Update a quiz
+     */
+    async saveQuiz(quiz: Partial<AcademyQuiz>) {
+        // 1. Save main quiz info
+        const { data: savedQuiz, error: quizError } = await supabase
+            .from('academy_quizzes')
+            .upsert({
+                id: quiz.id || undefined,
+                lesson_id: quiz.lesson_id,
+                title: quiz.title,
+                description: quiz.description,
+                passing_score: quiz.passing_score,
+                updated_at: new Date().toISOString()
+            })
+            .select()
+            .single();
+
+        if (quizError) throw quizError;
+
+        // 2. Handle questions if provided
+        if (quiz.questions) {
+            // Basic replace logic for questions/options for simplicity
+            for (const q of quiz.questions) {
+                const { data: savedQ, error: qError } = await supabase
+                    .from('academy_quiz_questions')
+                    .upsert({
+                        id: q.id || undefined,
+                        quiz_id: savedQuiz.id,
+                        question_text: q.question_text,
+                        order_index: q.order_index
+                    })
+                    .select()
+                    .single();
+
+                if (qError) throw qError;
+
+                if (q.options) {
+                    const optionsToInsert = q.options.map((o: any) => ({
+                        question_id: savedQ.id,
+                        option_text: o.option_text,
+                        is_correct: o.is_correct,
+                        order_index: o.order_index
+                    }));
+
+                    await supabase.from('academy_quiz_options').delete().eq('question_id', savedQ.id);
+                    await supabase.from('academy_quiz_options').insert(optionsToInsert);
+                }
+            }
+        }
+
+        return savedQuiz;
+    },
+
+    /**
+     * SETTINGS: Fetch Academy settings (templates)
+     */
+    async getAcademySettings() {
+        const { data, error } = await supabase
+            .from('system_settings')
+            .select('*')
+            .ilike('key', 'academy_email_%');
+
+        if (error) throw error;
+        return data;
+    },
+
+    /**
+     * SETTINGS: Update a specific setting
+     */
+    async updateAcademySetting(key: string, value: any) {
+        const { error } = await supabase
+            .from('system_settings')
+            .upsert({
+                key,
+                value,
+                updated_at: new Date().toISOString()
+            });
+
+        if (error) throw error;
+        return true;
+    },
+
+    /**
+     * PUBLIC: Verify certificate by code
+     */
+    async verifyCertificate(code: string) {
+        const { data, error } = await supabase
+            .from('academy_enrollments')
+            .select('*, profiles(*), academy_courses(*)')
+            .eq('verification_code', code)
+            .maybeSingle();
 
         if (error) throw error;
         return data;

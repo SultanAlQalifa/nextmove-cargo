@@ -5,12 +5,14 @@ import {
     Award, Clock, CheckCircle, Edit, Trash,
     GraduationCap, Video, Music, Image, CloudUpload,
     FileText, Type, ArrowLeft, Save, Eye, Bell,
-    Layout, MessageSquare, ChevronRight, Globe
+    Layout, MessageSquare, ChevronRight, Globe, GripVertical
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { showNotification } from "../../../components/common/NotificationToast";
+import { supabase } from "../../../lib/supabase";
 import { academyService } from "../../../services/academyService";
 import { AcademyCourse } from "../../../types/academy";
+import { ResponsiveContainer, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Bar } from 'recharts';
 
 export default function AdminAcademy() {
     const navigate = useNavigate();
@@ -41,11 +43,41 @@ export default function AdminAcademy() {
     const [courses, setCourses] = useState<AcademyCourse[]>([]);
 
     const [enrollments, setEnrollments] = useState<any[]>([]);
+    const [reviews, setReviews] = useState<any[]>([]);
+    const [comments, setComments] = useState<any[]>([]);
+    const [emailSettings, setEmailSettings] = useState<any>({
+        certificate: { subject: '', body: '' },
+        reminder: { subject: '', body: '' }
+    });
+    const [replyingTo, setReplyingTo] = useState<any | null>(null);
+    const [replyContent, setReplyContent] = useState("");
+    const [isLoadingSettings, setIsLoadingSettings] = useState(false);
+    const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
+    const [activeQuiz, setActiveQuiz] = useState<any>(null);
+    const [isLoadingQuiz, setIsLoadingQuiz] = useState(false);
 
     useEffect(() => {
         loadCourses();
         loadEnrollments();
+        loadReviews();
+        loadComments();
+        loadSettings();
     }, []);
+
+    const loadSettings = async () => {
+        try {
+            const settings = await academyService.getAcademySettings();
+            const cert = settings.find(s => s.key === 'academy_email_certificate');
+            const rem = settings.find(s => s.key === 'academy_email_reminder');
+
+            setEmailSettings({
+                certificate: cert ? cert.value : { subject: '', body: '' },
+                reminder: rem ? rem.value : { subject: '', body: '' }
+            });
+        } catch (error) {
+            console.error("Error loading academy settings:", error);
+        }
+    };
 
     const loadCourses = async () => {
         try {
@@ -71,6 +103,28 @@ export default function AdminAcademy() {
         }
     };
 
+    const loadReviews = async () => {
+        try {
+            const data = await academyService.getAllReviews();
+            if (data) {
+                setReviews(data);
+            }
+        } catch (error) {
+            console.error("Error loading reviews:", error);
+        }
+    };
+
+    const loadComments = async () => {
+        try {
+            const data = await academyService.getAdminComments();
+            if (data) {
+                setComments(data);
+            }
+        } catch (error) {
+            console.error("Error loading comments:", error);
+        }
+    };
+
     const handleInitCreateCourse = () => {
         setEditingCourseId(null);
         setActiveCourseData({
@@ -80,7 +134,8 @@ export default function AdminAcademy() {
             category: "E-commerce",
             coverImage: "",
             status: "draft",
-            lessonsList: []
+            lessonsList: [],
+            certificate_price: 5000
         });
         setCurrentView('editor');
     };
@@ -94,11 +149,97 @@ export default function AdminAcademy() {
             lessonsList: course.academy_lessons || [],
             coverImage: course.cover_image_url || "",
             students: course.students || 0,
-            rating: course.rating || 0
+            rating: course.rating || 0,
+            certificate_price: course.certificate_price || 5000
         });
         setCurrentView('editor');
     };
 
+
+    const handleSaveEmailSettings = async () => {
+        try {
+            setIsLoadingSettings(true);
+            await academyService.updateAcademySetting('academy_email_certificate', emailSettings.certificate);
+            await academyService.updateAcademySetting('academy_email_reminder', emailSettings.reminder);
+            showNotification("Succès", "Paramètres emails mis à jour.", "success");
+        } catch (error) {
+            console.error("Error saving settings:", error);
+            showNotification("Erreur", "Impossible de sauvegarder les paramètres.", "error");
+        } finally {
+            setIsLoadingSettings(false);
+        }
+    };
+
+    const handleReplySubmit = async () => {
+        if (!replyingTo || !replyContent.trim()) return;
+
+        try {
+            // Re-using addLessonComment as it handles parent_id in the DB now
+            await academyService.addLessonComment({
+                lesson_id: replyingTo.lesson_id,
+                user_id: (await supabase.auth.getUser()).data.user?.id,
+                content: replyContent,
+                parent_id: replyingTo.id
+            });
+            showNotification("Succès", "Réponse envoyée.", "success");
+            setReplyingTo(null);
+            setReplyContent("");
+            loadComments();
+        } catch (error) {
+            console.error("Error replying to comment:", error);
+            showNotification("Erreur", "Impossible d'envoyer la réponse.", "error");
+        }
+    };
+
+    const handleOpenQuizEditor = async (lesson: any) => {
+        if (!lesson.id) {
+            showNotification("Info", "Veuillez d'abord enregistrer le cours pour activer les quiz.", "info");
+            return;
+        }
+        setIsLoadingQuiz(true);
+        setIsQuizModalOpen(true);
+        try {
+            const quiz = await academyService.getLessonQuiz(lesson.id);
+            setActiveQuiz(quiz || {
+                lesson_id: lesson.id,
+                title: `Quizz : ${lesson.title}`,
+                passing_score: 80,
+                questions: []
+            });
+        } catch (error) {
+            console.error("Error loading quiz:", error);
+            showNotification("Erreur", "Impossible de charger le quizz.", "error");
+        } finally {
+            setIsLoadingQuiz(false);
+        }
+    };
+
+    const handleSaveQuiz = async () => {
+        try {
+            setIsLoadingQuiz(true);
+            await academyService.saveQuiz(activeQuiz);
+            showNotification("Succès", "Quizz enregistré !", "success");
+            setIsQuizModalOpen(false);
+        } catch (error) {
+            console.error("Error saving quiz:", error);
+            showNotification("Erreur", "Impossible d'enregistrer le quizz.", "error");
+        } finally {
+            setIsLoadingQuiz(false);
+        }
+    };
+
+    const handleAddQuizQuestion = () => {
+        const newQuestion = {
+            id: `temp_${Date.now()}`,
+            question_text: "",
+            order_index: activeQuiz.questions.length,
+            options: [
+                { option_text: "Option 1", is_correct: true, order_index: 0 },
+                { option_text: "Option 2", is_correct: false, order_index: 1 }
+            ]
+        };
+        setActiveQuiz({ ...activeQuiz, questions: [...activeQuiz.questions, newQuestion] });
+    };
 
     const handleIssueCertificate = async (enrollmentId: string) => {
         try {
@@ -132,6 +273,37 @@ export default function AdminAcademy() {
     const handleStudentMenu = (id: number) => {
         setActiveStudentMenu(activeStudentMenu === id ? null : id);
         setActiveCourseMenu(null);
+    };
+
+    const handleDragStart = (e: React.DragEvent, index: number) => {
+        e.dataTransfer.setData("text/plain", index.toString());
+        e.dataTransfer.effectAllowed = "move";
+    };
+
+    const handleDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+    };
+
+    const handleDropLessonItems = (e: React.DragEvent, targetIndex: number) => {
+        e.preventDefault();
+        const sourceIndex = parseInt(e.dataTransfer.getData("text/plain"), 10);
+        if (sourceIndex === targetIndex) return;
+
+        const newList = [...activeCourseData.lessonsList];
+        const [movedItem] = newList.splice(sourceIndex, 1);
+        newList.splice(targetIndex, 0, movedItem);
+
+        // Update order_index for each item
+        const updatedList = newList.map((item, idx) => ({
+            ...item,
+            order_index: idx
+        }));
+
+        setActiveCourseData((prev: any) => ({
+            ...prev,
+            lessonsList: updatedList
+        }));
     };
 
     const handleAddLesson = (e?: React.FormEvent) => {
@@ -408,7 +580,7 @@ export default function AdminAcademy() {
         }
     };
 
-    const [activeTab, setActiveTab] = useState<'courses' | 'students'>('courses');
+    const [activeTab, setActiveTab] = useState<'courses' | 'students' | 'reviews' | 'interactions' | 'emails'>('courses');
     const [activeCourseMenu, setActiveCourseMenu] = useState<string | null>(null);
     const [activeStudentMenu, setActiveStudentMenu] = useState<number | null>(null);
 
@@ -476,6 +648,16 @@ export default function AdminAcademy() {
                                             <option>E-commerce</option>
                                             <option>Marketing</option>
                                         </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Prix du Certificat (XOF)</label>
+                                        <input
+                                            type="number"
+                                            value={activeCourseData.certificate_price}
+                                            onChange={(e) => setActiveCourseData({ ...activeCourseData, certificate_price: parseInt(e.target.value) || 0 })}
+                                            className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-orange-500/20 outline-none text-slate-900 dark:text-white"
+                                            placeholder="5000"
+                                        />
                                     </div>
                                     <div>
                                         <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Statut de visibilité</label>
@@ -576,8 +758,18 @@ export default function AdminAcademy() {
                                             lesson.type === 'pdf' ? FileText : Type;
 
                                     return (
-                                        <div key={idx} className="p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-700 flex flex-col gap-3 group">
+                                        <div
+                                            key={idx}
+                                            draggable
+                                            onDragStart={(e) => handleDragStart(e, idx)}
+                                            onDragOver={handleDragOver}
+                                            onDrop={(e) => handleDropLessonItems(e, idx)}
+                                            className="p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-700 flex flex-col gap-3 group cursor-move active:scale-[0.98] transition-all hover:border-orange-200 dark:hover:border-orange-900/40 shadow-sm hover:shadow-md"
+                                        >
                                             <div className="flex items-center gap-3">
+                                                <div className="text-slate-300 group-hover:text-orange-400 transition-colors">
+                                                    <GripVertical className="w-4 h-4 cursor-grab active:cursor-grabbing" />
+                                                </div>
                                                 <div className="w-8 h-8 rounded-lg bg-white dark:bg-slate-800 text-orange-600 flex items-center justify-center font-bold text-sm shadow-sm border border-slate-100 dark:border-slate-700">
                                                     <Icon className="w-4 h-4" />
                                                 </div>
@@ -621,6 +813,14 @@ export default function AdminAcademy() {
                                                     </div>
                                                 )}
                                                 <div className="flex items-center gap-1">
+                                                    <button
+                                                        onClick={() => handleOpenQuizEditor(lesson)}
+                                                        className="p-1 px-2 text-[10px] font-bold text-indigo-500 hover:bg-indigo-50 border border-indigo-100 rounded-lg transition-colors"
+                                                        title="Gérer le Quizz"
+                                                    >
+                                                        Quizz
+                                                    </button>
+
                                                     {/* View Button */}
                                                     {lesson.url && (
                                                         <a
@@ -674,8 +874,34 @@ export default function AdminAcademy() {
                                             className="w-full py-4 bg-transparent outline-none text-lg font-bold text-slate-900 dark:text-white"
                                         />
                                     </div>
+                                    {/* 2. Type & Content Toggle */}
+                                    <div className="flex gap-4">
+                                        <select
+                                            title="Type de contenu"
+                                            value={newLessonType}
+                                            onChange={(e) => setNewLessonType(e.target.value as any)}
+                                            className="px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-orange-500/20"
+                                        >
+                                            <option value="text">Texte</option>
+                                            <option value="video">Vidéo</option>
+                                            <option value="audio">Audio</option>
+                                            <option value="pdf">Document PDF</option>
+                                        </select>
+
+                                        {newLessonType === 'video' && (
+                                            <div className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 shadow-sm focus-within:ring-2 focus-within:ring-orange-500/20 transition-all">
+                                                <input
+                                                    value={newLessonUrl}
+                                                    onChange={(e) => setNewLessonUrl(e.target.value)}
+                                                    placeholder="Coller lien YouTube ou Vimeo (ex: https://youtube.com/watch?v=...)"
+                                                    className="w-full py-3 bg-transparent outline-none text-sm font-medium text-slate-700 dark:text-slate-300"
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+
                                     <div
-                                        className={`relative w-full h-64 rounded-3xl border-4 border-dashed transition-all duration-300 flex flex-col items-center justify-center gap-4 group cursor-pointer overflow-hidden ${dragActiveZone === 'newLesson'
+                                        className={`relative w-full h-40 rounded-3xl border-4 border-dashed transition-all duration-300 flex flex-col items-center justify-center gap-4 group cursor-pointer overflow-hidden ${dragActiveZone === 'newLesson'
                                             ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 scale-[1.02] shadow-2xl shadow-orange-500/20'
                                             : newLessonUrl ? 'border-green-500 bg-green-50 dark:bg-green-900/20' : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 hover:border-orange-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                                             }`}
@@ -853,7 +1079,7 @@ export default function AdminAcademy() {
                         </div>
                     </div>
                 </div>
-            </div>
+            </div >
         );
     }
 
@@ -930,6 +1156,33 @@ export default function AdminAcademy() {
                                 }`}
                         >
                             Étudiants Inscrits
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('reviews')}
+                            className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 ${activeTab === 'reviews'
+                                ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm'
+                                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                                }`}
+                        >
+                            Avis & Ratings
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('interactions')}
+                            className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 ${activeTab === 'interactions'
+                                ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm'
+                                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                                }`}
+                        >
+                            Interactions & Q&A
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('emails')}
+                            className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 ${activeTab === 'emails'
+                                ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm'
+                                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                                }`}
+                        >
+                            Paramètres Emails
                         </button>
                     </div>
 
@@ -1131,7 +1384,7 @@ export default function AdminAcademy() {
                                 )}
                             </div>
                         )
-                    ) : (
+                    ) : activeTab === 'students' ? (
                         <div className="space-y-4">
                             {enrollments.map((enrollment) => {
                                 const totalLessons = enrollment.academy_courses?.academy_lessons?.length || 0;
@@ -1234,10 +1487,523 @@ export default function AdminAcademy() {
                                 );
                             })}
                         </div>
+                    ) : activeTab === 'reviews' ? (
+                        <div className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                                <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-700">
+                                    <p className="text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Note Moyenne</p>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-2xl font-black text-slate-900 dark:text-white">
+                                            {reviews.length > 0
+                                                ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1)
+                                                : "0.0"}
+                                        </span>
+                                        <Award className="w-5 h-5 text-yellow-500" />
+                                    </div>
+                                </div>
+                                <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-700">
+                                    <p className="text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Total Avis</p>
+                                    <span className="text-2xl font-black text-slate-900 dark:text-white">{reviews.length}</span>
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                {reviews.map((review) => (
+                                    <div key={review.id} className="p-5 rounded-2xl bg-slate-50/50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700">
+                                        <div className="flex items-start justify-between mb-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 font-bold overflow-hidden border border-slate-200 dark:border-slate-700">
+                                                    {review.profiles?.avatar_url ? (
+                                                        <img src={review.profiles.avatar_url} alt="" className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        review.profiles?.full_name?.charAt(0) || "U"
+                                                    )}
+                                                </div>
+                                                <div>
+                                                    <h4 className="font-bold text-slate-900 dark:text-white">{review.profiles?.full_name || "Anonyme"}</h4>
+                                                    <p className="text-xs text-orange-500 font-medium">Sur : {review.academy_courses?.title || "Cours inconnu"}</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-1 bg-white dark:bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-100 dark:border-slate-700">
+                                                <span className="text-sm font-black text-slate-900 dark:text-white">{review.rating}</span>
+                                                <Award className={`w-4 h-4 ${review.rating >= 4 ? 'text-yellow-500' : 'text-slate-400'}`} />
+                                            </div>
+                                        </div>
+                                        <p className="text-sm text-slate-600 dark:text-slate-400 italic leading-relaxed bg-white dark:bg-slate-900/50 p-3 rounded-xl border border-slate-50 dark:border-slate-700/50">
+                                            "{review.comment || "Aucun commentaire laissé."}"
+                                        </p>
+                                        <div className="mt-4 flex items-center justify-between">
+                                            <span className="text-[10px] text-slate-400 uppercase font-bold tracking-widest">{new Date(review.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                                            <button
+                                                onClick={() => navigate(`/dashboard/admin/users?viewProfile=${review.user_id}`)}
+                                                className="text-[10px] text-indigo-500 font-black uppercase tracking-tighter hover:underline"
+                                            >
+                                                Voir l'étudiant
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+
+                                {reviews.length === 0 && (
+                                    <div className="text-center py-20">
+                                        <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                                            <MessageSquare className="w-8 h-8 text-slate-300" />
+                                        </div>
+                                        <p className="text-slate-500">Aucun avis pour le moment.</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    ) : activeTab === 'interactions' ? (
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="font-black text-slate-900 dark:text-white">Dernières questions et commentaires</h3>
+                                <div className="text-xs text-slate-500 font-bold">{comments.length} messages au total</div>
+                            </div>
+
+                            {comments.map((comment) => (
+                                <div key={comment.id} className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-md transition-all">
+                                    <div className="flex items-start gap-4">
+                                        <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 font-bold overflow-hidden">
+                                            {comment.profiles?.avatar_url ? (
+                                                <img src={comment.profiles.avatar_url} alt="" className="w-full h-full object-cover" />
+                                            ) : (
+                                                comment.profiles?.full_name?.charAt(0) || "U"
+                                            )}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center justify-between mb-1">
+                                                <h4 className="font-bold text-slate-900 dark:text-white truncate">{comment.profiles?.full_name || "Utilisateur"}</h4>
+                                                <span className="text-[10px] text-slate-400 font-mono">{new Date(comment.created_at).toLocaleString('fr-FR')}</span>
+                                            </div>
+                                            <p className="text-xs font-bold text-orange-500 mb-2">
+                                                Sur : {comment.academy_lessons?.academy_courses?.title} • {comment.academy_lessons?.title}
+                                            </p>
+                                            <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700 text-sm text-slate-600 dark:text-slate-300 mb-3">
+                                                {comment.content}
+                                            </div>
+
+                                            {/* Nested Replies Rendering */}
+                                            {comments.filter(c => c.parent_id === comment.id).map(reply => (
+                                                <div key={reply.id} className="ml-8 mt-2 p-3 bg-indigo-50/30 dark:bg-indigo-900/10 rounded-2xl border-l-4 border-indigo-500 text-xs italic">
+                                                    <span className="font-bold text-indigo-600 block mb-1">Admin:</span>
+                                                    {reply.content}
+                                                </div>
+                                            ))}
+
+                                            {!comment.parent_id && (
+                                                <div className="flex items-center gap-3 mt-4">
+                                                    <button
+                                                        onClick={() => setReplyingTo(comment)}
+                                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-lg text-xs font-bold hover:opacity-90 transition-opacity"
+                                                    >
+                                                        <MessageSquare className="w-3 h-3" /> Répondre
+                                                    </button>
+                                                    <button
+                                                        onClick={() => navigate(`/academy/lesson/${comment.academy_lessons?.course_id}`)}
+                                                        className="flex items-center gap-1.5 text-slate-500 hover:text-slate-700 dark:text-slate-400 rounded-lg text-xs font-bold transition-colors"
+                                                    >
+                                                        <Globe className="w-3 h-3" /> Voir la leçon
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+
+                            {comments.length === 0 && (
+                                <div className="text-center py-20 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-700">
+                                    <div className="p-4 bg-white dark:bg-slate-800 rounded-full w-fit mx-auto mb-4 shadow-sm">
+                                        <MessageSquare className="w-8 h-8 text-slate-300" />
+                                    </div>
+                                    <h4 className="text-lg font-bold text-slate-900 dark:text-white">Aucune interaction</h4>
+                                    <p className="text-sm text-slate-500">Les questions des étudiants apparaîtront ici.</p>
+                                </div>
+                            )}
+                        </div>
+                    ) : activeTab === 'emails' ? (
+                        <div className="max-w-4xl space-y-8">
+                            <div className="bg-white dark:bg-slate-900 p-8 rounded-[40px] border border-slate-100 dark:border-slate-700 shadow-xl overflow-hidden relative">
+                                <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 blur-3xl rounded-full -mr-32 -mt-32"></div>
+                                <h4 className="text-xl font-black text-slate-900 dark:text-white mb-2 flex items-center gap-3">
+                                    <Bell className="w-6 h-6 text-indigo-500" /> Notifications & Emails
+                                </h4>
+                                <p className="text-sm text-slate-500 mb-8">Personnalisez les messages envoyés automatiquement à vos étudiants.</p>
+
+                                <div className="space-y-6">
+                                    <div className="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-3xl border border-slate-100 dark:border-slate-700">
+                                        <h5 className="font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                                            Certificat de Réussite
+                                        </h5>
+                                        <div className="space-y-4">
+                                            <div>
+                                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Sujet de l'email</label>
+                                                <input
+                                                    title="Sujet"
+                                                    type="text"
+                                                    value={emailSettings.certificate.subject}
+                                                    onChange={(e) => setEmailSettings({ ...emailSettings, certificate: { ...emailSettings.certificate, subject: e.target.value } })}
+                                                    className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500/20 text-sm"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Corps du message (Introduction)</label>
+                                                <textarea
+                                                    title="Description"
+                                                    rows={4}
+                                                    value={emailSettings.certificate.body}
+                                                    onChange={(e) => setEmailSettings({ ...emailSettings, certificate: { ...emailSettings.certificate, body: e.target.value } })}
+                                                    className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500/20 text-sm"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-3xl border border-slate-100 dark:border-slate-700">
+                                        <h5 className="font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                                            Email de Rappel (Inactivité)
+                                        </h5>
+                                        <div className="space-y-4">
+                                            <div>
+                                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Sujet de l'email</label>
+                                                <input
+                                                    title="Sujet"
+                                                    type="text"
+                                                    value={emailSettings.reminder.subject}
+                                                    onChange={(e) => setEmailSettings({ ...emailSettings, reminder: { ...emailSettings.reminder, subject: e.target.value } })}
+                                                    className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500/20 text-sm"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex justify-end">
+                                        <button
+                                            onClick={handleSaveEmailSettings}
+                                            disabled={isLoadingSettings}
+                                            className="px-8 py-4 bg-indigo-600 text-white rounded-2xl font-black text-sm shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition-all flex items-center gap-2 disabled:opacity-50"
+                                        >
+                                            <Save className="w-4 h-4" /> {isLoadingSettings ? "Enregistrement..." : "Enregistrer les réglages"}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="space-y-8">
+                            {/* Stats Dashboard */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm">
+                                    <p className="text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Certificats Vendu</p>
+                                    <div className="flex items-center justify-between">
+                                        <h3 className="text-2xl font-black text-slate-900 dark:text-white">
+                                            {enrollments.filter(e => e.certified_at).length}
+                                        </h3>
+                                        <div className="p-2 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 rounded-xl">
+                                            <Award className="w-5 h-5" />
+                                        </div>
+                                    </div>
+                                    <p className="text-[10px] text-slate-400 mt-2 font-bold">VALEUR: {enrollments.filter(e => e.certified_at).length * 5000} XOF</p>
+                                </div>
+
+                                <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm">
+                                    <p className="text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Nouvelles Inscriptions</p>
+                                    <div className="flex items-center justify-between">
+                                        <h3 className="text-2xl font-black text-slate-900 dark:text-white">
+                                            {enrollments.length}
+                                        </h3>
+                                        <div className="p-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 rounded-xl">
+                                            <Users className="w-5 h-5" />
+                                        </div>
+                                    </div>
+                                    <p className="text-[10px] text-slate-400 mt-2 font-bold">TOTAL HISTORIQUE</p>
+                                </div>
+
+                                <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm">
+                                    <p className="text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Progression Moyenne</p>
+                                    <div className="flex items-center justify-between">
+                                        <h3 className="text-2xl font-black text-slate-900 dark:text-white">
+                                            {enrollments.length > 0
+                                                ? Math.round(enrollments.reduce((acc, curr) => {
+                                                    const total = curr.academy_courses?.academy_lessons?.length || 0;
+                                                    const completed = (curr.progress || []).length;
+                                                    return acc + (total > 0 ? (completed / total) * 100 : 0);
+                                                }, 0) / enrollments.length)
+                                                : 0}%
+                                        </h3>
+                                        <div className="p-2 bg-orange-50 dark:bg-orange-900/20 text-orange-600 rounded-xl">
+                                            <Layout className="w-5 h-5" />
+                                        </div>
+                                    </div>
+                                    <p className="text-[10px] text-slate-400 mt-2 font-bold">ENGAGEMENT ÉTUDIANT</p>
+                                </div>
+
+                                <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm">
+                                    <p className="text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Avis Moyens</p>
+                                    <div className="flex items-center justify-between">
+                                        <h3 className="text-2xl font-black text-slate-900 dark:text-white">
+                                            {reviews.length > 0 ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1) : "5.0"}
+                                        </h3>
+                                        <div className="p-2 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-500 rounded-xl">
+                                            <Award className="w-5 h-5" />
+                                        </div>
+                                    </div>
+                                    <p className="text-[10px] text-slate-400 mt-2 font-bold">SATISFACTION GLOBALE</p>
+                                </div>
+                            </div>
+
+                            <div className="bg-white dark:bg-slate-900 p-8 rounded-[40px] border border-slate-100 dark:border-slate-700 shadow-xl overflow-hidden relative">
+                                <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/5 blur-3xl rounded-full -mr-32 -mt-32"></div>
+                                <h4 className="text-xl font-black text-slate-900 dark:text-white mb-8 flex items-center gap-3">
+                                    <Award className="w-6 h-6 text-orange-500" /> Analyse de l'Académie
+                                </h4>
+
+                                <div className="h-80 w-full">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={courses.map(c => ({ name: c.title.substring(0, 15), students: c.students || 0, rating: c.rating || 5 }))}>
+                                            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                                            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 'bold' }} />
+                                            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 'bold' }} />
+                                            <Tooltip
+                                                contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', fontWeight: 'bold' }}
+                                            />
+                                            <Bar dataKey="students" fill="#f97316" radius={[10, 10, 0, 0]} barSize={40} />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+
+                                <div className="mt-8 pt-8 border-t border-slate-100 dark:border-slate-700 grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div>
+                                        <h5 className="font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                                            <Clock className="w-4 h-4 text-orange-500" /> Cours les plus populaires
+                                        </h5>
+                                        <div className="space-y-3">
+                                            {[...courses].sort((a, b) => (b.students || 0) - (a.students || 0)).slice(0, 3).map((c, i) => (
+                                                <div key={i} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700">
+                                                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300 truncate max-w-[200px]">{c.title}</span>
+                                                    <span className="text-xs font-black text-orange-600 bg-orange-50 dark:bg-orange-900/20 px-2 py-1 rounded-lg">{c.students || 0}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h5 className="font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                                            <Award className="w-4 h-4 text-orange-500" /> Meilleurs Ratings
+                                        </h5>
+                                        <div className="space-y-3">
+                                            {[...courses].sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 3).map((c, i) => (
+                                                <div key={i} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700">
+                                                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300 truncate max-w-[200px]">{c.title}</span>
+                                                    <span className="text-xs font-black text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20 px-2 py-1 rounded-lg">{(c.rating || 5).toFixed(1)} ★</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     )}
                 </div>
             </div>
 
+            {/* Modal de Quizz */}
+            <AnimatePresence>
+                {isQuizModalOpen && activeQuiz && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.95, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.95, opacity: 0 }}
+                            className="bg-white dark:bg-slate-900 w-full max-w-2xl max-h-[90vh] rounded-[40px] overflow-hidden shadow-2xl border border-slate-100 dark:border-slate-800 flex flex-col"
+                        >
+                            <div className="p-8 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                                <div>
+                                    <h3 className="text-xl font-black text-slate-900 dark:text-white flex items-center gap-3">
+                                        <Award className="w-6 h-6 text-orange-500" /> Éditeur de Quizz
+                                    </h3>
+                                    <p className="text-sm text-slate-500">Définissez les questions pour cette leçon.</p>
+                                </div>
+                                <button
+                                    onClick={() => setIsQuizModalOpen(false)}
+                                    className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full"
+                                    title="Fermer l'éditeur de quizz"
+                                >
+                                    <ArrowLeft className="w-5 h-5" />
+                                </button>
+                            </div>
+
+                            <div className="flex-1 overflow-y-auto p-8 space-y-8">
+                                <div className="grid grid-cols-2 gap-6">
+                                    <div>
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Score de réussite (%)</label>
+                                        <input
+                                            type="number"
+                                            value={activeQuiz.passing_score}
+                                            onChange={(e) => setActiveQuiz({ ...activeQuiz, passing_score: parseInt(e.target.value) })}
+                                            className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl px-4 py-3 text-sm font-bold"
+                                            placeholder="Score de réussite (ex: 80)"
+                                            title="Score de réussite minimum en pourcentage"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-6">
+                                    {activeQuiz.questions.map((q: any, qIdx: number) => (
+                                        <div key={q.id} className="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-3xl border border-slate-100 dark:border-slate-700 relative group">
+                                            <button
+                                                onClick={() => {
+                                                    const newQs = [...activeQuiz.questions];
+                                                    newQs.splice(qIdx, 1);
+                                                    setActiveQuiz({ ...activeQuiz, questions: newQs });
+                                                }}
+                                                className="absolute top-4 right-4 p-2 text-slate-300 hover:text-red-500 transition-colors"
+                                                title="Supprimer cette question"
+                                            >
+                                                <Trash className="w-4 h-4" />
+                                            </button>
+
+                                            <div className="mb-4">
+                                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Question {qIdx + 1}</label>
+                                                <input
+                                                    type="text"
+                                                    value={q.question_text}
+                                                    onChange={(e) => {
+                                                        const newQs = [...activeQuiz.questions];
+                                                        newQs[qIdx].question_text = e.target.value;
+                                                        setActiveQuiz({ ...activeQuiz, questions: newQs });
+                                                    }}
+                                                    placeholder="Entrez votre question..."
+                                                    className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-bold"
+                                                />
+                                            </div>
+
+                                            <div className="space-y-3">
+                                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Options de réponse</label>
+                                                {q.options?.map((opt: any, oIdx: number) => (
+                                                    <div key={oIdx} className="flex items-center gap-3">
+                                                        <button
+                                                            onClick={() => {
+                                                                const newQs = [...activeQuiz.questions];
+                                                                newQs[qIdx].options.forEach((o: any) => o.is_correct = false);
+                                                                newQs[qIdx].options[oIdx].is_correct = true;
+                                                                setActiveQuiz({ ...activeQuiz, questions: newQs });
+                                                            }}
+                                                            className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${opt.is_correct ? 'bg-green-500 border-green-500 text-white' : 'border-slate-200 dark:border-slate-700'}`}
+                                                        >
+                                                            {opt.is_correct && <CheckCircle className="w-4 h-4" />}
+                                                        </button>
+                                                        <input
+                                                            type="text"
+                                                            value={opt.option_text}
+                                                            onChange={(e) => {
+                                                                const newQs = [...activeQuiz.questions];
+                                                                newQs[qIdx].options[oIdx].option_text = e.target.value;
+                                                                setActiveQuiz({ ...activeQuiz, questions: newQs });
+                                                            }}
+                                                            className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2 text-xs"
+                                                            placeholder="Texte de l'option..."
+                                                            title={`Option de réponse ${oIdx + 1}`}
+                                                        />
+                                                    </div>
+                                                ))}
+                                                <button
+                                                    onClick={() => {
+                                                        const newQs = [...activeQuiz.questions];
+                                                        newQs[qIdx].options.push({ option_text: "", is_correct: false, order_index: newQs[qIdx].options.length });
+                                                        setActiveQuiz({ ...activeQuiz, questions: newQs });
+                                                    }}
+                                                    className="text-[10px] font-bold text-orange-500 hover:text-orange-600 ml-9"
+                                                >
+                                                    + Ajouter une option
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+
+                                    <button
+                                        onClick={handleAddQuizQuestion}
+                                        className="w-full py-4 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-3xl text-sm font-bold text-slate-400 hover:border-orange-500 hover:text-orange-500 transition-all flex items-center justify-center gap-2"
+                                    >
+                                        <Plus className="w-4 h-4" /> Ajouter une question
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="p-8 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex gap-4">
+                                <button
+                                    onClick={() => setIsQuizModalOpen(false)}
+                                    className="flex-1 py-4 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 font-bold rounded-2xl border border-slate-200 dark:border-slate-700"
+                                >
+                                    Fermer
+                                </button>
+                                <button
+                                    onClick={handleSaveQuiz}
+                                    disabled={isLoadingQuiz}
+                                    className="flex-1 py-4 bg-orange-600 text-white font-black rounded-2xl shadow-lg shadow-orange-600/20 disabled:opacity-50"
+                                >
+                                    {isLoadingQuiz ? "Enregistrement..." : "Enregistrer le Quizz"}
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Modal de Réponse */}
+            <AnimatePresence>
+                {replyingTo && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.95, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.95, opacity: 0 }}
+                            className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-[32px] overflow-hidden shadow-2xl border border-slate-100 dark:border-slate-800"
+                        >
+                            <div className="p-8">
+                                <h3 className="text-xl font-black text-slate-900 dark:text-white mb-2 flex items-center gap-3">
+                                    <MessageSquare className="w-6 h-6 text-indigo-500" /> Répondre à l'étudiant
+                                </h3>
+                                <p className="text-sm text-slate-500 mb-6 italic">"{replyingTo.content}"</p>
+
+                                <textarea
+                                    title="Votre réponse"
+                                    rows={5}
+                                    value={replyContent}
+                                    onChange={(e) => setReplyContent(e.target.value)}
+                                    placeholder="Écrivez votre réponse ici..."
+                                    className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl p-4 text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none mb-6"
+                                />
+
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={() => setReplyingTo(null)}
+                                        className="flex-1 py-3 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-bold rounded-xl text-sm"
+                                    >
+                                        Annuler
+                                    </button>
+                                    <button
+                                        onClick={handleReplySubmit}
+                                        className="flex-1 py-3 bg-indigo-600 text-white font-bold rounded-xl text-sm shadow-lg shadow-indigo-600/20"
+                                    >
+                                        Envoyer la réponse
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

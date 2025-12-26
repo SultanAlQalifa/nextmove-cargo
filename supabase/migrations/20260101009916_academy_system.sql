@@ -25,6 +25,8 @@ CREATE TABLE IF NOT EXISTS academy_lessons (
     course_id UUID REFERENCES academy_courses(id) ON DELETE CASCADE NOT NULL,
     title TEXT NOT NULL,
     type lesson_type DEFAULT 'text' NOT NULL,
+    content TEXT,
+    -- HTML content for text lessons
     url TEXT,
     -- Blob URL placeholder or direct link
     file_name TEXT,
@@ -124,24 +126,25 @@ CREATE POLICY "Admin Upload for Academy Content" ON storage.objects FOR ALL TO a
     )
 );
 -- ═══ RPC: trigger_academy_reminder ═══
-CREATE OR REPLACE FUNCTION trigger_academy_reminder(enrollment_id UUID)
-RETURNS VOID AS $$
-DECLARE
-    v_user_email TEXT;
-    v_user_name TEXT;
-    v_course_title TEXT;
-    v_admin_id UUID;
-BEGIN
-    -- Get enrollment details
-    SELECT p.email, p.full_name, c.title, auth.uid()
-    INTO v_user_email, v_user_name, v_course_title, v_admin_id
-    FROM academy_enrollments e
+CREATE OR REPLACE FUNCTION trigger_academy_reminder(enrollment_id UUID) RETURNS VOID AS $$
+DECLARE v_user_email TEXT;
+v_user_name TEXT;
+v_course_title TEXT;
+v_admin_id UUID;
+BEGIN -- Get enrollment details
+SELECT p.email,
+    p.full_name,
+    c.title,
+    auth.uid() INTO v_user_email,
+    v_user_name,
+    v_course_title,
+    v_admin_id
+FROM academy_enrollments e
     JOIN profiles p ON p.id = e.user_id
     JOIN academy_courses c ON c.id = e.course_id
-    WHERE e.id = enrollment_id;
-
-    -- Insert into email_queue
-    INSERT INTO public.email_queue (
+WHERE e.id = enrollment_id;
+-- Insert into email_queue
+INSERT INTO public.email_queue (
         sender_id,
         subject,
         body,
@@ -149,19 +152,24 @@ BEGIN
         recipient_emails,
         status,
         metadata
-    ) VALUES (
+    )
+VALUES (
         v_admin_id,
         'Rappel : Votre progression dans le cours ' || v_course_title,
         'Bonjour ' || COALESCE(v_user_name, 'Étudiant') || ', nous avons remarqué que vous n''avez pas progressé récemment dans votre cours "' || v_course_title || '". N''hésitez pas à vous replonger dedans pour atteindre vos objectifs !',
         'specific',
         jsonb_build_array(v_user_email),
         'pending',
-        jsonb_build_object('type', 'academy_reminder', 'enrollment_id', enrollment_id)
+        jsonb_build_object(
+            'type',
+            'academy_reminder',
+            'enrollment_id',
+            enrollment_id
+        )
     );
-
-    -- Update last reminder timestamp
-    UPDATE academy_enrollments
-    SET last_reminder_sent_at = NOW()
-    WHERE id = enrollment_id;
+-- Update last reminder timestamp
+UPDATE academy_enrollments
+SET last_reminder_sent_at = NOW()
+WHERE id = enrollment_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

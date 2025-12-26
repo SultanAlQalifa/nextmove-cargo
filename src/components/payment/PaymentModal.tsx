@@ -11,22 +11,24 @@ import {
   Tag,
   Wallet,
   Check,
-  Banknote,
-  MapPin
+  Banknote
 } from "lucide-react";
 import { paymentService } from "../../services/paymentService";
+import { paymentGatewayService, PaymentGateway } from "../../services/paymentGatewayService";
 import { couponService, Coupon } from "../../services/couponService";
 import { supabase } from "../../lib/supabase";
 
 interface PaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: (transactionId?: string) => void;
   planName: string;
   amount: number;
   currency: string;
   allowedMethods?: PaymentMethod[];
   shipmentId?: string;
+  showCoupons?: boolean;
+  showVAT?: boolean;
 }
 
 type PaymentMethod = "wave" | "wallet" | "cash" | "paytech" | "cinetpay";
@@ -40,8 +42,10 @@ export default function PaymentModal({
   currency,
   allowedMethods = ["wave", "wallet", "cash", "paytech", "cinetpay"],
   shipmentId,
+  showCoupons = true,
+  showVAT = true,
 }: PaymentModalProps) {
-  const { success: showSuccess, error: showError } = useToast();
+  const { success: showSuccess } = useToast();
   const navigate = useNavigate();
   const [step, setStep] = useState<
     "method" | "processing" | "success" | "error"
@@ -59,6 +63,8 @@ export default function PaymentModal({
   const [couponError, setCouponError] = useState("");
   const [verifyingCoupon, setVerifyingCoupon] = useState(false);
   const [walletBalance, setWalletBalance] = useState(0);
+  const [activeGateways, setActiveGateways] = useState<PaymentGateway[]>([]);
+  const [loadingGateways, setLoadingGateways] = useState(false);
 
   // ... (keeping useEffect same)
   useEffect(() => {
@@ -75,10 +81,10 @@ export default function PaymentModal({
       setAppliedCoupon(null);
       setCouponError("");
       fetchWalletBalance();
+      fetchActiveGateways();
     }
-  }, [isOpen, allowedMethods]);
+  }, [isOpen]); // Reduced dependencies to avoid re-runs if allowedMethods changes slightly
 
-  // ... (keeping fetchWalletBalance same)
   const fetchWalletBalance = async () => {
     const {
       data: { user },
@@ -91,6 +97,28 @@ export default function PaymentModal({
         .maybeSingle();
       if (data) setWalletBalance(Number(data.balance));
     }
+  };
+
+  const fetchActiveGateways = async () => {
+    setLoadingGateways(true);
+    try {
+      const gateways = await paymentGatewayService.getGateways();
+      setActiveGateways(gateways.filter(g => g.is_active));
+    } catch (err) {
+      console.error("Error fetching gateways:", err);
+    } finally {
+      setLoadingGateways(false);
+    }
+  };
+
+  const isMethodActive = (method: PaymentMethod) => {
+    // Wallet is always allowed if selected in allowedMethods and balance is fetched
+    if (method === "wallet") return allowedMethods.includes("wallet");
+    // Cash is a special case (offline)
+    if (method === "cash") return allowedMethods.includes("cash");
+
+    // For external gateways, check if they are in the active gateways list from DB
+    return allowedMethods.includes(method) && activeGateways.some(g => g.provider === method);
   };
 
   // ... (keeping calculations same)
@@ -108,7 +136,7 @@ export default function PaymentModal({
 
   const fees = discountedAmount * TRANSACTION_FEE_PERCENT;
   const subtotal = discountedAmount + fees;
-  const vat = subtotal * VAT_PERCENT;
+  const vat = showVAT ? subtotal * VAT_PERCENT : 0;
   const totalAmount = Math.round(subtotal + vat);
 
   // ... (keeping handleApplyCoupon same)
@@ -174,7 +202,7 @@ export default function PaymentModal({
 
           setStep("success");
           setTimeout(() => {
-            onSuccess();
+            onSuccess(transaction_id);
             onClose();
           }, 2000);
         } else {
@@ -187,26 +215,34 @@ export default function PaymentModal({
 
         if (shipmentId) {
           // Shipment Flow: Escrow RPC handles wallet deduction internally
+          const txId = `WALLET-${Date.now()}`;
           await paymentService.confirmPayment(shipmentId, {
             amount: totalAmount,
             currency: currency,
-            method: 'wallet',
-            transactionId: `WALLET-${Date.now()}`
+            paymentMethod: 'wallet',
+            transactionReference: txId
           }, appliedCoupon?.id);
+
+          setStep("success");
+          setTimeout(() => {
+            onSuccess(txId);
+            onClose();
+          }, 2000);
         } else {
           // Subscription/Service Flow: Direct Wallet Deduction
+          const txId = `SUB-${Date.now()}`;
           await paymentService.payWithWallet(
             totalAmount,
-            `SUB-${Date.now()}`,
+            txId,
             `Paiement ${planName || "Service"}`,
           );
-        }
 
-        setStep("success");
-        setTimeout(() => {
-          onSuccess();
-          onClose();
-        }, 2000);
+          setStep("success");
+          setTimeout(() => {
+            onSuccess(txId);
+            onClose();
+          }, 2000);
+        }
       } else if (selectedMethod === "cinetpay") {
         // CinetPay Flow
         const { redirect_url } = await paymentService.initializeCinetPayPayment(
@@ -276,7 +312,7 @@ export default function PaymentModal({
           navigate(`/tracking/${result.shipment_id}?payment=cash_pending`);
         } else {
           // Cas abonnement : On reste sur dashboard mais on notifie
-          onSuccess();
+          onSuccess(result.transaction_id || `CASH-${Date.now()}`);
         }
         onClose();
       }
@@ -324,55 +360,57 @@ export default function PaymentModal({
                 </div>
 
                 {/* Coupon Section */}
-                <div className="py-2 border-y border-gray-200 my-2">
-                  {!appliedCoupon ? (
-                    <div className="space-y-2">
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          value={couponCode}
-                          onChange={(e) =>
-                            setCouponCode(e.target.value.toUpperCase())
-                          }
-                          placeholder="Code Promo"
-                          className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-primary uppercase"
-                        />
-                        <button
-                          onClick={handleApplyCoupon}
-                          disabled={!couponCode || verifyingCoupon}
-                          className="px-3 py-2 bg-gray-900 text-white text-xs font-bold rounded-lg hover:bg-gray-800 disabled:opacity-50"
-                        >
-                          {verifyingCoupon ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : (
-                            "Appliquer"
-                          )}
-                        </button>
+                {showCoupons && (
+                  <div className="py-2 border-y border-gray-200 my-2">
+                    {!appliedCoupon ? (
+                      <div className="space-y-2">
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={couponCode}
+                            onChange={(e) =>
+                              setCouponCode(e.target.value.toUpperCase())
+                            }
+                            placeholder="Code Promo"
+                            className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-primary uppercase"
+                          />
+                          <button
+                            onClick={handleApplyCoupon}
+                            disabled={!couponCode || verifyingCoupon}
+                            className="px-3 py-2 bg-gray-900 text-white text-xs font-bold rounded-lg hover:bg-gray-800 disabled:opacity-50"
+                          >
+                            {verifyingCoupon ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              "Appliquer"
+                            )}
+                          </button>
+                        </div>
+                        {couponError && (
+                          <p className="text-xs text-red-500">{couponError}</p>
+                        )}
                       </div>
-                      {couponError && (
-                        <p className="text-xs text-red-500">{couponError}</p>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-between text-sm text-green-600 bg-green-50 p-2 rounded-lg">
-                      <span className="flex items-center gap-1 font-medium">
-                        <Tag className="w-3 h-3" /> {appliedCoupon.code}
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <span>
-                          -{finalDiscount.toLocaleString()} {currency}
+                    ) : (
+                      <div className="flex items-center justify-between text-sm text-green-600 bg-green-50 p-2 rounded-lg">
+                        <span className="flex items-center gap-1 font-medium">
+                          <Tag className="w-3 h-3" /> {appliedCoupon.code}
                         </span>
-                        <button
-                          onClick={() => setAppliedCoupon(null)}
-                          className="text-gray-400 hover:text-red-500"
-                          aria-label="Supprimer le code promo"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <span>
+                            -{finalDiscount.toLocaleString()} {currency}
+                          </span>
+                          <button
+                            onClick={() => setAppliedCoupon(null)}
+                            className="text-gray-400 hover:text-red-500"
+                            aria-label="Supprimer le code promo"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  )}
-                </div>
+                    )}
+                  </div>
+                )}
 
                 <div className="flex justify-between text-sm text-gray-600">
                   <span>Frais de transaction (1%)</span>
@@ -380,12 +418,14 @@ export default function PaymentModal({
                     {fees.toLocaleString()} {currency}
                   </span>
                 </div>
-                <div className="flex justify-between text-sm text-gray-600">
-                  <span>TVA (18%)</span>
-                  <span>
-                    {vat.toLocaleString()} {currency}
-                  </span>
-                </div>
+                {showVAT && (
+                  <div className="flex justify-between text-sm text-gray-600">
+                    <span>TVA (18%)</span>
+                    <span>
+                      {vat.toLocaleString()} {currency}
+                    </span>
+                  </div>
+                )}
                 <div className="border-t border-gray-200 pt-2 flex justify-between font-bold text-lg text-primary">
                   <span>Total à payer</span>
                   <span>
@@ -399,154 +439,162 @@ export default function PaymentModal({
                   Choisir un moyen de paiement
                 </p>
 
-                {allowedMethods.includes("wallet") && (
-                  <button
-                    onClick={() =>
-                      walletBalance >= totalAmount
-                        ? setSelectedMethod("wallet")
-                        : null
-                    }
-                    className={`w-full p-4 rounded-xl border flex items-center gap-4 transition-all 
+                {loadingGateways ? (
+                  <div className="flex items-center justify-center py-4">
+                    <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+                  </div>
+                ) : (
+                  <>
+                    {isMethodActive("wallet") && (
+                      <button
+                        onClick={() =>
+                          walletBalance >= totalAmount
+                            ? setSelectedMethod("wallet")
+                            : null
+                        }
+                        className={`w-full p-4 rounded-xl border flex items-center gap-4 transition-all 
                                         ${selectedMethod === "wallet"
-                        ? "border-gray-900 bg-gray-50 ring-1 ring-gray-900"
-                        : walletBalance >= totalAmount
-                          ? "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-                          : "border-gray-100 bg-gray-50/50 opacity-60 cursor-not-allowed"
-                      }`}
-                  >
-                    <div className="w-10 h-10 rounded-lg bg-gray-900 flex items-center justify-center text-white">
-                      <Wallet className="w-5 h-5" />
-                    </div>
-                    <div className="text-left flex-1">
-                      <div className="flex items-center justify-between">
-                        <p className="font-medium text-gray-900">
-                          Mon Portefeuille
-                        </p>
-                        {selectedMethod === "wallet" && (
-                          <Check className="w-4 h-4 text-gray-900" />
-                        )}
-                      </div>
-                      <div className="flex flex-col">
-                        <p className="text-xs text-gray-500">
-                          Solde: {walletBalance.toLocaleString()} FCFA
-                        </p>
-                        {walletBalance < totalAmount && (
-                          <p className="text-xs text-red-500 font-medium mt-0.5">
-                            Solde insuffisant
+                            ? "border-gray-900 bg-gray-50 ring-1 ring-gray-900"
+                            : walletBalance >= totalAmount
+                              ? "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                              : "border-gray-100 bg-gray-50/50 opacity-60 cursor-not-allowed"
+                          }`}
+                      >
+                        <div className="w-10 h-10 rounded-lg bg-gray-900 flex items-center justify-center text-white">
+                          <Wallet className="w-5 h-5" />
+                        </div>
+                        <div className="text-left flex-1">
+                          <div className="flex items-center justify-between">
+                            <p className="font-medium text-gray-900">
+                              Mon Portefeuille
+                            </p>
+                            {selectedMethod === "wallet" && (
+                              <Check className="w-4 h-4 text-gray-900" />
+                            )}
+                          </div>
+                          <div className="flex flex-col">
+                            <p className="text-xs text-gray-500">
+                              Solde: {walletBalance.toLocaleString()} FCFA
+                            </p>
+                            {walletBalance < totalAmount && (
+                              <p className="text-xs text-red-500 font-medium mt-0.5">
+                                Solde insuffisant
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <div
+                          className={`w-5 h-5 rounded-full border flex items-center justify-center ${selectedMethod === "wallet" ? "border-gray-900 bg-gray-900" : "border-gray-300"}`}
+                        >
+                          {selectedMethod === "wallet" && (
+                            <div className="w-2 h-2 bg-white rounded-full" />
+                          )}
+                        </div>
+                      </button>
+                    )}
+
+                    {isMethodActive("wave") && (
+                      <button
+                        onClick={() => setSelectedMethod("wave")}
+                        className={`w-full p-4 rounded-xl border flex items-center gap-4 transition-all ${selectedMethod === "wave" ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"}`}
+                      >
+                        <div className="w-10 h-10 rounded-lg bg-[#1dc4ff] flex items-center justify-center text-white font-bold text-xs">
+                          Wave
+                        </div>
+                        <div className="text-left flex-1">
+                          <p className="font-medium text-gray-900">
+                            Wave Mobile Money
                           </p>
-                        )}
-                      </div>
-                    </div>
-                    <div
-                      className={`w-5 h-5 rounded-full border flex items-center justify-center ${selectedMethod === "wallet" ? "border-gray-900 bg-gray-900" : "border-gray-300"}`}
-                    >
-                      {selectedMethod === "wallet" && (
-                        <div className="w-2 h-2 bg-white rounded-full" />
-                      )}
-                    </div>
-                  </button>
-                )}
+                          <p className="text-xs text-gray-500">
+                            Paiement rapide via QR ou numéro
+                          </p>
+                        </div>
+                        <div
+                          className={`w-5 h-5 rounded-full border flex items-center justify-center ${selectedMethod === "wave" ? "border-primary bg-primary" : "border-gray-300"}`}
+                        >
+                          {selectedMethod === "wave" && (
+                            <div className="w-2 h-2 bg-white rounded-full" />
+                          )}
+                        </div>
+                      </button>
+                    )}
 
-                {allowedMethods.includes("wave") && (
-                  <button
-                    onClick={() => setSelectedMethod("wave")}
-                    className={`w-full p-4 rounded-xl border flex items-center gap-4 transition-all ${selectedMethod === "wave" ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"}`}
-                  >
-                    <div className="w-10 h-10 rounded-lg bg-[#1dc4ff] flex items-center justify-center text-white font-bold text-xs">
-                      Wave
-                    </div>
-                    <div className="text-left flex-1">
-                      <p className="font-medium text-gray-900">
-                        Wave Mobile Money
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        Paiement rapide via QR ou numéro
-                      </p>
-                    </div>
-                    <div
-                      className={`w-5 h-5 rounded-full border flex items-center justify-center ${selectedMethod === "wave" ? "border-primary bg-primary" : "border-gray-300"}`}
-                    >
-                      {selectedMethod === "wave" && (
-                        <div className="w-2 h-2 bg-white rounded-full" />
-                      )}
-                    </div>
-                  </button>
-                )}
+                    {isMethodActive("cash") && (
+                      <button
+                        onClick={() => setSelectedMethod("cash")}
+                        className={`w-full p-4 rounded-xl border flex items-center gap-4 transition-all ${selectedMethod === "cash" ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"}`}
+                      >
+                        <div className="w-10 h-10 rounded-lg bg-green-600 flex items-center justify-center text-white">
+                          <Banknote className="w-5 h-5" />
+                        </div>
+                        <div className="text-left flex-1">
+                          <p className="font-medium text-gray-900">
+                            Espèces / Agence
+                          </p>
+                          <p className="text-xs text-gray-500">Paiement au bureau</p>
+                        </div>
+                        <div
+                          className={`w-5 h-5 rounded-full border flex items-center justify-center ${selectedMethod === "cash" ? "border-primary bg-primary" : "border-gray-300"}`}
+                        >
+                          {selectedMethod === "cash" && (
+                            <div className="w-2 h-2 bg-white rounded-full" />
+                          )}
+                        </div>
+                      </button>
+                    )}
 
-                {allowedMethods.includes("cash") && (
-                  <button
-                    onClick={() => setSelectedMethod("cash")}
-                    className={`w-full p-4 rounded-xl border flex items-center gap-4 transition-all ${selectedMethod === "cash" ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"}`}
-                  >
-                    <div className="w-10 h-10 rounded-lg bg-green-600 flex items-center justify-center text-white">
-                      <Banknote className="w-5 h-5" />
-                    </div>
-                    <div className="text-left flex-1">
-                      <p className="font-medium text-gray-900">
-                        Espèces / Agence
-                      </p>
-                      <p className="text-xs text-gray-500">Paiement au bureau</p>
-                    </div>
-                    <div
-                      className={`w-5 h-5 rounded-full border flex items-center justify-center ${selectedMethod === "cash" ? "border-primary bg-primary" : "border-gray-300"}`}
-                    >
-                      {selectedMethod === "cash" && (
-                        <div className="w-2 h-2 bg-white rounded-full" />
-                      )}
-                    </div>
-                  </button>
-                )}
+                    {isMethodActive("cinetpay") && (
+                      <button
+                        onClick={() => setSelectedMethod("cinetpay")}
+                        className={`w-full p-4 rounded-xl border flex items-center gap-4 transition-all ${selectedMethod === "cinetpay" ? "border-emerald-500 bg-emerald-50 ring-1 ring-emerald-500" : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"}`}
+                      >
+                        <div className="w-10 h-10 rounded-lg bg-emerald-600 flex items-center justify-center text-white font-bold text-xs">
+                          CP
+                        </div>
+                        <div className="text-left flex-1">
+                          <p className="font-medium text-gray-900">
+                            CinetPay (CB, Mobile)
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            Cartes Bancaires, Orange Money, MTN...
+                          </p>
+                        </div>
+                        <div
+                          className={`w-5 h-5 rounded-full border flex items-center justify-center ${selectedMethod === "cinetpay" ? "border-emerald-600 bg-emerald-600" : "border-gray-300"}`}
+                        >
+                          {selectedMethod === "cinetpay" && (
+                            <div className="w-2 h-2 bg-white rounded-full" />
+                          )}
+                        </div>
+                      </button>
+                    )}
 
-                {allowedMethods.includes("cinetpay") && (
-                  <button
-                    onClick={() => setSelectedMethod("cinetpay")}
-                    className={`w-full p-4 rounded-xl border flex items-center gap-4 transition-all ${selectedMethod === "cinetpay" ? "border-emerald-500 bg-emerald-50 ring-1 ring-emerald-500" : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"}`}
-                  >
-                    <div className="w-10 h-10 rounded-lg bg-emerald-600 flex items-center justify-center text-white font-bold text-xs">
-                      CP
-                    </div>
-                    <div className="text-left flex-1">
-                      <p className="font-medium text-gray-900">
-                        CinetPay (CB, Mobile)
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        Cartes Bancaires, Orange Money, MTN...
-                      </p>
-                    </div>
-                    <div
-                      className={`w-5 h-5 rounded-full border flex items-center justify-center ${selectedMethod === "cinetpay" ? "border-emerald-600 bg-emerald-600" : "border-gray-300"}`}
-                    >
-                      {selectedMethod === "cinetpay" && (
-                        <div className="w-2 h-2 bg-white rounded-full" />
-                      )}
-                    </div>
-                  </button>
-                )}
-
-                {allowedMethods.includes("paytech") && (
-                  <button
-                    onClick={() => setSelectedMethod("paytech")}
-                    className={`w-full p-4 rounded-xl border flex items-center gap-4 transition-all ${selectedMethod === "paytech" ? "border-blue-500 bg-blue-50 ring-1 ring-blue-500" : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"}`}
-                  >
-                    <div className="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-xs">
-                      PT
-                    </div>
-                    <div className="text-left flex-1">
-                      <p className="font-medium text-gray-900">
-                        PayTech
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        Agrégateur Paiement Sénégal
-                      </p>
-                    </div>
-                    <div
-                      className={`w-5 h-5 rounded-full border flex items-center justify-center ${selectedMethod === "paytech" ? "border-blue-600 bg-blue-600" : "border-gray-300"}`}
-                    >
-                      {selectedMethod === "paytech" && (
-                        <div className="w-2 h-2 bg-white rounded-full" />
-                      )}
-                    </div>
-                  </button>
+                    {isMethodActive("paytech") && (
+                      <button
+                        onClick={() => setSelectedMethod("paytech")}
+                        className={`w-full p-4 rounded-xl border flex items-center gap-4 transition-all ${selectedMethod === "paytech" ? "border-blue-500 bg-blue-50 ring-1 ring-blue-500" : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"}`}
+                      >
+                        <div className="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-xs">
+                          PT
+                        </div>
+                        <div className="text-left flex-1">
+                          <p className="font-medium text-gray-900">
+                            PayTech
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            Agrégateur Paiement Sénégal
+                          </p>
+                        </div>
+                        <div
+                          className={`w-5 h-5 rounded-full border flex items-center justify-center ${selectedMethod === "paytech" ? "border-blue-600 bg-blue-600" : "border-gray-300"}`}
+                        >
+                          {selectedMethod === "paytech" && (
+                            <div className="w-2 h-2 bg-white rounded-full" />
+                          )}
+                        </div>
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
 

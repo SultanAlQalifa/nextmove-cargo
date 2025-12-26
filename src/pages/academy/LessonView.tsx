@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { academyService } from "../../services/academyService";
-import { AcademyCourse, AcademyLesson } from "../../types/academy";
+import { AcademyCourse, AcademyLesson, AcademyEnrollment, AcademyLessonComment, AcademyReview } from "../../types/academy";
+import { User } from "@supabase/supabase-js";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import {
     Play, ArrowLeft, ArrowRight,
@@ -23,22 +24,28 @@ export default function LessonView() {
     const [currentLesson, setCurrentLesson] = useState<AcademyLesson | null>(null);
     const [loading, setLoading] = useState(true);
     const [activeContentTab, setActiveContentTab] = useState<'about' | 'discussion' | 'resources'>('about');
-    const [user, setUser] = useState<any>(null);
+    const [user, setUser] = useState<User | null>(null);
     const [likesCount, setLikesCount] = useState(0);
     const [isLiked, setIsLiked] = useState(false);
-    const [comments, setComments] = useState<any[]>([]);
+    const [comments, setComments] = useState<AcademyLessonComment[]>([]);
     const [newComment, setNewComment] = useState("");
     const [submittingComment, setSubmittingComment] = useState(false);
 
     // Course Review state
-    const [courseReviews, setCourseReviews] = useState<any[]>([]);
+    const [courseReviews, setCourseReviews] = useState<AcademyReview[]>([]);
     const [userRating, setUserRating] = useState(0);
     const [userReviewComment, setUserReviewComment] = useState("");
     const [submittingReview, setSubmittingReview] = useState(false);
     const [showReviewForm, setShowReviewForm] = useState(false);
 
+    // Quiz state
+    const [lessonQuiz, setLessonQuiz] = useState<any | null>(null);
+    const [quizAnswers, setQuizAnswers] = useState<Record<string, string>>({});
+    const [quizResult, setQuizResult] = useState<{ score: number, passed: boolean } | null>(null);
+    const [submittingQuiz, setSubmittingQuiz] = useState(false);
+
     // Progression state
-    const [enrollment, setEnrollment] = useState<any>(null);
+    const [enrollment, setEnrollment] = useState<AcademyEnrollment | null>(null);
     const [completedLessons, setCompletedLessons] = useState<string[]>([]);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [showCertificatePreview, setShowCertificatePreview] = useState(false);
@@ -136,12 +143,16 @@ export default function LessonView() {
     const fetchLessonInteractions = async () => {
         if (!currentLesson) return;
         try {
-            const [count, commentsData] = await Promise.all([
+            const [count, commentsData, quizData] = await Promise.all([
                 academyService.getLikesCount(currentLesson.id),
-                academyService.getLessonComments(currentLesson.id)
+                academyService.getLessonComments(currentLesson.id),
+                academyService.getLessonQuiz(currentLesson.id)
             ]);
             setLikesCount(count);
             setComments(commentsData);
+            setLessonQuiz(quizData);
+            setQuizResult(null); // Reset result when changing lesson
+            setQuizAnswers({});
 
             if (user) {
                 const { data: like } = await supabase
@@ -191,6 +202,36 @@ export default function LessonView() {
         }
     };
 
+    const handleSubmitQuiz = async () => {
+        if (!lessonQuiz || !user) return;
+
+        try {
+            setSubmittingQuiz(true);
+            let correctCount = 0;
+            lessonQuiz.academy_quiz_questions.forEach((q: any) => {
+                const answerId = quizAnswers[q.id];
+                const correctOpt = q.academy_quiz_options.find((o: any) => o.is_correct);
+                if (answerId === correctOpt?.id) {
+                    correctCount++;
+                }
+            });
+
+            const score = Math.round((correctCount / lessonQuiz.academy_quiz_questions.length) * 100);
+            const passed = score >= (lessonQuiz.passing_score || 80);
+
+            setQuizResult({ score, passed });
+
+            if (passed) {
+                showNotification("Félicitations !", `Vous avez réussi le quizz avec ${score}%`, "success");
+                handleMarkLessonComplete(currentLesson!.id);
+            } else {
+                showNotification("Dommage", `Votre score de ${score}% est insuffisant. Réessayez !`, "error");
+            }
+        } finally {
+            setSubmittingQuiz(false);
+        }
+    };
+
     const handleMarkLessonComplete = async (lessonId: string) => {
         if (!enrollment || completedLessons.includes(lessonId)) return;
         try {
@@ -199,6 +240,25 @@ export default function LessonView() {
         } catch (error) {
             console.error("Error marking lesson complete:", error);
         }
+    };
+
+    const getEmbedUrl = (url: string) => {
+        if (!url) return "";
+
+        // YouTube
+        const ytMatch = url.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com|youtu\.be)\/(?:watch\?v=)?(.+)/);
+        if (ytMatch && ytMatch[1]) {
+            const id = ytMatch[1].split('&')[0];
+            return `https://www.youtube.com/embed/${id}`;
+        }
+
+        // Vimeo
+        const vimeoMatch = url.match(/(?:https?:\/\/)?(?:www\.)?(?:vimeo\.com)\/(.+)/);
+        if (vimeoMatch && vimeoMatch[1]) {
+            return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+        }
+
+        return url;
     };
 
     if (loading) {
@@ -530,7 +590,7 @@ export default function LessonView() {
                     <div className="aspect-video w-full bg-black rounded-3xl overflow-hidden shadow-2xl relative group ring-1 ring-slate-900/5">
                         {currentLesson?.type === 'video' ? (
                             <iframe
-                                src={currentLesson.url || "https://www.youtube.com/embed/dQw4w9WgXcQ"}
+                                src={getEmbedUrl(currentLesson.url || "https://www.youtube.com/embed/dQw4w9WgXcQ")}
                                 title="Lesson Video"
                                 className="w-full h-full"
                                 allowFullScreen
@@ -593,6 +653,61 @@ export default function LessonView() {
                                             {course.description || "Aucune description supplémentaire fournie pour ce cours."}
                                         </p>
                                     </div>
+
+                                    {/* Quiz Section */}
+                                    {lessonQuiz && (
+                                        <div className="mt-12 p-8 bg-slate-900 rounded-3xl border border-slate-800 shadow-xl relative overflow-hidden">
+                                            <div className="absolute top-0 right-0 w-48 h-48 bg-orange-500/10 blur-3xl -mr-24 -mt-24"></div>
+                                            <div className="relative z-10">
+                                                <div className="flex items-center gap-3 mb-6">
+                                                    <Award className="w-6 h-6 text-orange-500" />
+                                                    <h4 className="text-lg font-black text-white">{lessonQuiz.title}</h4>
+                                                </div>
+
+                                                <div className="space-y-8 mb-8">
+                                                    {lessonQuiz.academy_quiz_questions.map((q: any, idx: number) => (
+                                                        <div key={q.id}>
+                                                            <p className="text-sm font-bold text-slate-200 mb-4 flex items-center gap-2">
+                                                                <span className="w-5 h-5 rounded-full bg-slate-800 flex items-center justify-center text-[10px] text-orange-400 font-mono">{idx + 1}</span>
+                                                                {q.question_text}
+                                                            </p>
+                                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 ml-7">
+                                                                {q.academy_quiz_options.map((opt: any) => (
+                                                                    <button
+                                                                        key={opt.id}
+                                                                        onClick={() => setQuizAnswers({ ...quizAnswers, [q.id]: opt.id })}
+                                                                        className={`p-3.5 rounded-xl border transition-all text-left text-xs font-bold ${quizAnswers[q.id] === opt.id
+                                                                            ? 'border-orange-500 bg-orange-500/10 text-white'
+                                                                            : 'border-slate-800 bg-slate-800/40 text-slate-400 hover:border-slate-700'
+                                                                            }`}
+                                                                    >
+                                                                        {opt.option_text}
+                                                                    </button>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+
+                                                <div className="flex items-center justify-between pt-6 border-t border-slate-800">
+                                                    <div>
+                                                        {quizResult && (
+                                                            <span className={`text-xs font-black p-2 rounded-lg ${quizResult.passed ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
+                                                                Score: {quizResult.score}% • {quizResult.passed ? 'RÉUSSI' : 'ÉCHEC'}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <button
+                                                        disabled={submittingQuiz}
+                                                        onClick={handleSubmitQuiz}
+                                                        className="px-8 py-3 bg-orange-600 text-white rounded-xl font-black text-xs shadow-lg shadow-orange-600/20 hover:bg-orange-700 transition-all disabled:opacity-50"
+                                                    >
+                                                        {submittingQuiz ? "Vérification..." : "Valider mes réponses"}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
 
                                     {/* Review Section */}
                                     <div className="mt-8 pt-8 border-t border-slate-100 dark:border-slate-800">
@@ -693,21 +808,31 @@ export default function LessonView() {
                                     </div>
 
                                     <div className="space-y-4 pt-4">
-                                        {comments.length > 0 ? comments.map((comment) => (
-                                            <div key={comment.id} className="flex gap-4 p-4 rounded-2xl border border-slate-50 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm transition-all hover:border-orange-100 dark:hover:border-orange-900/20">
-                                                <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 font-black overflow-hidden border border-slate-100 dark:border-slate-700">
-                                                    {comment.profiles?.avatar_url ? (
-                                                        <img src={comment.profiles.avatar_url} alt="" className="w-full h-full object-cover" />
-                                                    ) : (
-                                                        comment.profiles?.full_name?.charAt(0) || 'U'
-                                                    )}
-                                                </div>
-                                                <div className="flex-1">
-                                                    <div className="flex items-center justify-between mb-1">
-                                                        <p className="text-sm font-black text-slate-900 dark:text-white capitalize">{comment.profiles?.full_name || 'Étudiant'}</p>
-                                                        <p className="text-[10px] text-slate-400">{new Date(comment.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</p>
+                                        {comments.filter(c => !c.parent_id).length > 0 ? comments.filter(c => !c.parent_id).map((comment) => (
+                                            <div key={comment.id} className="p-5 rounded-2xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm transition-all hover:border-orange-100 dark:hover:border-orange-900/10">
+                                                <div className="flex gap-4">
+                                                    <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 font-black overflow-hidden border border-slate-100 dark:border-slate-700">
+                                                        {comment.profiles?.avatar_url ? (
+                                                            <img src={comment.profiles.avatar_url} alt="" className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            comment.profiles?.full_name?.charAt(0) || 'U'
+                                                        )}
                                                     </div>
-                                                    <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-normal">{comment.content}</p>
+                                                    <div className="flex-1">
+                                                        <div className="flex items-center justify-between mb-1">
+                                                            <p className="text-sm font-black text-slate-900 dark:text-white capitalize">{comment.profiles?.full_name || 'Étudiant'}</p>
+                                                            <p className="text-[10px] text-slate-400">{new Date(comment.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</p>
+                                                        </div>
+                                                        <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-normal">{comment.content}</p>
+
+                                                        {/* Replies Rendering */}
+                                                        {comments.filter(c => c.parent_id === comment.id).map(reply => (
+                                                            <div key={reply.id} className="mt-3 p-3 bg-orange-50/30 dark:bg-orange-500/5 rounded-xl border-l-4 border-orange-500 text-xs italic">
+                                                                <span className="font-bold text-orange-600 block mb-1">Équipe NextMove:</span>
+                                                                {reply.content}
+                                                            </div>
+                                                        ))}
+                                                    </div>
                                                 </div>
                                             </div>
                                         )) : (
@@ -744,13 +869,18 @@ export default function LessonView() {
                     onClose={() => setShowPaymentModal(false)}
                     onSuccess={() => {
                         // Refresh enrollment to update paid status
-                        academyService.getUserEnrollment(course.id, user.id).then(data => {
-                            if (data) setEnrollment(data);
+                        if (user) {
+                            academyService.getUserEnrollment(course.id, user.id).then(data => {
+                                if (data) setEnrollment(data);
+                                setShowCertificatePreview(true);
+                            });
+                        } else {
                             setShowCertificatePreview(true);
-                        });
+                        }
                     }}
                     courseTitle={course.title}
                     enrollmentId={enrollment.id}
+                    price={course.certificate_price}
                 />
             )}
 

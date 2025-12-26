@@ -139,7 +139,6 @@ export default function Home() {
             src="/assets/hero-nexus.png"
             alt="Logistics Nexus - Sea & Air Synergy"
             className="w-full h-full object-cover object-right opacity-80 dark:opacity-60 transition-opacity duration-1000"
-            fetchPriority="high"
           />
           {/* Deep desaturated blue/slate gradients for corporate authority and readability */}
           <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/60 to-transparent" />

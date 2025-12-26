@@ -393,13 +393,54 @@ export default function TrackingPage() {
                       </div>
                     </div>
 
-                    <div className="mt-12">
-                      <div className="flex justify-between items-center mb-3">
-                        <span className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><Activity className="w-4 h-4" />Progression</span>
-                        <span className="text-lg font-black text-orange-600">{shipment.progress}%</span>
+                    <div className="mt-12 space-y-8">
+                      {/* Advanced Progress Stepper */}
+                      <div className="relative">
+                        <div className="absolute top-1/2 left-0 w-full h-1 bg-slate-100 dark:bg-slate-800 -translate-y-1/2 rounded-full overflow-hidden">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${shipment.progress}%` }}
+                            transition={{ duration: 1.5, ease: "easeOut" }}
+                            className={`h-full bg-gradient-to-r ${statusColors[shipment.status] || "from-orange-500 to-red-500"}`}
+                          />
+                        </div>
+
+                        <div className="relative z-10 flex justify-between">
+                          {[
+                            { id: 'pending', icon: Package, label: "Expédié" },
+                            { id: 'picked_up', icon: Truck, label: "Transit" },
+                            { id: 'in_transit', icon: Ship, label: "Mer/Air" },
+                            { id: 'delivered', icon: MapPin, label: "Arrivée" }
+                          ].map((step, i) => {
+                            const stepProgress = (i / 3) * 100;
+                            const isCompleted = shipment.progress >= stepProgress;
+                            const isActive = i === Math.floor((shipment.progress / 100) * 3);
+
+                            return (
+                              <div key={step.id} className="flex flex-col items-center gap-3">
+                                <motion.div
+                                  initial={false}
+                                  animate={{
+                                    scale: isActive ? 1.2 : 1,
+                                    backgroundColor: isCompleted ? (isActive ? "rgb(249 115 22)" : "rgb(22 163 74)") : "rgb(241 245 249)",
+                                    borderColor: isCompleted ? "transparent" : "rgb(226 232 240)"
+                                  }}
+                                  className={`w-12 h-12 rounded-2xl flex items-center justify-center border-2 transition-all shadow-lg ${isActive ? "ring-4 ring-orange-500/20" : ""}`}
+                                >
+                                  <step.icon className={`w-5 h-5 ${isCompleted ? "text-white" : "text-slate-400"}`} />
+                                </motion.div>
+                                <span className={`text-[10px] font-black uppercase tracking-widest ${isCompleted ? "text-slate-900 dark:text-white" : "text-slate-400"}`}>{step.label}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
-                      <div className="h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden border border-slate-200 dark:border-slate-700">
-                        <div ref={progressBarRef} className="h-full bg-orange-600 rounded-full transition-all duration-1000" />
+
+                      <div className="flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
+                        <span className="text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                          <Activity className="w-4 h-4 text-orange-500" /> Progression Globale
+                        </span>
+                        <span className="text-xl font-black text-orange-600 font-mono">{shipment.progress}%</span>
                       </div>
                     </div>
                   </div>
