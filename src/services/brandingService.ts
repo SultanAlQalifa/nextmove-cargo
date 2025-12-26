@@ -149,8 +149,8 @@ export interface BrandingSettings {
 export const DEFAULT_BRANDING: BrandingSettings = {
   platform_name: "NextMove Cargo",
   logo_url: "/logo.png",
-  logo_nexus_url: "/logo-nexus.png",
-  favicon_url: "/logo-nexus.png",
+  logo_nexus_url: "/logo.png",
+  favicon_url: "/logo.png",
   primary_color: "#2563eb", // blue-600
   secondary_color: "#1e40af", // blue-800
   accent_color: "#f59e0b", // amber-500

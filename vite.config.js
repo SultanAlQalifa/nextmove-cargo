@@ -8,7 +8,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['logo-nexus.png', 'logo.png', 'og-image.jpg'],
+      includeAssets: ['logo.png', 'og-image.jpg'],
       manifest: {
         name: 'NextMove Cargo',
         short_name: 'NextMove',
