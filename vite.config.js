@@ -44,7 +44,6 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            if (id.includes('recharts')) return 'charts';
             if (id.includes('xlsx')) return 'excel';
             if (id.includes('jspdf')) return 'pdf';
             if (id.includes('html5-qrcode')) return 'qrcode';
@@ -52,7 +51,6 @@ export default defineConfig({
             if (id.includes('lucide-react')) return 'icons';
             if (id.includes('@supabase')) return 'supabase';
             if (id.includes('i18next')) return 'i18n';
-            if (id.includes('react/') || id.includes('react-dom') || id.includes('react-is') || id.includes('scheduler') || id.includes('prop-types')) return 'vendor-react';
           }
         }
       }
