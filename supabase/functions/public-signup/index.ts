@@ -102,6 +102,7 @@ serve(async (req: Request) => {
                 user_metadata: {
                     full_name: finalFullName,
                     role: role || 'client',
+                    referral_code_used: referral_code_used,
                     ...metadata
                 }
             });

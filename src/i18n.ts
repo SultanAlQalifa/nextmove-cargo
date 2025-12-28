@@ -959,7 +959,7 @@ const resources = {
       "footer.about": "Acerca de",
       "footer.contact": "Contacto",
       "footer.privacy": "Política de Privacidad",
-      "footer.rights": "Todos los derechos reservados",
+      "footer.rights": "Tous droits réservés",
 
       // Calculator
       "calculator.title": "Calculadora de Cotización Instantánea",
@@ -1001,7 +1001,7 @@ const resources = {
       "marketplace.heroTitle": "Oportunidades en Vivo",
       "marketplace.heroSubtitle":
         "Encuentre ofertas de grupaje o responda a solicitudes de envío.",
-      "marketplace.tabs.all": "Ver Todo",
+      "marketplace.tabs.all": "Tout Voir",
       "marketplace.tabs.groupage": "Ofertas de Grupaje",
       "marketplace.tabs.expedition": "Ofertas de Expedición",
       "marketplace.officialRate": "Tarifa Oficial",
@@ -1117,7 +1117,7 @@ const resources = {
         "Tarifas estándar garantizadas por NextMove",
       "calculator.compareForwarders": "Comparar Transitarios",
       "calculator.compareForwardersDesc":
-        "Comparar ofertas de todos los socios",
+        "Comparar offres de tous les partenaires",
       "calculator.specificForwarder": "Transitario Específico",
       "calculator.specificForwarderDesc": "Elegir un socio específico",
       "calculator.selectForwarder": "Seleccionar un transitario",

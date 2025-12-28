@@ -81,6 +81,8 @@ export const academyService = {
                 type: lesson.type,
                 url: lesson.url,
                 file_name: lesson.file_name,
+                content: lesson.content,
+                is_free: lesson.is_free || false,
                 order_index: index,
                 updated_at: new Date().toISOString()
             }));

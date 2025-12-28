@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { academyService } from "../../services/academyService";
 import { AcademyCourse, AcademyLesson, AcademyEnrollment, AcademyLessonComment, AcademyReview } from "../../types/academy";
 import { User } from "@supabase/supabase-js";
@@ -60,6 +60,7 @@ export default function LessonView() {
                 // Sort lessons by order_index
                 const sortedLessons = (data.academy_lessons || []).sort((a, b) => a.order_index - b.order_index);
                 if (sortedLessons.length > 0) {
+                    console.log("DEBUG: Setting initial lesson:", sortedLessons[0].id);
                     setCurrentLesson(sortedLessons[0]);
                 }
             } catch (error) {
@@ -136,6 +137,7 @@ export default function LessonView() {
 
     useEffect(() => {
         if (currentLesson) {
+            console.log("DEBUG: currentLesson changed to:", currentLesson.id, currentLesson.title);
             fetchLessonInteractions();
         }
     }, [currentLesson]);
@@ -279,8 +281,18 @@ export default function LessonView() {
         );
     }
 
-    const lessons = (course.academy_lessons || []).sort((a, b) => a.order_index - b.order_index);
+    const lessons = useMemo(() => {
+        return [...(course?.academy_lessons || [])].sort((a, b) => a.order_index - b.order_index);
+    }, [course?.academy_lessons]);
+
     const currentIndex = currentLesson ? lessons.findIndex(l => l.id === currentLesson.id) : 0;
+
+    const handleSelectLesson = (lesson: AcademyLesson) => {
+        console.log("DEBUG: handleSelectLesson called:", lesson.id, lesson.title);
+        setCurrentLesson(lesson);
+        // Scroll to top of content
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
 
     const handleNext = () => {
         if (currentIndex < lessons.length - 1) {
@@ -330,6 +342,18 @@ export default function LessonView() {
             const courseName = course?.title || "Formation NextMove";
             const certId = `CERT-${enrollment?.id?.slice(0, 8).toUpperCase()}`;
             const date = new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+
+            // Metadata & Properties
+            doc.setProperties({
+                title: `Certificat - ${courseName}`,
+                subject: 'Certificat de Réussite',
+                author: 'NextMove Académie',
+                keywords: 'certificat, logistique, nextmove',
+                creator: 'NextMove Platform'
+            });
+
+            // Sanitize filename safer for all OS
+            const safeName = studentName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
 
             // Background Image
             try {
@@ -427,7 +451,7 @@ export default function LessonView() {
             doc.text(`Délivré le : ${date}`, 561, 660, { align: 'center' });
             doc.text('NextMove Académie', 890, 660, { align: 'right' });
 
-            doc.save(`Certificat_NextMove_${studentName.replace(/\s+/g, '_')}.pdf`);
+            doc.save(`Certificat_NextMove_${safeName}.pdf`);
         } catch (error) {
             console.error('PDF Generation Error:', error);
             alert('Une erreur est survenue lors de la génération du PDF. Veuillez essayer l\'option Imprimer.');
@@ -508,7 +532,7 @@ export default function LessonView() {
                                 {lessons.map((lesson) => (
                                     <button
                                         key={lesson.id}
-                                        onClick={() => setCurrentLesson(lesson)}
+                                        onClick={() => handleSelectLesson(lesson)}
                                         className={`w-full flex items-center gap-3 p-3 rounded-xl text-left transition-all ${currentLesson?.id === lesson.id
                                             ? "bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-500/30"
                                             : "hover:bg-slate-100 dark:hover:bg-slate-800 border border-transparent"
@@ -539,7 +563,7 @@ export default function LessonView() {
             </AnimatePresence>
 
             {/* Main Content */}
-            <main className="flex-1 flex flex-col h-full bg-white dark:bg-slate-950 overflow-y-auto relative">
+            <main key={currentLesson?.id} className="flex-1 flex flex-col h-full bg-white dark:bg-slate-950 overflow-y-auto relative">
 
                 {/* Navbar */}
                 <header className="h-16 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between px-6 sticky top-0 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md z-10">
@@ -641,18 +665,27 @@ export default function LessonView() {
                         <div className="prose prose-slate dark:prose-invert max-w-none">
                             {activeContentTab === 'about' && (
                                 <div className="animate-in fade-in duration-300">
-                                    <h4 className="text-slate-900 dark:text-white font-bold mb-2">Description du module</h4>
-                                    <p className="text-slate-600 dark:text-slate-400 leading-relaxed italic">
-                                        Contenu de la leçon : {currentLesson?.title}.
-                                        {currentLesson?.type === 'pdf' ? ' Ce module contient un document PDF à consulter.' :
-                                            currentLesson?.type === 'video' ? ' Regardez la vidéo ci-dessus pour ce module.' :
-                                                ' Consultez le texte ou l\'audio joint pour ce module.'}
-                                    </p>
-                                    <div className="mt-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700">
-                                        <p className="text-sm text-slate-500 dark:text-slate-400">
-                                            {course.description || "Aucune description supplémentaire fournie pour ce cours."}
-                                        </p>
-                                    </div>
+                                    {currentLesson?.content ? (
+                                        <div
+                                            className="lesson-content-html"
+                                            dangerouslySetInnerHTML={{ __html: currentLesson.content }}
+                                        />
+                                    ) : (
+                                        <>
+                                            <h4 className="text-slate-900 dark:text-white font-bold mb-2">Description du module</h4>
+                                            <p className="text-slate-600 dark:text-slate-400 leading-relaxed italic">
+                                                Contenu de la leçon : {currentLesson?.title}.
+                                                {currentLesson?.type === 'pdf' ? ' Ce module contient un document PDF à consulter.' :
+                                                    currentLesson?.type === 'video' ? ' Regardez la vidéo ci-dessus pour ce module.' :
+                                                        ' Consultez le texte ou l\'audio joint pour ce module.'}
+                                            </p>
+                                            <div className="mt-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700">
+                                                <p className="text-sm text-slate-500 dark:text-slate-400">
+                                                    {course.description || "Aucune description supplémentaire fournie pour ce cours."}
+                                                </p>
+                                            </div>
+                                        </>
+                                    )}
 
                                     {/* Quiz Section */}
                                     {lessonQuiz && (

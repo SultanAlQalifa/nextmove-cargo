@@ -7,6 +7,8 @@ export interface AcademyLesson {
     type: LessonType;
     url?: string;
     file_name?: string;
+    content?: string;
+    is_free?: boolean;
     order_index: number;
     created_at?: string;
     updated_at?: string;

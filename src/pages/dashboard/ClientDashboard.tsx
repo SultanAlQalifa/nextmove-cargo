@@ -18,10 +18,11 @@ import {
   ArrowUpRight,
   X,
   Star,
-  Crown,
-  Wallet,
   Activity,
-  Sparkles
+  Sparkles,
+  Gift,
+  Crown,
+  Wallet
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -32,21 +33,19 @@ import {
   Tooltip,
   ResponsiveContainer,
   AreaChart,
-  Area,
-  PieChart,
-  Pie,
-  Cell,
-  Legend
+  Area
 } from "recharts";
 import { useToast } from "../../contexts/ToastContext";
 import ConfirmationModal from "../../components/common/ConfirmationModal";
 import { useDataSync } from "../../contexts/DataSyncContext";
+import { useSettings } from "../../contexts/SettingsContext";
 
 export default function ClientDashboard() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { profile, user } = useAuth();
   const { openCalculator } = useUI();
+  const { settings } = useSettings();
 
   const [requests, setRequests] = useState<QuoteRequest[]>([]);
   const [shipments, setShipments] = useState<any[]>([]);
@@ -182,6 +181,7 @@ export default function ClientDashboard() {
 
     // Aggregate Requests
     requests.forEach(r => {
+      if (!r.created_at) return;
       const d = new Date(r.created_at);
       if (d.getFullYear() === currentYear) {
         monthCounts[d.getMonth()].demandes++;
@@ -191,37 +191,7 @@ export default function ClientDashboard() {
     return monthCounts;
   }, [shipments, requests]);
 
-  // Pie Chart Data (Real Data by Origin)
-  const pieData = useMemo(() => {
-    const originCounts: Record<string, number> = {};
-    shipments.forEach(s => {
-      const origin = s.origin_country || "Inconnu";
-      originCounts[origin] = (originCounts[origin] || 0) + 1;
-    });
 
-    // Top 3 + Others
-    const sorted = Object.entries(originCounts).sort((a, b) => b[1] - a[1]);
-    const top3 = sorted.slice(0, 3);
-    const others = sorted.slice(3).reduce((acc, curr) => acc + curr[1], 0);
-
-    const colors = ['#4F46E5', '#F59E0B', '#10B981', '#64748B'];
-
-    const result = top3.map((item, index) => ({
-      name: item[0],
-      value: item[1],
-      color: colors[index]
-    }));
-
-    if (others > 0) {
-      result.push({ name: 'Autres', value: others, color: colors[3] });
-    }
-
-    if (result.length === 0) {
-      return [{ name: 'Aucune donnée', value: 1, color: '#E2E8F0' }];
-    }
-
-    return result;
-  }, [shipments]);
 
 
   if (loading) {
@@ -232,6 +202,11 @@ export default function ClientDashboard() {
       </div>
     );
   }
+
+
+
+  // Founder Pack Banner
+  const showFounderBanner = settings?.marketing?.show_founder_offer && !profile?.is_founder;
 
   return (
     <div className="space-y-8 pb-12">
@@ -265,7 +240,7 @@ export default function ClientDashboard() {
       </PageHeader>
 
       {/* Founder Pack Banner */}
-      {!profile?.is_founder && (
+      {showFounderBanner && (
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-amber-500 to-orange-600 p-8 text-white shadow-xl shadow-amber-500/20 animate-in fade-in slide-in-from-top-4 duration-700">
           <div className="absolute top-0 right-0 -mr-16 -mt-16 h-64 w-64 rounded-full bg-white/10 blur-3xl"></div>
           <div className="absolute bottom-0 left-0 -ml-16 -mb-16 h-40 w-40 rounded-full bg-black/10 blur-2xl"></div>
@@ -341,33 +316,38 @@ export default function ClientDashboard() {
           <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors pointer-events-none"></div>
         </div>
 
-        {/* Spend by Origin (Pie Chart) - Replaces Loyalty Card or gets added */}
-        <div className="md:col-span-1 lg:col-span-1 row-span-2 bg-white/80 dark:bg-dark-card/80 backdrop-blur-xl rounded-3xl p-6 border border-white/40 dark:border-white/10 shadow-sm relative overflow-hidden hover:shadow-md transition-shadow">
-          <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-2">Volume par Origine</h3>
-          <div className="w-full h-[250px]">
-            {isMounted && (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={pieData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {pieData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                  />
-                  <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
-                </PieChart>
-              </ResponsiveContainer>
-            )}
+        {/* Referral Promo Card - Replaces Pie Chart */}
+        <div className="md:col-span-1 lg:col-span-1 row-span-2 bg-gradient-to-br from-violet-600 to-fuchsia-700 rounded-3xl p-6 text-white relative overflow-hidden shadow-lg shadow-violet-500/20 group hover:-translate-y-1 transition-transform">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-20 -mt-20 blur-3xl animate-pulse"></div>
+          <div className="relative z-10 flex flex-col h-full justify-between">
+            <div>
+              <div className="flex justify-between items-start mb-4">
+                <div className="p-2.5 bg-white/20 backdrop-blur-sm rounded-xl">
+                  <Gift className="w-5 h-5 text-white" />
+                </div>
+                <span className="text-xs font-bold bg-white/20 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10">
+                  +500 pts / ami
+                </span>
+              </div>
+              <h3 className="text-2xl font-bold mb-2">Invitez & Gagnez</h3>
+              <p className="text-violet-100 text-sm leading-relaxed">
+                Partagez votre code unique avec vos amis. Ils gagnent des réductions et vous recevez 500 points à leur première expédition !
+              </p>
+            </div>
+
+            <div className="mt-6 p-4 bg-white/10 backdrop-blur-md rounded-xl border border-white/10 text-center">
+              <p className="text-xs font-medium text-violet-200 mb-1">Votre Code</p>
+              <code className="block text-xl font-mono font-bold tracking-widest text-white">
+                {profile?.referral_code || "---"}
+              </code>
+            </div>
+
+            <Link
+              to="/dashboard/client/loyalty?tab=referrals"
+              className="mt-4 w-full py-3 bg-white text-violet-700 font-bold rounded-xl hover:bg-violet-50 transition-colors text-center text-sm shadow-md flex items-center justify-center gap-2 group-hover:gap-3"
+            >
+              Inviter des amis <ArrowRight className="w-4 h-4 transition-all" />
+            </Link>
           </div>
         </div>
 

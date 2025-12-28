@@ -1,5 +1,5 @@
 import { Suspense, lazy } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { CurrencyProvider } from "./contexts/CurrencyContext";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -152,9 +152,7 @@ const ForwarderAddresses = lazy(
   () => import("./pages/dashboard/forwarder/ForwarderAddresses"),
 );
 
-const ReferralDashboard = lazy(
-  () => import("./pages/dashboard/ReferralDashboard"),
-);
+
 const LoyaltyDashboard = lazy(
   () => import("./pages/dashboard/client/Loyalty"),
 );
@@ -215,8 +213,8 @@ const AdminPackageTypes = lazy(
   () => import("./pages/dashboard/admin/AdminPackageTypes"),
 );
 const AdminEmails = lazy(() => import("./pages/dashboard/admin/AdminEmails"));
-const AdminReferrals = lazy(
-  () => import("./pages/dashboard/admin/AdminReferrals"),
+const AdminLoyalty = lazy(
+  () => import("./pages/dashboard/admin/AdminLoyalty"),
 );
 const AdminTestimonials = lazy(
   () => import("./pages/dashboard/admin/AdminTestimonials"),
@@ -419,7 +417,7 @@ function App() {
                                         />
                                         <Route
                                           path="client/referrals"
-                                          element={<ReferralDashboard />}
+                                          element={<Navigate to="/dashboard/client/loyalty?tab=referrals" replace />}
                                         />
                                         <Route
                                           path="client/loyalty"
@@ -534,7 +532,11 @@ function App() {
                                         />
                                         <Route
                                           path="forwarder/referrals"
-                                          element={<ReferralDashboard />}
+                                          element={<Navigate to="/dashboard/forwarder/loyalty?tab=referrals" replace />}
+                                        />
+                                        <Route
+                                          path="forwarder/loyalty"
+                                          element={<LoyaltyDashboard />}
                                         />
                                         <Route
                                           path="forwarder/automations"
@@ -659,8 +661,8 @@ function App() {
                                           element={<AdminBlog />}
                                         />
                                         <Route
-                                          path="admin/referrals"
-                                          element={<AdminReferrals />}
+                                          path="admin/loyalty"
+                                          element={<AdminLoyalty />}
                                         />
                                         <Route
                                           path="admin/security"

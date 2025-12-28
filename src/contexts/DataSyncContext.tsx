@@ -19,7 +19,8 @@ type SyncTable =
     | 'fee_configs'
     | 'system_settings'
     | 'platform_settings'
-    | 'coupons';
+    | 'coupons'
+    | 'point_history';
 
 interface DataSyncContextType {
     subscribe: (table: SyncTable, callback: () => void) => () => void;
@@ -131,13 +132,13 @@ export const DataSyncProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             )
             .on(
                 'postgres_changes',
-                { event: '*', schema: 'public', table: 'platform_settings' },
-                (payload) => handlePayload(payload, 'platform_settings')
+                { event: '*', schema: 'public', table: 'coupons' },
+                (payload) => handlePayload(payload, 'coupons')
             )
             .on(
                 'postgres_changes',
-                { event: '*', schema: 'public', table: 'coupons' },
-                (payload) => handlePayload(payload, 'coupons')
+                { event: '*', schema: 'public', table: 'point_history' },
+                (payload) => handlePayload(payload, 'point_history')
             )
             .subscribe();
 

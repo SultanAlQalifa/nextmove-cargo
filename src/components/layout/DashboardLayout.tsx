@@ -192,12 +192,7 @@ export default function DashboardLayout() {
           title: "Parrainage & Gains",
           items: [
             {
-              name: "Parrainage",
-              path: "/dashboard/client/referrals",
-              icon: Gift,
-            },
-            {
-              name: "Fidélité",
+              name: "Fidélité & Parrainage",
               path: "/dashboard/client/loyalty",
               icon: Crown,
             },
@@ -319,9 +314,9 @@ export default function DashboardLayout() {
           title: "Parrainage & Gains",
           items: [
             {
-              name: "Parrainage",
-              path: "/dashboard/forwarder/referrals",
-              icon: Gift,
+              name: "Fidélité & Parrainage",
+              path: "/dashboard/forwarder/loyalty",
+              icon: Crown,
             },
           ],
         });
@@ -540,9 +535,9 @@ export default function DashboardLayout() {
               icon: Calculator,
             },
             {
-              name: "Parrainage",
-              path: "/dashboard/admin/referrals",
-              icon: Gift,
+              name: "Fidélité & Parrainage",
+              path: "/dashboard/admin/loyalty",
+              icon: Crown,
             },
           ],
         },

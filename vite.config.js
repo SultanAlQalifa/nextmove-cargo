@@ -13,7 +13,7 @@ export default defineConfig({
         name: 'NextMove Cargo',
         short_name: 'NextMove',
         description: 'Votre partenaire logistique de confiance',
-        theme_color: '#ffffff',
+        theme_color: '#1E293B',
         background_color: '#ffffff',
         display: 'standalone',
         scope: '/',
