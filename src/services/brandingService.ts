@@ -255,7 +255,7 @@ export const DEFAULT_BRANDING: BrandingSettings = {
       title: "Contactez-nous",
       subtitle: "Notre équipe est là pour vous aider",
       email: "djeylanidjitte@gmail.com",
-      phone: "+221 77 000 00 00",
+      phone: "+221 77 658 17 41",
       address: "Dakar, Sénégal",
       hours: "Lun - Ven: 9h - 18h",
     },
@@ -283,7 +283,7 @@ export const DEFAULT_BRANDING: BrandingSettings = {
     linkedin: "",
     tiktok: "",
     youtube: "",
-    whatsapp_number: "221771234567",
+    whatsapp_number: "221776581741",
   },
   seo: {
     meta_title_template: "%s | NextMove Cargo",

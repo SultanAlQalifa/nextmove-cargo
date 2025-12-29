@@ -53,7 +53,7 @@ export const generateInvoicePDF = (data: InvoiceData) => {
   doc.setFont("helvetica", "normal");
   doc.text("123 Avenue de la Logistique", 20, 30);
   doc.text("Dakar, Sénégal", 20, 35);
-  doc.text("Tél: +221 77 000 00 00", 20, 40);
+  doc.text("Tél: +221 77 658 17 41", 20, 40);
   doc.text("Email: contact@nextmove-cargo.com", 20, 45);
 
   // Invoice Label

@@ -60,7 +60,6 @@ export default function LessonView() {
                 // Sort lessons by order_index
                 const sortedLessons = (data.academy_lessons || []).sort((a, b) => a.order_index - b.order_index);
                 if (sortedLessons.length > 0) {
-                    console.log("DEBUG: Setting initial lesson:", sortedLessons[0].id);
                     setCurrentLesson(sortedLessons[0]);
                 }
             } catch (error) {
@@ -137,7 +136,6 @@ export default function LessonView() {
 
     useEffect(() => {
         if (currentLesson) {
-            console.log("DEBUG: currentLesson changed to:", currentLesson.id, currentLesson.title);
             fetchLessonInteractions();
         }
     }, [currentLesson]);
@@ -288,7 +286,6 @@ export default function LessonView() {
     const currentIndex = currentLesson ? lessons.findIndex(l => l.id === currentLesson.id) : 0;
 
     const handleSelectLesson = (lesson: AcademyLesson) => {
-        console.log("DEBUG: handleSelectLesson called:", lesson.id, lesson.title);
         setCurrentLesson(lesson);
         // Scroll to top of content
         window.scrollTo({ top: 0, behavior: 'smooth' });

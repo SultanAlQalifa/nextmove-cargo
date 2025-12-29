@@ -208,7 +208,7 @@ export default function PhoneInputWithCountry({ value, onChange, required }: Pho
                         value={localNumber}
                         onChange={handleNumberChange}
                         className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-r-xl focus:ring-primary focus:border-primary placeholder-gray-400"
-                        placeholder="77 000 00 00"
+                        placeholder="77 658 17 41"
                     />
                 </div>
             </div>

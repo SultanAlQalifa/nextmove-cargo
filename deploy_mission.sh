@@ -37,7 +37,7 @@ echo "Ajout des fichiers..."
 git add .
 
 echo "Commit des changements..."
-git commit -m "Release: Founder Pack & Security Update"
+git commit -m "Release: Fix Calculator & Update Branding"
 
 echo "Push vers 'origin main'..."
 git push origin main

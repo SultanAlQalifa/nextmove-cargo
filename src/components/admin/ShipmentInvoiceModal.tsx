@@ -10,7 +10,6 @@ import {
   CreditCard,
   Truck,
   Percent,
-  Loader2,
   CheckCircle2,
   ShieldCheck,
   Building2,
@@ -59,7 +58,7 @@ export default function ShipmentInvoiceModal({
       name: "NextMove Cargo",
       address: "123 Voie de la Logistique, Dakar, Sénégal",
       email: "facturation@nextmove.com",
-      phone: "+221 77 000 00 00",
+      phone: "+221 77 658 17 41",
     },
     forwarder: {
       name: "Global Freight Solutions",

@@ -178,17 +178,11 @@ export default function Calculator() {
         // The service likely uses 'mode' for transport mode.
         // If we need to filter by 'platform' or specific forwarder, we might handle it here or in service.
         // Passing extra params:
-        searchMode: calculationMode,
-        forwarderId: selectedForwarder,
-        cargo_details: {
-          length: parseFloat(length) || 0,
-          width: parseFloat(width) || 0,
-          height: parseFloat(height) || 0,
-          weight: parseFloat(watch("weight_kg") as any) || 0,
-          unit: dimensionUnit,
-        },
-        services: selectedServices
-      } as any; // Casting to any to avoid strict type checks if definition varies slightly
+        calculationMode: calculationMode,
+        forwarder_id: selectedForwarder,
+        volume_cbm: calculatedCBM,
+        additionalServices: selectedServices
+      }; // Casting to any to avoid strict type checks if definition varies slightly
 
       const results = await calculatorService.calculateQuotes(params);
       setQuotes(results);

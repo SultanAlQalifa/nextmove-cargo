@@ -4,7 +4,7 @@ import { useBranding } from "../../contexts/BrandingContext";
 export default function WhatsAppButton() {
     const { settings } = useBranding();
 
-    const phoneNumber = settings?.social_media?.whatsapp_number || "221771234567";
+    const phoneNumber = settings?.social_media?.whatsapp_number || "221776581741";
     const platformName = settings?.platform_name || "NextMove Cargo";
 
     const message = encodeURIComponent(

@@ -609,7 +609,7 @@ export default function PaymentModal({
                       type="tel"
                       value={phoneNumber}
                       onChange={(e) => setPhoneNumber(e.target.value)}
-                      placeholder="77 000 00 00"
+                      placeholder="77 658 17 41"
                       className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                     />
                   </div>
