@@ -4,13 +4,13 @@ import PageHeader from "../../../components/common/PageHeader";
 import {
     Wallet,
     Search,
-    Filter,
+    Wallet,
+    Search,
     MoreVertical,
     ArrowUpRight,
     ArrowDownRight,
     CreditCard,
     User,
-    AlertCircle,
     Download,
 } from "lucide-react";
 import { useToast } from "../../../contexts/ToastContext";
@@ -184,7 +184,7 @@ export default function AdminWallet() {
                     >
                         <option value="all">Tous les rôles</option>
                         <option value="client">Clients</option>
-                        <option value="forwarder">Transitaires</option>
+                        <option value="forwarder">Prestataires</option>
                         <option value="driver">Chauffeurs</option>
                     </select>
                 </div>

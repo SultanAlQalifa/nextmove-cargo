@@ -85,4 +85,4 @@ Les fichiers seront dans le dossier `dist/`.
 
 ## 📜 Licence
 
-Tous droits réservés © NextMove Cargo 2025.
+Tous droits réservés © NextMove Cargo 2026.

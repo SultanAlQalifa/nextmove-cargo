@@ -64,7 +64,7 @@ export default function AdminPOD() {
     const headers = [
       { label: "Expédition", key: "shipment_id" },
       { label: "Numéro de suivi", key: "tracking_number" },
-      { label: "Transitaire", key: "forwarder.name" },
+      { label: "Prestataire", key: "forwarder.name" },
       { label: "Client", key: "client.name" },
       {
         label: "Date Soumission",
@@ -398,7 +398,7 @@ export default function AdminPOD() {
                   Expédition
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Transitaire
+                  Prestataire
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Client

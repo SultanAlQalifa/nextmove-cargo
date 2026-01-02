@@ -7,8 +7,9 @@ export interface ForwarderProfile {
   phone: string;
   address: string;
   country: string;
-  verification_status: "pending" | "verified" | "rejected";
-  account_status: "active" | "suspended" | "inactive";
+  full_name?: string;
+  kyc_status: "pending" | "verified" | "rejected" | "unverified";
+  subscription_status: "active" | "inactive" | "past_due" | "canceled";
   documents: {
     id: string;
     name: string;
@@ -39,6 +40,7 @@ export const forwarderService = {
    * Get all forwarders (Admin only)
    */
   getForwarders: async (): Promise<ForwarderProfile[]> => {
+    console.log("forwarderService: Fetching profiles with role='forwarder'...");
     const { data, error } = await supabase
       .from("profiles")
       .select(
@@ -50,7 +52,13 @@ export const forwarderService = {
       .eq("role", "forwarder")
       .order("created_at", { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+      console.error("forwarderService: Error fetching forwarders:", error);
+      throw error;
+    }
+
+    console.log("forwarderService: Raw data received from DB:", data);
+    console.log("forwarderService: Row count:", data?.length || 0);
 
     return (data || []).map(mapDbForwarderToApp);
   },
@@ -70,7 +78,7 @@ export const forwarderService = {
 
     return (data || []).map((f) => ({
       id: f.id,
-      name: f.company_name || f.full_name || "Transitaire Inconnu",
+      name: f.company_name || f.full_name || "Prestataire Inconnu",
       website_url: f.website_url,
       logo: f.avatar_url,
       rating: f.rating || 0,
@@ -87,8 +95,17 @@ export const forwarderService = {
   ): Promise<void> => {
     const { error } = await supabase
       .from("profiles")
-      .update({ verification_status: status })
+      .update({ kyc_status: status })
       .eq("id", id);
+
+    if (error) throw error;
+  },
+
+  verifyAllDocuments: async (forwarderId: string): Promise<void> => {
+    const { error } = await supabase
+      .from("forwarder_documents")
+      .update({ status: "verified" })
+      .eq("forwarder_id", forwarderId);
 
     if (error) throw error;
   },
@@ -99,7 +116,7 @@ export const forwarderService = {
   suspendForwarder: async (id: string): Promise<void> => {
     const { error } = await supabase
       .from("profiles")
-      .update({ account_status: "suspended" })
+      .update({ subscription_status: "canceled" })
       .eq("id", id);
 
     if (error) throw error;
@@ -111,7 +128,7 @@ export const forwarderService = {
   deactivateForwarder: async (id: string): Promise<void> => {
     const { error } = await supabase
       .from("profiles")
-      .update({ account_status: "inactive" })
+      .update({ subscription_status: "inactive" })
       .eq("id", id);
 
     if (error) throw error;
@@ -123,7 +140,7 @@ export const forwarderService = {
   activateForwarder: async (id: string): Promise<void> => {
     const { error } = await supabase
       .from("profiles")
-      .update({ account_status: "active" })
+      .update({ subscription_status: "active" })
       .eq("id", id);
 
     if (error) throw error;
@@ -331,12 +348,13 @@ function mapDbForwarderToApp(dbRecord: any): ForwarderProfile {
   return {
     id: dbRecord.id,
     company_name: dbRecord.company_name,
+    full_name: dbRecord.full_name,
     email: dbRecord.email,
     phone: dbRecord.phone || "",
     address: dbRecord.address || "",
     country: dbRecord.country || "",
-    verification_status: dbRecord.verification_status || "pending",
-    account_status: dbRecord.account_status || "active",
+    kyc_status: dbRecord.kyc_status || dbRecord.verification_status || "pending",
+    subscription_status: dbRecord.subscription_status || dbRecord.account_status || "inactive",
     documents: dbRecord.documents || [],
     joined_at: dbRecord.created_at,
     isFeatured: dbRecord.is_featured,

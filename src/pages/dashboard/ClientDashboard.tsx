@@ -17,13 +17,13 @@ import {
   Calculator,
   ArrowUpRight,
   X,
-  Star,
   Activity,
   Sparkles,
   Gift,
-  Crown,
-  Wallet
+  Zap
 } from "lucide-react";
+import { motion } from "framer-motion";
+import LoyaltyCenter from "../../components/dashboard/LoyaltyCenter";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
@@ -39,6 +39,7 @@ import { useToast } from "../../contexts/ToastContext";
 import ConfirmationModal from "../../components/common/ConfirmationModal";
 import { useDataSync } from "../../contexts/DataSyncContext";
 import { useSettings } from "../../contexts/SettingsContext";
+import { useFeature } from "../../contexts/FeatureFlagContext";
 
 export default function ClientDashboard() {
   const { t } = useTranslation();
@@ -46,6 +47,7 @@ export default function ClientDashboard() {
   const { profile, user } = useAuth();
   const { openCalculator } = useUI();
   const { settings } = useSettings();
+  const showPredictiveAnalytics = useFeature('predictive_analytics');
 
   const [requests, setRequests] = useState<QuoteRequest[]>([]);
   const [shipments, setShipments] = useState<any[]>([]);
@@ -152,24 +154,31 @@ export default function ClientDashboard() {
   ), [shipments, searchQuery]);
 
   // Stats Logic
-  const stats = useMemo(() => ({
-    activeShipments: shipments.filter((s) => !["completed", "cancelled"].includes(s.status)).length,
-    pendingRequests: requests.filter((r) => r.status === "pending").length,
-    completedShipments: shipments.filter((s) => s.status === "completed").length,
-    totalSpent: shipments.reduce((sum, s) => {
+  const stats = useMemo(() => {
+    const activeShipments = shipments.filter((s) => !["completed", "cancelled"].includes(s.status)).length;
+    const pendingRequests = requests.filter((r) => r.status === "pending").length;
+    const completedShipments = shipments.filter((s) => s.status === "completed").length;
+    const totalSpent = shipments.reduce((sum, s) => {
       const paidTx = s.payment?.filter((p: any) => p.status === 'completed') || [];
       return sum + paidTx.reduce((t: number, p: any) => t + (p.amount || 0), 0);
-    }, 0)
-  }), [shipments, requests]);
+    }, 0);
 
-  // Chart Data (Real Data Aggregation)
+    // Logistics Impact Score (0-100)
+    // Formula: (completed * 10) + (active * 5) + (spent / 10000)
+    const impactScore = Math.min(100, (completedShipments * 5) + (activeShipments * 3) + Math.floor(totalSpent / 50000));
+
+    return { activeShipments, pendingRequests, completedShipments, totalSpent, impactScore };
+  }, [shipments, requests]);
+
+  // Chart Data (Real Data Aggregation + Forecast)
   const chartData = useMemo(() => {
     const months = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Août", "Sep", "Oct", "Nov", "Déc"];
     const now = new Date();
     const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth();
 
     // Initialize counts
-    const monthCounts = months.map(m => ({ name: m, expeditions: 0, demandes: 0 }));
+    const monthCounts = months.map(m => ({ name: m, expeditions: 0, demandes: 0, prevision: null as number | null }));
 
     // Aggregate Shipments
     shipments.forEach(s => {
@@ -188,8 +197,14 @@ export default function ClientDashboard() {
       }
     });
 
+    // Add Forecast for next 2 months
+    const avgExp = Math.max(1, Math.ceil(stats.activeShipments / 4));
+    for (let i = currentMonth + 1; i < Math.min(12, currentMonth + 3); i++) {
+      monthCounts[i].prevision = monthCounts[Math.max(0, i - 1)].expeditions + avgExp;
+    }
+
     return monthCounts;
-  }, [shipments, requests]);
+  }, [shipments, requests, stats.activeShipments]);
 
 
 
@@ -287,7 +302,7 @@ export default function ClientDashboard() {
           {/* eslint-disable-next-line react/forbid-dom-props */}
           <div className="relative z-10 w-full h-[300px]">
             {isMounted && (
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height={300}>
                 <AreaChart data={chartData}>
                   <defs>
                     <linearGradient id="colorExp" x1="0" y1="0" x2="0" y2="1">
@@ -308,6 +323,7 @@ export default function ClientDashboard() {
                   />
                   <Area type="monotone" dataKey="expeditions" stackId="1" stroke="#FB923C" strokeWidth={3} fill="url(#colorExp)" />
                   <Area type="monotone" dataKey="demandes" stackId="1" stroke="#3B82F6" strokeWidth={3} fill="url(#colorReq)" />
+                  {showPredictiveAnalytics && <Area type="monotone" dataKey="prevision" stroke="#94A3B8" strokeWidth={2} strokeDasharray="5 5" fill="transparent" />}
                 </AreaChart>
               </ResponsiveContainer>
             )}
@@ -351,25 +367,15 @@ export default function ClientDashboard() {
           </div>
         </div>
 
-        {/* 2. Loyalty Card - Premium Glass */}
-        <div className="bg-gradient-to-br from-indigo-600 to-violet-700 rounded-3xl p-6 text-white relative overflow-hidden shadow-lg shadow-indigo-500/20 group transform transition-transform hover:-translate-y-1">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10 blur-2xl group-hover:bg-white/20 transition-colors"></div>
-          <div className="relative z-10">
-            <div className="flex justify-between items-start mb-4">
-              <div className="p-2.5 bg-white/20 backdrop-blur-sm rounded-xl">
-                <Crown className="w-5 h-5 text-yellow-300" fill="currentColor" />
-              </div>
-              <span className="text-xs font-bold bg-white/20 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10">
-                {profile?.tier || "Bronze"}
-              </span>
-            </div>
-            <p className="text-indigo-100 text-sm font-medium">Points Fidélité</p>
-            <h3 className="text-3xl font-bold mt-1 tracking-tight">{profile?.loyalty_points || 0}</h3>
-            <div className="mt-4 pt-4 border-t border-white/10 flex items-center gap-2 text-xs text-indigo-100">
-              <Star className="w-3 h-3 text-yellow-300" />
-              <span>Prochain palier: {(profile?.loyalty_points || 0) + 500} pts</span>
-            </div>
-          </div>
+        {/* 2. Loyalty Center - Premium Gamified Section (Spans 2 cols on LG) */}
+        <div className="lg:col-span-2 md:col-span-2 row-span-2">
+          <LoyaltyCenter
+            points={profile?.loyalty_points || 0}
+            tier={profile?.tier || "Bronze"}
+            pointValue={0.5} // Logic: 1 point = 0.5 XOF
+            onConvert={() => navigate('/dashboard/client/loyalty?action=convert')}
+            onTransfer={() => navigate('/dashboard/client/loyalty?action=transfer')}
+          />
         </div>
 
         {/* 3. Active Shipments */}
@@ -410,19 +416,30 @@ export default function ClientDashboard() {
           </Link>
         </div>
 
-        {/* 5. Total Spent */}
-        <div className="bg-white/80 dark:bg-dark-card/80 backdrop-blur-xl rounded-3xl p-6 border border-white/40 dark:border-white/10 shadow-sm hover:shadow-md transition-all group">
-          <div className="flex justify-between items-start mb-4">
-            <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl group-hover:bg-blue-100 transition-colors">
-              <Wallet className="w-5 h-5" />
+        {/* 5. Smart Impact & Loyalty */}
+        {showPredictiveAnalytics && (
+          <div className="bg-white/80 dark:bg-dark-card/80 backdrop-blur-xl rounded-3xl p-6 border border-white/40 dark:border-white/10 shadow-sm hover:shadow-md transition-all group relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -mr-12 -mt-12 blur-2xl" />
+            <div className="flex justify-between items-start mb-4">
+              <div className="p-2.5 bg-primary/10 text-primary rounded-xl group-hover:bg-primary/20 transition-colors">
+                <Zap className="w-5 h-5 fill-current" />
+              </div>
+              <div className="text-right">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Impact Score</span>
+                <div className="text-lg font-black text-primary">{stats.impactScore}/100</div>
+              </div>
             </div>
+            <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Prochain Palier</p>
+            <div className="mt-2 h-2 w-full bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${stats.impactScore}%` }}
+                className="h-full bg-primary"
+              />
+            </div>
+            <p className="text-[9px] text-slate-400 mt-2 font-bold uppercase italic">Logistique Premium activée</p>
           </div>
-          <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Dépenses Totales</p>
-          <h3 className="text-2xl font-bold text-slate-800 dark:text-white mt-1">
-            {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF' }).format(stats.totalSpent)}
-          </h3>
-          <p className="text-xs text-slate-400 mt-1">Sur {stats.completedShipments} expéditions terminées</p>
-        </div>
+        )}
 
       </div>
 
@@ -551,7 +568,7 @@ export default function ClientDashboard() {
                 >
                   <div>
                     <p className="font-bold text-lg text-slate-900 dark:text-white flex items-center gap-2">
-                      {quote.forwarder?.company_name || "Transitaire"}
+                      {quote.forwarder?.company_name || "Prestataire"}
                       <div className="text-[10px] px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full">Verifié</div>
                     </p>
                     <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1">

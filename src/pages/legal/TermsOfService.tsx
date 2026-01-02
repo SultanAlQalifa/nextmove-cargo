@@ -51,7 +51,7 @@ export default function TermsOfService() {
                             4. Paiements et Séquestre
                         </h3>
                         <p>
-                            Les paiements sont effectués via les passerelles sécurisées Wave, PayTech ou CinetPay. Pour les services de Marketplace, les fonds sont conservés en séquestre et ne sont libérés au transitaire qu'après confirmation de la livraison ou expiration du délai de contestation.
+                            Les paiements sont effectués via les passerelles sécurisées Wave, PayTech ou CinetPay. Pour les services de Marketplace, les fonds sont conservés en séquestre et ne sont libérés au prestataire qu'après confirmation de la livraison ou expiration du délai de contestation.
                         </p>
                     </div>
 
@@ -70,7 +70,7 @@ export default function TermsOfService() {
                             <FileCheck className="w-4 h-4" />
                             Dernière Mise à jour
                         </div>
-                        Ces conditions de niveau "Audit Production" ont été mises à jour le 23 Décembre 2025.
+                        Ces conditions de niveau "Audit Production" ont été mises à jour le 02 Janvier 2026.
                     </div>
                 </div>
             </div>

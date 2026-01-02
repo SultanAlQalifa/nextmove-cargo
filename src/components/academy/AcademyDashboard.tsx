@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
-    Book, Play, Zap, Shield, Sword, Target, Trophy, Flame, Star
+    Book, Play, Zap, Shield, Sword, Target, Trophy, Flame, Star, FileCheck, HelpCircle, HardHat
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { academyService } from "../../services/academyService";
@@ -255,10 +255,63 @@ export default function AcademyDashboard() {
                                         <div className="w-8 h-8 rounded-full bg-slate-200" />
                                         <div className="flex-1">
                                             <div className="text-sm font-bold text-slate-900 dark:text-white">Gladiator_{pos}</div>
-                                            <div className="text-xs text-slate-500">2,450 XP</div>
+                                            <div className="text-xs text-slate-500">{2500 - (pos * 100)} XP</div>
                                         </div>
                                     </div>
                                 ))}
+                            </div>
+                        </div>
+
+                        {/* Interactive Tools Section */}
+                        <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 border border-slate-100 dark:border-slate-700 shadow-sm">
+                            <h3 className="font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                                <Zap className="w-5 h-5 text-amber-500" /> Outils Stratégiques
+                            </h3>
+                            <div className="space-y-3">
+                                <motion.div
+                                    whileHover={{ x: 5 }}
+                                    className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-700 cursor-pointer group"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg text-blue-600">
+                                            <HelpCircle className="w-5 h-5" />
+                                        </div>
+                                        <div>
+                                            <h4 className="text-sm font-bold dark:text-white group-hover:text-blue-600 transition-colors">Incoterms Finder</h4>
+                                            <p className="text-[10px] text-slate-500">Trouvez le bon contrat en 3 clics</p>
+                                        </div>
+                                    </div>
+                                </motion.div>
+
+                                <motion.div
+                                    whileHover={{ x: 5 }}
+                                    className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-700 cursor-pointer group"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg text-emerald-600">
+                                            <FileCheck className="w-5 h-5" />
+                                        </div>
+                                        <div>
+                                            <h4 className="text-sm font-bold dark:text-white group-hover:text-emerald-600 transition-colors">Check-list Douane</h4>
+                                            <p className="text-[10px] text-slate-500">Préparez vos documents sans oubli</p>
+                                        </div>
+                                    </div>
+                                </motion.div>
+
+                                <motion.div
+                                    whileHover={{ x: 5 }}
+                                    className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-700 cursor-pointer group"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg text-orange-600">
+                                            <HardHat className="w-5 h-5" />
+                                        </div>
+                                        <div>
+                                            <h4 className="text-sm font-bold dark:text-white group-hover:text-orange-600 transition-colors">Normes Emballage</h4>
+                                            <p className="text-[10px] text-slate-500">Guide des standards internationaux</p>
+                                        </div>
+                                    </div>
+                                </motion.div>
                             </div>
                         </div>
                     </div>

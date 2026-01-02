@@ -73,7 +73,7 @@ export const podService = {
     return (data || []).map(mapDbPODToApp);
   },
 
-  verifyPOD: async (
+  reviewPOD: async (
     id: string,
     status: "verified" | "rejected",
     notes?: string,

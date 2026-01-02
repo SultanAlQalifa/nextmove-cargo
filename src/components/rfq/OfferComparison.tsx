@@ -104,7 +104,7 @@ export default function OfferComparison({
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       <h4 className="font-bold text-gray-900 truncate text-sm">
-                        {offer.forwarder?.company_name || offer.forwarder?.full_name || "Transitaire"}
+                        {offer.forwarder?.company_name || offer.forwarder?.full_name || "Prestataire"}
                       </h4>
                       {offer.forwarder?.kyc_status === 'verified' && (
                         <div className="text-blue-500 cursor-help" title="Identité Vérifiée">

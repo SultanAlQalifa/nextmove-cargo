@@ -89,9 +89,11 @@ export default function UserManagement() {
         friendly_id: p.friendly_id,
         name: p.full_name || p.email.split("@")[0],
         email: p.email,
-        role: p.role
-          ? p.role.charAt(0).toUpperCase() + p.role.slice(1)
-          : "Client",
+        role: p.role === "forwarder"
+          ? "Prestataire"
+          : p.role
+            ? p.role.charAt(0).toUpperCase() + p.role.slice(1)
+            : "Client",
         status:
           p.account_status === "active"
             ? "Actif"
@@ -156,7 +158,7 @@ export default function UserManagement() {
         const { profileService } =
           await import("../../../services/profileService");
         await profileService.upgradeToForwarder(user.id);
-        success("Utilisateur promu transitaire avec succès !");
+        success("Utilisateur promu prestataire avec succès !");
       } else if (confirmation.type === "delete") {
         const { supabase } = await import("../../../lib/supabase");
         const { error } = await supabase
@@ -314,7 +316,7 @@ export default function UserManagement() {
     <div className="space-y-6">
       <PageHeader
         title="Gestion des Utilisateurs"
-        subtitle="Gérez les comptes clients, transitaires et administrateurs"
+        subtitle="Gérez les comptes clients, prestataires et administrateurs"
         action={{
           label: "Ajouter un utilisateur",
           onClick: () => setIsCreateModalOpen(true),
@@ -556,7 +558,7 @@ export default function UserManagement() {
                     className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                                         ${user.role === "Admin"
                         ? "bg-purple-100 text-purple-800"
-                        : user.role === "Transitaire"
+                        : user.role === "Prestataire"
                           ? "bg-orange-100 text-orange-800"
                           : "bg-blue-100 text-blue-800"
                       }`}
@@ -614,7 +616,7 @@ export default function UserManagement() {
                               const r = roleName.toLowerCase();
                               if (r === 'super admin' || r === 'super-admin') return 1;
                               if (r === 'admin' || r === 'support' || r === 'support manager') return 2;
-                              if (r === 'transitaire' || r === 'forwarder') return 3;
+                              if (r === 'prestataire' || r === 'forwarder') return 3;
                               return 4; // Client
                             };
 
@@ -641,8 +643,8 @@ export default function UserManagement() {
                                         isOpen: true,
                                         type: "upgrade",
                                         user: user,
-                                        title: "Promouvoir en Transitaire",
-                                        message: `Voulez-vous vraiment donner le rôle de Transitaire à ${user.name} ? Cette action lui donnera accès au tableau de bord transitaire.`,
+                                        title: "Promouvoir en Prestataire",
+                                        message: `Voulez-vous vraiment donner le rôle de Prestataire à ${user.name} ? Cette action lui donnera accès au tableau de bord prestataire.`,
                                         variant: "warning",
                                       });
                                       setActiveMenu(null);
@@ -650,7 +652,7 @@ export default function UserManagement() {
                                     className="w-full text-left px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 flex items-center gap-2"
                                   >
                                     <Shield className="w-4 h-4" /> Promouvoir
-                                    Transitaire
+                                    Prestataire
                                   </button>
                                 )}
                                 <button

@@ -57,7 +57,7 @@ function TermsModal({ isOpen, onClose, onAccept }: TermsModalProps) {
                 <FileText className="w-6 h-6" />
               </div>
               <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
-                Devenir Partenaire Transitaire
+                Devenir Partenaire Prestataire
               </h2>
             </div>
             <button
@@ -309,7 +309,7 @@ export default function BecomeForwarder() {
           </h1>
 
           <p className="text-xl text-slate-300 mb-12 max-w-2xl mx-auto font-light leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
-            Rejoignez notre réseau de transitaires certifiés. Accédez à des
+            Rejoignez notre réseau de prestataires certifiés. Accédez à des
             milliers de demandes de cotation, gérez vos expéditions et
             simplifiez votre facturation.
           </p>
@@ -340,7 +340,7 @@ export default function BecomeForwarder() {
                 500+
               </div>
               <div className="text-sm font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">
-                Transitaires Actifs
+                Prestataires Actifs
               </div>
             </div>
             <div className="space-y-2">

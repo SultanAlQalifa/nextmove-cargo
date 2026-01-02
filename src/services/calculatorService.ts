@@ -245,7 +245,7 @@ export const calculatorService = {
   },
 
   // ─────────────────────────────────────────────────────────────
-  // MODE 2: COMPARE TRANSITAIRES
+  // MODE 2: COMPARE PRESTATAIRES
   // ─────────────────────────────────────────────────────────────
   async calculateComparativeQuotes(
     params: CalculationParams,
@@ -295,7 +295,7 @@ export const calculatorService = {
   },
 
   // ─────────────────────────────────────────────────────────────
-  // MODE 3: TRANSITAIRE SPÉCIFIQUE
+  // MODE 3: PRESTATAIRE SPÉCIFIQUE
   // ─────────────────────────────────────────────────────────────
   async calculateSpecificQuote(
     params: CalculationParams,

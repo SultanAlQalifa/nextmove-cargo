@@ -13,14 +13,19 @@ const SYSTEM_PROMPT = `
 Tu es l'Expert Logistique Senior de NextMove Cargo, la plateforme de référence pour le transport de marchandises (fret maritime, aérien, routier).
 Ton rôle est d'agir comme un consultant d'élite : précis, stratégique et extrêmement serviable.
 
+Expertise OCR & Smart Scan :
+- Tu es capable d'analyser des Packing Lists et des Factures via les images transmises.
+- Si l'utilisateur envoie un document, cherche : Poids (kg/lb), Volume (CBM/m3), Type de marchandise, Nombre de colis.
+- Formate tes réponses d'extraction de façon structurée (Tableau Markdown ou Liste).
+
 Identité et Tonalité :
 - **Langue** : Tu parles STRICTEMENT en Français par défaut.
 - **Ton** : Professionnel, Autoritaire mais Bienveillant, "Corporate Premium".
 - **Expertise** : Tu maîtrises les Incoterms, le dédouanement, le groupage et la supply chain.
 
 Directives Stratégiques :
-1.  **Réponses Percutantes** : Sois clair, concis et va droit au but. Pas de blabla inutile.
-2.  **Conversion** : Ton objectif est d'inciter l'utilisateur à demander une cotation ou à s'inscrire.
+1.  **Réponses Percutantes** : Sois clair, concis et va droit au but.
+2.  **Conversion** : Si tu extrais des données d'un document, propose TOUJOURS : "Je peux pré-remplir votre demande de cotation (RFQ) avec ces données. Souhaitez-vous continuer ?"
 3.  **Support Intelligent** :
     - Pour les tarifs 💰 : "Je peux vous donner une estimation, mais le mieux est d'utiliser notre simulateur précis sur votre tableau de bord."
     - Pour le suivi 📍 : "Avez-vous votre numéro de tracking ? Vous pouvez le saisir dans la section 'Mes Expéditions'."
@@ -78,11 +83,19 @@ export const aiService = {
 
 
         // --- 2. LEAD DETECTION (Business Intel) ---
-        const LEAD_KEYWORDS = ['devis', 'prix', 'tarif', 'cotation', 'conteneur', 'expédier', 'shipping', 'coût'];
+        const LEAD_KEYWORDS = ['devis', 'prix', 'tarif', 'cotation', 'conteneur', 'expédier', 'shipping', 'coût', 'vendre', 'achat'];
         if (LEAD_KEYWORDS.some(kw => content.toLowerCase().includes(kw))) {
             console.info("📢 [LEAD DETECTED] User is asking about pricing/shipping:", content);
-            // In a real scenario, we would trigger a DB function here:
-            // await supabase.rpc('create_sales_lead', { query: content });
+
+            // Async call to Supabase - we don't block the AI response
+            import("../lib/supabase").then(({ supabase }) => {
+                supabase.rpc('create_sales_lead', {
+                    p_query: content,
+                    p_metadata: { source: 'ai_chat', timestamp: new Date().toISOString() }
+                }).then(({ error }) => {
+                    if (error) console.warn("Failed to capture lead:", error);
+                });
+            });
         }
 
         try {

@@ -312,7 +312,7 @@ export default function AdminEmails() {
     const labels: Record<string, string> = {
       all: "Tous les utilisateurs",
       clients: "Clients seulement",
-      forwarders: "Transitaires seulement",
+      forwarders: "Prestataires seulement",
       specific: "Spécifique",
     };
     return labels[group] || group;
@@ -391,7 +391,7 @@ export default function AdminEmails() {
                   >
                     <option value="all">Tous les utilisateurs</option>
                     <option value="clients">Clients uniquement</option>
-                    <option value="forwarders">Transitaires uniquement</option>
+                    <option value="forwarders">Prestataires uniquement</option>
                   </select>
                 </div>
               </div>

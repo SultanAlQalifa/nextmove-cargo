@@ -224,7 +224,7 @@ export const paymentService = {
     };
   },
 
-  initializeWavePayment: async (amount: number, currency: string): Promise<WaveCheckoutResponse> => {
+  initializeWavePayment: async (amount: number, currency: string, returnUrls?: { success: string; error: string }): Promise<WaveCheckoutResponse> => {
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -268,10 +268,8 @@ export const paymentService = {
             amount,
             currency,
             client_reference,
-            error_url:
-              "https://nextmovecargo.com/dashboard/client/payments?status=error",
-            success_url:
-              "https://nextmovecargo.com/dashboard/client/payments?status=success",
+            error_url: returnUrls?.error || `${window.location.origin}/dashboard/client/payments?status=error`,
+            success_url: returnUrls?.success || `${window.location.origin}/dashboard/client/payments?status=success`,
           },
         }),
       );
@@ -323,7 +321,7 @@ export const paymentService = {
     throw new Error("Payment timeout. Please check your Wave app.");
   },
 
-  initializePayTechPayment: async (amount: number, currency: string, metadata: any = {}): Promise<PaymentCheckoutResponse> => {
+  initializePayTechPayment: async (amount: number, currency: string, metadata: any = {}, returnUrls?: { success: string; cancel: string }): Promise<PaymentCheckoutResponse> => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error("User not authenticated");
 
@@ -338,8 +336,8 @@ export const paymentService = {
             ref_command: client_reference,
             item_name: metadata.item_name || "Commande NextMove",
             custom_field: JSON.stringify({ user_id: user.id, ...metadata }),
-            success_url: `${window.location.origin}/dashboard/client/payments?status=success`,
-            cancel_url: `${window.location.origin}/dashboard/client/payments?status=cancel`,
+            success_url: returnUrls?.success || `${window.location.origin}/dashboard/client/payments?status=success`,
+            cancel_url: returnUrls?.cancel || `${window.location.origin}/dashboard/client/payments?status=cancel`,
           },
         }),
       );
@@ -356,7 +354,7 @@ export const paymentService = {
     }
   },
 
-  initializeCinetPayPayment: async (amount: number, currency: string, metadata: any = {}): Promise<PaymentCheckoutResponse> => {
+  initializeCinetPayPayment: async (amount: number, currency: string, metadata: any = {}, returnUrls?: { success: string }): Promise<PaymentCheckoutResponse> => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error("User not authenticated");
 
@@ -378,7 +376,7 @@ export const paymentService = {
             customer_city: "Dakar",
             customer_country: "SN",
             notify_url: `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cinetpay-webhook`,
-            return_url: `${window.location.origin}/dashboard/client/payments?status=success`,
+            return_url: returnUrls?.success || `${window.location.origin}/dashboard/client/payments?status=success`,
             metadata: JSON.stringify(metadata),
           },
         }),

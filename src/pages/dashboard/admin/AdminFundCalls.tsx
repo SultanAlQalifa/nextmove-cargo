@@ -337,7 +337,7 @@ export default function AdminFundCalls() {
     <div className="space-y-6">
       <PageHeader
         title="Appels de Fonds"
-        subtitle="Gérez les demandes de financement des transitaires"
+        subtitle="Gérez les demandes de financement des prestataires"
         action={{
           label: "Exporter",
           onClick: handleExport,

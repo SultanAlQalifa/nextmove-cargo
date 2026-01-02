@@ -163,7 +163,7 @@ export default function AdminPayments() {
     if (
       !window.confirm(
         `Voulez-vous libérer les fonds (${trx.amount} ${trx.currency || "XOF"
-        }) pour le transitaire ?`,
+        }) pour le prestataire ?`,
       )
     )
       return;

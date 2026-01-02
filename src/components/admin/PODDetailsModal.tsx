@@ -80,6 +80,7 @@ export default function PODDetailsModal({
             </div>
             <button
               onClick={onClose}
+              title="Fermer"
               className="p-2 hover:bg-gray-100 rounded-full transition-colors"
             >
               <X className="w-5 h-5 text-gray-500" />
@@ -103,7 +104,7 @@ export default function PODDetailsModal({
               {/* Forwarder Info */}
               <div>
                 <h3 className="text-sm font-medium text-gray-900 mb-3 flex items-center gap-2">
-                  <Truck className="w-4 h-4 text-gray-400" /> Transitaire
+                  <Truck className="w-4 h-4 text-gray-400" /> Prestataire
                 </h3>
                 <div className="bg-white border border-gray-100 rounded-xl p-4">
                   <p className="font-medium text-gray-900">
@@ -159,6 +160,7 @@ export default function PODDetailsModal({
                         <a
                           href={doc.url}
                           download
+                          title={`Télécharger ${doc.name}`}
                           className="p-2 text-gray-400 hover:text-primary hover:bg-white rounded-lg transition-colors"
                         >
                           <Download className="w-4 h-4" />

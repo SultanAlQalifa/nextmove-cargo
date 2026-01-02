@@ -136,7 +136,7 @@ export default function RFQDetail() {
       type: "cancel",
       title: "Annuler la demande ?",
       message:
-        "Êtes-vous sûr de vouloir annuler cette demande de cotation ? Les transitaires ne pourront plus vous faire d'offres.",
+        "Êtes-vous sûr de vouloir annuler cette demande de cotation ? Les prestataires ne pourront plus vous faire d'offres.",
       confirmLabel: "Oui, annuler",
       confirmClass: "bg-red-600 hover:bg-red-700 focus:ring-red-500",
       icon: AlertCircle,
@@ -637,7 +637,7 @@ export default function RFQDetail() {
                 En attente d'offres
               </h3>
               <p className="text-gray-500 mt-2 text-sm">
-                Les transitaires sont en train d'analyser votre demande. Vous
+                Les prestataires sont en train d'analyser votre demande. Vous
                 recevrez une notification dès qu'une offre sera disponible.
               </p>
             </div>
@@ -697,7 +697,7 @@ export default function RFQDetail() {
                             <p className="text-sm font-bold text-gray-900">
                               {offer.forwarder?.company_name ||
                                 offer.forwarder?.full_name ||
-                                "Transitaire"}
+                                "Prestataire"}
                             </p>
                             <div className="flex items-center gap-2 mt-1">
                               {offer.forwarder?.kyc_status && (
@@ -789,7 +789,7 @@ export default function RFQDetail() {
                         {offer.message_to_client && (
                           <div className="mt-4 p-3 bg-blue-50 rounded-lg text-sm text-blue-800">
                             <p className="font-medium text-xs uppercase tracking-wide mb-1 opacity-70">
-                              Message du transitaire
+                              Message du prestataire
                             </p>
                             "{offer.message_to_client}"
                           </div>

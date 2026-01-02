@@ -243,7 +243,7 @@ export default function AdminFees() {
                     <span
                       className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${fee.target === "client" ? "bg-green-100 text-green-700" : "bg-indigo-100 text-indigo-700"}`}
                     >
-                      {fee.target === "client" ? "Client" : "Transitaire"}
+                      {fee.target === "client" ? "Client" : "Prestataire"}
                     </span>
                   </div>
                   <p className="text-sm text-gray-500 h-10 line-clamp-2">
@@ -367,7 +367,7 @@ export default function AdminFees() {
                       }
                       className={`flex-1 py-1.5 text-sm font-medium rounded-lg transition-all ${formData.target === "forwarder" ? "bg-white shadow-sm text-gray-900" : "text-gray-500 hover:text-gray-700"}`}
                     >
-                      Transitaire
+                      Prestataire
                     </button>
                   </div>
                 </div>

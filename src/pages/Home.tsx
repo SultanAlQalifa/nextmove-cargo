@@ -828,7 +828,7 @@ export default function Home() {
                 Emportez le <span className="text-primary">Cargo</span> dans votre poche
               </h2>
               <p className="text-xl text-gray-600 dark:text-gray-400 leading-relaxed font-light">
-                Gérez vos expéditions, suivez vos colis en temps réel et communiquez avec vos transitaires directement depuis votre smartphone. Une expérience fluide et rapide.
+                Gérez vos expéditions, suivez vos colis en temps réel et communiquez avec vos prestataires directement depuis votre smartphone. Une expérience fluide et rapide.
               </p>
 
               <div className="grid sm:grid-cols-2 gap-6">

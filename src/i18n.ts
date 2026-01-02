@@ -25,7 +25,7 @@ const resources = {
       // Stats
       "stats.shipments": "Shipments Delivered",
       "stats.value": "Goods Value Protected",
-      "stats.forwarders": "Verified Forwarders",
+      "stats.forwarders": "Verified Prestataires",
       "stats.success": "Success Rate",
 
       // Features
@@ -161,6 +161,7 @@ const resources = {
       "dashboard.menu.availableRfq": "Available RFQs",
       "dashboard.menu.myOffers": "My Offers",
       "dashboard.menu.shipments": "Shipments",
+      "dashboard.menu.pos": "Terminal POS",
       "dashboard.menu.pod": "POD",
       "dashboard.menu.management": "Management",
       "dashboard.menu.personnel": "Personnel",
@@ -170,7 +171,7 @@ const resources = {
       "dashboard.menu.rfqAndOffers": "RFQ & Offers",
       "dashboard.menu.administration": "Administration",
       "dashboard.menu.users": "Users",
-      "dashboard.menu.forwarders": "Forwarders",
+      "dashboard.menu.forwarders": "Prestataires",
       "dashboard.menu.personnelAndRoles": "Personnel & Roles",
       "dashboard.menu.subscriptions": "Subscriptions",
       "dashboard.menu.feesAndServices": "Fees & Services",
@@ -184,6 +185,7 @@ const resources = {
       "dashboard.menu.testimonials": "Testimonials",
       "dashboard.menu.faq": "FAQ & Support",
       "dashboard.menu.deliveries": "Deliveries",
+      "dashboard.menu.leads": "Leads Prospect",
       "dashboard.menu.podHistory": "POD History",
       "dashboard.menu.myPayments": "My Payments",
       "dashboard.menu.documents": "Documents",
@@ -284,7 +286,7 @@ const resources = {
       "auth.hasAccount": "Already have an account?",
       "auth.roleSelection": "Select your role",
       "auth.roles.client": "Client",
-      "auth.roles.forwarder": "Freight Forwarder",
+      "auth.roles.forwarder": "Prestataire",
       "auth.roles.supplier": "Supplier",
       "auth.roles.driver": "Driver",
       "auth.signingIn": "Signing in...",
@@ -456,7 +458,7 @@ const resources = {
       // Stats
       "stats.shipments": "Expéditions Livrées",
       "stats.value": "Valeur Protégée",
-      "stats.forwarders": "Transitaires Vérifiés",
+      "stats.forwarders": "Prestataires Vérifiés",
       "stats.success": "Taux de Réussite",
 
       // Features
@@ -469,7 +471,7 @@ const resources = {
         "Ne vous inquiétez plus jamais de la fraude. Vos fonds sont conservés en toute sécurité et libérés uniquement lorsque vous confirmez la livraison.",
       "features.multimodal.title": "Solutions Multimodales",
       "features.multimodal.desc":
-        "Que vous ayez besoin de rapidité (Fret Aérien) ou d'économie (Fret Maritime), nous comparons instantanément les tarifs des meilleurs transitaires.",
+        "Que vous ayez besoin de rapidité (Fret Aérien) ou d'économie (Fret Maritime), nous comparons instantanément les tarifs des meilleurs prestataires.",
       "features.tracking.title": "Suivi de Bout en Bout",
       "features.tracking.desc":
         "Visibilité en temps réel de l'entrepôt du fournisseur en Chine jusqu'à votre porte en Afrique. Sachez exactement où se trouve votre cargaison 24h/24 et 7j/7.",
@@ -529,7 +531,7 @@ const resources = {
       "calculator.subtitle":
         "Obtenez les meilleurs tarifs pour votre expédition instantanément.",
       "calculator.pageSubtitle":
-        "Comparez les tarifs des transitaires vérifiés et réservez votre expédition en quelques minutes.",
+        "Comparez les tarifs des prestataires vérifiés et réservez votre expédition en quelques minutes.",
       "calculator.origin": "Origine",
       "calculator.destination": "Destination",
       "calculator.transportMode": "Mode de Transport",
@@ -594,6 +596,7 @@ const resources = {
       "dashboard.menu.availableRfq": "RFQ Disponibles",
       "dashboard.menu.myOffers": "Mes Offres",
       "dashboard.menu.shipments": "Expéditions",
+      "dashboard.menu.pos": "Terminal POS",
       "dashboard.menu.pod": "POD",
       "dashboard.menu.management": "Gestion",
       "dashboard.menu.personnel": "Personnel",
@@ -603,7 +606,7 @@ const resources = {
       "dashboard.menu.rfqAndOffers": "RFQ & Offres",
       "dashboard.menu.administration": "Administration",
       "dashboard.menu.users": "Utilisateurs",
-      "dashboard.menu.forwarders": "Transitaires",
+      "dashboard.menu.forwarders": "Prestataires",
       "dashboard.menu.personnelAndRoles": "Personnel & Rôles",
       "dashboard.menu.subscriptions": "Abonnements",
       "dashboard.menu.feesAndServices": "Frais & Services",
@@ -617,11 +620,12 @@ const resources = {
       "dashboard.menu.testimonials": "Témoignages Clients",
       "dashboard.menu.faq": "FAQ & Support",
       "dashboard.menu.deliveries": "Livraisons",
+      "dashboard.menu.leads": "Leads Prospect",
       "dashboard.menu.podHistory": "Historique POD",
       "dashboard.menu.myPayments": "Mes Paiements",
       "dashboard.menu.documents": "Documents",
       "dashboard.menu.becomePartner": "Devenir Partenaire",
-      "dashboard.upgrade.title": "Devenez Transitaire Partenaire",
+      "dashboard.upgrade.title": "Devenez Prestataire Partenaire",
       "dashboard.upgrade.description":
         "Développez votre activité en accédant aux demandes de cotation et en gérant vos propres expéditions.",
       "dashboard.upgrade.button": "Passer Pro maintenant",
@@ -677,14 +681,14 @@ const resources = {
       "calculator.calculationMode": "Mode de Calcul",
       "calculator.platformRates": "Tarifs de la Plateforme",
       "calculator.platformRatesDesc": "Tarifs standards garantis par NextMove",
-      "calculator.compareForwarders": "Comparer Transitaires",
+      "calculator.compareForwarders": "Comparer Prestataires",
       "calculator.compareForwardersDesc":
         "Comparer les offres de tous les partenaires",
-      "calculator.specificForwarder": "Transitaire Spécifique",
+      "calculator.specificForwarder": "Prestataire Spécifique",
       "calculator.specificForwarderDesc": "Choisir un partenaire spécifique",
-      "calculator.selectForwarder": "Sélectionner un transitaire",
+      "calculator.selectForwarder": "Sélectionner un prestataire",
       "calculator.noRatesForwarder":
-        "Aucun tarif disponible pour ce transitaire avec ces critères.",
+        "Aucun tarif disponible pour ce prestataire avec ces critères.",
       "calculator.sort.price": "Prix",
       "calculator.sort.speed": "Rapidité",
       "calculator.sort.rating": "Note",
@@ -719,7 +723,7 @@ const resources = {
       "auth.hasAccount": "Déjà un compte ?",
       "auth.roleSelection": "Sélectionnez votre rôle",
       "auth.roles.client": "Client",
-      "auth.roles.forwarder": "Transitaire",
+      "auth.roles.forwarder": "Prestataire",
       "auth.roles.supplier": "Fournisseur",
       "auth.roles.driver": "Chauffeur",
       "auth.signingIn": "Connexion...",
@@ -755,7 +759,7 @@ const resources = {
       "rfq.form.servicesNeeded": "Services Nécessaires",
       "rfq.form.specialRequirements": "Exigences Spéciales",
       "rfq.form.targetForwarder":
-        "Cibler un Transitaire Spécifique (Optionnel)",
+        "Cibler un Prestataire Spécifique (Optionnel)",
 
       // RFQ Status
       "rfq.status.draft": "Brouillon",

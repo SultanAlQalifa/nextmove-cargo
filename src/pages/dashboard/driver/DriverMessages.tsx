@@ -15,7 +15,7 @@ export default function DriverMessages() {
     },
     {
       id: 2,
-      name: "Transitaire Alpha",
+      name: "Prestataire Alpha",
       lastMessage: "Nouvelle mission disponible.",
       time: "Hier",
       unread: 0,
@@ -96,11 +96,10 @@ export default function DriverMessages() {
                   className={`flex ${msg.sender === "me" ? "justify-end" : "justify-start"}`}
                 >
                   <div
-                    className={`max-w-[70%] rounded-2xl px-4 py-2 shadow-sm ${
-                      msg.sender === "me"
-                        ? "bg-primary text-white rounded-br-none"
-                        : "bg-white text-gray-800 rounded-bl-none"
-                    }`}
+                    className={`max-w-[70%] rounded-2xl px-4 py-2 shadow-sm ${msg.sender === "me"
+                      ? "bg-primary text-white rounded-br-none"
+                      : "bg-white text-gray-800 rounded-bl-none"
+                      }`}
                   >
                     <p className="text-sm">{msg.text}</p>
                     <p
@@ -130,6 +129,7 @@ export default function DriverMessages() {
                 />
                 <button
                   type="submit"
+                  title="Envoyer le message"
                   className="bg-primary text-white p-2 rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   <Send className="w-5 h-5" />

@@ -29,6 +29,7 @@ interface PaymentModalProps {
   shipmentId?: string;
   showCoupons?: boolean;
   showVAT?: boolean;
+  returnUrl?: string;
 }
 
 type PaymentMethod = "wave" | "wallet" | "cash" | "paytech" | "cinetpay";
@@ -44,6 +45,7 @@ export default function PaymentModal({
   shipmentId,
   showCoupons = true,
   showVAT = true,
+  returnUrl,
 }: PaymentModalProps) {
   const { success: showSuccess } = useToast();
   const navigate = useNavigate();
@@ -179,11 +181,21 @@ export default function PaymentModal({
     try {
       if (selectedMethod === "wave") {
         // 1. Initialize Payment with Total Amount
+        const waveReturnUrls = returnUrl ? {
+          success: `${returnUrl}?status=success`,
+          error: `${returnUrl}?status=error`
+        } : undefined;
+
         const { transaction_id, wave_launch_url } =
-          await paymentService.initializeWavePayment(totalAmount, currency);
+          await paymentService.initializeWavePayment(totalAmount, currency, waveReturnUrls);
 
         // 2. Redirect user to Wave to pay
         if (wave_launch_url) {
+          // If we have a custom return URL (Support Campaign), we just redirect and rely on the page reload
+          if (returnUrl) {
+            window.location.href = wave_launch_url; // Use current tab to ensure we come back to the right place
+            return;
+          }
           window.open(wave_launch_url, "_blank");
         } else {
           throw new Error("Erreur: URL de paiement Wave manquante");
@@ -245,13 +257,18 @@ export default function PaymentModal({
         }
       } else if (selectedMethod === "cinetpay") {
         // CinetPay Flow
+        const cinetPayReturnUrls = returnUrl ? {
+          success: `${returnUrl}?status=success`
+        } : undefined;
+
         const { redirect_url } = await paymentService.initializeCinetPayPayment(
           totalAmount,
           currency,
           {
             plan_name: planName, // Metadata
             user_id: (await supabase.auth.getUser()).data.user?.id
-          }
+          },
+          cinetPayReturnUrls
         );
         if (redirect_url) {
           window.open(redirect_url, "_self"); // Redirect current tab as it's a hosted page
@@ -260,13 +277,19 @@ export default function PaymentModal({
         }
       } else if (selectedMethod === "paytech") {
         // PayTech Flow
+        const payTechReturnUrls = returnUrl ? {
+          success: `${returnUrl}?status=success`,
+          cancel: `${returnUrl}?status=cancel`
+        } : undefined;
+
         const { redirect_url } = await paymentService.initializePayTechPayment(
           totalAmount,
           currency,
           {
             item_name: `Abonnement ${planName}`,
             user_id: (await supabase.auth.getUser()).data.user?.id
-          }
+          },
+          payTechReturnUrls
         );
         if (redirect_url) {
           window.location.href = redirect_url;

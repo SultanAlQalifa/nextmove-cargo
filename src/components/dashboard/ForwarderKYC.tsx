@@ -35,7 +35,7 @@ export default function ForwarderKYC() {
     {
       id: "licence_transport",
       label: "Licence de Transport",
-      description: "Agrément ou licence de transitaire valide.",
+      description: "Agrément ou licence de prestataire valide.",
     },
     {
       id: "assurance_rc",
@@ -66,7 +66,7 @@ export default function ForwarderKYC() {
     setUploading(docType);
     try {
       // Upload to storage
-      const path = await storageService.uploadDocument(user.id, docType, file);
+      await storageService.uploadDocument(user.id, docType, file);
 
       // Update database record (mock service call for now, but passing the real path)
       await forwarderService.uploadDocument(user.id, file, docType);
@@ -188,11 +188,10 @@ export default function ForwarderKYC() {
                       <label
                         className={`
                                                 cursor-pointer px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2
-                                                ${
-                                                  uploading === doc.label
-                                                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                                                    : "bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 shadow-sm"
-                                                }
+                                                ${uploading === doc.label
+                            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                            : "bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 shadow-sm"
+                          }
                                             `}
                       >
                         {uploading === doc.label ? (

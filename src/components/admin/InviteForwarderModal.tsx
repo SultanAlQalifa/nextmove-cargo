@@ -40,10 +40,11 @@ export default function InviteForwarderModal({
       <div className="bg-white rounded-2xl w-full max-w-md shadow-xl animate-in zoom-in-95 duration-200 overflow-hidden">
         <div className="flex justify-between items-center p-6 border-b border-gray-100">
           <h2 className="text-xl font-bold text-gray-900">
-            Inviter un Transitaire
+            Inviter un Prestataire
           </h2>
           <button
             onClick={onClose}
+            title="Fermer"
             className="p-2 hover:bg-gray-100 rounded-full transition-colors"
           >
             <X className="w-5 h-5 text-gray-500" />
@@ -60,7 +61,7 @@ export default function InviteForwarderModal({
                 Invitation par email
               </h3>
               <p className="text-xs text-blue-700 mt-1">
-                Le transitaire recevra un email contenant un lien sécurisé pour
+                Le prestataire recevra un email contenant un lien sécurisé pour
                 créer son compte et soumettre ses documents.
               </p>
             </div>

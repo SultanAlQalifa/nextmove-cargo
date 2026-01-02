@@ -91,8 +91,14 @@ export const profileService = {
     }
 
     try {
+      const finalUpdates = { ...updates };
+      // If role is being changed to a non-admin role, clear staff_role_id to avoid trigger integrity errors
+      if (updates.role && ["client", "forwarder", "driver"].includes(updates.role)) {
+        (finalUpdates as any).staff_role_id = null;
+      }
+
       await fetchWithRetry(() =>
-        supabase.from("profiles").update(updates).eq("id", userId),
+        supabase.from("profiles").update(finalUpdates).eq("id", userId),
       );
 
       // Audit Log
@@ -232,6 +238,7 @@ export const profileService = {
             role: "forwarder",
             subscription_status: "inactive", // Force subscription
             kyc_status: "pending", // Force KYC
+            staff_role_id: null, // Clear staff role when becoming a simple forwarder
           })
           .eq("id", userId),
       );

@@ -183,7 +183,7 @@ export default function PaymentModal({
 
       if (isOffline) {
         success(
-          "Commande confirmée ! Veuillez procéder au paiement directement auprès de votre transitaire.",
+          "Commande confirmée ! Veuillez procéder au paiement directement auprès de votre prestataire.",
         );
       } else {
         success("Paiement réussi ! Les fonds sont maintenant sécurisés.");
@@ -455,7 +455,7 @@ export default function PaymentModal({
                   )}
                 </div>
                 <p className="text-xs text-gray-500 mt-0.5">
-                  Payer directement au transitaire
+                  Payer directement au prestataire
                 </p>
               </div>
             </div>
@@ -504,7 +504,7 @@ export default function PaymentModal({
                 Important
               </p>
               Le paiement offline est sous l'entière responsabilité du client et
-              de son transitaire, la plateforme n'est pas concernée.
+              de son prestataire, la plateforme n'est pas concernée.
             </div>
           )}
 

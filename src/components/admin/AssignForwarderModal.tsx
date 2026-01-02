@@ -96,7 +96,7 @@ export default function AssignForwarderModal({
                     <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                         <div className="flex justify-between items-start mb-5">
                             <h3 className="text-lg leading-6 font-medium text-gray-900">
-                                Assigner un Transitaire
+                                Assigner un Prestataire
                             </h3>
                             <button
                                 onClick={onClose}
@@ -108,7 +108,7 @@ export default function AssignForwarderModal({
                         </div>
 
                         <p className="text-sm text-gray-500 mb-4">
-                            Sélectionnez le transitaire à assigner pour :{" "}
+                            Sélectionnez le prestataire à assigner pour :{" "}
                             <span className="font-semibold text-gray-700">
                                 {consolidationTitle || "ce groupage"}
                             </span>
@@ -125,7 +125,7 @@ export default function AssignForwarderModal({
                             </button>
                             <input
                                 type="text"
-                                placeholder="Rechercher un transitaire..."
+                                placeholder="Rechercher un prestataire..."
                                 className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -140,7 +140,7 @@ export default function AssignForwarderModal({
                                 </div>
                             ) : filteredForwarders.length === 0 ? (
                                 <div className="p-4 text-center text-sm text-gray-500">
-                                    Aucun transitaire trouvé.
+                                    Aucun prestataire trouvé.
                                 </div>
                             ) : (
                                 <ul className="divide-y divide-gray-200">

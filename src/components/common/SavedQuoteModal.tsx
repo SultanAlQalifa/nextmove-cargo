@@ -92,7 +92,7 @@ export default function SavedQuoteModal({
                                 </h4>
                                 <div className="space-y-1 text-sm text-gray-600 dark:text-gray-300">
                                     <div className="flex justify-between">
-                                        <span>Transitaire:</span>
+                                        <span>Prestataire:</span>
                                         <span className="font-medium">{quoteDetails?.forwarder_name}</span>
                                     </div>
                                     <div className="flex justify-between">

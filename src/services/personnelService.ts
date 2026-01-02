@@ -149,7 +149,7 @@ export const ROLE_FAMILIES: Record<
     ],
   },
   forwarder: {
-    label: "Transitaire",
+    label: "Prestataire",
     permissions: [
       "shipments.view",
       "shipments.create",

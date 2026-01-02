@@ -419,7 +419,7 @@ export default function Calculator() {
 
               {calculationMode === 'specific' && (
                 <div className="mt-6">
-                  <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Sélectionnez le transitaire</label>
+                  <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Sélectionnez le prestataire</label>
                   <select
                     aria-label={t("calculator.selectForwarder")}
                     value={selectedForwarder}
@@ -436,7 +436,7 @@ export default function Calculator() {
                 <button
                   onClick={() => {
                     if (calculationMode === 'specific' && !selectedForwarder) {
-                      setError("Veuillez sélectionner un transitaire");
+                      setError("Veuillez sélectionner un prestataire");
                       return;
                     }
                     changeStep(2);
@@ -1012,7 +1012,7 @@ export default function Calculator() {
                               </h5>
                               <p className="text-sm text-red-700/80 dark:text-red-300/80 leading-relaxed font-medium">
                                 En déclinant l'assurance, vous assumez l'entière responsabilité en cas de perte ou d'avarie.
-                                Le règlement de tout litige devra être géré directement avec le transitaire.
+                                Le règlement de tout litige devra être géré directement avec le prestataire.
                                 <strong> NextMove Cargo n'interviendra pas dans le remboursement.</strong>
                               </p>
                             </div>
@@ -1392,7 +1392,7 @@ export default function Calculator() {
                                               ? 'bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-900/30 dark:border-blue-800'
                                               : 'bg-green-50 text-green-600 border-green-200 dark:bg-green-900/30 dark:border-green-800'
                                               }`}>
-                                              {fee.recipient === 'platform' ? 'Plateforme' : 'Transitaire'}
+                                              {fee.recipient === 'platform' ? 'Plateforme' : 'Prestataire'}
                                             </span>
                                           </span>
                                         </div>
@@ -1442,7 +1442,7 @@ export default function Calculator() {
                               <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-5">
                                 <button
                                   onClick={() => {
-                                    const text = `Devis NextMove Cargo\nTransitaire: ${quote.forwarder_name}\nTotal: ${formatPrice(quote.total_cost)}\nDurée: ${quote.transit_time}`;
+                                    const text = `Devis NextMove Cargo\nPrestataire: ${quote.forwarder_name}\nTotal: ${formatPrice(quote.total_cost)}\nDurée: ${quote.transit_time}`;
                                     navigator.clipboard.writeText(text);
                                   }}
                                   className="px-4 py-3 border border-slate-200 dark:border-gray-700 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-gray-800 transition-colors"
@@ -1507,7 +1507,7 @@ export default function Calculator() {
                                 </div>
                                 <div className="flex items-center gap-1">
                                   <CheckCircle size={12} />
-                                  <span>Transitaire Vérifié</span>
+                                  <span>Prestataire Vérifié</span>
                                 </div>
                                 <div className="flex items-center gap-1">
                                   <Lock size={12} />

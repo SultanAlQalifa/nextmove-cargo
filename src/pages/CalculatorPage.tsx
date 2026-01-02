@@ -31,7 +31,7 @@ export default function CalculatorPage() {
     {
       icon: Globe,
       title: "Réseau Global",
-      desc: "Accès aux meilleurs transitaires vérifiés pour la Chine, la Turquie et l'Europe.",
+      desc: "Accès aux meilleurs prestataires vérifiés pour la Chine, la Turquie et l'Europe.",
       color: "indigo",
     },
   ];
@@ -139,7 +139,7 @@ export default function CalculatorPage() {
             <div className="flex flex-wrap justify-center gap-12 opacity-70 grayscale hover:grayscale-0 transition-all duration-500">
               <div className="flex items-center gap-3 text-slate-400 hover:text-blue-600 transition-colors font-bold text-xl group cursor-default">
                 <Award className="w-8 h-8 group-hover:scale-110 transition-transform" />
-                <span>Top Transitaire 2024</span>
+                <span>Top Prestataire 2024</span>
               </div>
               <div className="flex items-center gap-3 text-slate-400 hover:text-green-600 transition-colors font-bold text-xl group cursor-default">
                 <ShieldCheck className="w-8 h-8 group-hover:scale-110 transition-transform" />

@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { X, User, Mail, Shield } from "lucide-react";
 import { personnelService, Role } from "../../services/personnelService";
 import { useToast } from "../../contexts/ToastContext";
-import { useAuth } from "../../contexts/AuthContext";
 
 interface CreateUserModalProps {
   user?: {
@@ -21,7 +20,6 @@ export default function CreateUserModal({
   onSuccess,
 }: CreateUserModalProps) {
   const { success, error: toastError } = useToast();
-  const { profile } = useAuth();
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -176,7 +174,7 @@ export default function CreateUserModal({
                 className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary appearance-none bg-white"
               >
                 <option value="client">Client</option>
-                <option value="forwarder">Transitaire</option>
+                <option value="forwarder">Prestataire</option>
                 <optgroup label="Personnel Interne">
                   {roles.map((role) => (
                     <option key={role.id} value={role.id}>

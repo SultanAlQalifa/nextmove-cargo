@@ -46,6 +46,7 @@ export default function PODRejectionModal({
           </h3>
           <button
             onClick={onClose}
+            title="Fermer"
             className="text-gray-400 hover:text-gray-500 transition-colors"
           >
             <X className="w-5 h-5" />
@@ -58,7 +59,7 @@ export default function PODRejectionModal({
             <div className="text-sm text-red-800">
               <p className="font-medium">Attention</p>
               <p className="mt-1">
-                Cette action est irréversible. Le transitaire sera notifié du
+                Cette action est irréversible. Le prestataire sera notifié du
                 rejet et de la raison.
               </p>
             </div>

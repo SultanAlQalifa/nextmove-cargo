@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import SEOHead from "./seo/SEOHead";
 import NewsTicker from "./common/NewsTicker";
-import ChatWidget from "./common/ChatWidget";
+import AIChatBubble from "./common/AIChatBubble";
 import WhatsAppButton from "./common/WhatsAppButton";
 
 export default function Layout() {
@@ -128,7 +128,7 @@ export default function Layout() {
                   to="/become-forwarder"
                   className={getLinkClass("/become-forwarder").replace("hidden sm:flex", "hidden md:flex")}
                 >
-                  Devenir Transitaire
+                  Devenir Prestataire
                 </Link>
               )}
 
@@ -296,7 +296,7 @@ export default function Layout() {
                       <div className={`p-2 rounded-lg shadow-sm ${location.pathname === "/become-forwarder" ? "bg-white text-orange-600" : "bg-white text-primary"}`}>
                         <User className="w-5 h-5" />
                       </div>
-                      <span className="text-lg">Devenir Transitaire</span>
+                      <span className="text-lg">Devenir Prestataire</span>
                     </Link>
                     <Link
                       to="/tracking"
@@ -431,7 +431,7 @@ export default function Layout() {
           </div>
           <div className="border-t border-gray-800 pt-8 text-center text-gray-400">
             <p>
-              &copy; 2025 {settings?.platform_name || "NextMove Cargo"}.{" "}
+              &copy; 2026 {settings?.platform_name || "NextMove Cargo"}.{" "}
               {settings?.footer?.rights || "All rights reserved."}
             </p>
             <div className="mt-4 flex justify-center">
@@ -473,7 +473,7 @@ export default function Layout() {
       />
 
       <NewsTicker />
-      <ChatWidget />
+      <AIChatBubble />
       <WhatsAppButton /> {/* NEW */}
     </div>
   );

@@ -112,7 +112,7 @@ export default function AdminGroupage() {
     if (!assignModal.consolidation) return;
     try {
       await consolidationService.adminAssignForwarder(assignModal.consolidation.id, forwarderId);
-      success("Transitaire assigné avec succès !");
+      success("Prestataire assigné avec succès !");
       fetchConsolidations(); // Refresh list
     } catch (err) {
       console.error(err);

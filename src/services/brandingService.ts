@@ -182,7 +182,7 @@ export const DEFAULT_BRANDING: BrandingSettings = {
   stats: {
     shipments: "Expéditions",
     value: "Valeur Marchandise",
-    forwarders: "Transitaires",
+    forwarders: "Prestataires",
     success: "Taux de Succès",
   },
   features: {
@@ -235,7 +235,7 @@ export const DEFAULT_BRANDING: BrandingSettings = {
     tagline: "La solution logistique de nouvelle génération pour l'Afrique.",
     platform: "Plateforme",
     company: "Entreprise",
-    rights: "© 2025 NextMove Cargo. Tous droits réservés.",
+    rights: "© 2026 NextMove Cargo. Tous droits réservés.",
   },
   pages: {
     about: {
@@ -261,7 +261,7 @@ export const DEFAULT_BRANDING: BrandingSettings = {
     },
     privacy: {
       title: "Politique de Confidentialité",
-      last_updated: "Dernière mise à jour : 28 Novembre 2025",
+      last_updated: "Dernière mise à jour : 02 Janvier 2026",
       content:
         "Chez NextMove Cargo, nous prenons votre vie privée au sérieux. Cette politique décrit comment nous collectons, utilisons et protégeons vos données personnelles...",
     },
@@ -291,7 +291,7 @@ export const DEFAULT_BRANDING: BrandingSettings = {
     default_description:
       "NextMove Cargo simplifie vos importations de la Chine vers l'Afrique. Transport maritime, aérien et services de paiement sécurisé.",
     default_keywords:
-      "import chine afrique, transitaire chine, cargo sénégal, groupage maritime, paiement fournisseur chine",
+      "import chine afrique, prestataire chine, cargo sénégal, groupage maritime, paiement fournisseur chine",
     og_image:
       "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80",
   },

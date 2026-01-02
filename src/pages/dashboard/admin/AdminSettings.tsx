@@ -21,7 +21,9 @@ import {
   Trash2,
   Eye,
   EyeOff,
+  Flag,
 } from "lucide-react";
+import { useFeatureFlags } from "../../../contexts/FeatureFlagContext";
 import {
   settingsService,
   SystemSettings,
@@ -38,7 +40,8 @@ type SettingsTab =
   | "profile"
   | "email"
   | "integrations"
-  | "marketing";
+  | "marketing"
+  | "features";
 
 export default function AdminSettings() {
   const {
@@ -47,6 +50,7 @@ export default function AdminSettings() {
     refreshSettings,
   } = useSettings();
   const { user, refreshProfile } = useAuth();
+  const { flags, updateFlag } = useFeatureFlags();
 
   const [localSettings, setLocalSettings] = useState<SystemSettings | null>(
   );
@@ -259,6 +263,7 @@ export default function AdminSettings() {
     { id: "integrations", label: "Intégrations API", icon: Bot },
     { id: "marketing", label: "Marketing & Offres", icon: Gift },
     { id: "security", label: "Sécurité", icon: Lock },
+    { id: "features", label: "Fonctionnalités & Beta", icon: Flag },
     { id: "maintenance", label: "Maintenance", icon: Settings },
   ];
 
@@ -1035,6 +1040,60 @@ export default function AdminSettings() {
                   </div>
                 </div>
 
+              </div>
+            )}
+
+            {activeTab === "features" && (
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-2">
+                    Feature Flagging
+                  </h3>
+                  <p className="text-sm text-gray-500 mb-6">
+                    Activez ou désactivez des fonctionnalités à la volée.
+                    <br />
+                    <span className="text-amber-600 font-bold">Note : </span> Les changements sont propagés instantanément via WebSockets.
+                  </p>
+
+                  <div className="grid grid-cols-1 gap-4">
+                    {Object.entries(flags).map(([key, isEnabled]) => (
+                      <div key={key} className="flex items-center justify-between p-4 bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+                        <div>
+                          <p className="font-bold text-gray-800 flex items-center gap-2">
+                            {key === 'ai_smart_scan' && <Camera className="w-4 h-4 text-purple-500" />}
+                            {key === 'academy_portal' && <Globe className="w-4 h-4 text-blue-500" />}
+                            {key === 'predictive_analytics' && <Zap className="w-4 h-4 text-orange-500" />}
+                            <span className="capitalize">{key.replace(/_/g, ' ')}</span>
+                          </p>
+                          <code className="text-xs text-gray-400 mt-1 block">FLAGS.{key.toUpperCase()}</code>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={isEnabled}
+                            onChange={(e) => updateFlag(key, e.target.checked)}
+                            className="sr-only peer"
+                          />
+                          <div className={`w-14 h-7 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500 ${isEnabled ? 'bg-green-500' : ''}`}></div>
+                          <span className={`ml-3 text-sm font-medium ${isEnabled ? 'text-green-600' : 'text-gray-400'}`}>
+                            {isEnabled ? 'Activé' : 'Désactivé'}
+                          </span>
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-8 p-4 bg-blue-50 border border-blue-100 rounded-xl">
+                    <h4 className="font-bold text-blue-900 mb-2 flex items-center gap-2">
+                      <Bot className="w-5 h-5 text-blue-600" />
+                      Comment ça marche ?
+                    </h4>
+                    <ul className="list-disc list-inside text-sm text-blue-800 space-y-1">
+                      <li>Les flags contrôlent la visibilité des composants React.</li>
+                      <li>Supabase Realtime diffuse le changement à tous les clients connectés.</li>
+                    </ul>
+                  </div>
+                </div>
               </div>
             )}
 

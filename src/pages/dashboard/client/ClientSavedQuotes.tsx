@@ -115,7 +115,7 @@ export default function ClientSavedQuotes() {
                                         <span className="font-medium">{details.destination_country}</span>
                                     </div>
                                     <div className="flex justify-between text-sm">
-                                        <span className="text-gray-500">Transitaire</span>
+                                        <span className="text-gray-500">Prestataire</span>
                                         <span className="font-medium text-gray-900 dark:text-white">{details.forwarder_name}</span>
                                     </div>
                                 </div>

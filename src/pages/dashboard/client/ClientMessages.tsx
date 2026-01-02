@@ -6,7 +6,7 @@ export default function ClientMessages() {
     <div className="h-[calc(100vh-8rem)] flex flex-col">
       <PageHeader
         title="Messages"
-        subtitle="Communiquez avec les transitaires et le support"
+        subtitle="Communiquez avec les prestataires et le support"
       />
 
       <div className="flex-1 bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden flex">
@@ -37,7 +37,7 @@ export default function ClientMessages() {
           </h3>
           <p className="text-gray-500 max-w-sm text-center">
             Sélectionnez une conversation pour commencer à discuter ou attendez
-            qu'un transitaire vous contacte.
+            qu'un prestataire vous contacte.
           </p>
         </div>
       </div>

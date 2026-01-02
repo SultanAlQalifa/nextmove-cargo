@@ -6,6 +6,71 @@ const corsHeaders = {
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const WHATSAPP_TOKEN = Deno.env.get("WHATSAPP_TOKEN");
+const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
+
+const SYSTEM_PROMPT = `
+Tu es l'Expert Logistique de NextMove Cargo. Ton rôle est d'aider les clients sur WhatsApp.
+Sois concis (max 2-3 phrases), professionnel et utilise des emojis.
+Si on te demande un prix, suggère d'utiliser le calculateur sur le site.
+Réponds en Français.
+`;
+
+async function getAIResponse(message: string) {
+    if (!OPENAI_API_KEY) return "Désolé, je ne peux pas répondre pour le moment (IA non configurée).";
+
+    try {
+        const response = await fetch("https://api.openai.com/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${OPENAI_API_KEY}`,
+            },
+            body: JSON.stringify({
+                model: "gpt-4o-mini",
+                messages: [
+                    { role: "system", content: SYSTEM_PROMPT },
+                    { role: "user", content: message }
+                ],
+                max_tokens: 200,
+            }),
+        });
+
+        const data = await response.json();
+        return data.choices[0].message.content;
+    } catch (err) {
+        console.error("AI Error:", err);
+        return "Je rencontre une petite difficulté technique. Un agent humain va prendre le relais.";
+    }
+}
+
+async function sendWhatsAppMessage(phoneNumberId: string, to: string, text: string) {
+    if (!WHATSAPP_TOKEN) {
+        console.error("WHATSAPP_TOKEN missing");
+        return;
+    }
+
+    try {
+        const response = await fetch(`https://graph.facebook.com/v17.0/${phoneNumberId}/messages`, {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${WHATSAPP_TOKEN}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                messaging_product: "whatsapp",
+                to: to,
+                type: "text",
+                text: { body: text },
+            }),
+        });
+        const resData = await response.json();
+        console.log("WhatsApp Send Response:", resData);
+    } catch (err) {
+        console.error("Failed to send WhatsApp message:", err);
+    }
+}
+
 serve(async (req: Request) => {
     // Handle CORS
     if (req.method === "OPTIONS") {
@@ -28,147 +93,63 @@ serve(async (req: Request) => {
                 if (mode === "subscribe" && token === VERIFY_TOKEN) {
                     console.log("WEBHOOK_VERIFIED");
                     return new Response(challenge, { status: 200 });
-                } else {
-                    return new Response("Forbidden", { status: 403 });
                 }
             }
-            return new Response("Bad Request", { status: 400 });
+            return new Response("Forbidden", { status: 403 });
         }
 
         // 2. MESSAGE HANDLING (POST)
         if (req.method === "POST") {
             const body = await req.json();
-            console.log("Incoming Webhook Body:", JSON.stringify(body, null, 2));
 
-            // Check if it's a WhatsApp status update or message
-            if (body.object) {
-                if (
-                    body.entry &&
-                    body.entry[0].changes &&
-                    body.entry[0].changes[0] &&
-                    body.entry[0].changes[0].value.messages &&
-                    body.entry[0].changes[0].value.messages[0]
-                ) {
-                    const messageObj = body.entry[0].changes[0].value.messages[0];
-                    const phoneNumberId = body.entry[0].changes[0].value.metadata.phone_number_id;
-                    const from = messageObj.from; // Phone number (e.g., 221773950119)
-                    const msgBody = messageObj.text?.body; // Text content
-                    const msgType = messageObj.type;
+            if (body.object && body.entry?.[0]?.changes?.[0]?.value?.messages?.[0]) {
+                const value = body.entry[0].changes[0].value;
+                const messageObj = value.messages[0];
+                const phoneNumberId = value.metadata.phone_number_id;
+                const from = messageObj.from;
+                const msgBody = messageObj.text?.body;
 
-                    if (msgType !== 'text' || !msgBody) {
-                        // For now, only handle text. TODO: Handle images/docs
-                        return new Response("EVENT_RECEIVED", { status: 200 });
-                    }
+                if (msgBody) {
+                    console.log(`WhatsApp from ${from}: ${msgBody}`);
 
-                    console.log(`Received message from ${from}: ${msgBody}`);
-
-                    // Initialize Supabase Admin Client
                     const supabaseAdmin = createClient(
                         Deno.env.get("SUPABASE_URL") ?? "",
                         Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
                     );
 
-                    // A. FIND USER BY PHONE
-                    // Note: "from" usually includes country code without + (e.g. 22177...)
-                    // We search loosely or precise depending on DB format. 
-                    // Ideally DB has normalized phone numbers. We try valid formats.
-                    const { data: users, error: userError } = await supabaseAdmin
+                    // 1. Get AI Response
+                    const aiReply = await getAIResponse(msgBody);
+
+                    // 2. Send AI Response back to WhatsApp
+                    await sendWhatsAppMessage(phoneNumberId, from, aiReply);
+
+                    // 3. Save to DB (Optional Logging)
+                    const { data: users } = await supabaseAdmin
                         .from('profiles')
-                        .select('id, full_name, email')
+                        .select('id')
                         .or(`phone.eq.${from},phone.eq.+${from}`)
                         .limit(1);
 
-                    let userId = null;
-                    let userName = "WhatsApp User";
-
-                    if (users && users.length > 0) {
-                        userId = users[0].id;
-                        userName = users[0].full_name || userName;
-                        console.log(`Found existing user: ${userId} (${userName})`);
-                    } else {
-                        console.log("User not found for phone:", from);
-                        // TODO: Create a "Guest" user or handle unknown. 
-                        // For now, we abort or could create a specific LEAD.
-                        // Let's TRY to find an existing conversation with metadata 'whatsapp_phone' = from
-                    }
+                    const userId = users?.[0]?.id;
 
                     if (userId) {
-                        // B. FIND OR CREATE CONVERSATION
-                        // We look for a conversation where this user is a participant
-                        // For simplicity, we just find the most recent updated conversation for this user
-                        const { data: conversations } = await supabaseAdmin
-                            .from('conversation_participants')
-                            .select('conversation_id')
-                            .eq('user_id', userId)
-                            .limit(1);
+                        // Insert user message
+                        await supabaseAdmin.from('messages').insert({
+                            content: `[WhatsApp] ${msgBody}`,
+                            sender_id: userId,
+                            metadata: { source: 'whatsapp', whatsapp_id: messageObj.id }
+                        });
 
-                        let conversationId = null;
-
-                        if (conversations && conversations.length > 0) {
-                            conversationId = conversations[0].conversation_id;
-                        } else {
-                            // Create new conversation
-                            const { data: newConv, error: createError } = await supabaseAdmin
-                                .from('conversations')
-                                .insert({
-                                    last_message: msgBody,
-                                    last_message_at: new Date().toISOString(),
-                                    // metadata: { source: 'whatsapp', phone: from } // If we had metadata col
-                                })
-                                .select()
-                                .single();
-
-                            if (createError) {
-                                console.error("Failed to create conv", createError);
-                                throw createError;
-                            }
-                            conversationId = newConv.id;
-
-                            // Add User as Participant
-                            await supabaseAdmin
-                                .from('conversation_participants')
-                                .insert({ conversation_id: conversationId, user_id: userId });
-
-                            // Add Admin/Support as Participant (Optional, or rely on them seeing it in 'Unassigned')
-                            // For now, we assume Support sees all conversations
-                        }
-
-                        // C. INSERT MESSAGE
-                        const { error: msgError } = await supabaseAdmin
-                            .from('messages')
-                            .insert({
-                                conversation_id: conversationId,
-                                sender_id: userId,
-                                content: `[WhatsApp] ${msgBody}`, // Prefix to indicate source
-                                // metadata: { whatsapp_id: messageObj.id } 
-                            });
-
-                        if (msgError) console.error("Failed to insert message", msgError);
-                        else console.log("Message inserted into DB");
-
-                        // Update conversation timestamp
-                        await supabaseAdmin
-                            .from('conversations')
-                            .update({
-                                last_message: msgBody,
-                                last_message_at: new Date().toISOString(),
-                                updated_at: new Date().toISOString(),
-                            })
-                            .eq('id', conversationId);
-                    } else {
-                        // Handle Unknown User (Lead) - Create a "Lead" profile?
-                        // For valid "Omnichannel", we usually create a lead.
-                        // We'll return 200 to acknowledge receipt anyway.
-                        console.log("Skipping DB insert for unknown user");
+                        // Insert AI reply
+                        await supabaseAdmin.from('messages').insert({
+                            content: `[WhatsApp AI] ${aiReply}`,
+                            sender_id: null, // System/AI
+                            metadata: { source: 'whatsapp_ai' }
+                        });
                     }
-
-                    return new Response("EVENT_RECEIVED", { status: 200 });
-                } else {
-                    return new Response("NOT_A_MESSAGE_EVENT", { status: 404 });
                 }
-            } else {
-                return new Response("NOT_A_PAGE_OBJECT", { status: 404 });
             }
+            return new Response("EVENT_RECEIVED", { status: 200 });
         }
 
         return new Response("Method Not Allowed", { status: 405 });

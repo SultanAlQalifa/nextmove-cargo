@@ -410,7 +410,7 @@ export default function ClientSettings() {
                         </div>
                         <div className="flex-1">
                           <h3 className="text-lg font-bold text-gray-900 mb-2">
-                            Devenir Transitaire
+                            Devenir Prestataire
                           </h3>
                           <p className="text-gray-600 mb-4">
                             Vous souhaitez proposer vos services de transport sur
@@ -424,9 +424,9 @@ export default function ClientSettings() {
                                 isOpen: true,
                                 type: "upgrade",
                                 id: user?.id || null,
-                                title: "Passer au compte Transitaire",
+                                title: "Passer au compte Prestataire",
                                 message:
-                                  "En devenant transitaire, vous aurez accès à un tableau de bord dédié. Vous devrez ensuite souscrire à un abonnement et valider votre KYC pour commencer à opérer. Voulez-vous continuer ?",
+                                  "En devenant prestataire, vous aurez accès à un tableau de bord dédié. Vous devrez ensuite souscrire à un abonnement et valider votre KYC pour commencer à opérer. Voulez-vous continuer ?",
                                 variant: "info",
                               })
                             }
@@ -480,7 +480,7 @@ export default function ClientSettings() {
                         Nouvelles Offres
                       </p>
                       <p className="text-sm text-gray-500">
-                        Être alerté des nouvelles offres des transitaires
+                        Être alerté des nouvelles offres des prestataires
                       </p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">

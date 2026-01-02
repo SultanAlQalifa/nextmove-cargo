@@ -108,7 +108,7 @@ export const automationService = {
                 <div style="font-family: sans-serif; padding: 20px;">
                     <h2 style="color: #2563eb;">Offre Acceptée !</h2>
                     <p>Bonjour,</p>
-                    <p>Vous avez accepté l'offre de transport de <strong>${offer.forwarder?.company_name || 'votre transitaire'}</strong>.</p>
+                    <p>Vous avez accepté l'offre de transport de <strong>${offer.forwarder?.company_name || 'votre prestataire'}</strong>.</p>
                     <p><strong>Détails de l'expédition :</strong></p>
                     <ul>
                         <li>Numéro de Suivi : <strong>${trackingNumber}</strong></li>
@@ -198,7 +198,7 @@ export const automationService = {
                 <div style="font-family: sans-serif; padding: 20px;">
                     <h2 style="color: #2563eb;">Votre colis est arrivé !</h2>
                     <p>Nous espérons que vous êtes satisfait de votre expérience.</p>
-                    <p>Merci de prendre un moment pour noter la prestation de votre transitaire.</p>
+                    <p>Merci de prendre un moment pour noter la prestation de votre prestataire.</p>
                     <div style="margin-top: 20px;">
                         <a href="${window.location.origin}/dashboard/client/shipments/${shipmentId}" 
                            style="background-color: #fbbf24; color: black; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">

@@ -60,7 +60,7 @@ export default function AdminForwarders() {
       setForwarders(forwardersData);
     } catch (error) {
       console.error("Error fetching forwarders:", error);
-      toastError("Erreur lors du chargement des transitaires");
+      toastError("Erreur lors du chargement des prestataires");
     } finally {
       setLoading(false);
     }
@@ -163,7 +163,8 @@ export default function AdminForwarders() {
             await profileService.updateProfile(forwarder.id, {
               kyc_status: "verified",
             });
-            success("KYC validé avec succès");
+            await ForwarderServiceAPI.verifyAllDocuments(forwarder.id);
+            success("KYC et documents validés avec succès");
           },
         });
         break;
@@ -236,7 +237,7 @@ export default function AdminForwarders() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Gestion des Transitaires"
+        title="Gestion des Prestataires"
         subtitle="Validez les comptes, KYC et abonnements"
       />
 
@@ -248,7 +249,7 @@ export default function AdminForwarders() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Rechercher un transitaire..."
+            placeholder="Rechercher un prestataire..."
             className="w-full pl-9 pr-8 py-2 bg-transparent hover:bg-gray-50 focus:bg-white border border-transparent focus:border-primary/20 rounded-xl text-sm focus:outline-none transition-all"
           />
         </div>
@@ -282,7 +283,7 @@ export default function AdminForwarders() {
               <thead>
                 <tr className="bg-gray-50/50 border-b border-gray-100">
                   <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    Transitaire
+                    Prestataire
                   </th>
                   <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                     KYC
@@ -330,8 +331,8 @@ export default function AdminForwarders() {
                       )}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500">
-                      {f.created_at
-                        ? new Date(f.created_at).toLocaleDateString()
+                      {f.joined_at
+                        ? new Date(f.joined_at).toLocaleDateString()
                         : "-"}
                     </td>
                     <td className="px-6 py-4 text-right">
@@ -356,7 +357,7 @@ export default function AdminForwarders() {
                         <div className="p-4 bg-gray-50 rounded-full mb-3">
                           <Users className="w-8 h-8 text-gray-400" />
                         </div>
-                        <p>Aucun transitaire trouvé</p>
+                        <p>Aucun prestataire trouvé</p>
                       </div>
                     </td>
                   </tr>
@@ -478,7 +479,7 @@ export default function AdminForwarders() {
                     Aucun document envoyé
                   </p>
                   <p className="text-sm text-gray-400">
-                    Le transitaire n'a pas encore uploadé de documents.
+                    Le prestataire n'a pas encore uploadé de documents.
                   </p>
                 </div>
               ) : (

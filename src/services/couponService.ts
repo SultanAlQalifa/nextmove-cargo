@@ -109,10 +109,10 @@ export const couponService = {
         throw new Error("Ce code n'est pas valide pour ce service");
       }
       if (!context.forwarderId) {
-        throw new Error("Contexte transitaire manquant");
+        throw new Error("Contexte prestataire manquant");
       }
       if (coupon.created_by !== context.forwarderId) {
-        throw new Error("Ce code n'est pas valide pour ce transitaire");
+        throw new Error("Ce code n'est pas valide pour ce prestataire");
       }
     }
 

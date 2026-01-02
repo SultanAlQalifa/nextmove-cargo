@@ -41,10 +41,11 @@ export default function PromoteForwarderModal({
         <div className="p-6 border-b border-gray-100 flex items-center justify-between">
           <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-purple-600" />
-            Promouvoir le transitaire
+            Promouvoir le prestataire
           </h3>
           <button
             onClick={onClose}
+            title="Fermer"
             className="text-gray-400 hover:text-gray-500 transition-colors"
           >
             <X className="w-5 h-5" />
@@ -87,11 +88,10 @@ export default function PromoteForwarderModal({
                   key={opt.id}
                   type="button"
                   onClick={() => setType(opt.id)}
-                  className={`p-3 rounded-xl border text-left transition-all ${
-                    type === opt.id
-                      ? "bg-purple-50 border-purple-200 ring-1 ring-purple-200"
-                      : "bg-white border-gray-200 hover:border-purple-200 hover:bg-purple-50/50"
-                  }`}
+                  className={`p-3 rounded-xl border text-left transition-all ${type === opt.id
+                    ? "bg-purple-50 border-purple-200 ring-1 ring-purple-200"
+                    : "bg-white border-gray-200 hover:border-purple-200 hover:bg-purple-50/50"
+                    }`}
                 >
                   <div
                     className={`font-medium ${type === opt.id ? "text-purple-900" : "text-gray-900"}`}
@@ -116,6 +116,8 @@ export default function PromoteForwarderModal({
               </label>
               <input
                 type="number"
+                id="promote-budget"
+                title="Budget en FCFA"
                 value={budget}
                 onChange={(e) => setBudget(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
@@ -128,6 +130,8 @@ export default function PromoteForwarderModal({
                 Durée
               </label>
               <select
+                id="promote-duration"
+                title="Durée de la promotion"
                 value={duration}
                 onChange={(e) => setDuration(e.target.value)}
                 className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"

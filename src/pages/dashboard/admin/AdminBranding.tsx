@@ -881,7 +881,7 @@ export default function AdminBranding() {
                     htmlFor="stats_forwarders"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    Label Transitaires
+                    Label Prestataires
                   </label>
                   <input
                     id="stats_forwarders"

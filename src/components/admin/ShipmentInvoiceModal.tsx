@@ -382,7 +382,7 @@ export default function ShipmentInvoiceModal({
                 {/* Forwarder */}
                 <div className="p-5 rounded-2xl border border-blue-100 bg-blue-50/30 hover:shadow-md transition-shadow">
                   <h3 className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-4 flex items-center gap-2">
-                    <Truck className="w-3 h-3" /> Transitaire
+                    <Truck className="w-3 h-3" /> Prestataire
                   </h3>
                   <div className="space-y-2 text-sm text-gray-600">
                     <p className="font-bold text-gray-900 text-base">

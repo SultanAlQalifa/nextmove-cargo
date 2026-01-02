@@ -15,12 +15,9 @@ import {
   Package,
   Ship,
   Plane,
-  Info,
-  DollarSign,
   Clock,
   Check,
   MapPin,
-  Calendar,
   FileText,
   Globe,
   Shield,
@@ -29,10 +26,8 @@ import {
   Box,
   ClipboardCheck,
   Warehouse,
-  FileCheck,
   Truck,
   CheckCircle,
-  Plus,
 } from "lucide-react";
 import { locationService, Location } from "../../services/locationService";
 import {
@@ -145,7 +140,7 @@ export default function CreateRFQForm() {
           (searchParams.get("type") as ServiceType) || prev.service_type,
         specific_forwarder_id: forwarderId || prev.specific_forwarder_id,
         special_requirements: forwarderId
-          ? `Devis basé sur l'offre du transitaire ID: ${forwarderId}. ${prev.special_requirements}`
+          ? `Devis basé sur l'offre du prestataire ID: ${forwarderId}. ${prev.special_requirements}`
           : prev.special_requirements,
       }));
     }
@@ -219,6 +214,20 @@ export default function CreateRFQForm() {
         if (rfqData.height_cm) setHeight(rfqData.height_cm.toString());
         if (rfqData.volume_cbm) setCalculatedCBM(rfqData.volume_cbm);
       }
+      // Handle Lead Prefill (Direct Conversion)
+      else if (location.state.leadPrefill) {
+        const { leadPrefill } = location.state;
+        setFormData((prev) => ({
+          ...prev,
+          origin_port: leadPrefill.origin_port || prev.origin_port,
+          destination_port: leadPrefill.destination_port || prev.destination_port,
+          cargo_type: leadPrefill.cargo_type || prev.cargo_type,
+          cargo_description: leadPrefill.cargo_description || prev.cargo_description,
+          weight_kg: leadPrefill.weight_kg || prev.weight_kg,
+          transport_mode: leadPrefill.transport_mode || prev.transport_mode,
+          special_requirements: `Lead converti (ID: ${leadPrefill.lead_id}). ${prev.special_requirements}`
+        }));
+      }
       // Handle Calculator Prefill
       else if (location.state.prefill) {
         const { prefill, isRetry, parentRfqId } = location.state;
@@ -267,7 +276,7 @@ export default function CreateRFQForm() {
           // If a specific forwarder was selected, we might want to store it in special requirements or a specific field
           // For now, we'll append it to special requirements if present
           special_requirements: prefill.target_forwarder
-            ? `Devis basé sur l'offre du transitaire: ${prefill.quote_details?.forwarder_name || prefill.target_forwarder}. ${prev.special_requirements}`
+            ? `Devis basé sur l'offre du prestataire: ${prefill.quote_details?.forwarder_name || prefill.target_forwarder}. ${prev.special_requirements}`
             : prev.special_requirements,
         }));
       }
@@ -304,13 +313,6 @@ export default function CreateRFQForm() {
     }));
   };
 
-  const handleModeChange = (mode: TransportMode) => {
-    setFormData((prev) => ({ ...prev, transport_mode: mode }));
-  };
-
-  const handleServiceChange = (service: ServiceType) => {
-    setFormData((prev) => ({ ...prev, service_type: service }));
-  };
 
   const handleSubmit = async (
     e: React.FormEvent | React.MouseEvent,
@@ -419,86 +421,9 @@ export default function CreateRFQForm() {
   };
 
   // UI Constants (Copied/Adapted from Calculator)
-  const TRANSPORT_MODE_INFO = {
-    sea: {
-      icon: Ship,
-      label: t("calculator.sea.label"),
-      measurement: t("calculator.sea.measurement"),
-      pricing: t("calculator.sea.pricing"),
-      duration: t("calculator.sea.duration"),
-      conditions: t("calculator.sea.conditions"),
-      advantages: [
-        t("calculator.sea.advantages.economical"),
-        t("calculator.sea.advantages.largeVolumes"),
-        t("calculator.sea.advantages.ecological"),
-      ],
-    },
-    air: {
-      icon: Plane,
-      label: t("calculator.air.label"),
-      measurement: t("calculator.air.measurement"),
-      pricing: t("calculator.air.pricing"),
-      duration: t("calculator.air.duration"),
-      conditions: t("calculator.air.conditions"),
-      advantages: [
-        t("calculator.air.advantages.fast"),
-        t("calculator.air.advantages.secure"),
-        t("calculator.air.advantages.urgent"),
-      ],
-    },
-  };
 
-  const getServiceDetails = (type: "standard" | "express", mode: string) => {
-    const isSea = mode === "sea";
-    if (type === "standard") {
-      return {
-        pricing: isSea ? "Standard Rate" : "Standard Rate",
-        transitNote: isSea
-          ? `45-60 ${t("calculator.days")}`
-          : `5-7 ${t("calculator.days")}`,
-        description: t("calculator.standard.description"),
-      };
-    } else {
-      return {
-        pricing: isSea ? "Premium Rate" : "Express Rate",
-        transitNote: isSea
-          ? `30-45 ${t("calculator.days")}`
-          : `2-3 ${t("calculator.days")}`,
-        description: t("calculator.express.description"),
-      };
-    }
-  };
 
-  const standardDetails = getServiceDetails(
-    "standard",
-    formData.transport_mode,
-  );
-  const expressDetails = getServiceDetails("express", formData.transport_mode);
 
-  const SERVICE_TYPE_INFO = {
-    standard: {
-      label: t("calculator.standard.label"),
-      description: standardDetails.description,
-      pricing: standardDetails.pricing,
-      features: [
-        t("calculator.standard.features.consolidation"),
-        t("calculator.standard.features.bestValue"),
-        t("calculator.standard.features.normalDelay"),
-      ],
-      transitNote: standardDetails.transitNote,
-    },
-    express: {
-      label: t("calculator.express.label"),
-      description: expressDetails.description,
-      pricing: expressDetails.pricing,
-      features: [
-        t("calculator.express.features.maxPriority"),
-        t("calculator.express.features.directTransit"),
-        t("calculator.express.features.fastCustoms"),
-      ],
-      transitNote: expressDetails.transitNote,
-    },
-  };
 
   // Booking Mode Layout (when coming from Calculator with a quote)
   if (location.state?.prefill?.quote_details) {
@@ -766,7 +691,7 @@ export default function CreateRFQForm() {
               </h3>
               <p className="text-sm text-gray-600 mb-6">
                 En confirmant, votre demande sera envoyée directement au
-                transitaire sélectionné pour validation finale.
+                prestataire sélectionné pour validation finale.
               </p>
 
               {/* Payment Method Selection */}
@@ -794,7 +719,7 @@ export default function CreateRFQForm() {
                     </div>
                     <div className="flex-1">
                       <div className="font-bold text-gray-900">Paiement à la livraison</div>
-                      <div className="text-xs text-gray-500">Validation manuelle par le transitaire</div>
+                      <div className="text-xs text-gray-500">Validation manuelle par le prestataire</div>
                     </div>
                   </div>
                 </div>
@@ -1570,7 +1495,7 @@ export default function CreateRFQForm() {
             <p className="text-gray-600 mb-6">
               {editMode
                 ? "Votre demande de cotation a été mise à jour avec succès."
-                : "Votre demande de cotation a été envoyée avec succès. Les transitaires vont bientôt vous répondre."}
+                : "Votre demande de cotation a été envoyée avec succès. Les prestataires vont bientôt vous répondre."}
             </p>
             <div className="flex flex-col gap-3">
               <button

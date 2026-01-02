@@ -413,7 +413,7 @@ export default function ForwarderSettings() {
                     </div>
                     <p className="text-gray-500 text-sm capitalize">
                       {userProfile.role === "forwarder"
-                        ? "Transitaire"
+                        ? "Prestataire"
                         : userProfile.role}
                     </p>
 

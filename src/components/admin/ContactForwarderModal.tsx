@@ -1,4 +1,4 @@
-import { X, Mail, MessageSquare, Send } from "lucide-react";
+import { X, Mail, MessageSquare } from "lucide-react";
 import { useToast } from "../../contexts/ToastContext";
 import { ForwarderProfile } from "../../services/forwarderService";
 
@@ -19,7 +19,6 @@ export default function ContactForwarderModal({
   isOpen,
   onClose,
   forwarder,
-  currentUserEmail,
   onSendEmail,
   onSendMessage,
 }: ContactForwarderModalProps) {
@@ -31,10 +30,11 @@ export default function ContactForwarderModal({
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
         <div className="p-6 border-b border-gray-100 flex items-center justify-between">
           <h3 className="text-lg font-semibold text-gray-900">
-            Contacter le transitaire
+            Contacter le prestataire
           </h3>
           <button
             onClick={onClose}
+            title="Fermer"
             className="text-gray-400 hover:text-gray-500 transition-colors"
           >
             <X className="w-5 h-5" />

@@ -48,7 +48,7 @@ export default function UpgradeToPro() {
       await subscriptionService.upgradeToForwarder(planId);
       await refreshProfile(); // Refresh context to get new role
       success(
-        "Félicitations ! Vous êtes maintenant un Partenaire Transitaire.",
+        "Félicitations ! Vous êtes maintenant un Partenaire Prestataire.",
       );
       navigate("/dashboard"); // Should redirect to Forwarder Dashboard
     } catch (error) {
@@ -107,7 +107,7 @@ export default function UpgradeToPro() {
             Passez au niveau supérieur
           </h1>
           <p className="text-xl text-slate-500 dark:text-slate-400 max-w-2xl mx-auto">
-            Devenez Transitaire Partenaire et accédez à toutes les
+            Devenez Prestataire Partenaire et accédez à toutes les
             fonctionnalités professionnelles.
           </p>
         </div>
@@ -244,8 +244,8 @@ export default function UpgradeToPro() {
                       onClick={() => handleUpgrade(plan.id)}
                       disabled={upgrading !== null}
                       className={`w-full py-4 px-6 text-center font-bold rounded-xl transition-all shadow-lg flex items-center justify-center ${isPro
-                          ? "bg-blue-600 text-white hover:bg-blue-500 shadow-blue-600/30"
-                          : "bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 shadow-slate-900/10"
+                        ? "bg-blue-600 text-white hover:bg-blue-500 shadow-blue-600/30"
+                        : "bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 shadow-slate-900/10"
                         } ${upgrading !== null ? "opacity-50 cursor-not-allowed" : ""}`}
                     >
                       {isUpgradingThis ? (

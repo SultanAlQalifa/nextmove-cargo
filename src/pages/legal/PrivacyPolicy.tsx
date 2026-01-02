@@ -42,7 +42,7 @@ export default function PrivacyPolicy() {
                         3. Partage d'Informations
                     </h3>
                     <p>
-                        Vos données sont partagées uniquement avec les acteurs nécessaires à l'exécution de vos transports (Transitaires, transporteurs, douanes) et conformément aux obligations légales. Nous ne vendons jamais vos données à des tiers.
+                        Vos données sont partagées uniquement avec les acteurs nécessaires à l'exécution de vos transports (Prestataires, transporteurs, douanes) et conformément aux obligations légales. Nous ne vendons jamais vos données à des tiers.
                     </p>
 
                     <div className="mt-12 p-4 bg-sky-50 rounded-xl border border-sky-100 text-sm text-sky-800 flex items-start gap-3">

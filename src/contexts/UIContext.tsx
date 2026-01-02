@@ -5,16 +5,25 @@ interface UIContextType {
   openCalculator: () => void;
   closeCalculator: () => void;
   toggleCalculator: () => void;
+  isCommandPaletteOpen: boolean;
+  openCommandPalette: () => void;
+  closeCommandPalette: () => void;
+  toggleCommandPalette: () => void;
 }
 
 const UIContext = createContext<UIContextType | undefined>(undefined);
 
 export function UIProvider({ children }: { children: ReactNode }) {
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
 
   const openCalculator = () => setIsCalculatorOpen(true);
   const closeCalculator = () => setIsCalculatorOpen(false);
   const toggleCalculator = () => setIsCalculatorOpen((prev) => !prev);
+
+  const openCommandPalette = () => setIsCommandPaletteOpen(true);
+  const closeCommandPalette = () => setIsCommandPaletteOpen(false);
+  const toggleCommandPalette = () => setIsCommandPaletteOpen((prev) => !prev);
 
   return (
     <UIContext.Provider
@@ -23,6 +32,10 @@ export function UIProvider({ children }: { children: ReactNode }) {
         openCalculator,
         closeCalculator,
         toggleCalculator,
+        isCommandPaletteOpen,
+        openCommandPalette,
+        closeCommandPalette,
+        toggleCommandPalette,
       }}
     >
       {children}

@@ -2,6 +2,7 @@ import { Suspense, lazy } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { CurrencyProvider } from "./contexts/CurrencyContext";
+import { FeatureFlagProvider } from "./contexts/FeatureFlagContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Layout from "./components/Layout";
 import DashboardLayout from "./components/layout/DashboardLayout";
@@ -98,6 +99,7 @@ const DocumentCenter = lazy(
 );
 const TrackingPage = lazy(() => import("./pages/TrackingPage")); // Public Tracking
 const NotFound = lazy(() => import("./pages/NotFound"));
+const KioskHome = lazy(() => import("./pages/public/KioskHome"));
 
 const ForwarderOffers = lazy(
   () => import("./pages/dashboard/forwarder/ForwarderOffers"),
@@ -151,6 +153,9 @@ const ShipmentDetail = lazy(
 const ForwarderAddresses = lazy(
   () => import("./pages/dashboard/forwarder/ForwarderAddresses"),
 );
+const POSDashboard = lazy(
+  () => import("./pages/dashboard/forwarder/POSDashboard"),
+);
 
 
 const LoyaltyDashboard = lazy(
@@ -160,6 +165,7 @@ const LoyaltyDashboard = lazy(
 const UserManagement = lazy(
   () => import("./pages/dashboard/admin/UserManagement"),
 );
+const AdminLeads = lazy(() => import("./pages/dashboard/admin/AdminLeads"));
 const AdminRFQList = lazy(() => import("./pages/dashboard/admin/AdminRFQList"));
 const AdminShipments = lazy(
   () => import("./pages/dashboard/admin/AdminShipments"),
@@ -246,7 +252,7 @@ import "./i18n";
 import { SettingsProvider } from "./contexts/SettingsContext";
 import { ChatProvider } from "./contexts/ChatContext";
 import { BrandingProvider } from "./contexts/BrandingContext";
-import { FeatureProvider } from "./contexts/FeatureContext";
+import SupportCampaign from "./pages/SupportCampaign";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { UIProvider } from "./contexts/UIContext";
 import { ToastProvider } from "./contexts/ToastContext";
@@ -264,7 +270,7 @@ function App() {
       <ThemeProvider>
         <CurrencyProvider>
           <BrandingProvider>
-            <FeatureProvider>
+            <FeatureFlagProvider>
               <ToastProvider>
                 <AuthProvider>
                   <ChatProvider>
@@ -291,6 +297,7 @@ function App() {
                                   <Route path="/" element={<Layout />}>
                                     <Route index element={<Home />} />
                                     <Route path="login" element={<Login />} />
+                                    <Route path="soutien" element={<SupportCampaign />} />
                                     <Route path="register" element={<Register />} />
                                     <Route path="complete-profile" element={<CompleteProfile />} />
                                     <Route
@@ -330,6 +337,7 @@ function App() {
                                       path="tracking/:code"
                                       element={<TrackingPage />}
                                     />
+                                    <Route path="kiosk" element={<KioskHome />} />
                                   </Route>
 
                                   {/* Dashboard routes with sidebar layout */}
@@ -546,6 +554,10 @@ function App() {
                                           path="forwarder/addresses"
                                           element={<ForwarderAddresses />}
                                         />
+                                        <Route
+                                          path="forwarder/pos"
+                                          element={<POSDashboard />}
+                                        />
                                       </Route>
 
                                       {/* Admin routes */}
@@ -563,6 +575,10 @@ function App() {
                                         <Route
                                           path="admin/users"
                                           element={<UserManagement />}
+                                        />
+                                        <Route
+                                          path="admin/leads"
+                                          element={<AdminLeads />}
                                         />
                                         <Route
                                           path="admin/rfq"
@@ -743,7 +759,7 @@ function App() {
                   </ChatProvider>
                 </AuthProvider>
               </ToastProvider>
-            </FeatureProvider>
+            </FeatureFlagProvider>
           </BrandingProvider>
         </CurrencyProvider>
       </ThemeProvider>

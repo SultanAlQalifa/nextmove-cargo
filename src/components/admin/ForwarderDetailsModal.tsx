@@ -7,10 +7,7 @@ import {
   MapPin,
   Mail,
   Phone,
-  Calendar,
-  Building2,
   Clock,
-  Ban,
   PowerOff,
   PauseCircle,
   Trash2,
@@ -123,8 +120,8 @@ export default function ForwarderDetailsModal({
           </div>
           <div className="flex items-center gap-3">
             {getStatusBadge(
-              forwarder.verification_status,
-              forwarder.account_status,
+              forwarder.kyc_status,
+              forwarder.subscription_status,
             )}
             <div className="bg-white p-1 rounded-lg border border-gray-100 shadow-sm">
               <QRCodeSVG
@@ -134,6 +131,7 @@ export default function ForwarderDetailsModal({
             </div>
             <button
               onClick={onClose}
+              title="Fermer"
               className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
             >
               <X className="w-6 h-6" />
@@ -183,7 +181,7 @@ export default function ForwarderDetailsModal({
               <div className="bg-gray-50 rounded-xl p-4 space-y-3">
                 <div className="flex justify-between">
                   <span className="text-gray-500">Type</span>
-                  <span className="font-medium text-gray-900">Transitaire</span>
+                  <span className="font-medium text-gray-900">Prestataire</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500">Secteur</span>
@@ -245,7 +243,7 @@ export default function ForwarderDetailsModal({
           <div className="bg-gray-50 -mx-6 -mb-6 p-6 border-t border-gray-100 flex flex-col gap-4 mt-8">
             {/* Primary Actions */}
             <div className="flex flex-wrap justify-end gap-3">
-              {forwarder.verification_status === "pending" ? (
+              {forwarder.kyc_status === "pending" ? (
                 <>
                   <button
                     onClick={() => onStatusUpdate(forwarder.id, "rejected")}
@@ -271,7 +269,7 @@ export default function ForwarderDetailsModal({
                     </button>
                   )}
 
-                  {forwarder.account_status === "active" ? (
+                  {forwarder.subscription_status === "active" ? (
                     <>
                       {onDeactivate && (
                         <button
@@ -307,7 +305,7 @@ export default function ForwarderDetailsModal({
             </div>
 
             {/* Secondary Actions (Marketing & Management) */}
-            {forwarder.verification_status === "verified" && (
+            {forwarder.kyc_status === "verified" && (
               <div className="flex flex-wrap justify-end gap-3 pt-4 border-t border-gray-200">
                 <button
                   onClick={() => onUpdateInfo && onUpdateInfo(forwarder.id)}

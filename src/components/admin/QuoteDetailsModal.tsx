@@ -4,8 +4,6 @@ import {
   DollarSign,
   Calendar,
   Truck,
-  User,
-  CheckCircle,
 } from "lucide-react";
 
 interface QuoteDetailsModalProps {
@@ -52,6 +50,7 @@ export default function QuoteDetailsModal({
           </div>
           <button
             onClick={onClose}
+            title="Fermer"
             className="p-2 hover:bg-gray-100 rounded-full transition-colors"
           >
             <X className="w-5 h-5 text-gray-500" />
@@ -98,7 +97,7 @@ export default function QuoteDetailsModal({
 
           <div className="space-y-3">
             <h3 className="text-sm font-medium text-gray-900">
-              Notes du transitaire
+              Notes du prestataire
             </h3>
             <div className="p-4 bg-gray-50 rounded-xl text-sm text-gray-600 italic border border-gray-100">
               "{quote.notes}"

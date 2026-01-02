@@ -98,7 +98,7 @@ export default function ForwarderKYC() {
     <div className="space-y-6">
       <PageHeader
         title="Documents Légaux (KYC)"
-        subtitle="Ces documents sont requis pour valider votre compte transitaire"
+        subtitle="Ces documents sont requis pour valider votre compte prestataire"
         action={{
           label: saving ? "Envoi en cours..." : "Actualiser",
           onClick: () => user && fetchDocuments(user.id),
@@ -139,15 +139,14 @@ export default function ForwarderKYC() {
                 >
                   <div className="flex items-start gap-4">
                     <div
-                      className={`p-3 rounded-xl ${
-                        status === "verified"
+                      className={`p-3 rounded-xl ${status === "verified"
                           ? "bg-green-50 text-green-600"
                           : status === "rejected"
                             ? "bg-red-50 text-red-600"
                             : status === "pending"
                               ? "bg-orange-50 text-orange-600"
                               : "bg-gray-50 text-gray-400"
-                      }`}
+                        }`}
                     >
                       <FileText className="w-6 h-6" />
                     </div>

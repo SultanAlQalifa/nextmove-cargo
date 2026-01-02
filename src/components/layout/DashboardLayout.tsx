@@ -50,14 +50,23 @@ import {
   Newspaper,
   GraduationCap,
   Award,
+  Zap,
+  ShieldCheck,
+  Scan,
+  Target,
+  Search,
+  Command
 } from "lucide-react";
-import { Zap, ShieldCheck } from "lucide-react";
 import NewsTicker from "../common/NewsTicker";
+import { supabase } from "../../lib/supabase";
 
 import NotificationCenter from "../notifications/NotificationCenter";
 import MobileCountrySelector from "../MobileCountrySelector";
 import ChatWidget from "../common/ChatWidget";
 import WhatsAppButton from "../common/WhatsAppButton";
+import { useUI } from "../../contexts/UIContext";
+import CommandPalette from "../common/CommandPalette";
+import { useFeature } from "../../contexts/FeatureFlagContext";
 
 import KYCBadge from "../common/KYCBadge";
 import ClientTierBadge from "../common/ClientTierBadge";
@@ -67,7 +76,6 @@ import KYCVerificationModal from "../profile/KYCVerificationModal";
 import PWAInstallPrompt from "../common/PWAInstallPrompt";
 import InstallGuideModal from "../common/InstallGuideModal";
 
-import { useUI } from "../../contexts/UIContext";
 import { useChat } from "../../contexts/ChatContext";
 import CalculatorModal from "../dashboard/CalculatorModal";
 import { notificationService, Notification } from "../../services/notificationService";
@@ -94,6 +102,8 @@ export default function DashboardLayout() {
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
+  const { openCommandPalette } = useUI();
+  const showAcademy = useFeature('academy_portal');
 
   useEffect(() => {
     // Subscribe to Realtime Notifications
@@ -111,6 +121,31 @@ export default function DashboardLayout() {
     }
     return undefined;
   }, [user]);
+
+  // Real-time Lead Alerts for Admins
+  useEffect(() => {
+    if (user && (profile?.role === 'admin' || profile?.role === 'super-admin')) {
+      const leadSub = supabase
+        .channel('admin-lead-alerts')
+        .on(
+          'postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'sales_leads' },
+          (payload: any) => {
+            showNotification(
+              "🚀 Nouveau Prospect IA !",
+              "Une nouvelle demande a été détectée sur WhatsApp. Cliquez pour analyser.",
+              'info'
+            );
+            // Play a subtle notification sound or trigger a refresh if needed
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(leadSub);
+      };
+    }
+  }, [user, profile]);
   const { openCalculator } = useUI(); // FIX MISSING DESTRUCTURING
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -181,11 +216,11 @@ export default function DashboardLayout() {
               path: "/dashboard/client",
               icon: LayoutDashboard,
             },
-            {
+            ...(showAcademy ? [{
               name: "Académie",
               path: "/dashboard/client/academy",
               icon: GraduationCap,
-            },
+            }] : []),
           ],
         },
         {
@@ -331,6 +366,7 @@ export default function DashboardLayout() {
           { name: t("dashboard.menu.myOffers"), path: "/dashboard/forwarder/offers", icon: FileText, isAutomated: true },
           { name: "Mes Tarifs Standards", path: "/dashboard/forwarder/rates", icon: Tag, isAutomated: true },
           { name: t("dashboard.menu.shipments"), path: "/dashboard/forwarder/shipments", icon: Truck },
+          { name: t("dashboard.menu.pos"), path: "/dashboard/forwarder/pos", icon: Scan },
           { name: t("dashboard.menu.documents"), path: "/dashboard/forwarder/documents", icon: FileText },
           { name: t("dashboard.menu.pod"), path: "/dashboard/forwarder/pod", icon: FileText, isAutomated: true },
         );
@@ -398,11 +434,11 @@ export default function DashboardLayout() {
               path: "/dashboard/admin",
               icon: LayoutDashboard,
             },
-            {
+            ...(showAcademy ? [{
               name: "Académie",
               path: "/dashboard/admin/academy",
               icon: GraduationCap,
-            },
+            }] : []),
             {
               name: "Mes certificats",
               path: "/dashboard/certificates",
@@ -443,6 +479,11 @@ export default function DashboardLayout() {
         {
           title: t("dashboard.menu.administration"),
           items: [
+            {
+              name: t("dashboard.menu.leads") || "Leads Prospect",
+              path: "/dashboard/admin/leads",
+              icon: Target,
+            },
             {
               name: t("dashboard.menu.users"),
               path: "/dashboard/admin/users",
@@ -678,6 +719,38 @@ export default function DashboardLayout() {
 
   return (
     <div className="h-screen overflow-hidden bg-slate-50 dark:bg-dark-bg flex transition-colors duration-300">
+      <CommandPalette />
+
+      {/* Prominent Floating Search Trigger (v2026) */}
+      <div className="fixed top-28 left-1/2 -translate-x-1/2 z-[100] animate-in fade-in slide-in-from-top-8 duration-1000 hidden md:block">
+        <button
+          onClick={openCommandPalette}
+          className="group relative flex items-center gap-3 px-6 py-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl border border-primary/20 hover:border-primary/40 rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] hover:shadow-primary/20 transition-all duration-500 hover:scale-110 active:scale-95 group"
+        >
+          {/* Pulsing Aura */}
+          <div className="absolute inset-0 rounded-full bg-primary/10 animate-pulse duration-[3000ms]" />
+
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg group-hover:rotate-12 transition-transform duration-500">
+            <Search className="w-5 h-5 text-white" />
+          </div>
+
+          <div className="flex flex-col items-start">
+            <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em] leading-none mb-1">
+              Universal Search
+            </span>
+            <span className="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-2">
+              Rechercher partout
+              <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-slate-100 dark:bg-white/10 border border-slate-200 dark:border-white/10 text-[10px] font-black text-slate-400">
+                <span>⌘</span>
+                <span>K</span>
+              </div>
+            </span>
+          </div>
+
+          {/* Subtle Glow */}
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/0 via-primary/20 to-secondary/0 rounded-full blur opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        </button>
+      </div>
       <CalculatorModal />
       <KYCVerificationModal
         isOpen={kycModalOpen}
@@ -961,7 +1034,7 @@ export default function DashboardLayout() {
                     );
 
                     const translations: Record<string, string> = {
-                      forwarder: "Transitaire",
+                      forwarder: "Prestataire",
                       client: "Client",
                       admin: "Administrateur",
                       rfq: "Demandes RFQ",
@@ -1010,6 +1083,7 @@ export default function DashboardLayout() {
                 </div>
                 <span className="hidden lg:inline text-xs font-bold uppercase tracking-wider">Inviter</span>
               </Link>
+
 
               <div className="h-8 w-px bg-slate-200 dark:bg-slate-700 mx-1 hidden md:block"></div>
 
@@ -1064,7 +1138,7 @@ export default function DashboardLayout() {
                       {profile?.full_name?.split(" ")[0]}
                     </span>
                     <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wide leading-tight">
-                      {profile?.role === "forwarder" ? "Transitaire" : profile?.role}
+                      {profile?.role === "forwarder" ? "Prestataire" : profile?.role}
                     </span>
                   </div>
 

@@ -183,7 +183,7 @@ export const emailService = {
     const html = `
             <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
                 <h2 style="color: #16a34a;">Nouvelle Offre Reçue</h2>
-                <p>Un transitaire a soumis une offre pour votre demande de cotation.</p>
+                <p>Un prestataire a soumis une offre pour votre demande de cotation.</p>
                 <p>Connectez-vous pour comparer les offres et faire votre choix.</p>
                 <br/>
                 <a href="${window.location.origin}/dashboard/client/rfqs" style="background-color: #16a34a; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Voir mon offre</a>
@@ -201,7 +201,7 @@ export const emailService = {
             <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; line-height: 1.6;">
                 <h1 style="color: #2563eb;">Bienvenue dans le réseau NextMove Cargo</h1>
                 <p>Bonjour ${name},</p>
-                <p>Nous avons bien reçu votre demande pour devenir partenaire transitaire sur notre plateforme.</p>
+                <p>Nous avons bien reçu votre demande pour devenir prestataire sur notre plateforme.</p>
                 
                 <h3 style="color: #1e293b; margin-top: 20px;">Rappel des engagements</h3>
                 <ul style="color: #475569;">
