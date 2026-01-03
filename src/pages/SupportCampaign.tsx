@@ -1,7 +1,8 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, Copy, Check, ArrowRight, Star, Rocket, Shield, Globe, Wallet } from "lucide-react";
+import { Heart, Copy, Check, ArrowRight, Star, Rocket, Shield, Globe, Wallet, Share2 } from "lucide-react";
+import confetti from "canvas-confetti";
 import { supabase } from "../lib/supabase";
 
 // Modern Fintech Aesthetic Amounts
@@ -67,41 +68,113 @@ export default function SupportCampaign() {
         }
     };
 
+    // Trigger Confetti on Success
+    useEffect(() => {
+        if (submitted) {
+            confetti({
+                particleCount: 150,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#F59E0B', '#3B82F6', '#8B5CF6']
+            });
+
+            // Second burst for more impact
+            setTimeout(() => {
+                confetti({
+                    particleCount: 100,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0 },
+                    colors: ['#F59E0B', '#3B82F6']
+                });
+                confetti({
+                    particleCount: 100,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1 },
+                    colors: ['#F59E0B', '#8B5CF6']
+                });
+            }, 500);
+        }
+    }, [submitted]);
+
     if (submitted) {
         return (
-            <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center">
+            <div className="min-h-screen relative overflow-hidden flex items-center justify-center p-4 bg-slate-900">
+
+                {/* Immersive Background */}
+                <div className="absolute inset-0">
+                    <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-blue-600/30 rounded-full blur-[120px] animate-pulse"></div>
+                    <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] bg-purple-600/30 rounded-full blur-[120px] animate-pulse delay-1000"></div>
+                    <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
+                </div>
+
                 <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="bg-white p-10 rounded-3xl max-w-md w-full shadow-xl border border-slate-100"
+                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    transition={{ duration: 0.8, type: "spring" }}
+                    className="relative w-full max-w-lg bg-white/10 backdrop-blur-2xl border border-white/20 p-8 md:p-12 rounded-[2.5rem] text-center shadow-2xl shadow-black/50 overflow-hidden"
                 >
-                    <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <Heart className="w-10 h-10 text-emerald-500 fill-current" />
+                    {/* Glossy Reflection Effect */}
+                    <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent pointer-events-none"></div>
+
+                    {/* Animated Icon */}
+                    <div className="relative mb-8 inline-block">
+                        <motion.div
+                            animate={{ rotate: [0, 10, -10, 0] }}
+                            transition={{ repeat: Infinity, duration: 2, repeatDelay: 3 }}
+                            className="w-24 h-24 bg-gradient-to-tr from-amber-300 to-yellow-500 rounded-full flex items-center justify-center shadow-lg shadow-amber-500/30 text-5xl"
+                        >
+                            🏆
+                        </motion.div>
+                        <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ delay: 0.5 }}
+                            className="absolute -bottom-2 -right-2 bg-blue-600 text-white p-2 rounded-full border-4 border-slate-900 shadow-lg"
+                        >
+                            <Check className="w-5 h-5" />
+                        </motion.div>
                     </div>
-                    <h2 className="text-3xl font-bold text-slate-800 mb-4">Merci du fond du cœur !</h2>
-                    <p className="text-slate-500 mb-8 leading-relaxed">
-                        Votre soutien est la première brique de notre succès. <br />
-                        L'équipe NextMove vous remercie.
+
+                    <h2 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-600 mb-6 drop-shadow-sm leading-tight">
+                        Merci du fond <br /> du cœur !
+                    </h2>
+
+                    <p className="text-blue-100 text-lg mb-8 leading-relaxed font-medium">
+                        Votre soutien est une force incroyable.<br />
+                        Vous faites officiellement partie des <span className="text-white font-bold text-xl block mt-1">Pionniers de NextMove 🚀</span>
                     </p>
 
-                    <div className="p-6 bg-slate-50 rounded-2xl mb-8 border border-slate-100 text-left">
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Compte de dépôt</p>
-                        <div className="flex justify-between items-center">
-                            <span className="text-slate-600 font-medium">Wave / OM</span>
-                            <span className="font-mono font-bold text-slate-800 text-xl">77 658 17 41</span>
+                    {/* Payment Recap Card */}
+                    <div className="bg-slate-800/50 rounded-2xl p-6 border border-white/10 mb-8 backdrop-blur-md">
+                        <div className="flex justify-between items-center text-sm text-slate-400 mb-2 uppercase tracking-wider font-bold">
+                            <span>Contribution</span>
+                            <span className="flex items-center gap-1"><Shield className="w-3 h-3 text-green-400" /> Sécurisé</span>
                         </div>
-                        <div className="mt-4 pt-4 border-t border-slate-200 flex items-center gap-2 text-xs text-slate-400">
-                            <Shield className="w-4 h-4 text-emerald-500" />
-                            Validation manuelle sécurisée.
+                        <div className="flex justify-between items-baseline">
+                            <span className="text-white font-medium">Montant versé</span>
+                            <span className="text-2xl font-bold text-emerald-400">{selectedAmount?.toLocaleString() || "Don"} FCFA</span>
                         </div>
                     </div>
 
-                    <button
-                        onClick={() => window.location.href = '/'}
-                        className="w-full py-4 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-all shadow-lg hover:shadow-xl active:scale-95"
-                    >
-                        Fermer
-                    </button>
+                    {/* Actions */}
+                    <div className="space-y-4 relative z-10">
+                        <button
+                            onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent("Je viens de soutenir le lancement de NextMove Cargo ! Rejoins le mouvement ici : https://nextmovecargo.com/soutien 🚀")}`, '_blank')}
+                            className="w-full py-4 bg-[#25D366] hover:bg-[#20bd5a] text-white rounded-xl font-bold shadow-lg shadow-green-500/20 transition-all transform hover:-translate-y-1 flex items-center justify-center gap-3"
+                        >
+                            <Share2 className="w-5 h-5" />
+                            Partager ma fierté
+                        </button>
+
+                        <button
+                            onClick={() => window.location.href = '/dashboard/client'}
+                            className="w-full py-4 bg-white/10 hover:bg-white/20 text-white rounded-xl font-bold border border-white/10 transition-all flex items-center justify-center gap-3 backdrop-blur-md"
+                        >
+                            Aller au Tableau de Bord
+                        </button>
+                    </div>
                 </motion.div>
             </div>
         );
@@ -110,8 +183,11 @@ export default function SupportCampaign() {
     return (
         <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-blue-100 overflow-x-hidden">
 
-            {/* Subtle Pattern Background */}
-            <div className="fixed inset-0 pointer-events-none opacity-40 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] bg-[length:32px_32px]">
+            {/* Premium Animated Background */}
+            <div className="fixed inset-0 pointer-events-none z-0">
+                <div className="absolute top-0 -left-20 w-[600px] h-[600px] bg-blue-100/50 rounded-full blur-[120px] animate-pulse"></div>
+                <div className="absolute bottom-0 -right-20 w-[600px] h-[600px] bg-indigo-100/50 rounded-full blur-[120px] animate-pulse delay-1000"></div>
+                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-30 mix-blend-soft-light"></div>
             </div>
 
             <div className="relative max-w-6xl mx-auto px-6 py-12 lg:py-20 grid lg:grid-cols-2 gap-12 lg:gap-20 items-start">
@@ -137,19 +213,49 @@ export default function SupportCampaign() {
                         Votre contribution participe directement à cet envol technologique.
                     </p>
 
-                    <div className="flex items-center gap-8 text-slate-500 font-medium mb-12">
-                        <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
-                                <Check className="w-4 h-4" />
+                    <div className="flex flex-wrap items-center gap-6 text-slate-500 font-semibold mb-12">
+                        <div className="flex items-center gap-3 px-4 py-2 bg-white rounded-2xl shadow-sm border border-slate-100">
+                            <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 shadow-inner">
+                                <Check className="w-5 h-5" />
                             </div>
-                            Impact Réel
+                            <span className="text-sm">Impact Direct</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600">
-                                <Globe className="w-4 h-4" />
+                        <div className="flex items-center gap-3 px-4 py-2 bg-white rounded-2xl shadow-sm border border-slate-100">
+                            <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600 shadow-inner">
+                                <Globe className="w-5 h-5" />
                             </div>
-                            Innovation
+                            <span className="text-sm">100% Sénégalais</span>
                         </div>
+                    </div>
+
+                    {/* Live Progress Bar (High Reward Visual) */}
+                    <div className="mb-12 max-w-lg bg-white p-6 rounded-[2rem] shadow-xl shadow-blue-900/5 border border-slate-100 relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                            <Rocket className="w-20 h-20" />
+                        </div>
+                        <div className="flex justify-between items-end mb-4">
+                            <div>
+                                <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-1">Objectif Lancement</p>
+                                <h4 className="text-2xl font-black text-slate-900">7 250 000 <span className="text-sm text-slate-400 font-bold">XOF</span></h4>
+                            </div>
+                            <div className="text-right">
+                                <p className="text-3xl font-black text-blue-600">68%</p>
+                            </div>
+                        </div>
+                        <div className="h-4 bg-slate-100 rounded-full overflow-hidden p-1 border border-slate-200/50">
+                            <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: "68%" }}
+                                transition={{ duration: 2, ease: "easeOut" }}
+                                className="h-full bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-600 rounded-full shadow-lg relative"
+                            >
+                                <div className="absolute inset-0 bg-[linear-gradient(45deg,rgba(255,255,255,0.2)_25%,transparent_25%,transparent_50%,rgba(255,255,255,0.2)_50%,rgba(255,255,255,0.2)_75%,transparent_75%,transparent)] bg-[length:20px_20px] animate-[shimmer_2s_linear_infinite]"></div>
+                            </motion.div>
+                        </div>
+                        <p className="mt-4 text-xs font-medium text-slate-500 flex items-center gap-2">
+                            <Star className="w-3 h-3 text-amber-500 fill-current" />
+                            Déjà <span className="text-slate-900 font-bold">142 supporters</span> ont rejoint l'aventure !
+                        </p>
                     </div>
 
                     {/* International Transfer Highlight - Desktop Position */}
@@ -396,11 +502,35 @@ export default function SupportCampaign() {
 
                         </form>
                     </div>
-                    <p className="mt-6 text-center text-xs text-slate-400 max-w-md mx-auto text-balance leading-relaxed">
-                        Ceci est une campagne de soutien (don) pour le lancement du projet. Merci de faire partie de nos premiers supporters !
-                    </p>
+                    <div className="mt-8 grid grid-cols-2 gap-4">
+                        <div className="p-4 bg-white/50 rounded-2xl border border-slate-100 text-center">
+                            <Shield className="w-5 h-5 text-blue-600 mx-auto mb-2" />
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sécure</p>
+                        </div>
+                        <div className="p-4 bg-white/50 rounded-2xl border border-slate-100 text-center">
+                            <Star className="w-5 h-5 text-amber-500 mx-auto mb-2" />
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Premium</p>
+                        </div>
+                    </div>
                 </motion.div>
 
+            </div>
+
+            {/* Why Support Section (Horizontal Flow) */}
+            <div className="relative max-w-6xl mx-auto px-6 pb-20">
+                <div className="grid md:grid-cols-3 gap-8">
+                    {[
+                        { title: "Indépendance", desc: "Soutenir un projet 100% autonome et technologique.", emoji: "🇸🇳" },
+                        { title: "Transformation", desc: "Digitaliser le transport pour réduire les coûts et délais.", emoji: "⚡" },
+                        { title: "Emplois", desc: "Créer des opportunités pour la jeunesse locale.", emoji: "👨‍💻" }
+                    ].map((item, i) => (
+                        <div key={i} className="bg-white/40 backdrop-blur-sm p-8 rounded-3xl border border-white/60 hover:border-blue-200 transition-colors">
+                            <div className="text-3xl mb-4">{item.emoji}</div>
+                            <h4 className="text-xl font-bold text-slate-900 mb-2">{item.title}</h4>
+                            <p className="text-slate-500 text-sm leading-relaxed">{item.desc}</p>
+                        </div>
+                    ))}
+                </div>
             </div>
 
             {/* Payment Modal for Real Transactions */}

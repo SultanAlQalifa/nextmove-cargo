@@ -22,6 +22,10 @@ export default {
                 sans: ['Outfit', 'sans-serif'],
             },
             keyframes: {
+                shimmer: {
+                    '0%': { backgroundPosition: '0 0' },
+                    '100%': { backgroundPosition: '40px 0' },
+                },
                 swing: {
                     '0%, 100%': { transform: 'rotate(0deg)' },
                     '20%': { transform: 'rotate(15deg)' },
