@@ -92,6 +92,7 @@ export default function PWAInstallPrompt() {
             </button>
             <button
               onClick={handleInstallClick}
+              title="Installer l'application sur votre appareil"
               className="flex-[2] sm:flex-none bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-6 py-3 rounded-2xl text-sm font-black shadow-xl hover:scale-105 active:scale-95 transition-all"
             >
               Installer
