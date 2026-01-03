@@ -9,13 +9,14 @@ import {
     Send,
     MessageSquare,
     Zap,
-    ArrowRight
+    ArrowRight,
+    Heart
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../../lib/supabase";
 import { useToast } from "../../../contexts/ToastContext";
 
-type LeadStatus = 'new' | 'contacted' | 'converted' | 'closed';
+type LeadStatus = 'new' | 'contacted' | 'converted' | 'closed' | 'support';
 
 interface SalesLead {
     id: string;
@@ -39,6 +40,11 @@ export default function AdminLeads() {
     const [statusFilter, setStatusFilter] = useState<LeadStatus | 'all'>('all');
     const { success, error: toastError } = useToast();
     const navigate = useNavigate();
+
+    // Calculate Support Total
+    const totalSupportAmount = leads
+        .filter(l => l.metadata?.source === 'support_campaign')
+        .reduce((sum, current) => sum + (Number(current.metadata?.amount) || 0), 0);
 
     const convertLeadToRFQ = (lead: SalesLead) => {
         // Map lead metadata to RFQ form state
@@ -104,7 +110,11 @@ export default function AdminLeads() {
             (l.profiles?.full_name?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
             (l.profiles?.email?.toLowerCase() || "").includes(searchQuery.toLowerCase());
 
-        const matchesStatus = statusFilter === 'all' || l.status === statusFilter;
+        const matchesStatus = statusFilter === 'all'
+            ? true
+            : statusFilter === 'support'
+                ? l.metadata?.source === 'support_campaign'
+                : l.status === statusFilter;
 
         return matchesSearch && matchesStatus;
     });
@@ -134,11 +144,12 @@ export default function AdminLeads() {
                 subtitle="Leads capturés automatiquement par l'IA"
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                 {[
                     { label: "Total Leads", value: leads.length, color: "blue", icon: Target },
                     { label: "Nouveaux", value: leads.filter(l => l.status === 'new').length, color: "amber", icon: Clock },
                     { label: "Convertis", value: leads.filter(l => l.status === 'converted').length, color: "emerald", icon: CheckCircle2 },
+                    { label: "Total Soutien", value: `${totalSupportAmount.toLocaleString()} XOF`, color: "rose", icon: Heart },
                     { label: "Taux Conv.", value: leads.length ? `${Math.round((leads.filter(l => l.status === 'converted').length / leads.length) * 100)}%` : '0%', color: "purple", icon: Send }
                 ].map((stat, i) => (
                     <div key={i} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
@@ -155,7 +166,7 @@ export default function AdminLeads() {
 
             <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
                 <div className="bg-white p-1.5 rounded-2xl shadow-sm border border-gray-100 flex gap-2 w-full md:w-auto overflow-x-auto">
-                    {['all', 'new', 'contacted', 'converted', 'closed'].map((s) => (
+                    {['all', 'new', 'contacted', 'converted', 'closed', 'support'].map((s) => (
                         <button
                             key={s}
                             onClick={() => setStatusFilter(s as any)}
@@ -164,7 +175,7 @@ export default function AdminLeads() {
                                 : 'text-gray-500 hover:bg-gray-50'
                                 }`}
                         >
-                            {s === 'all' ? 'Tous' : getStatusLabel(s as LeadStatus)}
+                            {s === 'all' ? 'Tous' : s === 'support' ? 'Soutiens' : getStatusLabel(s as LeadStatus)}
                         </button>
                     ))}
                 </div>
@@ -223,9 +234,20 @@ export default function AdminLeads() {
                                             </div>
                                         </td>
                                         <td className="px-6 py-5">
-                                            <span className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-full border ${getStatusColor(lead.status)}`}>
-                                                {getStatusLabel(lead.status)}
-                                            </span>
+                                            {lead.metadata?.source === 'support_campaign' ? (
+                                                <div className="flex flex-col gap-1">
+                                                    <span className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-full border bg-rose-50 text-rose-600 border-rose-100 flex items-center gap-1 w-fit`}>
+                                                        <Heart className="w-3 h-3 fill-current" /> Soutien
+                                                    </span>
+                                                    <span className="text-sm font-black text-rose-600">
+                                                        {Number(lead.metadata?.amount).toLocaleString()} XOF
+                                                    </span>
+                                                </div>
+                                            ) : (
+                                                <span className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-full border ${getStatusColor(lead.status)}`}>
+                                                    {getStatusLabel(lead.status)}
+                                                </span>
+                                            )}
                                         </td>
                                         <td className="px-6 py-5 text-sm text-gray-500 font-medium">
                                             {new Date(lead.created_at).toLocaleDateString()}
