@@ -32,8 +32,8 @@ const RoutingComet = ({ path, color, duration = 3, delay = 0 }: { path: string; 
     <motion.circle
         r="1.5"
         fill={color}
-        initial={{ offsetDistance: "0%" }}
-        animate={{ offsetDistance: "100%" }}
+        initial={{ style: { offsetDistance: "0%" } } as any}
+        animate={{ style: { offsetDistance: "100%" } } as any}
         transition={{
             duration,
             repeat: Infinity,
@@ -42,7 +42,8 @@ const RoutingComet = ({ path, color, duration = 3, delay = 0 }: { path: string; 
         }}
         style={{
             offsetPath: `path("${path}")`,
-            filter: `drop-shadow(0 0 2px ${color})`
+            filter: `drop-shadow(0 0 2px ${color})`,
+            position: 'absolute'
         }}
     />
 );
