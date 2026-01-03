@@ -109,6 +109,21 @@ export default function InstallGuideModal({
                 </div>
               </li>
             </ol>
+
+            <div className="mt-6">
+              <a
+                href="https://dkbnmnpxoesvkbnwuyle.supabase.co/storage/v1/object/public/apks/latest/nextmove-cargo.apk"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-3 w-full py-4 bg-slate-900 border border-slate-800 text-white rounded-2xl font-bold shadow-lg hover:bg-slate-800 transition-all active:scale-95"
+              >
+                <Download className="w-5 h-5 text-emerald-400" />
+                <span>Télécharger l'APK Directement</span>
+              </a>
+              <p className="text-[10px] text-center text-gray-400 mt-2 uppercase tracking-widest font-bold">
+                Recommandé pour une installation rapide
+              </p>
+            </div>
           </div>
 
           <div className="h-px bg-gray-100 dark:bg-gray-700" />
