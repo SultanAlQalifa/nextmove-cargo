@@ -105,22 +105,8 @@ export default function DashboardLayout() {
   const { openCommandPalette } = useUI();
   const showAcademy = useFeature('academy_portal');
 
-  useEffect(() => {
-    // Subscribe to Realtime Notifications
-    if (user) {
-      const subscription = notificationService?.subscribeToNotifications ? notificationService.subscribeToNotifications((payload) => {
-        const newNotif = payload.new as Notification;
-        if (newNotif.user_id === user.id) {
-          showNotification(newNotif.title, newNotif.message, 'info');
-        }
-      }) : { unsubscribe: () => { } };
+  // Centralized notifications are now handled by NotificationContext
 
-      return () => {
-        subscription.unsubscribe();
-      };
-    }
-    return undefined;
-  }, [user]);
 
   // Real-time Lead Alerts for Admins
   useEffect(() => {
@@ -721,34 +707,25 @@ export default function DashboardLayout() {
     <div className="h-screen overflow-hidden bg-slate-50 dark:bg-dark-bg flex transition-colors duration-300">
       <CommandPalette />
 
-      {/* Prominent Floating Search Trigger (v2026) */}
-      <div className="fixed top-28 left-1/2 -translate-x-1/2 z-[100] animate-in fade-in slide-in-from-top-8 duration-1000 hidden md:block">
+      {/* Prominent Floating Search Trigger (v2026) - Repositioned to prevent header overlap */}
+      <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[100] animate-in fade-in slide-in-from-top-8 duration-1000 hidden md:block">
         <button
           onClick={openCommandPalette}
-          className="group relative flex items-center gap-3 px-6 py-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl border border-primary/20 hover:border-primary/40 rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] hover:shadow-primary/20 transition-all duration-500 hover:scale-110 active:scale-95 group"
+          className="group relative flex items-center gap-3 px-4 py-2 bg-white/70 dark:bg-slate-900/70 backdrop-blur-3xl border border-primary/20 hover:border-primary/40 rounded-full shadow-[0_10px_30px_rgba(0,0,0,0.1)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.2)] hover:shadow-primary/10 transition-all duration-500 hover:scale-105 active:scale-95 group"
         >
-          {/* Pulsing Aura */}
-          <div className="absolute inset-0 rounded-full bg-primary/10 animate-pulse duration-[3000ms]" />
-
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg group-hover:rotate-12 transition-transform duration-500">
-            <Search className="w-5 h-5 text-white" />
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-md group-hover:rotate-12 transition-transform duration-500">
+            <Search className="w-4 h-4 text-white" />
           </div>
 
-          <div className="flex flex-col items-start">
-            <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em] leading-none mb-1">
-              Universal Search
+          <div className="flex items-center gap-3 pr-2">
+            <span className="text-sm font-bold text-slate-800 dark:text-white">
+              Rechercher
             </span>
-            <span className="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-2">
-              Rechercher partout
-              <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-slate-100 dark:bg-white/10 border border-slate-200 dark:border-white/10 text-[10px] font-black text-slate-400">
-                <span>⌘</span>
-                <span>K</span>
-              </div>
-            </span>
+            <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-slate-100 dark:bg-white/10 border border-slate-200 dark:border-white/10 text-[10px] font-black text-slate-400">
+              <span>⌘</span>
+              <span>K</span>
+            </div>
           </div>
-
-          {/* Subtle Glow */}
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/0 via-primary/20 to-secondary/0 rounded-full blur opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
         </button>
       </div>
       <CalculatorModal />
@@ -922,12 +899,12 @@ export default function DashboardLayout() {
               </div>
             </div>
           ))}
-        </nav>
 
-        {/* Mobile App Download Links */}
-        <div className="px-4 pb-4 mt-auto">
-          <AppDownloadLinks isCollapsed={isCollapsed} />
-        </div>
+          {/* Mobile App Download Links - Moved inside scrollable area */}
+          <div className="pt-4 mt-8 border-t border-gray-100/50 dark:border-white/5">
+            <AppDownloadLinks isCollapsed={isCollapsed} />
+          </div>
+        </nav>
 
         {/* Bottom Actions */}
         <div className="p-4 border-t border-gray-50 dark:border-gray-700">

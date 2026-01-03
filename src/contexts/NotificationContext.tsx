@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useMemo } from "react";
 import { useAuth } from "./AuthContext";
 import { notificationService, Notification } from "../services/notificationService";
 import { supabase } from "../lib/supabase";
@@ -7,6 +7,7 @@ import { useToast } from "./ToastContext";
 interface NotificationContextType {
     notifications: Notification[];
     unreadCount: number;
+    loading: boolean;
     markAsRead: (id: string) => Promise<void>;
     markAllAsRead: () => Promise<void>;
     refreshNotifications: () => Promise<void>;
@@ -20,11 +21,23 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [unreadCount, setUnreadCount] = useState(0);
 
+
+    const [loading, setLoading] = useState(true);
+
     const refreshNotifications = async () => {
-        if (!user) return;
-        const data = await notificationService.getNotifications();
-        setNotifications(data);
-        setUnreadCount(data.filter((n) => !n.is_read).length);
+        if (!user) {
+            setLoading(false);
+            return;
+        }
+        try {
+            const data = await notificationService.getNotifications();
+            setNotifications(data);
+            setUnreadCount(data.filter((n) => !n.read_at).length);
+        } catch (error) {
+            console.error("Error refreshing notifications:", error);
+        } finally {
+            setLoading(false);
+        }
     };
 
     useEffect(() => {
@@ -77,16 +90,18 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         setUnreadCount(0);
     };
 
+
+    const contextValue = useMemo(() => ({
+        notifications,
+        unreadCount,
+        loading,
+        markAsRead,
+        markAllAsRead,
+        refreshNotifications,
+    }), [notifications, unreadCount, loading]);
+
     return (
-        <NotificationContext.Provider
-            value={{
-                notifications,
-                unreadCount,
-                markAsRead,
-                markAllAsRead,
-                refreshNotifications,
-            }}
-        >
+        <NotificationContext.Provider value={contextValue}>
             {children}
         </NotificationContext.Provider>
     );

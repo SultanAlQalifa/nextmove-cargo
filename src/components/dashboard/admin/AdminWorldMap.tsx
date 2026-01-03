@@ -43,8 +43,8 @@ const RoutingComet = ({ path, color, duration = 3, delay = 0 }: { path: string; 
         style={{
             offsetPath: `path("${path}")`,
             filter: `drop-shadow(0 0 2px ${color})`,
-            position: 'absolute'
         }}
+        className="absolute"
     />
 );
 
@@ -147,7 +147,16 @@ export const AdminWorldMap = () => {
                     <div className="flex items-center gap-2">
                         <div className="flex -space-x-2">
                             {Object.values(PORTS).slice(1, 4).map((p, i) => (
-                                <div key={i} className={`w-6 h-6 rounded-full border-2 border-white dark:border-slate-900`} style={{ backgroundColor: p.color }} />
+                                <div
+                                    key={i}
+                                    className={`w-6 h-6 rounded-full border-2 border-white dark:border-slate-900 ${p.color === "#fbbf24" ? "bg-amber-400" :
+                                            p.color === "#60a5fa" ? "bg-blue-400" :
+                                                p.color === "#f472b6" ? "bg-pink-400" :
+                                                    p.color === "#34d399" ? "bg-emerald-400" :
+                                                        p.color === "#a78bfa" ? "bg-violet-400" :
+                                                            "bg-indigo-500"
+                                        }`}
+                                />
                             ))}
                         </div>
                         <span className="text-sm font-black text-slate-700 dark:text-white">+18 Hubs</span>

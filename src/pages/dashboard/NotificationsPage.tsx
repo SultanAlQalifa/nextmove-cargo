@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Bell,
@@ -15,15 +15,14 @@ import { Notification } from "../../services/notificationService";
 
 export default function NotificationsPage() {
   const navigate = useNavigate();
-  const { notifications, markAsRead, markAllAsRead, refreshNotifications } = useNotifications();
-  const [loading, setLoading] = useState(false);
+  const { notifications, unreadCount, loading, markAsRead, markAllAsRead, refreshNotifications } = useNotifications();
 
   useEffect(() => {
     refreshNotifications();
   }, []);
 
   const handleNotificationClick = async (notification: Notification) => {
-    if (!notification.is_read) {
+    if (!notification.read_at) {
       await markAsRead(notification.id);
     }
     if (notification.link) {
@@ -65,7 +64,7 @@ export default function NotificationsPage() {
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
           <span className="text-sm text-gray-500 font-medium">
-            {notifications.filter((n) => !n.is_read).length} non lues
+            {unreadCount} non lues
           </span>
           {notifications.length > 0 && (
             <button
@@ -100,7 +99,7 @@ export default function NotificationsPage() {
               <div
                 key={notification.id}
                 onClick={() => handleNotificationClick(notification)}
-                className={`p-6 hover:bg-gray-50 transition-colors cursor-pointer flex gap-4 ${!notification.is_read ? "bg-blue-50/30" : ""}`}
+                className={`p-6 hover:bg-gray-50 transition-colors cursor-pointer flex gap-4 ${!notification.read_at ? "bg-blue-50/30" : ""}`}
               >
                 <div className="flex-shrink-0 mt-1">
                   {getIcon(notification.type)}
@@ -108,7 +107,7 @@ export default function NotificationsPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-start mb-1">
                     <h4
-                      className={`text-base ${!notification.is_read ? "font-semibold text-gray-900" : "font-medium text-gray-900"}`}
+                      className={`text-base ${!notification.read_at ? "font-semibold text-gray-900" : "font-medium text-gray-900"}`}
                     >
                       {notification.title}
                     </h4>
@@ -120,7 +119,7 @@ export default function NotificationsPage() {
                     {notification.message}
                   </p>
                 </div>
-                {!notification.is_read && (
+                {!notification.read_at && (
                   <div className="flex-shrink-0 self-center">
                     <div className="w-3 h-3 bg-blue-500 rounded-full shadow-sm shadow-blue-200"></div>
                   </div>

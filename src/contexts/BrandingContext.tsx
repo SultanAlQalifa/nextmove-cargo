@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useMemo } from "react";
 import { brandingService, BrandingSettings, DEFAULT_BRANDING } from "../services/brandingService";
 
 interface BrandingContextType {
@@ -60,13 +60,14 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
     );
     icons.forEach(icon => {
       if (data.favicon_url) {
-        // Force refresh by creating a new link element
-        const newLink = document.createElement('link');
-        newLink.rel = (icon as HTMLLinkElement).rel;
-        newLink.type = (icon as HTMLLinkElement).type;
-        newLink.href = `${data.favicon_url}?v=${new Date().getTime()}`;
-        document.head.removeChild(icon);
-        document.head.appendChild(newLink);
+        const hIcon = icon as HTMLLinkElement;
+        // Only update if the base URL actually changed to avoid re-render loops
+        const currentUrl = hIcon.href.split('?v=')[0];
+        const newUrl = data.favicon_url.startsWith('http') ? data.favicon_url : `${window.location.origin}${data.favicon_url}`;
+
+        if (currentUrl !== newUrl) {
+          hIcon.href = `${data.favicon_url}?v=${new Date().getTime()}`;
+        }
       }
     });
 
@@ -132,10 +133,15 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
     fetchBranding();
   }, []);
 
+
+  const contextValue = useMemo(() => ({
+    settings,
+    loading,
+    refreshBranding: fetchBranding
+  }), [settings, loading]);
+
   return (
-    <BrandingContext.Provider
-      value={{ settings, loading, refreshBranding: fetchBranding }}
-    >
+    <BrandingContext.Provider value={contextValue}>
       {children}
     </BrandingContext.Provider>
   );
