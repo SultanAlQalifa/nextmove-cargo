@@ -16,26 +16,16 @@ import PhoneInputWithCountry from "../components/auth/PhoneInputWithCountry";
 // However, since zodResolver(schema) doesn't easily take external context, 
 // we'll keep the schema broad and handle specific validation if needed, 
 // or just use the refinement for password matching.
-const getCompleteProfileSchema = (isExternal: boolean) => z.object({
+const completeProfileSchema = z.object({
     firstName: z.string().min(2, "Le prénom est requis"),
     lastName: z.string().min(2, "Le nom est requis"),
     phone: z.string().min(8, "Numéro de téléphone invalide"),
-    password: isExternal ? z.string().optional() : z.string().min(6, "Le mot de passe doit contenir au moins 6 caractères"),
-    confirmPassword: z.string().optional(),
-}).refine((data) => {
-    if (!isExternal && data.password !== data.confirmPassword) return false;
-    return true;
-}, {
-    message: "Les mots de passe ne correspondent pas",
-    path: ["confirmPassword"],
 });
 
 interface CompleteProfileForm {
     firstName: string;
     lastName: string;
     phone: string;
-    password?: string;
-    confirmPassword?: string;
 }
 
 export default function CompleteProfile() {
@@ -55,12 +45,8 @@ export default function CompleteProfile() {
         }
     }, [profile, authLoading, navigate]);
 
-    const isExternalUser = user?.app_metadata?.provider === 'google' || user?.app_metadata?.provider === 'phone';
-
-    // Select schema based on auth provider
-    const activeSchema = useMemo(() => {
-        return getCompleteProfileSchema(isExternalUser);
-    }, [isExternalUser]);
+    // Select schema (Now simplified, no password)
+    const activeSchema = completeProfileSchema;
 
     const {
         register,
@@ -74,14 +60,37 @@ export default function CompleteProfile() {
 
     const phoneValue = watch("phone");
 
-    // Pre-fill name from Google Metadata if available
+    // 1. Auto-Redirect & Pre-fill Logic
     useEffect(() => {
-        if (user?.user_metadata?.full_name) {
+        if (!authLoading && profile) {
+            // Check if profile is already complete
+            const hasName = profile.full_name && profile.full_name.trim().includes(' ');
+            const hasPhone = profile.phone && profile.phone.length >= 8;
+
+            if (hasName && hasPhone) {
+                console.log("Profile already complete, redirecting...");
+                navigate("/dashboard", { replace: true });
+                return;
+            }
+
+            // Pre-fill from existing profile data (Admin created)
+            if (profile.full_name) {
+                const parts = profile.full_name.trim().split(' ');
+                if (parts.length >= 1) setValue("firstName", parts[0]);
+                if (parts.length >= 2) setValue("lastName", parts.slice(1).join(' '));
+            }
+            if (profile.phone) {
+                setValue("phone", profile.phone);
+            }
+        }
+
+        // Secondary fallback for Google Metadata if Profile is blank
+        if (!authLoading && user?.user_metadata?.full_name && !profile?.full_name) {
             const parts = user.user_metadata.full_name.split(' ');
             if (parts.length >= 1) setValue("firstName", parts[0]);
             if (parts.length >= 2) setValue("lastName", parts.slice(1).join(' '));
         }
-    }, [user, setValue]);
+    }, [user, profile, authLoading, setValue, navigate]);
 
 
     const onSubmit = async (data: CompleteProfileForm) => {
@@ -92,20 +101,11 @@ export default function CompleteProfile() {
         try {
             const fullName = `${data.firstName} ${data.lastName}`.trim();
 
-            // 1. Update Password (ONLY if not External User)
-            if (!isExternalUser && data.password) {
-                const { error: authError } = await supabase.auth.updateUser({
-                    password: data.password,
-                    data: { full_name: fullName }
-                });
-                if (authError) throw authError;
-            } else {
-                // Just update metadata if no password change needed
-                const { error: metaError } = await supabase.auth.updateUser({
-                    data: { full_name: fullName }
-                });
-                if (metaError) throw metaError;
-            }
+            // Just update metadata (Password management removed from here)
+            const { error: metaError } = await supabase.auth.updateUser({
+                data: { full_name: fullName }
+            });
+            if (metaError) throw metaError;
 
             // 2. Update Profile in DB (Self-healing: Insert if missing)
             const { data: existingProfile } = await supabase
@@ -285,49 +285,7 @@ export default function CompleteProfile() {
                                 {errors.phone && (<p className="ml-1 text-xs text-red-500 font-medium">{errors.phone.message as any}</p>)}
                             </div>
 
-                            {!isExternalUser && (
-                                <>
-                                    <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800">
-                                        <div className="flex gap-3">
-                                            <Lock className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
-                                            <div>
-                                                <h4 className="text-sm font-bold text-blue-900 dark:text-blue-100 mb-1">Sécurisez votre compte</h4>
-                                                <p className="text-xs text-blue-700 dark:text-blue-300">
-                                                    Définissez un mot de passe pour pouvoir vous connecter sans Google la prochaine fois.
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-4">
-                                        <div className="relative group">
-                                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                                <Lock className="h-5 w-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
-                                            </div>
-                                            <input
-                                                type="password"
-                                                {...register("password")}
-                                                className="block w-full pl-11 pr-4 py-3.5 border-2 border-transparent bg-white dark:bg-slate-900 rounded-2xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-blue-500/20 focus:ring-4 focus:ring-blue-500/10 shadow-sm shadow-slate-200/50 dark:shadow-none transition-all duration-200"
-                                                placeholder="Nouveau mot de passe"
-                                            />
-                                        </div>
-                                        {errors.password && (<p className="ml-1 text-xs text-red-500 font-medium">{errors.password.message as any}</p>)}
-
-                                        <div className="relative group">
-                                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                                <CheckCircle2 className="h-5 w-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
-                                            </div>
-                                            <input
-                                                type="password"
-                                                {...register("confirmPassword")}
-                                                className="block w-full pl-11 pr-4 py-3.5 border-2 border-transparent bg-white dark:bg-slate-900 rounded-2xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-blue-500/20 focus:ring-4 focus:ring-blue-500/10 shadow-sm shadow-slate-200/50 dark:shadow-none transition-all duration-200"
-                                                placeholder="Confirmer mot de passe"
-                                            />
-                                        </div>
-                                        {errors.confirmPassword && (<p className="ml-1 text-xs text-red-500 font-medium">{errors.confirmPassword.message as any}</p>)}
-                                    </div>
-                                </>
-                            )}
+                            {/* Password Section Removed */}
 
                             <button
                                 type="submit"

@@ -56,10 +56,18 @@ export default function POSDashboard() {
     // Load session and rates
     useEffect(() => {
         const loadInitialData = async () => {
-            const session = await posService.getActiveSession();
-            if (session) {
-                setActiveSession(session);
-            } else {
+            try {
+                const session = await posService.getActiveSession();
+                if (session) {
+                    setActiveSession(session);
+                } else {
+                    // Auto-open session with 0 initial cash for faster workflow
+                    const newSession = await posService.openSession(0);
+                    setActiveSession(newSession);
+                    // success("Session automatique ouverte"); // Quietly open
+                }
+            } catch (err: any) {
+                console.error("Auto-session failed, showing manual modal", err);
                 setShowOpenSession(true);
             }
 
@@ -67,7 +75,7 @@ export default function POSDashboard() {
             setRealRates(rates);
         };
         loadInitialData();
-    }, []);
+    }, [success]); // Added success to dependencies just in case
 
     // Search clients when query changes
     useEffect(() => {

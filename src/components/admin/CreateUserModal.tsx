@@ -46,7 +46,7 @@ export default function CreateUserModal({
       setFormData({
         fullName: user.name,
         email: user.email,
-        role: user.role.toLowerCase(),
+        role: user.role === "Prestataire" ? "forwarder" : (user.role === "Client" ? "client" : user.role),
         phone: (user as any).phone || "",
       });
     }
