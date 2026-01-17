@@ -16,13 +16,13 @@ export default defineConfig({
         theme_color: '#0f172a', // Slate-900
         background_color: '#ffffff',
         display: 'standalone',
-        scope: '/',
-        start_url: '/',
+        scope: './',
+        start_url: './',
         orientation: 'portrait',
         categories: ['logistics', 'business', 'productivity'],
         screenshots: [
           {
-            src: '/nextmove-mobile.png',
+            src: 'nextmove-mobile.png',
             sizes: '1080x1920',
             type: 'image/png',
             label: 'Tableau de bord NextMove'
@@ -32,31 +32,31 @@ export default defineConfig({
           {
             name: 'Suivre un colis',
             short_name: 'Suivi',
-            url: '/tracking',
-            icons: [{ src: '/pwa-192x192.png', sizes: '192x192' }]
+            url: 'tracking',
+            icons: [{ src: 'pwa-192x192.png', sizes: '192x192' }]
           },
           {
             name: 'Calculateur de prix',
             short_name: 'Prix',
-            url: '/calculator',
-            icons: [{ src: '/pwa-192x192.png', sizes: '192x192' }]
+            url: 'calculator',
+            icons: [{ src: 'pwa-192x192.png', sizes: '192x192' }]
           }
         ],
         icons: [
           {
-            src: '/pwa-192x192.png',
+            src: 'pwa-192x192.png',
             sizes: '192x192',
             type: 'image/png',
             purpose: 'any maskable'
           },
           {
-            src: '/pwa-512x512.png',
+            src: 'pwa-512x512.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any maskable'
           },
           {
-            src: '/logo.png',
+            src: 'logo.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any'

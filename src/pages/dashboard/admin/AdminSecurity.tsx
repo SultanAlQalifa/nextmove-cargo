@@ -65,10 +65,10 @@ export default function AdminSecurity() {
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
     return (
-      log.action.toLowerCase().includes(query) ||
-      log.resource.toLowerCase().includes(query) ||
-      log.user?.full_name?.toLowerCase().includes(query) ||
-      log.user?.email?.toLowerCase().includes(query)
+      (log.action?.toLowerCase() || "").includes(query) ||
+      (log.resource?.toLowerCase() || "").includes(query) ||
+      (log.user?.full_name?.toLowerCase() || "").includes(query) ||
+      (log.user?.email?.toLowerCase() || "").includes(query)
     );
   });
 
@@ -180,11 +180,11 @@ export default function AdminSecurity() {
                       </td>
                       <td className="px-6 py-4">
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 capitalize">
-                          {log.action.replace(/_/g, " ")}
+                          {log.action ? log.action.replace(/_/g, " ") : "Action inconnue"}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600">
-                        {log.resource} <span className="text-gray-400 text-xs">({log.resource_id?.slice(0, 8)}...)</span>
+                        {log.resource || "Ressource inconnue"} <span className="text-gray-400 text-xs">({log.resource_id?.slice(0, 8) || "N/A"}...)</span>
                       </td>
                       <td className="px-6 py-4 text-right">
                         <button

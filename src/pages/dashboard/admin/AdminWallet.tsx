@@ -4,8 +4,6 @@ import PageHeader from "../../../components/common/PageHeader";
 import {
     Wallet,
     Search,
-    Wallet,
-    Search,
     MoreVertical,
     ArrowUpRight,
     ArrowDownRight,
