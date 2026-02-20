@@ -20,13 +20,14 @@ export interface POD {
     name: string;
     type: string;
   }[];
+  recipient_name?: string;
   notes?: string;
 }
 
 export const podService = {
   getPODs: async (): Promise<POD[]> => {
     const { data, error } = await supabase
-      .from("pods")
+      .from("shipment_pods")
       .select(
         `
                 *,
@@ -52,7 +53,7 @@ export const podService = {
     if (!user) throw new Error("Not authenticated");
 
     const { data, error } = await supabase
-      .from("pods")
+      .from("shipment_pods")
       .select(
         `
                 *,
@@ -83,9 +84,53 @@ export const podService = {
       updates.verified_at = new Date().toISOString();
     }
 
-    const { error } = await supabase.from("pods").update(updates).eq("id", id);
+    const { error } = await supabase.from("shipment_pods").update(updates).eq("id", id);
 
     if (error) throw error;
+  },
+
+  submitPOD: async (pod: {
+    shipment_id: string;
+    driver_id: string;
+    recipient_name: string;
+    photo_urls: string[];
+    signature_url?: string;
+    notes?: string;
+    latitude?: number;
+    longitude?: number;
+  }) => {
+    const { data, error } = await supabase
+      .from("shipment_pods")
+      .insert({
+        ...pod,
+        delivered_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  getDriverPODs: async (driverId: string): Promise<POD[]> => {
+    const { data, error } = await supabase
+      .from("shipment_pods")
+      .select(
+        `
+                *,
+                shipment:shipments(
+                    id,
+                    tracking_number,
+                    forwarder:profiles!forwarder_id(id, company_name),
+                    client:profiles!client_id(id, company_name)
+                )
+            `,
+      )
+      .eq("driver_id", driverId)
+      .order("delivered_at", { ascending: false });
+
+    if (error) throw error;
+    return (data || []).map(mapDbPODToApp);
   },
 };
 
@@ -107,6 +152,7 @@ function mapDbPODToApp(dbRecord: any): POD {
       name: dbRecord.shipment?.client?.company_name || "Unknown",
     },
     documents: dbRecord.documents || [],
+    recipient_name: dbRecord.recipient_name,
     notes: dbRecord.notes,
   };
 }

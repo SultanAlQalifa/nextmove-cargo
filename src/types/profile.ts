@@ -55,6 +55,7 @@ export interface Profile {
     subscription_status?: "active" | "inactive" | "past_due" | "canceled";
 
     // Staff / Sub-account fields
+    forwarder_id?: string;
     staff_role_id?: string;
     staff_role?: {
         id: string;

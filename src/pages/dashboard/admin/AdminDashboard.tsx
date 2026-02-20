@@ -16,7 +16,9 @@ import {
   ArrowRight
 } from "lucide-react";
 import { AdminWorldMap } from "../../../components/dashboard/admin/AdminWorldMap";
+import { UserDistributionMap } from "../../../components/dashboard/admin/UserDistributionMap";
 import { AdminAlerts } from "../../../components/dashboard/admin/AdminAlerts";
+import { profileService } from "../../../services/profileService";
 import {
   AreaChart,
   Area,
@@ -31,6 +33,7 @@ import {
   Legend
 } from "recharts";
 import { motion } from "framer-motion";
+import { ChartGuard } from "../../../components/common/ChartGuard";
 
 export const AdminDashboard = () => {
   const { currency } = useCurrency();
@@ -47,7 +50,7 @@ export const AdminDashboard = () => {
   const [shipmentStatusData, setShipmentStatusData] = useState<any[]>([]);
   const [recentActivities, setRecentActivities] = useState<any[]>([]);
   const [supportDonors, setSupportDonors] = useState<any[]>([]);
-  const [isMounted, setIsMounted] = useState(false);
+  const [userGeoData, setUserGeoData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Stats State
@@ -88,6 +91,10 @@ export const AdminDashboard = () => {
         .select('*, profiles:user_id(full_name)')
         .eq('metadata->>source', 'support_campaign')
         .order('created_at', { ascending: false });
+
+      // 7. User Geo Data
+      const geoData = await profileService.getUserDistributionByCountry();
+      setUserGeoData(geoData);
 
       const uCount = users?.length || 0;
       const sCount = shipments?.filter(s => s.status !== 'delivered' && s.status !== 'cancelled').length || 0;
@@ -155,8 +162,8 @@ export const AdminDashboard = () => {
 
   useEffect(() => {
     loadDashboardData();
-    setIsMounted(true);
   }, [loadDashboardData]);
+
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-[60vh]">
@@ -285,55 +292,51 @@ export const AdminDashboard = () => {
               <span className="text-xs font-bold text-slate-500 uppercase">Revenu Brut</span>
             </div>
           </div>
-          <div className="h-[350px] min-h-[350px] w-full">
-            {isMounted && (
-              <ResponsiveContainer width="100%" height="100%" debounce={1} minWidth={0}>
-                <AreaChart data={revenueData}>
-                  <defs>
-                    <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" opacity={0.5} />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 12, fontWeight: 700 }} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 12, fontWeight: 700 }} tickFormatter={(v) => `${v / 1000}k`} />
-                  <Tooltip
-                    contentStyle={{ borderRadius: '1.5rem', border: 'none', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)', fontWeight: 800 }}
-                  />
-                  <Area type="monotone" dataKey="value" stroke="#6366f1" strokeWidth={4} fillOpacity={1} fill="url(#colorRevenue)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            )}
-          </div>
+          <ChartGuard height={350}>
+            <ResponsiveContainer width="100%" height="100%" debounce={1} minWidth={0} minHeight={0}>
+              <AreaChart data={revenueData}>
+                <defs>
+                  <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" opacity={0.5} />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 12, fontWeight: 700 }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 12, fontWeight: 700 }} tickFormatter={(v) => `${v / 1000}k`} />
+                <Tooltip
+                  contentStyle={{ borderRadius: '1.5rem', border: 'none', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)', fontWeight: 800 }}
+                />
+                <Area type="monotone" dataKey="value" stroke="#6366f1" strokeWidth={4} fillOpacity={1} fill="url(#colorRevenue)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </ChartGuard>
         </div>
 
         {/* Shipment Status Breakdown */}
         <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl p-8 rounded-[2.5rem] border border-white/20 dark:border-white/10 shadow-xl">
           <h3 className="text-xl font-black text-slate-800 dark:text-white mb-6">Répartition Logistique</h3>
-          <div className="h-[300px] min-h-[300px] w-full relative">
-            {isMounted && (
-              <ResponsiveContainer width="100%" height="100%" debounce={1} minWidth={0}>
-                <PieChart>
-                  <Pie
-                    data={shipmentStatusData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {shipmentStatusData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend verticalAlign="bottom" align="center" />
-                </PieChart>
-              </ResponsiveContainer>
-            )}
-          </div>
+          <ChartGuard height={300} className="relative">
+            <ResponsiveContainer width="100%" height="100%" debounce={1} minWidth={0} minHeight={0}>
+              <PieChart>
+                <Pie
+                  data={shipmentStatusData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={80}
+                  paddingAngle={5}
+                  dataKey="value"
+                >
+                  {shipmentStatusData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend verticalAlign="bottom" align="center" />
+              </PieChart>
+            </ResponsiveContainer>
+          </ChartGuard>
         </div>
       </div>
 
@@ -382,9 +385,12 @@ export const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* World Map */}
-        <div className="lg:col-span-2 min-h-[400px]">
-          <AdminWorldMap />
+        {/* Global Maps Section */}
+        <div className="lg:col-span-2 flex flex-col gap-6">
+          <UserDistributionMap data={userGeoData} loading={loading} />
+          <div className="min-h-[300px]">
+            <AdminWorldMap />
+          </div>
         </div>
       </div>
 
@@ -411,9 +417,11 @@ export const AdminDashboard = () => {
                 }`}>
                 {activity.type === 'support' ? <Heart className="w-5 h-5" /> : <Package className="w-5 h-5" />}
               </div>
-              <div>
-                <p className="text-xs font-black text-slate-900 dark:text-white">{activity.title}</p>
-                <p className="text-[10px] font-bold text-slate-500 truncate">{activity.user || 'Collaborateur'}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-black text-slate-900 dark:text-white truncate" title={activity.title}>{activity.title}</p>
+                <p className="text-[10px] font-bold text-slate-500 truncate" title={activity.user || 'Collaborateur'}>
+                  {activity.user || 'Collaborateur'}
+                </p>
                 <p className="text-[10px] font-black text-slate-400 mt-1">{new Date(activity.date).toLocaleTimeString()}</p>
               </div>
             </motion.div>

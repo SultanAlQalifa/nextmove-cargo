@@ -26,6 +26,7 @@ import QRScannerModal from "../components/common/QRScannerModal";
 import { shipmentService } from "../services/shipmentService";
 import { Helmet } from "react-helmet-async";
 import { motion, AnimatePresence } from "framer-motion";
+import TrackingMap from "../components/shipment/TrackingMap";
 
 interface PublicShipment {
   id: string;
@@ -326,6 +327,15 @@ export default function TrackingPage() {
                 transition={{ duration: 0.8 }}
                 className="space-y-8"
               >
+                {/* Interactive Map */}
+                <TrackingMap
+                  shipmentId={shipment.id}
+                  origin={shipment.origin_port}
+                  destination={shipment.destination_port}
+                  progress={shipment.progress}
+                  status={shipment.status}
+                />
+
                 {/* Stats Overview */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {[

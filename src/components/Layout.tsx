@@ -19,8 +19,7 @@ import {
 } from "lucide-react";
 import SEOHead from "./seo/SEOHead";
 import NewsTicker from "./common/NewsTicker";
-import AIChatBubble from "./common/AIChatBubble";
-import WhatsAppButton from "./common/WhatsAppButton";
+import FloatingActions from "./common/FloatingActions";
 
 export default function Layout() {
   const { t } = useTranslation();
@@ -473,8 +472,7 @@ export default function Layout() {
       />
 
       <NewsTicker />
-      <AIChatBubble />
-      <WhatsAppButton /> {/* NEW */}
+      <FloatingActions />
     </div>
   );
 }

@@ -13,6 +13,7 @@ import {
 import { useAuth } from "../../../contexts/AuthContext";
 import { messageService, Message } from "../../../services/messageService";
 import { useToast } from "../../../contexts/ToastContext";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function AdminMessages() {
   const { success } = useToast();
@@ -80,67 +81,80 @@ export default function AdminMessages() {
   );
 
   return (
-    <div className="h-[calc(100vh-8rem)] flex flex-col">
+    <div className="h-[calc(100vh-8rem)] flex flex-col relative z-10 w-full max-w-7xl mx-auto space-y-6 pb-6">
+      <div className="grain-overlay opacity-[0.02] pointer-events-none" />
       <PageHeader
         title="Messagerie Interne"
         subtitle="Consultez et répondez aux messages des utilisateurs"
       />
 
-      <div className="flex-1 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex mt-4">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="flex-1 glass-card-premium rounded-[2rem] border-white/20 dark:border-white/5 shadow-xl shadow-slate-200/50 dark:shadow-none bg-white/60 dark:bg-slate-900/40 backdrop-blur-2xl overflow-hidden flex"
+      >
         {/* Sidebar List */}
-        <div className="w-80 border-r border-gray-100 flex flex-col bg-gray-50/50">
-          <div className="p-4 border-b border-gray-100 bg-white">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+        <div className="w-80 border-r border-slate-200/50 dark:border-white/5 bg-white/40 dark:bg-slate-800/40 backdrop-blur-md flex flex-col relative z-10">
+          <div className="p-5 border-b border-slate-200/50 dark:border-white/5 relative">
+            <h2 className="text-xl font-black tracking-tight text-slate-900 dark:text-white mb-4">Boîte de réception</h2>
+            <div className="relative group">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors w-4 h-4" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Rechercher..."
-                className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-transparent rounded-xl text-sm focus:bg-white focus:border-primary/20 focus:outline-none transition-all"
+                className="w-full pl-11 pr-4 py-2.5 bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/5 rounded-xl text-sm font-medium text-slate-900 dark:text-white placeholder-slate-400 focus:bg-white dark:focus:bg-slate-800 focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all shadow-inner"
               />
             </div>
           </div>
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto hide-scrollbar">
             {loading ? (
-              <div className="p-4 text-center text-gray-500">Chargement...</div>
+              <div className="p-8 text-center text-slate-400 flex flex-col items-center">
+                <div className="w-8 h-8 rounded-full border-2 border-blue-500 border-t-transparent animate-spin mb-3"></div>
+                <span className="text-xs uppercase tracking-widest font-bold">Chargement...</span>
+              </div>
             ) : filteredMessages.length === 0 ? (
-              <div className="p-8 text-center text-gray-500">
-                <MessageSquare className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-                <p>Aucun message</p>
+              <div className="flex-1 flex flex-col items-center justify-center p-8 text-slate-500 dark:text-slate-400 text-sm mt-10">
+                <MessageSquare className="w-8 h-8 text-slate-300 dark:text-slate-600 mb-2 opacity-50" />
+                <span className="font-semibold tracking-wide">Aucune message</span>
               </div>
             ) : (
-              <div className="divide-y divide-gray-100">
+              <div className="divide-y divide-slate-100/50 dark:divide-white/5">
                 {filteredMessages.map((msg) => (
                   <button
                     key={msg.id}
                     onClick={() => setSelectedMessage(msg)}
-                    className={`w-full p-4 text-left hover:bg-white transition-colors ${
-                      selectedMessage?.id === msg.id
-                        ? "bg-white border-l-4 border-primary shadow-sm"
-                        : "border-l-4 border-transparent"
-                    }`}
+                    className={`w-full p-4 text-left transition-all relative overflow-hidden group ${selectedMessage?.id === msg.id
+                        ? "bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm"
+                        : "hover:bg-slate-50/80 dark:hover:bg-slate-800/40"
+                      }`}
                   >
-                    <div className="flex justify-between items-start mb-1">
+                    {selectedMessage?.id === msg.id && (
+                      <motion.div
+                        layoutId="activeMessageIndicator"
+                        className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500"
+                      />
+                    )}
+                    <div className="flex justify-between items-start mb-1.5 gap-2">
                       <span
-                        className={`font-medium text-sm truncate ${!msg.is_read && msg.sender_id !== user?.id ? "text-gray-900 font-bold" : "text-gray-700"}`}
+                        className={`text-sm truncate ${!msg.is_read && msg.sender_id !== user?.id ? "text-slate-900 dark:text-white font-black" : "text-slate-700 dark:text-slate-300 font-bold"}`}
                       >
                         {msg.sender?.full_name ||
                           msg.sender?.email ||
                           "Utilisateur"}
                       </span>
-                      <span className="text-xs text-gray-400 whitespace-nowrap ml-2">
+                      <span className="text-[10px] uppercase font-bold tracking-widest text-slate-400 dark:text-slate-500 whitespace-nowrap mt-0.5">
                         {new Date(msg.created_at).toLocaleDateString()}
                       </span>
                     </div>
-                    {/* Subject is not in Message interface, using content preview instead or hardcoded subject if needed. 
-                                            The original code assumed a subject field. I will use content slice as subject or 'No Subject' */}
                     <p
-                      className={`text-sm mb-1 truncate ${!msg.is_read && msg.sender_id !== user?.id ? "text-gray-900 font-medium" : "text-gray-600"}`}
+                      className={`text-sm mb-1 truncate ${!msg.is_read && msg.sender_id !== user?.id ? "text-blue-600 dark:text-blue-400 font-bold" : "text-slate-600 dark:text-slate-400 font-medium"}`}
                     >
                       {(msg as any).subject || "Nouveau message"}
                     </p>
-                    <p className="text-xs text-gray-400 truncate">
+                    <p className="text-xs text-slate-500 dark:text-slate-500/80 truncate font-medium">
                       {msg.content}
                     </p>
                   </button>
@@ -150,81 +164,104 @@ export default function AdminMessages() {
           </div>
         </div>
 
-        {/* Message Detail */}
-        <div className="flex-1 flex flex-col bg-white">
+        {/* Message Detail & Reply Area */}
+        <div className="flex-1 flex flex-col bg-slate-50/30 dark:bg-slate-900/20 relative z-10">
           {selectedMessage ? (
-            <>
-              {/* Message Header */}
-              <div className="p-6 border-b border-gray-100">
-                <div className="flex justify-between items-start mb-4">
-                  <h2 className="text-xl font-bold text-gray-900">
-                    {(selectedMessage as any).subject || "Message"}
-                  </h2>
-                  <span className="text-sm text-gray-500 flex items-center gap-1">
-                    <Clock className="w-4 h-4" />
-                    {new Date(selectedMessage.created_at).toLocaleString()}
-                  </span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
-                    {(selectedMessage.sender?.full_name ||
-                      selectedMessage.sender?.email ||
-                      "?")[0].toUpperCase()}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={selectedMessage.id}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.2 }}
+                className="flex-1 flex flex-col h-full"
+              >
+                {/* Message Header */}
+                <div className="p-6 border-b border-slate-200/50 dark:border-white/5 bg-white/40 dark:bg-slate-800/40 backdrop-blur-md">
+                  <div className="flex justify-between items-start mb-6">
+                    <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                      {(selectedMessage as any).subject || "Message sans objet"}
+                    </h2>
+                    <span className="text-[10px] uppercase font-bold tracking-widest text-slate-400 dark:text-slate-500 flex items-center gap-1.5 bg-white/50 dark:bg-slate-800/50 px-3 py-1.5 rounded-xl border border-slate-100 dark:border-white/5">
+                      <Clock className="w-3 h-3" />
+                      {new Date(selectedMessage.created_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
+                    </span>
                   </div>
-                  <div>
-                    <p className="font-medium text-gray-900">
-                      {selectedMessage.sender?.full_name || "Utilisateur"}
-                      <span className="text-gray-400 font-normal text-sm ml-2">
-                        &lt;{selectedMessage.sender?.email}&gt;
-                      </span>
-                    </p>
-                    {/* Receiver info is not available in Message interface */}
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-[1rem] bg-gradient-to-br from-blue-500 to-sky-400 p-[2px] shadow-sm">
+                      <div className="w-full h-full bg-white dark:bg-slate-900 rounded-[14px] flex items-center justify-center font-black text-blue-600 dark:text-blue-400 text-lg">
+                        {(selectedMessage.sender?.full_name ||
+                          selectedMessage.sender?.email ||
+                          "?")[0].toUpperCase()}
+                      </div>
+                    </div>
+                    <div>
+                      <p className="font-black text-slate-900 dark:text-white text-lg leading-tight">
+                        {selectedMessage.sender?.full_name || "Utilisateur"}
+                      </p>
+                      <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                        {selectedMessage.sender?.email}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Message Content */}
-              <div className="flex-1 p-6 overflow-y-auto">
-                <div className="prose max-w-none text-gray-700 whitespace-pre-wrap">
-                  {selectedMessage.content}
+                {/* Message Content (Styled like a modern email body) */}
+                <div className="flex-1 p-8 overflow-y-auto hide-scrollbar">
+                  <div className="glass-card-premium bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl p-8 rounded-[2rem] border border-slate-100 dark:border-white/5 shadow-xl shadow-slate-200/30 dark:shadow-none min-h-[200px]">
+                    <div className="prose dark:prose-invert max-w-none text-slate-700 dark:text-slate-300 font-medium leading-relaxed whitespace-pre-wrap">
+                      {selectedMessage.content}
+                    </div>
+                  </div>
                 </div>
-              </div>
 
-              {/* Reply Box */}
-              <div className="p-4 border-t border-gray-100 bg-gray-50">
-                <form onSubmit={handleSendReply} className="flex gap-4">
-                  <textarea
-                    value={replyContent}
-                    onChange={(e) => setReplyContent(e.target.value)}
-                    placeholder="Écrivez votre réponse..."
-                    className="flex-1 p-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none h-24"
-                  />
-                  <button
-                    type="submit"
-                    disabled={!replyContent.trim()}
-                    className="px-6 py-2 bg-primary text-white font-medium rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed self-end flex items-center gap-2"
-                  >
-                    <Send className="w-4 h-4" />
-                    Envoyer
-                  </button>
-                </form>
-              </div>
-            </>
+                {/* Reply Box */}
+                <div className="p-4 border-t border-slate-200/50 dark:border-white/5 bg-white/40 dark:bg-slate-800/40 backdrop-blur-md">
+                  <form onSubmit={handleSendReply} className="flex gap-4 max-w-4xl mx-auto">
+                    <div className="flex-1 relative group">
+                      <textarea
+                        value={replyContent}
+                        onChange={(e) => setReplyContent(e.target.value)}
+                        placeholder="Écrivez votre réponse..."
+                        className="w-full p-4 pl-5 bg-slate-50/80 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 focus:bg-white dark:focus:bg-slate-900 transition-all font-medium text-slate-900 dark:text-white placeholder-slate-400 resize-none h-20 shadow-inner"
+                      />
+                    </div>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      type="submit"
+                      disabled={!replyContent.trim()}
+                      className="px-6 py-4 bg-blue-600 text-white font-black rounded-2xl hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed self-end flex items-center justify-center gap-2 shadow-lg shadow-blue-500/30 h-20"
+                    >
+                      <Send className="w-5 h-5" />
+                      <span className="hidden sm:inline">Envoyer</span>
+                    </motion.button>
+                  </form>
+                </div>
+              </motion.div>
+            </AnimatePresence>
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
-              <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-4">
-                <Mail className="w-10 h-10 text-gray-300" />
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex-1 flex flex-col items-center justify-center"
+            >
+              <div className="w-24 h-24 bg-gradient-to-br from-blue-500/10 to-transparent dark:from-blue-500/20 rounded-full flex items-center justify-center mb-6 relative">
+                <div className="absolute inset-0 border border-blue-500/20 rounded-full animate-[spin_4s_linear_infinite]" />
+                <div className="w-16 h-16 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center shadow-lg shadow-blue-500/10 border border-slate-100 dark:border-white/5 relative z-10">
+                  <Mail className="w-8 h-8 text-blue-500" />
+                </div>
               </div>
-              <p className="text-lg font-medium text-gray-500">
+              <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-3 tracking-tight">
                 Sélectionnez un message
+              </h3>
+              <p className="text-slate-500 dark:text-slate-400 max-w-sm text-center font-medium leading-relaxed">
+                Choisissez une conversation dans la liste pour lire le message et y répondre.
               </p>
-              <p className="text-sm">
-                Choisissez une conversation dans la liste pour voir les détails
-              </p>
-            </div>
+            </motion.div>
           )}
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

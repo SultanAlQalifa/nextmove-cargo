@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useDataSync } from "../../../contexts/DataSyncContext";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
   Package,
   Users,
@@ -10,7 +10,6 @@ import {
   ArrowDownRight,
   MoreVertical,
   Clock,
-  FileText,
   Wallet,
   Tag,
   MessageSquare,
@@ -41,6 +40,8 @@ import {
   Legend,
 } from "recharts";
 import { supabase } from "../../../lib/supabase";
+import { ChartGuard } from "../../../components/common/ChartGuard";
+import { motion, AnimatePresence } from "framer-motion";
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('fr-FR', {
@@ -53,16 +54,9 @@ const formatCurrency = (amount: number) => {
 export default function ForwarderDashboard() {
   const { success } = useToast();
   const { user, profile, loading: authLoading } = useAuth();
-  const navigate = useNavigate();
   const [timeRange, setTimeRange] = useState<TimeRange>("30d");
-  const [shipments, setShipments] = useState<Shipment[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isMounted, setIsMounted] = useState(false);
 
-  useEffect(() => {
-    const timer = setTimeout(() => setIsMounted(true), 200);
-    return () => clearTimeout(timer);
-  }, []);
 
   // Self-Repair: Ensure profile exists in DB
   useEffect(() => {
@@ -120,7 +114,6 @@ export default function ForwarderDashboard() {
     setLoading(true);
     try {
       const data = await shipmentService.getForwarderShipments();
-      setShipments(data);
 
       // Calculate stats with Trends
       const now = new Date();
@@ -449,14 +442,23 @@ export default function ForwarderDashboard() {
           />
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ staggerChildren: 0.1 }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+          >
+            <motion.div
+              whileHover={{ y: -5 }}
+              className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-6 rounded-3xl shadow-lg border border-white/50 dark:border-white/5 transition-all group overflow-hidden relative"
+            >
+              <div className="absolute -right-6 -top-6 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition-colors"></div>
+              <div className="relative z-10 flex items-center justify-between mb-4">
+                <div className="p-3 bg-blue-50 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded-2xl shadow-inner group-hover:scale-110 transition-transform">
                   <Users className="w-6 h-6" />
                 </div>
                 <span
-                  className={`text-xs font-medium px-2 py-1 rounded-full flex items-center gap-1 ${stats.users.trendUp ? "text-green-600 bg-green-50" : "text-red-600 bg-red-50"}`}
+                  className={`text-xs font-black px-3 py-1.5 rounded-full flex items-center gap-1 shadow-sm backdrop-blur-sm ${stats.users.trendUp ? "text-emerald-700 bg-emerald-100/80 dark:text-emerald-400 dark:bg-emerald-500/20" : "text-rose-700 bg-rose-100/80 dark:text-rose-400 dark:bg-rose-500/20"}`}
                 >
                   {stats.users.trendUp ? (
                     <ArrowUpRight className="w-3 h-3" />
@@ -466,21 +468,25 @@ export default function ForwarderDashboard() {
                   {stats.users.trend}
                 </span>
               </div>
-              <h3 className="text-gray-500 text-sm font-medium">
+              <h3 className="text-slate-500 dark:text-slate-400 text-sm font-black uppercase tracking-widest relative z-10">
                 {stats.users.label}
               </h3>
-              <p className="text-2xl font-bold text-gray-900 mt-1">
+              <p className="text-3xl font-black text-slate-900 dark:text-white mt-1 tracking-tight relative z-10">
                 {stats.users.value}
               </p>
-            </div>
+            </motion.div>
 
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+            <motion.div
+              whileHover={{ y: -5 }}
+              className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-6 rounded-3xl shadow-lg border border-white/50 dark:border-white/5 transition-all group overflow-hidden relative"
+            >
+              <div className="absolute -right-6 -top-6 w-24 h-24 bg-indigo-500/10 rounded-full blur-2xl group-hover:bg-indigo-500/20 transition-colors"></div>
+              <div className="relative z-10 flex items-center justify-between mb-4">
+                <div className="p-3 bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded-2xl shadow-inner group-hover:scale-110 transition-transform">
                   <Package className="w-6 h-6" />
                 </div>
                 <span
-                  className={`text-xs font-medium px-2 py-1 rounded-full flex items-center gap-1 ${stats.shipments.trendUp ? "text-green-600 bg-green-50" : "text-red-600 bg-red-50"}`}
+                  className={`text-xs font-black px-3 py-1.5 rounded-full flex items-center gap-1 shadow-sm backdrop-blur-sm ${stats.shipments.trendUp ? "text-emerald-700 bg-emerald-100/80 dark:text-emerald-400 dark:bg-emerald-500/20" : "text-rose-700 bg-rose-100/80 dark:text-rose-400 dark:bg-rose-500/20"}`}
                 >
                   {stats.shipments.trendUp ? (
                     <ArrowUpRight className="w-3 h-3" />
@@ -490,21 +496,25 @@ export default function ForwarderDashboard() {
                   {stats.shipments.trend}
                 </span>
               </div>
-              <h3 className="text-gray-500 text-sm font-medium">
+              <h3 className="text-slate-500 dark:text-slate-400 text-sm font-black uppercase tracking-widest relative z-10">
                 {stats.shipments.label}
               </h3>
-              <p className="text-2xl font-bold text-gray-900 mt-1">
+              <p className="text-3xl font-black text-slate-900 dark:text-white mt-1 tracking-tight relative z-10">
                 {stats.shipments.value}
               </p>
-            </div>
+            </motion.div>
 
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-3 bg-green-50 text-green-600 rounded-xl">
+            <motion.div
+              whileHover={{ y: -5 }}
+              className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-6 rounded-3xl shadow-lg border border-white/50 dark:border-white/5 transition-all group overflow-hidden relative"
+            >
+              <div className="absolute -right-6 -top-6 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition-colors"></div>
+              <div className="relative z-10 flex items-center justify-between mb-4">
+                <div className="p-3 bg-emerald-50 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-2xl shadow-inner group-hover:scale-110 transition-transform">
                   <DollarSign className="w-6 h-6" />
                 </div>
                 <span
-                  className={`text-xs font-medium px-2 py-1 rounded-full flex items-center gap-1 ${stats.revenue.trendUp ? "text-green-600 bg-green-50" : "text-red-600 bg-red-50"}`}
+                  className={`text-xs font-black px-3 py-1.5 rounded-full flex items-center gap-1 shadow-sm backdrop-blur-sm ${stats.revenue.trendUp ? "text-emerald-700 bg-emerald-100/80 dark:text-emerald-400 dark:bg-emerald-500/20" : "text-rose-700 bg-rose-100/80 dark:text-rose-400 dark:bg-rose-500/20"}`}
                 >
                   {stats.revenue.trendUp ? (
                     <ArrowUpRight className="w-3 h-3" />
@@ -514,21 +524,25 @@ export default function ForwarderDashboard() {
                   {stats.revenue.trend}
                 </span>
               </div>
-              <h3 className="text-gray-500 text-sm font-medium">
+              <h3 className="text-slate-500 dark:text-slate-400 text-sm font-black uppercase tracking-widest relative z-10">
                 {stats.revenue.label}
               </h3>
-              <p className="text-2xl font-bold text-gray-900 mt-1">
+              <p className="text-3xl font-black text-slate-900 dark:text-white mt-1 tracking-tight relative z-10">
                 {formatCurrency(stats.revenue.value)}
               </p>
-            </div>
+            </motion.div>
 
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-3 bg-orange-50 text-orange-600 rounded-xl">
+            <motion.div
+              whileHover={{ y: -5 }}
+              className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-6 rounded-3xl shadow-lg border border-white/50 dark:border-white/5 transition-all group overflow-hidden relative"
+            >
+              <div className="absolute -right-6 -top-6 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl group-hover:bg-amber-500/20 transition-colors"></div>
+              <div className="relative z-10 flex items-center justify-between mb-4">
+                <div className="p-3 bg-amber-50 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded-2xl shadow-inner group-hover:scale-110 transition-transform">
                   <Activity className="w-6 h-6" />
                 </div>
                 <span
-                  className={`text-xs font-medium px-2 py-1 rounded-full flex items-center gap-1 ${stats.conversion.trendUp ? "text-green-600 bg-green-50" : "text-red-600 bg-red-50"}`}
+                  className={`text-xs font-black px-3 py-1.5 rounded-full flex items-center gap-1 shadow-sm backdrop-blur-sm ${stats.conversion.trendUp ? "text-emerald-700 bg-emerald-100/80 dark:text-emerald-400 dark:bg-emerald-500/20" : "text-rose-700 bg-rose-100/80 dark:text-rose-400 dark:bg-rose-500/20"}`}
                 >
                   {stats.conversion.trendUp ? (
                     <ArrowUpRight className="w-3 h-3" />
@@ -538,194 +552,220 @@ export default function ForwarderDashboard() {
                   {stats.conversion.trend}
                 </span>
               </div>
-              <h3 className="text-gray-500 text-sm font-medium">
+              <h3 className="text-slate-500 dark:text-slate-400 text-sm font-black uppercase tracking-widest relative z-10">
                 {stats.conversion.label}
               </h3>
-              <p className="text-2xl font-bold text-gray-900 mt-1">
+              <p className="text-3xl font-black text-slate-900 dark:text-white mt-1 tracking-tight relative z-10">
                 {stats.conversion.value}%
               </p>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
 
           {/* Charts Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="grid grid-cols-1 lg:grid-cols-3 gap-6"
+          >
             {/* Revenue Evolution */}
-            <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-              <div className="flex items-center justify-between mb-6">
+            <div className="lg:col-span-2 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-6 rounded-3xl shadow-lg border border-white/50 dark:border-white/5">
+              <div className="flex items-center justify-between mb-8">
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900">
+                  <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
                     Évolution du Revenu
                   </h3>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mt-1">
                     Revenus générés sur la période
                   </p>
                 </div>
                 <button
-                  className="p-2 hover:bg-gray-50 rounded-lg transition-colors"
+                  className="p-2.5 bg-slate-100/80 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-xl transition-colors backdrop-blur-md"
                   aria-label="Plus d'options"
                 >
-                  <MoreVertical className="w-5 h-5 text-gray-400" />
+                  <MoreVertical className="w-5 h-5 text-slate-500 dark:text-slate-400" />
                 </button>
               </div>
-              <div className="h-80 w-full">
+              <ChartGuard height={320}>
                 {revenueData.length > 0 && (
-                  isMounted && (
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart
-                        data={revenueData}
-                        margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-                      >
-                        <defs>
-                          <linearGradient
-                            id="colorRevenue"
-                            x1="0"
-                            y1="0"
-                            x2="0"
-                            y2="1"
-                          >
-                            <stop offset="5%" stopColor="#10B981" stopOpacity={0.1} />
-                            <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid
-                          strokeDasharray="3 3"
-                          vertical={false}
-                          stroke="#F3F4F6"
-                        />
-                        <XAxis
-                          dataKey="name"
-                          axisLine={false}
-                          tickLine={false}
-                          tick={{ fill: "#9CA3AF", fontSize: 12 }}
-                          dy={10}
-                        />
-                        <YAxis
-                          axisLine={false}
-                          tickLine={false}
-                          tick={{ fill: "#9CA3AF", fontSize: 12 }}
-                          tickFormatter={(value) => `${value / 1000}k`}
-                        />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: "#FFF",
-                            border: "none",
-                            borderRadius: "8px",
-                            boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
-                          }}
-                        />
-                        <Area
-                          type="monotone"
-                          dataKey="value"
-                          stroke="#10B981"
-                          strokeWidth={2}
-                          fillOpacity={1}
-                          fill="url(#colorRevenue)"
-                        />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  ))}
-              </div>
+                  <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0} debounce={1}>
+                    <AreaChart
+                      data={revenueData}
+                      margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                    >
+                      <defs>
+                        <linearGradient
+                          id="colorRevenue"
+                          x1="0"
+                          y1="0"
+                          x2="0"
+                          y2="1"
+                        >
+                          <stop offset="5%" stopColor="#10B981" stopOpacity={0.2} />
+                          <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        vertical={false}
+                        stroke="rgba(255,255,255,0.1)"
+                        className="dark:stroke-slate-800 stroke-slate-200"
+                      />
+                      <XAxis
+                        dataKey="name"
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: "#9CA3AF", fontSize: 12, fontWeight: "bold" }}
+                        dy={10}
+                      />
+                      <YAxis
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: "#9CA3AF", fontSize: 12, fontWeight: "bold" }}
+                        tickFormatter={(value) => `${value / 1000}k`}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "rgba(255, 255, 255, 0.9)",
+                          backdropFilter: "blur(10px)",
+                          border: "1px solid rgba(255,255,255,0.2)",
+                          borderRadius: "16px",
+                          boxShadow: "0 20px 40px -15px rgba(0, 0, 0, 0.1)",
+                          fontWeight: "bold"
+                        }}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="value"
+                        stroke="#10B981"
+                        strokeWidth={3}
+                        fillOpacity={1}
+                        fill="url(#colorRevenue)"
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                )}
+              </ChartGuard>
             </div>
 
             {/* Shipment Status Distribution */}
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-              <div className="flex items-center justify-between mb-6">
+            <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-6 rounded-3xl shadow-lg border border-white/50 dark:border-white/5 relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-8 opacity-5">
+                <PieChart className="w-32 h-32" />
+              </div>
+              <div className="flex items-center justify-between mb-8 relative z-10">
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900">
-                    Statut des Expéditions
+                  <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
+                    Expéditions
                   </h3>
-                  <p className="text-sm text-gray-500">Répartition actuelle</p>
+                  <p className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mt-1">Répartition Actuelle</p>
                 </div>
               </div>
-              <div className="h-64 w-full relative">
+              <ChartGuard height={256} className="relative z-10">
                 {shipmentStatusData.length > 0 && (
-                  isMounted && (
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={shipmentStatusData}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={60}
-                          outerRadius={80}
-                          paddingAngle={5}
-                          dataKey="value"
-                        >
-                          {shipmentStatusData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <Tooltip />
-                        <Legend verticalAlign="bottom" height={36} />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  ))}
+                  <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0} debounce={1}>
+                    <PieChart>
+                      <Pie
+                        data={shipmentStatusData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={65}
+                        outerRadius={85}
+                        paddingAngle={6}
+                        dataKey="value"
+                        stroke="none"
+                      >
+                        {shipmentStatusData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "rgba(255, 255, 255, 0.9)",
+                          backdropFilter: "blur(10px)",
+                          border: "1px solid rgba(255,255,255,0.2)",
+                          borderRadius: "16px",
+                          fontWeight: "bold"
+                        }}
+                      />
+                      <Legend verticalAlign="bottom" height={36} iconType="circle" />
+                    </PieChart>
+                  </ResponsiveContainer>
+                )}
                 {/* Center Text */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none mb-8">
-                  <p className="text-2xl font-bold text-gray-900">
+                <div className="absolute top-[-20px] left-1/2 -translate-x-1/2 translate-y-24 text-center pointer-events-none drop-shadow-md">
+                  <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">
                     {stats.shipments.value}
                   </p>
-                  <p className="text-xs text-gray-500">Total</p>
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Total</p>
                 </div>
-              </div>
+              </ChartGuard>
             </div>
-          </div>
+          </motion.div>
 
           {/* Recent Activity & Quick Actions */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="grid grid-cols-1 lg:grid-cols-3 gap-6"
+          >
             {/* Recent Activity */}
-            <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-              <div className="flex items-center justify-between mb-6">
+            <div className="lg:col-span-2 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-6 rounded-3xl shadow-lg border border-white/50 dark:border-white/5">
+              <div className="flex items-center justify-between mb-8">
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900">
+                  <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
                     Activité Récente
                   </h3>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mt-1">
                     Dernières mises à jour
                   </p>
                 </div>
                 <Link
                   to="/dashboard/forwarder/shipments"
-                  className="text-sm font-medium text-primary hover:text-primary/80"
+                  className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-sm font-black uppercase tracking-widest transition-colors shadow-inner"
                 >
                   Voir tout
                 </Link>
               </div>
-              <div className="space-y-6">
-                {recentActivity.map((activity) => {
+              <div className="space-y-4">
+                {recentActivity.map((activity, index) => {
                   const Icon = activity.icon;
                   return (
-                    <div
+                    <motion.div
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
                       key={activity.id}
-                      className="flex items-start gap-4 group cursor-pointer hover:bg-gray-50 p-3 rounded-xl transition-colors"
+                      className="flex items-center gap-4 group cursor-pointer hover:bg-white dark:hover:bg-slate-800 p-4 rounded-2xl transition-all shadow-sm border border-transparent hover:border-slate-200 dark:hover:border-white/10"
                     >
                       <div
-                        className={`p-2 rounded-xl ${activity.bg} ${activity.color} shrink-0`}
+                        className={`p-3.5 rounded-2xl shadow-inner ${activity.bg.replace('50', '100/80')} ${activity.color} shrink-0`}
                       >
                         <Icon className="w-5 h-5" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900">
+                        <p className="text-sm font-bold text-slate-900 dark:text-white truncate">
                           {activity.message}
                         </p>
-                        <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
+                        <p className="text-xs font-bold text-slate-500 mt-1 flex items-center gap-1.5 uppercase tracking-widest">
+                          <Clock className="w-3.5 h-3.5" />
                           {activity.time}
                         </p>
                       </div>
-                      <div className="text-right">
+                      <div className="text-right pl-4">
                         <button
-                          className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 opacity-0 group-hover:opacity-100 transition-all"
+                          className="p-3 bg-slate-50 dark:bg-slate-900 text-slate-400 hover:text-blue-600 rounded-xl opacity-0 group-hover:opacity-100 transition-all shadow-sm border border-slate-200/50 dark:border-white/5"
                           aria-label="Voir détail"
                         >
                           <ArrowUpRight className="w-4 h-4" />
                         </button>
                       </div>
-                    </div>
+                    </motion.div>
                   );
                 })}
                 {recentActivity.length === 0 && (
-                  <div className="text-center py-12 text-gray-500">
+                  <div className="text-center py-12 text-slate-500 font-bold bg-slate-50 dark:bg-slate-800/50 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">
                     Aucune activité récente
                   </div>
                 )}
@@ -733,74 +773,75 @@ export default function ForwarderDashboard() {
             </div>
 
             {/* Quick Actions */}
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-              <h3 className="text-lg font-bold text-gray-900 mb-6">
+            <div className="bg-gradient-to-br from-indigo-900 to-black backdrop-blur-xl p-8 rounded-3xl shadow-xl border border-white/10 relative overflow-hidden text-white">
+              <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay z-0"></div>
+              <h3 className="text-xl font-black mb-8 relative z-10 tracking-tight text-white shadow-sm">
                 Actions Rapides
               </h3>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3 relative z-10">
                 {[
                   {
                     icon: Package,
                     label: "Vérifier POD",
                     path: "/dashboard/forwarder/pod",
-                    color: "text-blue-600",
-                    bg: "bg-blue-50",
+                    color: "text-blue-400",
+                    bg: "bg-blue-500/20",
                   },
                   {
                     icon: Building2,
                     label: "Entrepôts",
                     path: "/dashboard/forwarder/addresses",
-                    color: "text-amber-600",
-                    bg: "bg-amber-50",
+                    color: "text-amber-400",
+                    bg: "bg-amber-500/20",
                   },
                   {
                     icon: Users,
                     label: "Gérer Personnel",
                     path: "/dashboard/forwarder/personnel",
-                    color: "text-purple-600",
-                    bg: "bg-purple-50",
+                    color: "text-purple-400",
+                    bg: "bg-purple-500/20",
                   },
                   {
                     icon: Users,
                     label: "Mes Clients",
                     path: "/dashboard/forwarder/clients",
-                    color: "text-indigo-600",
-                    bg: "bg-indigo-50",
+                    color: "text-indigo-400",
+                    bg: "bg-indigo-500/20",
                   },
                   {
                     icon: Wallet,
                     label: "Paiements",
                     path: "/dashboard/forwarder/payments",
-                    color: "text-green-600",
-                    bg: "bg-green-50",
+                    color: "text-emerald-400",
+                    bg: "bg-emerald-500/20",
                   },
                   {
                     icon: Wallet,
                     label: "Appels de Fonds",
                     path: "/dashboard/forwarder/fund-calls",
-                    color: "text-orange-600",
-                    bg: "bg-orange-50",
+                    color: "text-orange-400",
+                    bg: "bg-orange-500/20",
                   },
                   {
                     icon: Tag,
                     label: "Gérer Offres",
                     path: "/dashboard/forwarder/coupons",
-                    color: "text-pink-600",
-                    bg: "bg-pink-50",
+                    color: "text-pink-400",
+                    bg: "bg-pink-500/20",
                   },
                   {
                     icon: MessageSquare,
                     label: "Support",
                     path: "/dashboard/forwarder/support",
-                    color: "text-blue-600",
-                    bg: "bg-blue-50",
+                    color: "text-blue-300",
+                    bg: "bg-blue-400/20",
                   },
                   {
                     icon: Settings,
                     label: "Paramètres",
                     path: "/dashboard/forwarder/settings",
-                    color: "text-gray-600",
-                    bg: "bg-gray-50",
+                    color: "text-slate-300",
+                    bg: "bg-slate-400/20",
                   },
                 ].map((action, index) => {
                   const Icon = action.icon;
@@ -808,14 +849,14 @@ export default function ForwarderDashboard() {
                     <Link
                       key={index}
                       to={action.path}
-                      className="flex flex-col items-center justify-center p-4 rounded-xl hover:bg-gray-50 transition-all group border border-transparent hover:border-gray-100"
+                      className="flex flex-col items-center gap-3 p-4 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/5 hover:border-white/20 transition-all group"
                     >
                       <div
-                        className={`p-3 rounded-xl ${action.bg} ${action.color} mb-3 group-hover:scale-110 transition-transform`}
+                        className={`p-3 rounded-xl ${action.bg} ${action.color} group-hover:scale-110 transition-transform shadow-inner`}
                       >
                         <Icon className="w-6 h-6" />
                       </div>
-                      <span className="text-xs font-medium text-gray-600 text-center group-hover:text-gray-900">
+                      <span className="text-xs font-black text-slate-300 group-hover:text-white uppercase tracking-widest text-center leading-tight">
                         {action.label}
                       </span>
                     </Link>
@@ -823,9 +864,10 @@ export default function ForwarderDashboard() {
                 })}
               </div>
             </div>
-          </div>
+          </motion.div>
         </>
-      )}
+      )
+      }
     </div>
   );
 }

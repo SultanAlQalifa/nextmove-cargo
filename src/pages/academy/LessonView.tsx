@@ -29,6 +29,7 @@ export default function LessonView() {
     const [isLiked, setIsLiked] = useState(false);
     const [comments, setComments] = useState<AcademyLessonComment[]>([]);
     const [newComment, setNewComment] = useState("");
+    const [replyingTo, setReplyingTo] = useState<AcademyLessonComment | null>(null);
     const [submittingComment, setSubmittingComment] = useState(false);
 
     // Course Review state
@@ -189,9 +190,11 @@ export default function LessonView() {
             await academyService.addLessonComment({
                 lesson_id: currentLesson.id,
                 user_id: user.id,
-                content: newComment.trim()
+                content: newComment.trim(),
+                parent_id: replyingTo?.id
             });
             setNewComment("");
+            setReplyingTo(null);
             fetchLessonInteractions();
             showNotification("Succès", "Commentaire ajouté", "success");
         } catch (error) {
@@ -221,12 +224,23 @@ export default function LessonView() {
 
             setQuizResult({ score, passed });
 
+            // Persist result
+            await academyService.saveQuizAttempt({
+                user_id: user.id,
+                quiz_id: lessonQuiz.id,
+                score,
+                passed
+            });
+
             if (passed) {
                 showNotification("Félicitations !", `Vous avez réussi le quizz avec ${score}%`, "success");
                 handleMarkLessonComplete(currentLesson!.id);
             } else {
                 showNotification("Dommage", `Votre score de ${score}% est insuffisant. Réessayez !`, "error");
             }
+        } catch (error) {
+            console.error("Error submitting quiz:", error);
+            showNotification("Erreur", "Impossible d'enregistrer le résultat du quiz", "error");
         } finally {
             setSubmittingQuiz(false);
         }
@@ -818,13 +832,28 @@ export default function LessonView() {
 
                             {activeContentTab === 'discussion' && (
                                 <div className="animate-in fade-in duration-300 space-y-6">
-                                    <div className="flex flex-col gap-4">
+                                    <div className="flex flex-col gap-4 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
+                                        {replyingTo && (
+                                            <div className="flex items-center justify-between px-3 py-2 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-100 dark:border-orange-800/30">
+                                                <p className="text-xs text-orange-700 dark:text-orange-400 font-medium flex items-center gap-2">
+                                                    <Send className="w-3 h-3" /> Réponse à <span className="font-bold">{replyingTo.profiles?.full_name}</span>
+                                                </p>
+                                                <button
+                                                    onClick={() => setReplyingTo(null)}
+                                                    className="text-slate-400 hover:text-slate-600"
+                                                    title="Annuler la réponse"
+                                                    aria-label="Annuler la réponse"
+                                                >
+                                                    <X className="w-3.5 h-3.5" />
+                                                </button>
+                                            </div>
+                                        )}
                                         <textarea
                                             value={newComment}
                                             onChange={(e) => setNewComment(e.target.value)}
-                                            placeholder="Partagez vos réflexions ou posez une question..."
-                                            className="w-full p-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-orange-500/20 text-slate-700 dark:text-slate-200 text-sm resize-none"
-                                            rows={3}
+                                            placeholder={replyingTo ? "Écrivez votre réponse..." : "Partagez vos réflexions ou posez une question..."}
+                                            className="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-orange-500/20 text-slate-700 dark:text-slate-200 text-sm resize-none"
+                                            rows={replyingTo ? 2 : 3}
                                         />
                                         <div className="flex justify-end">
                                             <button
@@ -832,7 +861,7 @@ export default function LessonView() {
                                                 onClick={handleAddComment}
                                                 className="px-6 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold text-sm shadow-lg shadow-slate-900/10 hover:scale-105 transition-all flex items-center gap-2 disabled:opacity-50 disabled:scale-100"
                                             >
-                                                {submittingComment ? "Envoi..." : <><Send className="w-4 h-4" /> Envoyer</>}
+                                                {submittingComment ? "Envoi..." : <><Send className="w-4 h-4" /> {replyingTo ? "Répondre" : "Envoyer"}</>}
                                             </button>
                                         </div>
                                     </div>
@@ -855,11 +884,34 @@ export default function LessonView() {
                                                         </div>
                                                         <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-normal">{comment.content}</p>
 
+                                                        <button
+                                                            onClick={() => {
+                                                                setReplyingTo(comment);
+                                                                // Focus textarea
+                                                                document.querySelector('textarea')?.focus();
+                                                            }}
+                                                            className="mt-2 text-[10px] font-bold text-slate-400 hover:text-orange-500 flex items-center gap-1 transition-colors"
+                                                        >
+                                                            <MessageCircle className="w-3 h-3" /> Répondre
+                                                        </button>
+
                                                         {/* Replies Rendering */}
                                                         {comments.filter(c => c.parent_id === comment.id).map(reply => (
-                                                            <div key={reply.id} className="mt-3 p-3 bg-orange-50/30 dark:bg-orange-500/5 rounded-xl border-l-4 border-orange-500 text-xs italic">
-                                                                <span className="font-bold text-orange-600 block mb-1">Équipe NextMove:</span>
-                                                                {reply.content}
+                                                            <div key={reply.id} className="mt-4 flex gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800/50">
+                                                                <div className="w-6 h-6 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center text-[10px] font-black shrink-0">
+                                                                    {reply.profiles?.avatar_url ? (
+                                                                        <img src={reply.profiles.avatar_url} alt="" className="w-full h-full object-cover" />
+                                                                    ) : (
+                                                                        reply.profiles?.full_name?.charAt(0) || 'A'
+                                                                    )}
+                                                                </div>
+                                                                <div className="flex-1">
+                                                                    <div className="flex items-center justify-between mb-1">
+                                                                        <p className="text-[10px] font-black text-slate-900 dark:text-white">{reply.profiles?.full_name || 'Admin'}</p>
+                                                                        <p className="text-[9px] text-slate-400">{new Date(reply.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</p>
+                                                                    </div>
+                                                                    <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed italic">{reply.content}</p>
+                                                                </div>
                                                             </div>
                                                         ))}
                                                     </div>

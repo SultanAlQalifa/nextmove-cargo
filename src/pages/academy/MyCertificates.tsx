@@ -7,6 +7,7 @@ import { AcademyEnrollment } from "../../types/academy";
 import { useToast } from "../../contexts/ToastContext";
 import { profileService } from "../../services/profileService";
 import CertificateTemplate from "../../components/academy/CertificateTemplate";
+import { isAdmin } from "../../utils/authUtils";
 
 interface CertificateItem extends AcademyEnrollment {
     academy_courses: {
@@ -53,7 +54,7 @@ export default function MyCertificates() {
                 let data = await academyService.getMyCertificates(user.id);
 
                 // For super-admin (CEO), inject the honorary certificate if not already there
-                if (activeProfile?.role === 'super-admin' || activeProfile?.role === 'admin') {
+                if (isAdmin(activeProfile?.role)) {
                     const honoraryCertId = "CERT-CEO-HONORARY-2025";
                     if (!data.find(c => c.id === honoraryCertId)) {
                         const honoraryCert: CertificateItem = {

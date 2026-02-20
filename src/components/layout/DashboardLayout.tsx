@@ -14,6 +14,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { useBranding } from "../../contexts/BrandingContext";
 import { useTheme } from "../../contexts/ThemeContext";
 import { useTranslation } from "react-i18next";
+import CommandPalette from "../common/CommandPalette";
 import {
   LayoutDashboard,
   FileText,
@@ -55,17 +56,15 @@ import {
   Scan,
   Target,
   Search,
-  Command
 } from "lucide-react";
 import NewsTicker from "../common/NewsTicker";
 import { supabase } from "../../lib/supabase";
+import { isAdmin, isInFamily } from "../../utils/authUtils";
 
 import NotificationCenter from "../notifications/NotificationCenter";
 import MobileCountrySelector from "../MobileCountrySelector";
-import ChatWidget from "../common/ChatWidget";
-import WhatsAppButton from "../common/WhatsAppButton";
 import { useUI } from "../../contexts/UIContext";
-import CommandPalette from "../common/CommandPalette";
+import FloatingActions from "../common/FloatingActions";
 import { useFeature } from "../../contexts/FeatureFlagContext";
 
 import KYCBadge from "../common/KYCBadge";
@@ -78,7 +77,6 @@ import InstallGuideModal from "../common/InstallGuideModal";
 
 import { useChat } from "../../contexts/ChatContext";
 import CalculatorModal from "../dashboard/CalculatorModal";
-import { notificationService, Notification } from "../../services/notificationService";
 import { CustomToast, showNotification } from "../common/NotificationToast";
 
 interface NavItem {
@@ -110,13 +108,13 @@ export default function DashboardLayout() {
 
   // Real-time Lead Alerts for Admins
   useEffect(() => {
-    if (user && (profile?.role === 'admin' || profile?.role === 'super-admin')) {
+    if (user && isAdmin(profile?.role as any)) {
       const leadSub = supabase
         .channel('admin-lead-alerts')
         .on(
           'postgres_changes',
           { event: 'INSERT', schema: 'public', table: 'sales_leads' },
-          (payload: any) => {
+          () => {
             showNotification(
               "🚀 Nouveau Prospect IA !",
               "Une nouvelle demande a été détectée sur WhatsApp. Cliquez pour analyser.",
@@ -131,6 +129,7 @@ export default function DashboardLayout() {
         supabase.removeChannel(leadSub);
       };
     }
+    return undefined;
   }, [user, profile]);
   const { openCalculator } = useUI(); // FIX MISSING DESTRUCTURING
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -410,7 +409,7 @@ export default function DashboardLayout() {
       return sections;
     }
 
-    if (['admin', 'super-admin', 'support', 'manager'].includes(role || '')) {
+    if (isInFamily(role as any, 'ADMIN')) {
       return [
         {
           title: t("dashboard.menu.main"),
@@ -755,9 +754,10 @@ export default function DashboardLayout() {
                 fixed inset-y-0 left-0 z-50 bg-white/80 dark:bg-dark-card/90 backdrop-blur-xl border-r border-gray-100/50 dark:border-white/5 shadow-xl lg:shadow-none transform transition-all duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0
                 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
                 ${isCollapsed ? "w-20" : "w-72"}
-                flex flex-col flex-shrink-0
+                flex flex-col flex-shrink-0 relative overflow-hidden
             `}
       >
+        <div className="grain-overlay" />
         {/* Logo Area */}
         <div
           className={`min-h-[5rem] pt-safe flex items-center ${isCollapsed ? "justify-center px-0" : "px-8"} border-b border-gray-50/50 dark:border-gray-700/50 transition-all duration-300 relative`}
@@ -1208,6 +1208,7 @@ export default function DashboardLayout() {
 
         {/* Page Content */}
         <main className={`flex-1 overflow-x-hidden overflow-y-auto w-full max-w-full custom-scrollbar relative z-0 ${isChatOpen ? 'pb-32' : 'pb-12'}`}>
+          <div className="grain-overlay opacity-[0.02]" />
           <div className="container mx-auto px-6 py-8">
             <GlobalErrorBoundary>
               <Outlet />
@@ -1216,14 +1217,8 @@ export default function DashboardLayout() {
           </div>
         </main>
 
-        {
-          !isMessagesPage && window.innerWidth >= 1024 && (
-            <div className="fixed bottom-8 right-8 z-40 animate-in slide-in-from-bottom-4 duration-1000">
-              <ChatWidget />
-              <WhatsAppButton />
-            </div>
-          )
-        }
+        {/* Unified Floating Action System - Replaces multiple individual buttons */}
+        {!isMessagesPage && <FloatingActions />}
 
         <NewsTicker />
       </div >

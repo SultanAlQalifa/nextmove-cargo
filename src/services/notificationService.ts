@@ -1,4 +1,6 @@
 import { supabase } from "../lib/supabase";
+import { PushNotifications } from "@capacitor/push-notifications";
+import { Capacitor } from "@capacitor/core";
 
 export interface Notification {
   id: string;
@@ -13,6 +15,66 @@ export interface Notification {
 }
 
 export const notificationService = {
+  // --- Push Notifications Logic ---
+  initPushNotifications: async () => {
+    if (Capacitor.getPlatform() === 'web') {
+      console.log('Push notifications not available on web');
+      return;
+    }
+
+    // Request permissions
+    let permStatus = await PushNotifications.checkPermissions();
+
+    if (permStatus.receive === 'prompt') {
+      permStatus = await PushNotifications.requestPermissions();
+    }
+
+    if (permStatus.receive !== 'granted') {
+      throw new Error('Push notification permission denied');
+    }
+
+    // Register with Apple / Google
+    await PushNotifications.register();
+
+    // Listeners
+    PushNotifications.addListener('registration', async (token) => {
+      console.log('Push registration success, token: ' + token.value);
+      await notificationService.savePushToken(token.value);
+    });
+
+    PushNotifications.addListener('registrationError', (error: any) => {
+      console.error('Error on registration: ' + JSON.stringify(error));
+    });
+
+    PushNotifications.addListener('pushNotificationReceived', (notification) => {
+      console.log('Push received: ' + JSON.stringify(notification));
+    });
+
+    PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
+      console.log('Push action performed: ' + JSON.stringify(notification));
+      if (notification.notification.data?.link) {
+        window.location.href = notification.notification.data.link;
+      }
+    });
+  },
+
+  savePushToken: async (token: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { error } = await supabase
+      .from("user_push_tokens")
+      .upsert({
+        user_id: user.id,
+        token: token,
+        platform: Capacitor.getPlatform(),
+        last_seen_at: new Date().toISOString()
+      }, { onConflict: 'token' });
+
+    if (error) console.error("Error saving push token:", error);
+  },
+
+  // --- Existing Notifications Logic ---
   getNotifications: async (limit = 20) => {
     const { data, error } = await supabase
       .from("notifications")
@@ -56,7 +118,7 @@ export const notificationService = {
     if (error) throw error;
   },
 
-  // Method to simulate manual trigger for testing (usually admin only, but useful for verificaiton)
+  // Method to simulate manual trigger for testing
   testTrigger: async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;

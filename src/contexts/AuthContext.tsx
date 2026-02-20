@@ -38,17 +38,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }).catch((err) => {
       console.error("Auth session check failed:", err);
+      // If refresh token is invalid, clear everything to allow fresh login
+      if (err?.message?.includes("Refresh Token Not Found") || err?.message?.includes("Invalid Refresh Token")) {
+        supabase.auth.signOut().catch(console.error);
+        setSession(null);
+        setUser(null);
+        setProfile(null);
+      }
       setLoading(false);
     });
 
     // Listen for changes on auth state (logged in, signed out, etc.)
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Auth state changed:", event, session?.user?.email);
+
+      if (event === "SIGNED_OUT") {
+        setSession(null);
+        setUser(null);
+        setProfile(null);
+        setLoading(false);
+        return;
+      }
+
       setSession(session);
       setUser(session?.user ?? null);
+
       if (session?.user) {
         fetchProfile(session.user.id);
+        // Initialize Push Notifications
+        import("../services/notificationService").then(({ notificationService }) => {
+          notificationService.initPushNotifications().catch(console.error);
+        });
       } else {
         setProfile(null);
         setLoading(false);

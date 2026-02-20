@@ -100,7 +100,6 @@ const DocumentCenter = lazy(
 const TrackingPage = lazy(() => import("./pages/TrackingPage")); // Public Tracking
 const NotFound = lazy(() => import("./pages/NotFound"));
 const KioskHome = lazy(() => import("./pages/public/KioskHome"));
-
 const ForwarderOffers = lazy(
   () => import("./pages/dashboard/forwarder/ForwarderOffers"),
 );

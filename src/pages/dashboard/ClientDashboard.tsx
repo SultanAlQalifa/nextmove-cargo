@@ -35,6 +35,7 @@ import {
   AreaChart,
   Area
 } from "recharts";
+import { ChartGuard } from "../../components/common/ChartGuard";
 import { useToast } from "../../contexts/ToastContext";
 import ConfirmationModal from "../../components/common/ConfirmationModal";
 import { useDataSync } from "../../contexts/DataSyncContext";
@@ -56,12 +57,7 @@ export default function ClientDashboard() {
   const [activeChat, setActiveChat] = useState<{ chatId: string; recipientName: string; } | null>(null);
   const [searchQuery] = useState("");
   const [loading, setLoading] = useState(true);
-  const [isMounted, setIsMounted] = useState(false);
 
-  useEffect(() => {
-    const timer = setTimeout(() => setIsMounted(true), 150);
-    return () => clearTimeout(timer);
-  }, []);
 
   useEffect(() => {
     if (user) {
@@ -285,7 +281,7 @@ export default function ClientDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 auto-rows-[minmax(140px,auto)]">
 
         {/* 1. Main Stats Chart - Spans 2 cols, 2 rows on large screens */}
-        <div className="md:col-span-2 lg:col-span-2 row-span-2 bg-white/80 dark:bg-dark-card/80 backdrop-blur-xl rounded-3xl p-6 border border-white/40 dark:border-white/10 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow">
+        <div className="md:col-span-2 lg:col-span-2 row-span-2 glass-card-premium rounded-3xl p-6 relative overflow-hidden group hover:shadow-2xl transition-all duration-500">
           <div className="flex justify-between items-start mb-6 relative z-10">
             <div>
               <h3 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
@@ -301,8 +297,8 @@ export default function ClientDashboard() {
 
           {/* eslint-disable-next-line react/forbid-dom-props */}
           <div className="relative z-10 w-full h-[300px]">
-            {isMounted && (
-              <ResponsiveContainer width="100%" height={300}>
+            <ChartGuard height={300}>
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0} debounce={1}>
                 <AreaChart data={chartData}>
                   <defs>
                     <linearGradient id="colorExp" x1="0" y1="0" x2="0" y2="1">
@@ -326,7 +322,7 @@ export default function ClientDashboard() {
                   {showPredictiveAnalytics && <Area type="monotone" dataKey="prevision" stroke="#94A3B8" strokeWidth={2} strokeDasharray="5 5" fill="transparent" />}
                 </AreaChart>
               </ResponsiveContainer>
-            )}
+            </ChartGuard>
           </div>
           {/* Decorative bg blobs */}
           <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors pointer-events-none"></div>
@@ -418,7 +414,7 @@ export default function ClientDashboard() {
 
         {/* 5. Smart Impact & Loyalty */}
         {showPredictiveAnalytics && (
-          <div className="bg-white/80 dark:bg-dark-card/80 backdrop-blur-xl rounded-3xl p-6 border border-white/40 dark:border-white/10 shadow-sm hover:shadow-md transition-all group relative overflow-hidden">
+          <div className="glass-card-premium rounded-3xl p-6 hover:shadow-xl transition-all duration-300 group relative overflow-hidden animate-delay-400">
             <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -mr-12 -mt-12 blur-2xl" />
             <div className="flex justify-between items-start mb-4">
               <div className="p-2.5 bg-primary/10 text-primary rounded-xl group-hover:bg-primary/20 transition-colors">

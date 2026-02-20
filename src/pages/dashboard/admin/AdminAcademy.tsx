@@ -13,6 +13,7 @@ import { supabase } from "../../../lib/supabase";
 import { academyService } from "../../../services/academyService";
 import { AcademyCourse } from "../../../types/academy";
 import { ResponsiveContainer, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Bar } from 'recharts';
+import { ChartGuard } from "../../../components/common/ChartGuard";
 
 export default function AdminAcademy() {
     const navigate = useNavigate();
@@ -63,6 +64,7 @@ export default function AdminAcademy() {
         loadComments();
         loadSettings();
     }, []);
+
 
     const loadSettings = async () => {
         try {
@@ -1759,8 +1761,8 @@ export default function AdminAcademy() {
                                     <Award className="w-6 h-6 text-orange-500" /> Analyse de l'Académie
                                 </h4>
 
-                                <div className="h-80 w-full">
-                                    <ResponsiveContainer width="100%" height="100%">
+                                <ChartGuard height={320}>
+                                    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0} debounce={1}>
                                         <BarChart data={courses.map(c => ({ name: c.title.substring(0, 15), students: c.students || 0, rating: c.rating || 5 }))}>
                                             <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
                                             <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 'bold' }} />
@@ -1771,7 +1773,7 @@ export default function AdminAcademy() {
                                             <Bar dataKey="students" fill="#f97316" radius={[10, 10, 0, 0]} barSize={40} />
                                         </BarChart>
                                     </ResponsiveContainer>
-                                </div>
+                                </ChartGuard>
 
                                 <div className="mt-8 pt-8 border-t border-slate-100 dark:border-slate-700 grid grid-cols-1 md:grid-cols-2 gap-8">
                                     <div>

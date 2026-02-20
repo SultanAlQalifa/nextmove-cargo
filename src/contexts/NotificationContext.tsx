@@ -2,7 +2,6 @@ import React, { createContext, useContext, useState, useEffect, useMemo } from "
 import { useAuth } from "./AuthContext";
 import { notificationService, Notification } from "../services/notificationService";
 import { supabase } from "../lib/supabase";
-import { useToast } from "./ToastContext";
 
 interface NotificationContextType {
     notifications: Notification[];
@@ -17,7 +16,6 @@ const NotificationContext = createContext<NotificationContextType | undefined>(u
 
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
     const { user } = useAuth();
-    const { info } = useToast();
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [unreadCount, setUnreadCount] = useState(0);
 
@@ -43,6 +41,11 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     useEffect(() => {
         if (user) {
             refreshNotifications();
+
+            // Initialize Push Notifications for mobile devices
+            notificationService.initPushNotifications().catch(err => {
+                console.warn("Push initialization skipped or failed:", err.message);
+            });
 
             // Subscribe to real-time changes filtered by user_id
             const channel = supabase

@@ -280,7 +280,8 @@ export const academyService = {
             .insert({
                 lesson_id: comment.lesson_id,
                 user_id: comment.user_id,
-                content: comment.content
+                content: comment.content,
+                parent_id: comment.parent_id
             })
             .select('*, profiles(full_name, avatar_url)')
             .single();
@@ -580,6 +581,28 @@ export const academyService = {
         }
 
         return savedQuiz;
+    },
+
+    /**
+     * QUIZ: Save a quiz attempt/result
+     */
+    async saveQuizAttempt(attempt: {
+        user_id: string;
+        quiz_id: string;
+        score: number;
+        passed: boolean;
+    }) {
+        const { data, error } = await supabase
+            .from('academy_quiz_attempts')
+            .insert({
+                ...attempt,
+                completed_at: new Date().toISOString()
+            })
+            .select()
+            .single();
+
+        if (error) throw error;
+        return data;
     },
 
     /**

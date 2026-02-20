@@ -1,13 +1,24 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bot, X, Send, MessageCircle, Minimize2, Maximize2, Zap, ShieldCheck, Image as ImageIcon, Paperclip } from "lucide-react";
+import { Bot, X, Send, MessageCircle, Minimize2, Maximize2, Zap, ShieldCheck, Paperclip } from "lucide-react";
 import { aiService, AIMessage } from "../../services/aiService";
 import { useNavigate } from "react-router-dom";
 import { useFeature } from "../../contexts/FeatureFlagContext";
 
-export default function AIChatBubble() {
+interface AIChatBubbleProps {
+    externalOpen?: boolean;
+    onClose?: () => void;
+}
+
+export default function AIChatBubble({ externalOpen, onClose }: AIChatBubbleProps) {
     const navigate = useNavigate();
-    const [isOpen, setIsOpen] = useState(false);
+    const [internalOpen, setInternalOpen] = useState(false);
+    const isOpen = externalOpen !== undefined ? externalOpen : internalOpen;
+    const setIsOpen = (val: boolean) => {
+        if (onClose && !val) onClose();
+        setInternalOpen(val);
+    };
+
     const [messages, setMessages] = useState<AIMessage[]>([]);
     const [input, setInput] = useState("");
     const [loading, setLoading] = useState(false);
@@ -132,16 +143,34 @@ export default function AIChatBubble() {
                                     className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-transparent to-primary/5 h-[360px]"
                                 >
                                     {messages.map((msg) => (
-                                        <div
-                                            key={msg.id}
-                                            className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                                        >
-                                            <div className={`max-w-[85%] p-3 rounded-2xl text-sm ${msg.role === 'user'
-                                                ? 'bg-primary text-white rounded-tr-none shadow-md'
-                                                : 'bg-white text-gray-800 border border-gray-100 rounded-tl-none shadow-sm'
-                                                }`}>
-                                                {msg.content}
+                                        <div className={`max-w-[85%] rounded-2xl text-sm ${msg.role === 'user'
+                                            ? 'bg-primary text-white rounded-tr-none shadow-md p-3'
+                                            : 'bg-white text-gray-800 border border-gray-100 rounded-tl-none shadow-sm'
+                                            }`}>
+                                            <div className="p-3">
+                                                {msg.content.split('<quote_data>')[0]}
                                             </div>
+
+                                            {msg.role === 'assistant' && msg.content.includes('<quote_data>') && (
+                                                <div className="p-3 border-t border-gray-50 bg-primary/5 rounded-b-2xl">
+                                                    <button
+                                                        onClick={() => {
+                                                            const rawData = msg.content.split('<quote_data>')[1].split('</quote_data>')[0];
+                                                            try {
+                                                                const data = JSON.parse(rawData);
+                                                                navigate('/dashboard/client/rfq/create', { state: { leadPrefill: data } });
+                                                                setIsOpen(false);
+                                                            } catch (e) {
+                                                                console.error("Failed to parse quote data", e);
+                                                            }
+                                                        }}
+                                                        className="w-full py-2 bg-primary text-white rounded-xl text-xs font-bold hover:bg-primary/90 transition-all flex items-center justify-center gap-2"
+                                                    >
+                                                        <Zap className="w-3 h-3 fill-current" />
+                                                        🎯 Générer ma Cotation
+                                                    </button>
+                                                </div>
+                                            )}
                                         </div>
                                     ))}
                                     {loading && (
@@ -224,20 +253,22 @@ export default function AIChatBubble() {
                 )}
             </AnimatePresence>
 
-            {/* Toggle Button */}
-            <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setIsOpen(!isOpen)}
-                title={isOpen ? "Fermer le chat" : "Discuter avec l'IA"}
-                className="mt-4 w-16 h-16 bg-primary text-white rounded-full shadow-2xl flex items-center justify-center pointer-events-auto relative group overflow-hidden"
-            >
-                <div className="absolute inset-0 bg-gradient-to-tr from-primary-700 to-primary opacity-0 group-hover:opacity-100 transition-opacity" />
-                {isOpen ? <X className="relative z-10 w-7 h-7" /> : <MessageCircle className="relative z-10 w-8 h-8" />}
+            {/* Toggle Button - Only show if not controlled externally */}
+            {externalOpen === undefined && (
+                <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setIsOpen(!isOpen)}
+                    title={isOpen ? "Fermer le chat" : "Discuter avec l'IA"}
+                    className="mt-4 w-16 h-16 bg-primary text-white rounded-full shadow-2xl flex items-center justify-center pointer-events-auto relative group overflow-hidden"
+                >
+                    <div className="absolute inset-0 bg-gradient-to-tr from-primary-700 to-primary opacity-0 group-hover:opacity-100 transition-opacity" />
+                    {isOpen ? <X className="relative z-10 w-7 h-7" /> : <MessageCircle className="relative z-10 w-8 h-8" />}
 
-                {/* Glow effect */}
-                <div className="absolute inset-0 -z-10 bg-primary/40 blur-xl scale-110 opacity-50" />
-            </motion.button>
+                    {/* Glow effect */}
+                    <div className="absolute inset-0 -z-10 bg-primary/40 blur-xl scale-110 opacity-50" />
+                </motion.button>
+            )}
         </div >
     );
 }

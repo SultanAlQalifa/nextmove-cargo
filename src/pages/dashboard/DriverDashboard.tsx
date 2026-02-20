@@ -18,7 +18,6 @@ import {
   ChevronRight,
   Plus,
   ArrowUpRight,
-  ArrowDownRight,
   Star,
   X,
   Loader2,
@@ -32,6 +31,7 @@ export default function DriverDashboard() {
 
   const [shipments, setShipments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [simulating, setSimulating] = useState(false);
   const [selectedShipment, setSelectedShipment] = useState<any | null>(null);
   const [podForm, setPodForm] = useState({
     recipient_name: "",
@@ -44,6 +44,9 @@ export default function DriverDashboard() {
   const [submitting, setSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [isTracking, setIsTracking] = useState(false);
+  const [activeTrackingShipment, setActiveTrackingShipment] = useState<string | null>(null);
+  const [watchId, setWatchId] = useState<number | null>(null);
 
   useEffect(() => {
     if (user) loadShipments();
@@ -154,6 +157,49 @@ export default function DriverDashboard() {
       setSubmitting(false);
     }
   };
+
+  const startTracking = (shipmentId: string) => {
+    if (watchId) return;
+
+    setIsTracking(true);
+    setActiveTrackingShipment(shipmentId);
+
+    const id = navigator.geolocation.watchPosition(
+      (pos) => {
+        shipmentService.sendGPSUpdate(shipmentId, pos.coords.latitude, pos.coords.longitude)
+          .catch(err => console.error("GPS Update failed", err));
+      },
+      (err) => {
+        console.error("GPS Watch failed", err);
+        toastError("Erreur GPS : " + err.message);
+        stopTracking();
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 5000
+      }
+    );
+    setWatchId(id);
+    success("Suivi GPS activé ! Votre position sera partagée en temps réel.");
+  };
+
+  const stopTracking = () => {
+    if (watchId !== null) {
+      navigator.geolocation.clearWatch(watchId);
+      setWatchId(null);
+    }
+    setIsTracking(false);
+    setActiveTrackingShipment(null);
+    success("Suivi GPS désactivé.");
+  };
+
+  // Clean up on unmount
+  useEffect(() => {
+    return () => {
+      if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+    };
+  }, [watchId]);
 
   // Stats
   const activeDeliveries = shipments.filter(
@@ -417,20 +463,29 @@ export default function DriverDashboard() {
                 </div>
 
                 <div className="pt-4 border-t border-gray-100">
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className="w-full flex justify-center items-center gap-2 py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-primary/30 text-sm font-bold text-white bg-primary hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {submitting ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        Traitement en cours...
-                      </>
-                    ) : (
-                      "Valider la Livraison"
+                  <div className="flex gap-4">
+                    <button
+                      type="submit"
+                      disabled={submitting}
+                      className="flex-1 flex justify-center items-center gap-2 py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-primary/30 text-sm font-bold text-white bg-primary hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {submitting ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Traitement...
+                        </>
+                      ) : (
+                        "Valider Livraison"
+                      )}
+                    </button>
+
+                    {simulating && (
+                      <div className="flex items-center gap-2 text-xs text-blue-600 animate-pulse">
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                        Simulation...
+                      </div>
                     )}
-                  </button>
+                  </div>
                 </div>
               </form>
             </div>
@@ -504,13 +559,34 @@ export default function DriverDashboard() {
                       </div>
                     </div>
 
-                    <button
-                      onClick={() => setSelectedShipment(shipment)}
-                      className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-primary bg-primary/5 rounded-lg hover:bg-primary/10 transition-colors"
-                    >
-                      Gérer
-                      <ChevronRight className="w-4 h-4" />
-                    </button>
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                      {isTracking && activeTrackingShipment === shipment.id ? (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); stopTracking(); }}
+                          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+                        >
+                          <div className="w-2 h-2 bg-red-600 rounded-full animate-pulse" />
+                          Arrêter Suivi
+                        </button>
+                      ) : (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); startTracking(shipment.id); }}
+                          disabled={shipment.status === 'delivered'}
+                          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-green-600 bg-green-50 rounded-lg hover:bg-green-100 transition-colors disabled:opacity-50"
+                        >
+                          <Navigation className="w-4 h-4" />
+                          Suivi Live
+                        </button>
+                      )}
+
+                      <button
+                        onClick={() => setSelectedShipment(shipment)}
+                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-primary bg-primary/5 rounded-lg hover:bg-primary/10 transition-colors"
+                      >
+                        Gérer
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}

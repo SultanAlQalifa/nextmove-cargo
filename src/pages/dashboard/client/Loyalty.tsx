@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
     Crown, Star, Gift, TrendingUp, History, X, Send,
     ArrowUpRight, ArrowDownLeft, Users, Copy, Share2, Check, Linkedin, ArrowRightLeft
@@ -181,10 +181,15 @@ export default function LoyaltyDashboard() {
     };
 
     return (
-        <div className="space-y-8 pb-12">
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-8 pb-12 relative"
+        >
+            <div className="grain-overlay opacity-[0.02]" />
             <PageHeader
                 title="Club Fidélité & Parrainage"
-                subtitle="Un seul endroit pour gérer vos points, vos amis et vos récompenses."
+                subtitle="Gérez vos points, votre réseau et vos privilèges exclusifs."
             />
 
             {/* Premium Loyalty Center Component */}
@@ -196,29 +201,36 @@ export default function LoyaltyDashboard() {
                 onTransfer={() => setIsTransferModalOpen(true)}
             />
 
-            {/* Navigation Tabs */}
-            <div className="flex gap-2 overflow-x-auto pb-2 border-b border-gray-100">
-                <button
-                    onClick={() => setActiveTab('overview')}
-                    className={`px-6 py-3 rounded-xl font-medium transition-all whitespace-nowrap flex items-center gap-2
-                        ${activeTab === 'overview' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'bg-white text-gray-500 hover:bg-gray-50'}`}
-                >
-                    <Star size={18} /> Aperçu
-                </button>
-                <button
-                    onClick={() => setActiveTab('referrals')}
-                    className={`px-6 py-3 rounded-xl font-medium transition-all whitespace-nowrap flex items-center gap-2
-                        ${activeTab === 'referrals' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'bg-white text-gray-500 hover:bg-gray-50'}`}
-                >
-                    <Users size={18} /> Mon Parrainage
-                </button>
-                <button
-                    onClick={() => setActiveTab('history')}
-                    className={`px-6 py-3 rounded-xl font-medium transition-all whitespace-nowrap flex items-center gap-2
-                        ${activeTab === 'history' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'bg-white text-gray-500 hover:bg-gray-50'}`}
-                >
-                    <History size={18} /> Historique
-                </button>
+            {/* Navigation Tabs - Elite Design */}
+            <div className="flex gap-4 overflow-x-auto pb-4 px-2 no-scrollbar">
+                {[
+                    { id: 'overview', icon: Star, label: 'Aperçu' },
+                    { id: 'referrals', icon: Users, label: 'Parrainage' },
+                    { id: 'history', icon: History, label: 'Historique' }
+                ].map((tab) => {
+                    const Icon = tab.icon;
+                    const isActive = activeTab === tab.id;
+                    return (
+                        <button
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id as any)}
+                            className={`px-8 py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest transition-all duration-300 flex items-center gap-3 relative whitespace-nowrap
+                                ${isActive
+                                    ? 'text-white shadow-xl shadow-blue-500/20'
+                                    : 'bg-white/50 dark:bg-slate-900/50 text-slate-500 hover:bg-white dark:hover:bg-slate-800 border border-transparent hover:border-slate-200 dark:hover:border-white/10'}`}
+                        >
+                            {isActive && (
+                                <motion.div
+                                    layoutId="activeTab"
+                                    className="absolute inset-0 bg-blue-600 rounded-2xl -z-10"
+                                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                                />
+                            )}
+                            <Icon size={16} className={isActive ? "animate-pulse" : ""} />
+                            {tab.label}
+                        </button>
+                    );
+                })}
             </div>
 
             {/* Tab Content */}
@@ -227,34 +239,29 @@ export default function LoyaltyDashboard() {
                 {/* OVERVIEW TAB */}
                 {activeTab === 'overview' && (
                     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-                        <div className="grid md:grid-cols-3 gap-6">
-                            <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
-                                <div className="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center mb-4">
-                                    <Gift className="w-6 h-6 text-purple-600" />
-                                </div>
-                                <h3 className="font-bold text-lg mb-2 text-slate-900">Gagnez des points</h3>
-                                <p className="text-slate-500 text-sm">
-                                    50 points par colis livré + 500 points pour chaque ami parrainé (dès son 1er colis).
-                                </p>
-                            </div>
-                            <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
-                                <div className="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center mb-4">
-                                    <Star className="w-6 h-6 text-amber-600" />
-                                </div>
-                                <h3 className="font-bold text-lg mb-2 text-slate-900">Bonus Status</h3>
-                                <p className="text-slate-500 text-sm">
-                                    Progressez vers le statut Gold pour gagner x1.5 points sur chaque expédition.
-                                </p>
-                            </div>
-                            <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
-                                <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center mb-4">
-                                    <TrendingUp className="w-6 h-6 text-emerald-600" />
-                                </div>
-                                <h3 className="font-bold text-lg mb-2 text-slate-900">Utilisez vos points</h3>
-                                <p className="text-slate-500 text-sm">
-                                    Convertissez vos points en crédit d'expédition ou offrez-les à vos proches.
-                                </p>
-                            </div>
+                        <div className="grid md:grid-cols-3 gap-8">
+                            {[
+                                { title: "Gagnez des points", content: "50 pts par colis + 500 pts par parrainage validé.", icon: Gift, color: "blue" },
+                                { title: "Bonus Status", content: "Passez Gold pour multiplier vos gains par x1.5.", icon: Star, color: "amber" },
+                                { title: "Utilisez vos points", content: "Convertissez en crédit ou offrez vos points.", icon: TrendingUp, color: "emerald" }
+                            ].map((card, i) => (
+                                <motion.div
+                                    key={i}
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ delay: i * 0.1 }}
+                                    className="glass-card-premium p-8 rounded-[2rem] border-white/10 relative overflow-hidden group hover:shadow-2xl transition-all"
+                                >
+                                    <div className="grain-overlay opacity-[0.02]" />
+                                    <div className={`w-14 h-14 bg-${card.color}-500/10 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500`}>
+                                        <card.icon className={`w-7 h-7 text-${card.color}-500`} />
+                                    </div>
+                                    <h3 className="font-black text-xl mb-3 text-slate-800 dark:text-white uppercase tracking-tight">{card.title}</h3>
+                                    <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">
+                                        {card.content}
+                                    </p>
+                                </motion.div>
+                            ))}
                         </div>
 
                         {/* Recent Activity Preview */}
@@ -284,19 +291,25 @@ export default function LoyaltyDashboard() {
                 {/* REFERRALS TAB */}
                 {activeTab === 'referrals' && (
                     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-                        <div className="bg-white rounded-2xl p-8 border border-indigo-100 bg-gradient-to-br from-white to-indigo-50/30">
-                            <div className="text-center max-w-lg mx-auto">
-                                <h3 className="text-2xl font-bold text-indigo-900 mb-2">Invitez vos amis</h3>
-                                <p className="text-indigo-600/80 mb-6">Partagez votre code unique. Vous gagnez 500 points dès qu'ils expédient leur premier colis !</p>
+                        <div className="glass-card-premium p-10 rounded-[2.5rem] border-white/10 relative overflow-hidden bg-gradient-to-br from-white/80 to-blue-50/50 dark:from-slate-900/80 dark:to-blue-900/20 shadow-2xl">
+                            <div className="grain-overlay opacity-[0.03]" />
+                            <div className="text-center max-w-lg mx-auto relative z-10">
+                                <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center mx-auto mb-6 text-blue-600 animate-bounce-slow">
+                                    <Users size={32} />
+                                </div>
+                                <h3 className="text-3xl font-black text-slate-900 dark:text-white mb-3 uppercase tracking-tight">Étendez votre réseau</h3>
+                                <p className="text-slate-500 dark:text-slate-400 mb-10 text-sm leading-relaxed">
+                                    Partagez l'excellence NextMove. Vous gagnez <span className="text-blue-600 font-black">500 points</span> dès qu'un proche valide son premier colis.
+                                </p>
 
-                                <div className="flex items-center gap-2 bg-white p-2 rounded-xl border border-indigo-100 shadow-sm max-w-md mx-auto">
-                                    <code className="flex-1 text-center text-xl font-mono font-bold text-indigo-900 tracking-wider">
+                                <div className="flex items-center gap-3 bg-white dark:bg-slate-800 p-2 rounded-2xl border border-slate-200 dark:border-white/10 shadow-inner max-w-sm mx-auto group">
+                                    <code className="flex-1 text-center text-2xl font-black text-blue-600 dark:text-blue-400 tracking-[0.2em] py-2 px-4 select-all">
                                         {localCode || profile?.referral_code || "---"}
                                     </code>
                                     <button
                                         onClick={copyCode}
-                                        className="p-3 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 rounded-lg transition-colors"
-                                        aria-label="Copier votre code de parrainage"
+                                        className="p-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all shadow-lg active:scale-95"
+                                        aria-label="Copier le code"
                                     >
                                         {copied ? <Check size={20} /> : <Copy size={20} />}
                                     </button>
@@ -352,24 +365,25 @@ export default function LoyaltyDashboard() {
                             </div>
                         </div>
 
-                        <div className="grid md:grid-cols-3 gap-4">
-                            <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm text-center">
-                                <p className="text-slate-500 text-sm mb-1">Total Filleuls</p>
-                                <p className="text-3xl font-bold text-slate-900">{referralStats.total || 0}</p>
-                            </div>
-                            <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm text-center">
-                                <p className="text-slate-500 text-sm mb-1">En Attente</p>
-                                <p className="text-3xl font-bold text-amber-500">{referrals.filter(r => r.status === 'pending').length}</p>
-                            </div>
-                            <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm text-center">
-                                <p className="text-slate-500 text-sm mb-1">Récompensés</p>
-                                <p className="text-3xl font-bold text-emerald-500">{referrals.filter(r => ['completed', 'rewarded'].includes(r.status)).length}</p>
-                            </div>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                            {[
+                                { label: "Total Filleuls", value: referralStats.total || 0, color: "slate" },
+                                { label: "En Attente", value: referrals.filter(r => r.status === 'pending').length, color: "amber" },
+                                { label: "Validés", value: referrals.filter(r => ['completed', 'rewarded'].includes(r.status)).length, color: "emerald" }
+                            ].map((stat, i) => (
+                                <div key={i} className="glass-card-premium p-6 rounded-[2rem] border-white/10 text-center relative overflow-hidden group">
+                                    <div className="grain-overlay opacity-[0.02]" />
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">{stat.label}</p>
+                                    <p className={`text-4xl font-black text-${stat.color}-500 transition-transform group-hover:scale-110`}>{stat.value}</p>
+                                </div>
+                            ))}
                         </div>
 
-                        <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
-                            <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
-                                <h3 className="font-bold text-gray-900">Mes Filleuls</h3>
+                        <div className="glass-card-premium rounded-[2.5rem] border-white/10 overflow-hidden shadow-2xl">
+                            <div className="px-8 py-6 border-b border-slate-100 dark:border-white/5 flex justify-between items-center">
+                                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                                    <History size={14} className="text-blue-500" /> Mon Réseau Actif
+                                </h3>
                             </div>
                             {referrals.length === 0 ? (
                                 <div className="p-12 text-center text-gray-400">
@@ -377,12 +391,12 @@ export default function LoyaltyDashboard() {
                                 </div>
                             ) : (
                                 <table className="w-full">
-                                    <thead className="bg-gray-50 text-xs uppercase text-gray-500 font-semibold">
+                                    <thead className="bg-slate-50/50 dark:bg-white/5 text-[10px] uppercase text-slate-400 font-black tracking-widest">
                                         <tr>
-                                            <th className="px-6 py-3 text-left">Nom</th>
-                                            <th className="px-6 py-3 text-left">Date</th>
-                                            <th className="px-6 py-3 text-left">Statut</th>
-                                            <th className="px-6 py-3 text-right">Points</th>
+                                            <th className="px-8 py-5 text-left">Filleul</th>
+                                            <th className="px-8 py-5 text-left">Date</th>
+                                            <th className="px-8 py-5 text-left">Statut</th>
+                                            <th className="px-8 py-5 text-right">Gains</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-50">
@@ -414,46 +428,51 @@ export default function LoyaltyDashboard() {
 
                 {/* HISTORY TAB */}
                 {activeTab === 'history' && (
-                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="glass-card-premium rounded-[2.5rem] border-white/10 shadow-2xl overflow-hidden"
+                    >
+                        <div className="grain-overlay opacity-[0.02]" />
                         {history.length === 0 ? (
-                            <div className="p-12 text-center text-slate-500">
-                                Aucun historique disponible.
+                            <div className="p-20 text-center text-slate-500 italic">
+                                Aucun historique disponible. Expédiez votre premier colis pour gagner des points !
                             </div>
                         ) : (
                             <div className="overflow-x-auto">
                                 <table className="w-full">
-                                    <thead className="bg-slate-50 text-slate-500 text-xs uppercase font-semibold">
+                                    <thead className="bg-slate-50/50 dark:bg-white/5 text-[10px] uppercase text-slate-400 font-black tracking-widest">
                                         <tr>
-                                            <th className="px-6 py-4 text-left">Type</th>
-                                            <th className="px-6 py-4 text-left">Date</th>
-                                            <th className="px-6 py-4 text-right">Montant</th>
+                                            <th className="px-8 py-5 text-left">Type de Transaction</th>
+                                            <th className="px-8 py-5 text-left">Date</th>
+                                            <th className="px-8 py-5 text-right">Points</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-slate-100">
+                                    <tbody className="divide-y divide-slate-100 dark:divide-white/5">
                                         {history.map((tx) => (
-                                            <tr key={tx.id} className="hover:bg-slate-50/50 transition-colors">
-                                                <td className="px-6 py-4">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="p-2 bg-slate-50 rounded-full">
+                                            <tr key={tx.id} className="hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors group">
+                                                <td className="px-8 py-5">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="p-3 bg-white dark:bg-slate-800 rounded-xl shadow-sm group-hover:scale-110 transition-transform">
                                                             {getReasonIcon(tx.reason)}
                                                         </div>
                                                         <div>
-                                                            <p className="font-medium text-slate-900">{getReasonLabel(tx.reason)}</p>
+                                                            <p className="font-black text-slate-800 dark:text-white uppercase text-[10px] tracking-widest">{getReasonLabel(tx.reason)}</p>
                                                             {tx.metadata?.recipient_email && (
-                                                                <p className="text-xs text-slate-500">Vers {tx.metadata.recipient_email}</p>
+                                                                <p className="text-[10px] text-slate-500 font-bold">Destinataire: {tx.metadata.recipient_email}</p>
                                                             )}
                                                             {tx.metadata?.sender_email && (
-                                                                <p className="text-xs text-slate-500">De {tx.metadata.sender_email}</p>
+                                                                <p className="text-[10px] text-slate-500 font-bold">Expéditeur: {tx.metadata.sender_email}</p>
                                                             )}
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4 text-sm text-slate-500">
+                                                <td className="px-8 py-5 text-[10px] font-bold text-slate-500 uppercase">
                                                     {new Date(tx.created_at).toLocaleDateString("fr-FR", {
-                                                        day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit'
+                                                        day: 'numeric', month: 'long', year: 'numeric'
                                                     })}
                                                 </td>
-                                                <td className={`px-6 py-4 text-right font-bold ${tx.amount > 0 ? "text-emerald-600" : "text-slate-600"}`}>
+                                                <td className={`px-8 py-5 text-right font-black text-lg ${tx.amount > 0 ? "text-emerald-500" : "text-slate-400"}`}>
                                                     {tx.amount > 0 ? "+" : ""}{tx.amount}
                                                 </td>
                                             </tr>
@@ -467,84 +486,108 @@ export default function LoyaltyDashboard() {
             </div>
 
             {/* Convert Modal */}
-            {isConvertModalOpen && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl w-full max-w-sm p-6 relative shadow-xl">
-                        <button onClick={() => setIsConvertModalOpen(false)} aria-label="Fermer" className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
-                            <X size={20} />
-                        </button>
-                        <h3 className="text-xl font-bold mb-1">Convertir mes points</h3>
-                        <p className="text-sm text-gray-500 mb-6">Solde actuel: <span className="font-bold text-indigo-600">{points} pts</span></p>
-
-                        <form onSubmit={handleConvert} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Points à convertir</label>
-                                <input
-                                    type="number"
-                                    value={convertAmount}
-                                    onChange={(e) => setConvertAmount(e.target.value)}
-                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
-                                    placeholder="Ex: 500"
-                                    max={points}
-                                    min="1"
-                                    required
-                                />
-                            </div>
-                            <div className="bg-indigo-50 p-4 rounded-xl flex justify-between items-center text-indigo-900">
-                                <span className="text-sm font-medium">Vous recevrez :</span>
-                                <span className="text-lg font-bold">{(parseInt(convertAmount || "0") * pointValue).toLocaleString()} FCFA</span>
-                            </div>
-                            <button disabled={loading} className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-colors shadow-lg disabled:opacity-50">
-                                {loading ? "Conversion..." : "Valider la conversion"}
+            <AnimatePresence>
+                {isConvertModalOpen && (
+                    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-50 p-4">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="glass-card-premium rounded-[2.5rem] w-full max-w-md p-10 relative shadow-2xl border-white/20"
+                        >
+                            <div className="grain-overlay opacity-[0.03]" />
+                            <button onClick={() => setIsConvertModalOpen(false)} aria-label="Fermer" className="absolute top-6 right-6 text-slate-400 hover:text-blue-500 transition-colors">
+                                <X size={24} />
                             </button>
-                        </form>
+                            <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center mb-6 text-blue-600">
+                                <ArrowRightLeft size={32} />
+                            </div>
+                            <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-1 uppercase tracking-tight">Convertir mes points</h3>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-8 italic">Solde de confiance: <span className="text-blue-600">{points} PTS</span></p>
+
+                            <form onSubmit={handleConvert} className="space-y-6 relative z-10">
+                                <div>
+                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Points à échanger</label>
+                                    <input
+                                        type="number"
+                                        value={convertAmount}
+                                        onChange={(e) => setConvertAmount(e.target.value)}
+                                        className="w-full px-6 py-4 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-white/5 rounded-2xl focus:border-blue-500 outline-none transition-all font-black text-lg"
+                                        placeholder="Min. 100"
+                                        max={points}
+                                        min="1"
+                                        required
+                                    />
+                                </div>
+                                <div className="bg-blue-600/5 p-6 rounded-[1.5rem] border border-blue-500/20 flex justify-between items-center group">
+                                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Valeur Crédit</span>
+                                    <span className="text-2xl font-black text-blue-600 group-hover:scale-110 transition-transform">{(parseInt(convertAmount || "0") * pointValue).toLocaleString()} <span className="text-xs">FCFA</span></span>
+                                </div>
+                                <button disabled={loading} className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl transition-all shadow-xl shadow-blue-500/20 disabled:opacity-50 active:scale-95 uppercase tracking-widest text-xs">
+                                    {loading ? "Traitement..." : "Finaliser la conversion"}
+                                </button>
+                            </form>
+                        </motion.div>
                     </div>
-                </div>
-            )}
+                )}
+            </AnimatePresence>
 
             {/* Transfer Modal */}
-            {isTransferModalOpen && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl w-full max-w-sm p-6 relative shadow-xl">
-                        <button onClick={() => setIsTransferModalOpen(false)} aria-label="Fermer" className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
-                            <X size={20} />
-                        </button>
-                        <h3 className="text-xl font-bold mb-1">Envoyer des points</h3>
-                        <p className="text-sm text-gray-500 mb-6">Offrez vos points à un ami ou un proche.</p>
-
-                        <form onSubmit={handleTransfer} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Email du destinataire</label>
-                                <input
-                                    type="email"
-                                    value={transferEmail}
-                                    onChange={(e) => setTransferEmail(e.target.value)}
-                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
-                                    placeholder="ami@exemple.com"
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Montant à envoyer</label>
-                                <input
-                                    type="number"
-                                    value={transferAmount}
-                                    onChange={(e) => setTransferAmount(e.target.value)}
-                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
-                                    placeholder="Ex: 1000"
-                                    max={points}
-                                    min="1"
-                                    required
-                                />
-                                <p className="text-xs text-gray-500 mt-1 text-right">Max: {points} pts</p>
-                            </div>
-                            <button disabled={loading} className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-colors shadow-lg disabled:opacity-50">
-                                {loading ? "Envoi en cours..." : "Confirmer l'envoi"}
+            <AnimatePresence>
+                {isTransferModalOpen && (
+                    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-50 p-4">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="glass-card-premium rounded-[2.5rem] w-full max-w-md p-10 relative shadow-2xl border-white/20"
+                        >
+                            <div className="grain-overlay opacity-[0.03]" />
+                            <button onClick={() => setIsTransferModalOpen(false)} aria-label="Fermer" className="absolute top-6 right-6 text-slate-400 hover:text-blue-500 transition-colors">
+                                <X size={24} />
                             </button>
-                        </form>
+                            <div className="w-16 h-16 bg-amber-500/10 rounded-2xl flex items-center justify-center mb-6 text-amber-600">
+                                <Send size={32} />
+                            </div>
+                            <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-1 uppercase tracking-tight">Envoyer des points</h3>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-8 italic">Partagez l'excellence avec vos proches.</p>
+
+                            <form onSubmit={handleTransfer} className="space-y-6 relative z-10">
+                                <div>
+                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Email du bénéficiaire</label>
+                                    <input
+                                        type="email"
+                                        value={transferEmail}
+                                        onChange={(e) => setTransferEmail(e.target.value)}
+                                        className="w-full px-6 py-4 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-white/5 rounded-2xl focus:border-blue-500 outline-none transition-all font-bold"
+                                        placeholder="partenaire@exemple.com"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <div className="flex justify-between items-center mb-2 px-1">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Montant à transférer</label>
+                                        <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest">Max: {points}</span>
+                                    </div>
+                                    <input
+                                        type="number"
+                                        value={transferAmount}
+                                        onChange={(e) => setTransferAmount(e.target.value)}
+                                        className="w-full px-6 py-4 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-white/5 rounded-2xl focus:border-blue-500 outline-none transition-all font-black text-lg"
+                                        placeholder="Ex: 500"
+                                        max={points}
+                                        min="1"
+                                        required
+                                    />
+                                </div>
+                                <button disabled={loading} className="w-full py-4 bg-slate-900 dark:bg-white dark:text-slate-900 text-white font-black rounded-2xl transition-all shadow-xl disabled:opacity-50 active:scale-95 uppercase tracking-widest text-xs">
+                                    {loading ? "Envoi en cours..." : "Confirmer le transfert"}
+                                </button>
+                            </form>
+                        </motion.div>
                     </div>
-                </div>
-            )}
-        </div>
+                )}
+            </AnimatePresence>
+        </motion.div>
     );
 }

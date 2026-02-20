@@ -41,12 +41,30 @@ export const automationService = {
                     .eq("status", "pending")
             );
 
-            // 3. CREATE SHIPMENT (The "Post-Acceptance" Workflow)
+            // 3. Resolve Client Email & Calculate Final Price
             const rfq = offer.rfq;
+            const { data: clientProfile } = await supabase.from('profiles').select('email').eq('id', rfq.client_id).single();
+            const { data: forwarderProfile } = await supabase.from('profiles').select('email').eq('id', offer.forwarder_id).single();
+
+            // Calculate Discount based on Plan
+            const { data: sub } = await supabase.from('user_subscriptions')
+                .select('plan:subscription_plans(name)')
+                .eq('user_id', rfq.client_id)
+                .eq('status', 'active')
+                .single();
+
+            const planObj = Array.isArray(sub?.plan) ? sub?.plan[0] : sub?.plan;
+            const planName = planObj?.name?.toLowerCase() || '';
+            let discount = 0;
+            if (planName.includes('elite') || planName.includes('enterprise')) discount = 0.10;
+            else if (planName.includes('pro')) discount = 0.05;
+
+            const finalPrice = Math.floor(offer.total_price * (1 - discount));
+
+            // 4. CREATE SHIPMENT (The "Post-Acceptance" Workflow)
             const trackingNumber = `SHP-${Date.now().toString().slice(-6)}-${Math.floor(Math.random() * 1000)}`;
 
             // Calculate Arrival Date based on Departure + Transit Days
-            // If departure is null, assume today + 3 days for prep
             const departureDate = offer.departure_date ? new Date(offer.departure_date) : new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
             const arrivalDate = new Date(departureDate);
             arrivalDate.setDate(arrivalDate.getDate() + (offer.estimated_transit_days || 30));
@@ -56,106 +74,84 @@ export const automationService = {
                 rfq_id: rfq.id,
                 client_id: rfq.client_id,
                 forwarder_id: offer.forwarder_id,
-                status: "pending_payment", // Starts as pending_payment, waiting for payment
-
-                // Route
+                status: "pending_payment",
                 origin_port: rfq.origin_port,
                 origin_country: rfq.origin_country || "XX",
                 destination_port: rfq.destination_port,
                 destination_country: rfq.destination_country || "XX",
-
-                // Cargo
                 cargo_type: rfq.cargo_type,
                 cargo_weight: rfq.weight_kg || 0,
                 cargo_volume: rfq.volume_cbm || 0,
                 cargo_packages: rfq.quantity || 1,
-
-                // Service
                 transport_mode: rfq.transport_mode,
                 transport_type: rfq.transport_mode,
                 service_type: rfq.service_type,
-                price: (async () => {
-                    // Calculate Discount based on Plan
-                    const { data: sub } = await supabase.from('user_subscriptions')
-                        .select('plan:subscription_plans(name)')
-                        .eq('user_id', rfq.client_id)
-                        .eq('status', 'active')
-                        .single();
-
-                    const planObj = Array.isArray(sub?.plan) ? sub?.plan[0] : sub?.plan;
-                    const planName = planObj?.name?.toLowerCase() || '';
-                    let discount = 0;
-                    if (planName.includes('elite') || planName.includes('enterprise')) discount = 0.10;
-                    else if (planName.includes('pro')) discount = 0.05;
-
-                    const finalPrice = offer.total_price * (1 - discount);
-                    return Math.floor(finalPrice); // Round down to avoid decimals issues in XOF
-                })(),
+                price: finalPrice,
                 currency: offer.currency,
-
-                // Dates
                 departure_date: departureDate.toISOString(),
                 arrival_estimated_date: arrivalDate.toISOString(),
-
-                // Carrier (Forwarder is the carrier wrapper here)
                 carrier_name: offer.forwarder?.company_name || "Forwarder",
                 carrier_logo: offer.forwarder?.avatar_url
             });
 
-            // 4. QUEUE AUTOMATED EMAIL (Client Notification)
-            const clientEmailSubject = `Confirmation d'Acceptation de l'Offre - RFQ ${rfq.id.slice(0, 8)}`;
-            const clientEmailBody = `
-                <div style="font-family: sans-serif; padding: 20px;">
-                    <h2 style="color: #2563eb;">Offre Acceptée !</h2>
-                    <p>Bonjour,</p>
-                    <p>Vous avez accepté l'offre de transport de <strong>${offer.forwarder?.company_name || 'votre prestataire'}</strong>.</p>
-                    <p><strong>Détails de l'expédition :</strong></p>
-                    <ul>
-                        <li>Numéro de Suivi : <strong>${trackingNumber}</strong></li>
-                        <li>Montant : ${offer.total_price} ${offer.currency}</li>
-                        <li>Départ estimé : ${departureDate.toLocaleDateString()}</li>
-                    </ul>
-                    <p>Votre expédition a été créée et est en attente de paiement.</p>
-                </div>
-            `;
+            // 5. QUEUE AUTOMATED EMAIL (Client Notification)
+            if (clientProfile?.email) {
+                const clientEmailSubject = `Confirmation d'Acceptation de l'Offre - RFQ ${rfq.id.slice(0, 8)}`;
+                const clientEmailBody = `
+                    <div style="font-family: sans-serif; padding: 20px;">
+                        <h2 style="color: #2563eb;">Offre Acceptée !</h2>
+                        <p>Bonjour,</p>
+                        <p>Vous avez accepté l'offre de transport de <strong>${offer.forwarder?.company_name || 'votre prestataire'}</strong>.</p>
+                        <p><strong>Détails de l'expédition :</strong></p>
+                        <ul>
+                            <li>Numéro de Suivi : <strong>${trackingNumber}</strong></li>
+                            <li>Montant : ${finalPrice} ${offer.currency}</li>
+                            <li>Départ estimé : ${departureDate.toLocaleDateString()}</li>
+                        </ul>
+                        <p>Votre expédition a été créée et est en attente de paiement.</p>
+                    </div>
+                `;
 
-            await fetchWithRetry(() =>
-                supabase.from('email_queue').insert({
-                    sender_id: null, // System Notification
-                    subject: clientEmailSubject,
-                    body: clientEmailBody,
-                    recipient_group: 'specific',
-                    recipient_emails: [rfq.client_id], // In a real app we'd fetch the email, here we use ID as placeholder or simulation
-                    status: 'pending'
-                })
-            );
+                await fetchWithRetry(() =>
+                    supabase.from('email_queue').insert({
+                        sender_id: null,
+                        subject: clientEmailSubject,
+                        body: clientEmailBody,
+                        recipient_group: 'specific',
+                        recipient_emails: [clientProfile.email],
+                        status: 'pending'
+                    })
+                );
+            }
 
-            // 5. QUEUE AUTOMATED EMAIL (Forwarder Notification)
-            const forwarderEmailSubject = `Nouveau Contrat Remporté - RFQ ${rfq.id.slice(0, 8)}`;
-            const forwarderEmailBody = `
-                <div style="font-family: sans-serif; padding: 20px;">
-                    <h2 style="color: #16a34a;">Félicitations !</h2>
-                    <p>Votre offre a été retenue pour la demande de cotation.</p>
-                    <p>Un nouveau dossier d'expédition a été généré : <strong>${trackingNumber}</strong>.</p>
-                    <p>Veuillez préparer les documents nécessaires.</p>
-                </div>
-            `;
+            // 6. QUEUE AUTOMATED EMAIL (Forwarder Notification)
+            if (forwarderProfile?.email) {
+                const forwarderEmailSubject = `Nouveau Contrat Remporté - RFQ ${rfq.id.slice(0, 8)}`;
+                const forwarderEmailBody = `
+                    <div style="font-family: sans-serif; padding: 20px;">
+                        <h2 style="color: #16a34a;">Félicitations !</h2>
+                        <p>Votre offre a été retenue pour la demande de cotation.</p>
+                        <p>Un nouveau dossier d'expédition a été généré : <strong>${trackingNumber}</strong>.</p>
+                        <p>Veuillez préparer les documents nécessaires.</p>
+                    </div>
+                `;
 
-            await fetchWithRetry(() =>
-                supabase.from('email_queue').insert({
-                    sender_id: null, // System Notification
-                    subject: forwarderEmailSubject,
-                    body: forwarderEmailBody,
-                    recipient_group: 'specific',
-                    recipient_emails: [offer.forwarder_id],
-                    status: 'pending'
-                })
-            );
+                await fetchWithRetry(() =>
+                    supabase.from('email_queue').insert({
+                        sender_id: null,
+                        subject: forwarderEmailSubject,
+                        body: forwarderEmailBody,
+                        recipient_group: 'specific',
+                        recipient_emails: [forwarderProfile.email],
+                        status: 'pending'
+                    })
+                );
+            }
 
             if (shipmentError) {
                 logger.error("[Automation] Error creating shipment:", shipmentError);
             } else {
-                logger.info(`[Automation] Shipment created: ${trackingNumber}`);
+                logger.info(`[Automation] Shipment created: ${trackingNumber} for Price: ${finalPrice}`);
             }
 
             logger.info(`[Automation] RFQ ${rfqId} closed. Other offers rejected.`);

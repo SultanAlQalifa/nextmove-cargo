@@ -9,15 +9,20 @@ import { getCountryCode } from "../constants/countries";
 
 // Exchange Rates (1 XOF = ???)
 // Exchange Rates (1 XOF = ???)
+// These are base rates updated manually or via bridge service.
 const EXCHANGE_RATES: Record<string, number> = {
   XOF: 1,
   EUR: 0.001524,
   USD: 0.001646,
-  CNY: 0.01189,
+  CNY: 0.01189, // Yuan
   GBP: 0.001295,
 };
 
-// Country Normalization Map
+/**
+ * Country Normalization Map
+ * Maps common user inputs or i18n names to system-standard English country names
+ * used for location lookups in the database.
+ */
 const COUNTRY_NORM: Record<string, string> = {
   "Chine": "China",
   "Sénégal": "Senegal",
@@ -36,9 +41,15 @@ const normalizeCountryName = (name: string): string => {
   return COUNTRY_NORM[name] || name;
 };
 
-// Conversion Helper
+/**
+ * Conversion Helper with Robust Fallback
+ */
 const convertFromXOF = (amountXOF: number, targetCurrency: string): number => {
-  const rate = EXCHANGE_RATES[targetCurrency] || EXCHANGE_RATES["EUR"]; // Fallback to EUR if unknown
+  const rate = EXCHANGE_RATES[targetCurrency];
+  if (rate === undefined) {
+    console.warn(`[Calculator] Unknown currency requested: ${targetCurrency}. Falling back to XOF (1:1)`);
+    return amountXOF;
+  }
   return amountXOF * rate;
 };
 
@@ -94,9 +105,15 @@ export interface QuoteResult {
     recipient: "platform" | "forwarder";
   }[];
 
+  // AI Insights
+  ai_tax_amount?: number;
+  ai_tax_detail?: string;
+  ai_confidence?: number;
+
   // UI Metadata
   is_platform_rate: boolean;
   is_featured: boolean;
+  forwarder_logo?: string;
   rating: number;
   review_count: number;
 }
@@ -109,7 +126,7 @@ export interface CalculationParams {
   weight_kg?: number;
   volume_cbm?: number;
 
-  calculationMode: "platform" | "compare" | "specific";
+  calculationMode: "platform" | "compare" | "specific" | "sourcing";
   forwarder_id?: string;
   targetCurrency?: string;
 
@@ -134,7 +151,19 @@ export const calculatorService = {
     // 1. Validation & Setup
     const weight = Number(params.weight_kg || 0);
     const volume = Number(params.volume_cbm || 0);
-    const quantity = params.mode === "sea" ? volume : weight;
+
+    // Chargeable Quantity Calculation (Industry Standard)
+    // Air: 1 CBM = 167 kg. Chargeable weight = max(Actual, Volumetric)
+    // Sea LCL: 1 CBM = 1000 kg. Chargeable volume = max(Volume, weight/1000)
+    let quantity = 0;
+    if (params.mode === "air") {
+      const volumetricWeight = volume * 167;
+      quantity = Math.max(weight, volumetricWeight);
+    } else {
+      // Sea
+      const weightInTons = weight / 1000;
+      quantity = Math.max(volume, weightInTons);
+    }
     const targetCurrency = params.targetCurrency || "XOF";
 
     if (quantity <= 0) return [];
@@ -167,7 +196,7 @@ export const calculatorService = {
     )?.id;
 
     // 4. Dispatch by Mode
-    if (params.calculationMode === "platform") {
+    if (params.calculationMode === "platform" || params.calculationMode === "sourcing") {
       return this.calculatePlatformQuote(
         params,
         quantity,
@@ -258,12 +287,10 @@ export const calculatorService = {
     const rates = await supabaseWrapper.query(async () => {
       return await supabase
         .from("forwarder_rates")
-        .select(
-          `
-                    *,
-                    profiles:forwarder_id (company_name)
-                `,
-        )
+        .select(`
+            *,
+            profiles:forwarder_id (company_name, logo_url)
+        `)
         .eq("origin_id", originId)
         .eq("destination_id", destId)
         .eq("mode", params.mode)
@@ -283,6 +310,7 @@ export const calculatorService = {
         rate.profiles?.company_name || "Unknown",
         rate.forwarder_id,
         false,
+        rate.profiles?.logo_url
       ),
     );
 
@@ -308,12 +336,10 @@ export const calculatorService = {
   ): Promise<QuoteResult[]> {
     const { data: rate } = await supabase
       .from("forwarder_rates")
-      .select(
-        `
-                *,
-                profiles:forwarder_id (company_name)
-            `,
-      )
+      .select(`
+          *,
+          profiles:forwarder_id (company_name, logo_url)
+      `)
       .eq("forwarder_id", forwarderId)
       .eq("origin_id", originId)
       .eq("destination_id", destId)
@@ -334,6 +360,7 @@ export const calculatorService = {
         rate.profiles?.company_name || "Specific Forwarder",
         rate.forwarder_id,
         false,
+        rate.profiles?.logo_url
       ),
     ];
   },
@@ -350,6 +377,7 @@ export const calculatorService = {
     firmName: string,
     forwarderId: string,
     isPlatform: boolean,
+    forwarderLogo?: string,
   ): QuoteResult {
     // 1. Base Cost (XOF)
     const priceXOF = Number(rateData.price);
@@ -486,6 +514,7 @@ export const calculatorService = {
       unit: rateData.unit,
       is_platform_rate: isPlatform,
       is_featured: rateData.is_featured || false,
+      forwarder_logo: forwarderLogo,
       rating: isPlatform ? 4.9 : 5.0,
       review_count: isPlatform ? 1250 : 25,
     };
@@ -497,7 +526,7 @@ export const calculatorService = {
   async getUnitRates(
     _origin: string,
     _destination: string,
-    calculationMode: "platform" | "compare" | "specific",
+    calculationMode: "platform" | "compare" | "specific" | "sourcing",
     forwarderId?: string,
     targetCurrency: string = "XOF",
   ): Promise<Record<string, Record<string, number | null>>> {
@@ -512,7 +541,7 @@ export const calculatorService = {
     }
 
     try {
-      if (calculationMode === "platform") {
+      if (calculationMode === "platform" || calculationMode === "sourcing") {
         // Fetch Platform Rates (Global, so no origin/dest filter needed yet)
         const { data, error } = await supabase
           .from("platform_rates")
@@ -551,4 +580,58 @@ export const calculatorService = {
 
     return rates;
   },
+
+  /**
+   * Apply AI Custom Fees Prediction to an existing quote
+   */
+  applyAIPrediction(
+    quote: QuoteResult,
+    prediction: { total_percent: number; detail: string; confidence: number },
+    cargoValue: number // In quote currency
+  ): QuoteResult {
+    // 1. Calculate the new tax amount based on AI percentage
+    // AI prediction is usually a percentage of the CIF (Cost, Insurance, Freight) value
+    // For simplicity, we apply it to the cargo value
+    const aiTaxAmount = cargoValue * (prediction.total_percent / 100);
+
+    // 2. Adjust the total cost
+    // We replace the standard tax (tax_cost) with the AI predicted tax if confidence is high enough
+    // For now, let's just add it as an extra field or override
+    const previousTotal = quote.total_cost - quote.tax_cost;
+    const newTotal = previousTotal + aiTaxAmount;
+
+    return {
+      ...quote,
+      tax_cost: aiTaxAmount,
+      total_cost: newTotal,
+      ai_tax_amount: aiTaxAmount,
+      ai_tax_detail: prediction.detail,
+      ai_confidence: prediction.confidence
+    };
+  },
+
+  /**
+   * Analyze a sourcing link (Alibaba, etc.) via AI Edge Function
+   */
+  async analyzeSourcingLink(url: string): Promise<{
+    item_name: string;
+    weight_kg: number;
+    volume_cbm: number;
+    unit_price: number;
+    currency: string;
+    category: string;
+    shipping_advice: string;
+  }> {
+    try {
+      const { data, error } = await supabase.functions.invoke("sourcing-analyzer", {
+        body: { url },
+      });
+
+      if (error) throw error;
+      return data;
+    } catch (err) {
+      console.error("Error analyzing sourcing link:", err);
+      throw err;
+    }
+  }
 };

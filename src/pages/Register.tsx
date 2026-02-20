@@ -20,13 +20,14 @@ import { z } from "zod";
 import { useBranding } from "../contexts/BrandingContext";
 import GoogleLoginButton from "../components/auth/GoogleLoginButton";
 import PhoneInputWithCountry from "../components/auth/PhoneInputWithCountry";
+import { motion, AnimatePresence } from "framer-motion";
 
 import { useSettings } from "../contexts/SettingsContext";
 
 export default function Register() {
   const { t } = useTranslation();
   const { settings: _systemSettings } = useSettings();
-  const phoneAuthEnabled = true; // Forcé à true pour garantir la visibilité
+  const phoneAuthEnabled = true;
   const { settings } = useBranding();
   const { success: showSuccess, error: showError } = useToast();
   const navigate = useNavigate();
@@ -71,7 +72,6 @@ export default function Register() {
     }
   ];
 
-  // Auto-play slider
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (resendTimer > 0) {
@@ -82,14 +82,12 @@ export default function Register() {
     return () => clearInterval(interval);
   }, [resendTimer]);
 
-  // Pre-fill
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const emailParam = params.get("email");
     if (emailParam) setEmail(emailParam);
   }, []);
 
-  // Redirect if already logged in (and profile complete)
   useEffect(() => {
     if (!authLoading && user) {
       navigate("/dashboard");
@@ -110,7 +108,7 @@ export default function Register() {
       phone,
       options: {
         data: {
-          full_name: email.split('@')[0], // Fallback name
+          full_name: email.split('@')[0],
           role: 'client',
           referral_code_used: referralCode,
         }
@@ -126,7 +124,6 @@ export default function Register() {
     setLoading(true);
     setError(null);
 
-    // Validate
     if (authMethod === 'email') {
       const validation = registerSchema.safeParse({ email, referralCode });
       if (!validation.success) {
@@ -150,7 +147,6 @@ export default function Register() {
           setLoading(false);
           return;
         } else {
-          // Verify OTP Step
           if (!otpCode || otpCode.length < 6) {
             throw new Error(t("auth.invalidCode", "Code invalide"));
           }
@@ -161,13 +157,11 @@ export default function Register() {
           });
           if (verifyError) throw verifyError;
 
-          // Redirect is handled by AuthContext listener
           navigate("/dashboard");
           return;
         }
       }
 
-      // Email Flow (Existing)
       const { data, error: fnError } = await supabase.functions.invoke('public-signup', {
         body: {
           email,
@@ -187,7 +181,6 @@ export default function Register() {
       console.error("Registration error:", err);
       let msg = err.message;
       try {
-        // Try to parse if it's a JSON string error from Edge Function
         const parsed = JSON.parse(err.message);
         if (parsed.error) msg = parsed.error;
       } catch (e) {
@@ -206,368 +199,330 @@ export default function Register() {
   if (success) {
     return (
       <div className="h-screen flex items-center justify-center bg-white dark:bg-dark-bg p-4">
-        <div className="max-w-md w-full bg-white dark:bg-slate-900 rounded-3xl shadow-2xl p-8 text-center border border-slate-100 dark:border-slate-800 animate-in zoom-in duration-300">
-
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="max-w-md w-full bg-white dark:bg-slate-900 rounded-3xl shadow-2xl p-8 text-center border border-slate-100 dark:border-slate-800"
+        >
           <div className="w-20 h-20 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mx-auto mb-6">
             <Mail className="w-10 h-10" />
           </div>
 
-          <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-4">Vérifiez votre email</h2>
+          <h2 className="text-3xl font-black text-slate-900 dark:text-white mb-4">Vérifiez votre email</h2>
 
-          <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 mb-6">
+          <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-6 mb-6 border border-slate-100 dark:border-slate-800">
             <p className="text-slate-600 dark:text-slate-300">
               Nous avons envoyé un lien magique à <br />
-              <span className="font-bold text-slate-900 dark:text-white text-lg">{email}</span>
+              <span className="font-black text-blue-600 dark:text-blue-400 text-lg tracking-tight">{email}</span>
             </p>
           </div>
 
-          <p className="text-sm text-slate-500 dark:text-slate-400 mb-8 leading-relaxed">
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-8 leading-relaxed font-medium">
             Cliquez sur le lien dans l'email pour activer votre compte instantanément. Pas besoin de mot de passe !
           </p>
 
           <button
             onClick={() => setSuccess(false)}
-            className="text-blue-600 hover:text-blue-700 font-semibold text-sm hover:underline"
+            className="text-blue-600 hover:text-blue-700 font-bold text-sm tracking-tight border-b-2 border-blue-100 hover:border-blue-600 transition-all"
           >
             Je n'ai rien reçu, renvoyer l'email
           </button>
-        </div>
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="h-screen flex bg-white dark:bg-dark-bg overflow-hidden">
-      {/* Left Side - Image (Hidden on mobile) */}
+    <div className="h-screen flex bg-white dark:bg-dark-bg overflow-hidden font-sans">
+      {/* Left Side - Image */}
       <div className="hidden lg:flex lg:w-1/2 relative bg-slate-900 overflow-hidden">
-        {/* Animated Backgrounds for Slides */}
         {slides.map((slide, index) => (
-          <div
+          <motion.div
             key={index}
-            className={`absolute inset-0 transition-all duration-1000 ease-in-out ${index === currentSlide ? "opacity-100 scale-100" : "opacity-0 scale-110"
-              }`}
+            initial={{ opacity: 0, scale: 1.1 }}
+            animate={{
+              opacity: index === currentSlide ? 1 : 0,
+              scale: index === currentSlide ? 1 : 1.1,
+            }}
+            transition={{ duration: 1 }}
+            className="absolute inset-0"
           >
-            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 z-10"></div>
+            <div className="absolute inset-0 bg-blue-900/10 mix-blend-overlay z-10" />
             <img
               src={settings?.images.login_background || slide.image}
               alt={slide.title}
-              className="absolute inset-0 w-full h-full object-cover opacity-30 mix-blend-overlay"
+              className="absolute inset-0 w-full h-full object-cover opacity-40"
             />
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-900/90 via-slate-900/95 to-black/90"></div>
-          </div>
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-900/90 via-slate-900/95 to-black/90" />
+          </motion.div>
         ))}
 
         <div className="relative z-20 flex flex-col justify-between p-16 text-white w-full h-full">
-          {/* Logo Section */}
-          <div className="flex items-center space-x-4">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="flex items-center space-x-4"
+          >
             {settings?.logo_url ? (
-              <img
-                src={settings.logo_url}
-                alt="Logo"
-                className="h-12 object-contain"
-              />
+              <img src={settings.logo_url} alt="Logo" className="h-12 object-contain" />
             ) : (
               <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-xl shadow-blue-500/20">
                 <span className="font-bold text-2xl">N</span>
               </div>
             )}
-            <span className="text-2xl font-bold tracking-tight">
-              NextMove Cargo
-            </span>
-          </div>
+            <span className="text-2xl font-black tracking-tight">NextMove Cargo</span>
+          </motion.div>
 
           {/* Dynamic Content Section */}
           <div className="max-w-xl">
-            <div className="flex items-center gap-2 mb-8 text-blue-300 font-medium tracking-wide text-sm uppercase">
-              <Sparkles className="w-4 h-4 animate-pulse" />
+            <div className="flex items-center gap-2 mb-8 text-blue-300 font-bold tracking-[0.2em] text-[10px] uppercase">
+              <Sparkles className="w-4 h-4 text-blue-400" />
               <span>Démonstration des fonctionnalités</span>
             </div>
 
-            <div className="relative h-64 overflow-hidden">
-              {slides.map((slide, index) => (
-                <div
-                  key={index}
-                  className={`absolute inset-0 transition-all duration-700 ease-in-out transform ${index === currentSlide
-                    ? "translate-x-0 opacity-100"
-                    : index < currentSlide ? "-translate-x-full opacity-0" : "translate-x-full opacity-0"
-                    }`}
+            <div className="relative h-72">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentSlide}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.5, ease: "easeOut" }}
+                  className="absolute inset-0"
                 >
-                  <div className="mb-6">{slide.icon}</div>
-                  <h2 className="text-5xl font-extrabold mb-6 leading-tight tracking-tight text-white drop-shadow-lg">
-                    {slide.title}
+                  <div className="mb-6">{slides[currentSlide].icon}</div>
+                  <h2 className="text-5xl font-black mb-6 leading-[1.1] tracking-tight text-white">
+                    {slides[currentSlide].title}
                   </h2>
-                  <p className="text-xl font-light text-blue-100/80 leading-relaxed">
-                    {slide.description}
+                  <p className="text-xl font-medium text-blue-100/70 leading-relaxed max-w-md">
+                    {slides[currentSlide].description}
                   </p>
-                </div>
-              ))}
+                </motion.div>
+              </AnimatePresence>
             </div>
 
             {/* Slider Controls */}
-            <div className="mt-12 flex items-center gap-6">
+            <div className="mt-12 flex items-center gap-8">
               <div className="flex gap-2">
                 {slides.map((_, index) => (
                   <button
                     key={index}
                     onClick={() => setCurrentSlide(index)}
-                    className={`h-1.5 rounded-full transition-all duration-500 ${index === currentSlide ? "w-8 bg-blue-500 shadow-lg shadow-blue-500/50" : "w-2 bg-white/20 hover:bg-white/40"
-                      }`}
-                    aria-label={`Aller à la slide ${index + 1}`}
                     title={`Slide ${index + 1}`}
+                    className={`h-1.5 rounded-full transition-all duration-500 ${index === currentSlide ? "w-10 bg-blue-500" : "w-2 bg-white/20 hover:bg-white/40"}`}
                   />
                 ))}
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-3">
                 <button
                   onClick={() => setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length)}
-                  className="p-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 transition-colors"
-                  aria-label="Slide précédente"
                   title="Précédent"
+                  className="p-3 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 transition-colors group"
                 >
-                  <ChevronLeft className="w-5 h-5" />
+                  <ChevronLeft className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" />
                 </button>
                 <button
                   onClick={() => setCurrentSlide((prev) => (prev + 1) % slides.length)}
-                  className="p-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 transition-colors"
-                  aria-label="Slide suivante"
                   title="Suivant"
+                  className="p-3 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 transition-colors group"
                 >
-                  <ChevronRight className="w-5 h-5" />
+                  <ChevronRight className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
                 </button>
               </div>
             </div>
           </div>
 
-          <div className="text-sm text-blue-200/50 font-light italic">
-            * Vous pouvez explorer ces fonctionnalités dans votre espace client.
+          <div className="text-[11px] text-blue-200/40 font-bold uppercase tracking-widest italic">
+            * Solutions de fret NextGen pour l'Afrique
           </div>
         </div>
       </div>
 
       {/* Right Side - Form */}
       <div className="flex-1 flex flex-col overflow-y-auto bg-slate-50 dark:bg-gray-950 relative">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.03] pointer-events-none"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 to-transparent dark:from-blue-500/10 pointer-events-none" />
 
         <div className="flex min-h-full flex-col justify-center py-12 px-4 sm:px-6 lg:px-20 xl:px-24 relative z-10">
-          <div className="mx-auto w-full max-w-sm lg:w-96">
-
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mx-auto w-full max-w-sm lg:w-96"
+          >
             <div className="text-center lg:text-left mb-8">
-              <h2 className="text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-3">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-black mb-4 uppercase tracking-tighter">
+                <Sparkles size={14} /> Pack Premium Offert
+              </div>
+              <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight mb-3">
                 Commencer l'aventure
               </h2>
               <p className="text-lg text-slate-500 dark:text-slate-400 font-medium">
-                Rejoignez 1000+ professionnels du transport.
+                Rejoignez 1000+ professionnels.
               </p>
             </div>
 
-            {/* Value Proposition Box */}
-            <div className="bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800/50 rounded-2xl p-4 mb-8 transform transition-all hover:scale-[1.02]">
-              <div className="flex items-center gap-3 text-blue-800 dark:text-blue-300">
-                <div className="w-10 h-10 bg-blue-100 dark:bg-blue-800 rounded-full flex items-center justify-center shrink-0 shadow-inner">
-                  <Sparkles className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                </div>
-                <div className="text-sm">
-                  <p className="font-bold text-blue-900 dark:text-blue-200">Le futur du fret est ici</p>
-                  <p className="opacity-80">Configurez votre compte et suivez vos colis en un clin d'œil.</p>
-                </div>
-              </div>
-            </div>
-
             <form onSubmit={handleRegister} className="space-y-6">
-              {error && (
-                <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-4 rounded-r-xl animate-in slide-in-from-top-2">
-                  <div className="flex">
-                    <div className="ml-3">
-                      <p className="text-sm text-red-700 dark:text-red-400 font-medium">
-                        {error}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
+              <AnimatePresence>
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-4 rounded-r-xl overflow-hidden"
+                  >
+                    <p className="text-sm text-red-700 dark:text-red-400 font-bold">{error}</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               <div className="space-y-5">
-                {/* Google Login Section - Highlighted */}
-                <div className="relative group/google pt-8">
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 px-6 py-2 bg-blue-600 text-white text-[11px] font-black rounded-full shadow-2xl shadow-blue-500/50 uppercase tracking-[0.2em] z-20 animate-bounce-subtle border-2 border-white dark:border-slate-800 whitespace-nowrap">
-                    Solution la plus simple
+                <div className="relative group/google pt-10">
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-[9px] font-black rounded-full shadow-xl z-20 border-2 border-white dark:border-slate-800 whitespace-nowrap uppercase tracking-widest">
+                    Accès Privilégié
                   </div>
                   <GoogleLoginButton
-                    text="S'inscrire avec Google"
-                    className="!py-6 !text-lg !px-8 !bg-white dark:!bg-slate-900 !border-[3px] !border-blue-500/30 dark:!border-blue-500/20 shadow-2xl shadow-blue-500/10 dark:shadow-none hover:!border-blue-500 dark:hover:!border-blue-400 hover:!scale-[1.02] active:scale-[0.98] transition-all duration-300 ring-offset-4 ring-offset-slate-50 dark:ring-offset-gray-950 focus:ring-4 focus:ring-blue-500/20"
+                    text="Continuer avec Google"
+                    className="!py-6 !text-lg !px-8 !bg-white dark:!bg-slate-900 !border-2 !border-slate-100 dark:!border-slate-800 shadow-2xl shadow-blue-500/5 hover:!border-blue-500/30 hover:!scale-[1.01] transition-all duration-300"
                   />
-                  <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-[22px] opacity-0 group-hover/google:opacity-10 blur-xl transition-opacity duration-500 -z-10"></div>
-                  <p className="text-center text-xs text-slate-500 dark:text-slate-400 mt-3 font-semibold flex items-center justify-center gap-2">
-                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
-                    Recommandé pour un accès rapide
-                  </p>
                 </div>
 
                 <div className="relative py-2">
                   <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-slate-200 dark:border-slate-800"></div>
+                    <div className="w-full border-t border-slate-200 dark:border-slate-800" />
                   </div>
-                  <div className="relative flex justify-center text-xs">
-                    <span className="px-4 bg-slate-50 dark:bg-gray-950 text-slate-400 font-bold uppercase tracking-widest">Ou s'inscrire via</span>
+                  <div className="relative flex justify-center text-[10px]">
+                    <span className="px-4 bg-slate-50 dark:bg-gray-950 text-slate-400 font-black uppercase tracking-[0.2em]">OU VIA</span>
                   </div>
                 </div>
 
-                {/* Auth Method Toggle */}
                 {phoneAuthEnabled && (
-                  <div className="grid grid-cols-2 gap-2 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+                  <div className="grid grid-cols-2 gap-2 bg-slate-200/50 dark:bg-slate-800/50 p-1.5 rounded-2xl relative">
+                    <motion.div
+                      layoutId="regToggle"
+                      className="absolute inset-1.5 w-[calc(50%-6px)] bg-white dark:bg-slate-700 rounded-xl shadow-lg"
+                      animate={{ x: authMethod === "email" ? 0 : "100%" }}
+                      transition={{ type: "spring", stiffness: 500, damping: 40 }}
+                    />
                     <button
                       type="button"
                       onClick={() => { setAuthMethod("email"); setOtpSent(false); }}
-                      className={`py-2 px-4 rounded-lg text-sm font-bold transition-all ${authMethod === "email"
-                        ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm"
-                        : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
-                        }`}
+                      className={`relative z-10 py-2.5 px-4 rounded-xl text-xs font-black transition-colors ${authMethod === "email" ? "text-blue-600 dark:text-white" : "text-slate-500"}`}
                     >
-                      Email
+                      EMAIL
                     </button>
                     <button
                       type="button"
                       onClick={() => { setAuthMethod("phone"); setOtpSent(false); }}
-                      className={`py-2 px-4 rounded-lg text-sm font-bold transition-all ${authMethod === "phone"
-                        ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm"
-                        : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
-                        }`}
+                      className={`relative z-10 py-2.5 px-4 rounded-xl text-xs font-black transition-colors ${authMethod === "phone" ? "text-blue-600 dark:text-white" : "text-slate-500"}`}
                     >
-                      {t("auth.phone", "Téléphone")}
+                      MOBILE
                     </button>
                   </div>
                 )}
 
-                {authMethod === 'email' ? (
-                  <div className="space-y-2">
-                    <label htmlFor="email" className="block text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">
-                      Votre email professionnel
-                    </label>
-                    <div className="relative group">
-                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <Mail className="h-5 w-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
-                      </div>
-                      <input
-                        id="email"
-                        name="email"
-                        type="email"
-                        autoComplete="email"
-                        required
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="block w-full pl-11 pr-4 py-4 border-2 border-transparent bg-white dark:bg-slate-900 rounded-2xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-blue-500/20 focus:ring-4 focus:ring-blue-500/10 shadow-sm shadow-slate-200/50 dark:shadow-none transition-all duration-200"
-                        placeholder="vous@exemple.com"
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {otpSent ? (
-                      <div className="space-y-2 animate-in slide-in-from-right-2">
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">
-                          Code de vérification
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={authMethod}
+                    initial={{ opacity: 0, x: 10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -10 }}
+                  >
+                    {authMethod === 'email' ? (
+                      <div className="space-y-2">
+                        <label className="block text-sm font-black text-slate-700 dark:text-slate-300 ml-1 uppercase tracking-wider text-[11px]">
+                          Email Professionnel
                         </label>
-                        <input
-                          type="text"
-                          value={otpCode}
-                          onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
-                          maxLength={6}
-                          placeholder="000000"
-                          className="block w-full px-4 py-4 border-2 border-transparent bg-white dark:bg-slate-900 rounded-2xl text-slate-900 dark:text-white text-center tracking-[0.5em] text-xl font-bold focus:outline-none focus:border-blue-500/20 focus:ring-4 focus:ring-blue-500/10 shadow-sm transition-all"
-                        />
-                        <div className="flex justify-between items-center px-1">
-                          <button
-                            type="button"
-                            onClick={() => { setOtpSent(false); setOtpCode(""); }}
-                            className="text-xs text-slate-500 hover:text-blue-600"
-                          >
-                            Changer de numéro
-                          </button>
-                          {resendTimer > 0 ? (
-                            <span className="text-xs text-slate-400">Renvoyer dans {resendTimer}s</span>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={async () => {
-                                try {
-                                  setError(null);
-                                  await sendOtp();
-                                  setOtpCode("");
-                                  showSuccess("Code envoyé !");
-                                } catch (err: any) {
-                                  setError(err.message);
-                                }
-                              }}
-                              className="text-xs text-blue-600 font-bold hover:underline"
-                            >
-                              Renvoyer le code
-                            </button>
-                          )}
+                        <div className="relative group">
+                          <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
+                            <Mail className="h-4 w-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+                          </div>
+                          <input
+                            type="email"
+                            required
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            className="block w-full pl-12 pr-4 py-4 border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-[1.25rem] text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/5 transition-all font-medium"
+                            placeholder="vous@exemple.com"
+                          />
                         </div>
                       </div>
                     ) : (
-                      <div className="space-y-2">
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">
-                          Votre numéro de téléphone
-                        </label>
-                        <PhoneInputWithCountry
-                          value={phone}
-                          onChange={setPhone}
-                          required
-                        />
+                      <div className="space-y-4">
+                        {otpSent ? (
+                          <div className="space-y-4 animate-in slide-in-from-right-2">
+                            <div className="space-y-2">
+                              <label className="block text-sm font-black text-slate-700 dark:text-slate-300 ml-1 uppercase tracking-wider text-[11px]">CODE DE VÉRIFICATION</label>
+                              <input
+                                type="text"
+                                value={otpCode}
+                                onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
+                                maxLength={6}
+                                className="block w-full py-5 border-2 border-blue-500 bg-blue-50 dark:bg-blue-900/20 rounded-[1.25rem] text-slate-900 dark:text-white text-center tracking-[1em] text-2xl font-black focus:outline-none shadow-inner"
+                                placeholder="000000"
+                              />
+                            </div>
+                            <div className="flex justify-between items-center px-1">
+                              <button type="button" onClick={() => setOtpSent(false)} className="text-[11px] font-bold text-slate-400 hover:text-blue-600 transition-colors uppercase">Modifier numéro</button>
+                              {resendTimer > 0 ? (
+                                <span className="text-[11px] font-bold text-slate-400 uppercase">{resendTimer}S Restantes</span>
+                              ) : (
+                                <button type="button" onClick={sendOtp} className="text-[11px] font-bold text-blue-600 hover:underline tracking-widest uppercase">Renvoyer le code</button>
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            <label className="block text-sm font-black text-slate-700 dark:text-slate-300 ml-1 uppercase tracking-wider text-[11px]">Numéro de téléphone</label>
+                            <PhoneInputWithCountry value={phone} onChange={setPhone} required />
+                          </div>
+                        )}
                       </div>
                     )}
-                  </div>
-                )}
+                  </motion.div>
+                </AnimatePresence>
 
                 <div className="space-y-2">
-                  <label htmlFor="referral" className="block text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">
-                    Code de parrainage (Optionnel)
-                  </label>
+                  <label className="block text-sm font-black text-slate-700 dark:text-slate-300 ml-1 uppercase tracking-wider text-[11px]">Code Parrainage (Optionnel)</label>
                   <input
-                    id="referral"
-                    name="referralCode"
                     type="text"
-                    autoComplete="off"
                     value={referralCode}
                     onChange={(e) => setReferralCode(e.target.value)}
-                    className="block w-full px-4 py-4 border-2 border-transparent bg-white dark:bg-slate-900 rounded-2xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-blue-500/20 focus:ring-4 focus:ring-blue-500/10 shadow-sm shadow-slate-200/50 dark:shadow-none transition-all duration-200"
+                    className="block w-full px-5 py-4 border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-[1.25rem] text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 transition-all font-medium"
                     placeholder="Ex: PROMO2025"
                   />
                 </div>
               </div>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full flex justify-center items-center py-4 px-4 border border-transparent rounded-2xl shadow-lg shadow-blue-600/30 text-sm font-bold text-white bg-blue-600 hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 transform hover:-translate-y-1 active:translate-y-0 disabled:opacity-70 disabled:cursor-not-allowed"
-              >
-                {loading ? (
-                  <Loader2 className="animate-spin h-5 w-5" />
-                ) : (
-                  <>
-                    {authMethod === 'phone' && !otpSent ? "Envoyer le code" : "Rejoindre NextMove Cargo"}
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </>
-                )}
-              </button>
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full flex justify-center items-center py-5 px-4 border border-transparent rounded-[1.25rem] shadow-xl shadow-blue-600/20 text-sm font-black text-white bg-blue-600 hover:bg-blue-500 transition-all duration-300 group"
+                >
+                  {loading ? (
+                    <Loader2 className="animate-spin h-5 w-5" />
+                  ) : (
+                    <>
+                      {authMethod === 'phone' && !otpSent ? "ENVOYER LE CODE" : "ACCÉDER AU DASHBOARD"}
+                      <ArrowRight size={18} className="ml-2 group-hover:translate-x-1 transition-transform" />
+                    </>
+                  )}
+                </button>
+              </motion.div>
 
-              <p className="text-xs text-center text-slate-500 dark:text-slate-400 mt-4">
-                En continuant, vous acceptez nos <Link to="/legal/terms" className="underline hover:text-blue-500">Conditions d'utilisation</Link> et notre <Link to="/legal/privacy" className="underline hover:text-blue-500">Politique de confidentialité</Link>.
+              <p className="text-[10px] text-center text-slate-400 font-bold uppercase tracking-widest leading-relaxed">
+                Par inscription, vous acceptez nos <Link to="/legal/terms" className="text-blue-600 hover:underline">Conditions</Link> & <Link to="/legal/privacy" className="text-blue-600 hover:underline">Confidentialité</Link>.
               </p>
             </form>
 
-            <div className="mt-10 pt-6 border-t border-slate-200 dark:border-slate-800 text-center">
-              <p className="text-slate-600 dark:text-slate-400">
-                Vous avez déjà un compte ?{" "}
-                <Link to="/login" className="font-bold text-blue-600 hover:text-blue-500 transition-colors">
-                  Se connecter
+            <div className="mt-12 pt-6 border-t border-slate-100 dark:border-slate-900 text-center">
+              <p className="text-sm text-slate-400 font-bold uppercase tracking-tighter">
+                DÉJÀ CLIENT ?{" "}
+                <Link to="/login" className="text-blue-600 hover:text-blue-500 font-black transition-colors ml-1">
+                  SE CONNECTER
                 </Link>
               </p>
             </div>
-
-          </div>
+          </motion.div>
         </div>
       </div>
     </div>

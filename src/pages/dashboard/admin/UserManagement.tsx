@@ -21,7 +21,11 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Wallet,
+  Download,
+  FileText
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { exportToExcel, exportToPDF } from "../../../utils/exportUtils";
 
 export default function UserManagement() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -320,14 +324,54 @@ export default function UserManagement() {
         action={{
           label: "Ajouter un utilisateur",
           onClick: () => setIsCreateModalOpen(true),
-          icon: User,
+          icon: UserPlus,
         }}
+        secondaryActions={[
+          {
+            label: "Export Excel",
+            icon: Download,
+            onClick: () => {
+              const exportData = filteredUsers.map(u => ({
+                "ID": u.friendly_id || u.id,
+                "Nom": u.name,
+                "Email": u.email,
+                "Rôle": u.role,
+                "Statut": u.status,
+                "Entreprise": u.company,
+                "Pays": u.location,
+                "Inscription": new Date(u.joined_at).toLocaleDateString()
+              }));
+              exportToExcel(exportData, "Utilisateurs_NextMove");
+              success("Fichier Excel exporté avec succès");
+            }
+          },
+          {
+            label: "Export PDF",
+            icon: FileText,
+            onClick: () => {
+              const head = [["Nom", "Email", "Rôle", "Statut", "Inscription"]];
+              const body = filteredUsers.map(u => [
+                u.name,
+                u.email,
+                u.role,
+                u.status,
+                new Date(u.joined_at).toLocaleDateString()
+              ]);
+              exportToPDF("Rapport des Utilisateurs", head, body, "Utilisateurs_NextMove");
+              success("Document PDF généré avec succès");
+            }
+          }
+        ]}
       />
 
       {/* Unified Filter Segment */}
-      <div className="bg-white p-1.5 rounded-2xl shadow-sm border border-gray-100 inline-flex flex-col sm:flex-row gap-2 w-full sm:w-auto items-center">
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-1.5 rounded-2xl shadow-lg shadow-slate-200/40 dark:shadow-none border border-slate-200/50 dark:border-white/5 inline-flex flex-col sm:flex-row gap-2 w-full sm:w-auto items-center relative z-10"
+      >
         {/* Time Range Segmented Control */}
-        <div className="flex bg-gray-50 rounded-xl p-1">
+        <div className="flex bg-slate-100/50 dark:bg-slate-800/50 rounded-xl p-1">
           {[
             { id: "7d", label: "7J" },
             { id: "30d", label: "30J" },
@@ -436,286 +480,275 @@ export default function UserManagement() {
             </button>
           )}
         </div>
-      </div>
+      </motion.div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
-              <Users className="w-6 h-6" />
-            </div>
-            <span
-              className={`text-xs font-medium px-2 py-1 rounded-full flex items-center gap-1 ${stats.total.trendUp ? "text-green-600 bg-green-50" : "text-red-600 bg-red-50"}`}
+      < div className="grid grid-cols-1 md:grid-cols-3 gap-6" >
+        {
+          [
+            { title: "Utilisateurs Totaux", stat: stats.total, icon: Users, color: "blue" },
+            { title: "Utilisateurs Actifs", stat: stats.active, icon: UserCheck, color: "green" },
+            { title: "Nouveaux Utilisateurs", stat: stats.new, icon: UserPlus, color: "purple" }
+          ].map((item, idx) => (
+            <motion.div
+              key={idx}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: idx * 0.1 }}
+              className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-6 rounded-3xl shadow-xl shadow-slate-200/40 dark:shadow-none border border-slate-200/50 dark:border-white/5 hover:border-slate-300 dark:hover:border-white/10 transition-all group"
             >
-              {stats.total.trendUp ? (
-                <ArrowUpRight className="w-3 h-3" />
-              ) : (
-                <ArrowDownRight className="w-3 h-3" />
-              )}{" "}
-              {stats.total.trend}
-            </span>
-          </div>
-          <h3 className="text-gray-500 text-sm font-medium">
-            Utilisateurs Totaux
-          </h3>
-          <p className="text-3xl font-bold text-gray-900 mt-1">
-            {stats.total.value}
-          </p>
-        </div>
+              <div className="flex items-center justify-between mb-4">
+                <div className={`p-4 rounded-2xl transition-transform group-hover:scale-110 duration-300
+                ${item.color === 'blue' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400' : ''}
+                ${item.color === 'green' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : ''}
+                ${item.color === 'purple' ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400' : ''}
+              `}>
+                  <item.icon className="w-6 h-6" />
+                </div>
+                <span className={`text-xs font-black px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm
+                ${item.stat.trendUp
+                    ? "text-emerald-700 bg-emerald-100 dark:bg-emerald-500/20 dark:text-emerald-400"
+                    : "text-red-700 bg-red-100 dark:bg-red-500/20 dark:text-red-400"}
+              `}>
+                  {item.stat.trendUp ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />}
+                  {item.stat.trend}
+                </span>
+              </div>
+              <h3 className="text-slate-500 dark:text-slate-400 text-sm font-black uppercase tracking-wider">
+                {item.title}
+              </h3>
+              <p className="text-4xl font-black text-slate-900 dark:text-white mt-2">
+                {item.stat.value}
+              </p>
+            </motion.div>
+          ))
+        }
+      </div >
 
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-green-50 text-green-600 rounded-xl">
-              <UserCheck className="w-6 h-6" />
-            </div>
-            <span
-              className={`text-xs font-medium px-2 py-1 rounded-full flex items-center gap-1 ${stats.active.trendUp ? "text-green-600 bg-green-50" : "text-red-600 bg-red-50"}`}
-            >
-              {stats.active.trendUp ? (
-                <ArrowUpRight className="w-3 h-3" />
-              ) : (
-                <ArrowDownRight className="w-3 h-3" />
-              )}{" "}
-              {stats.active.trend}
-            </span>
-          </div>
-          <h3 className="text-gray-500 text-sm font-medium">
-            Utilisateurs Actifs
-          </h3>
-          <p className="text-3xl font-bold text-gray-900 mt-1">
-            {stats.active.value}
-          </p>
-        </div>
-
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-purple-50 text-purple-600 rounded-xl">
-              <UserPlus className="w-6 h-6" />
-            </div>
-            <span
-              className={`text-xs font-medium px-2 py-1 rounded-full flex items-center gap-1 ${stats.new.trendUp ? "text-green-600 bg-green-50" : "text-red-600 bg-red-50"}`}
-            >
-              {stats.new.trendUp ? (
-                <ArrowUpRight className="w-3 h-3" />
-              ) : (
-                <ArrowDownRight className="w-3 h-3" />
-              )}{" "}
-              {stats.new.trend}
-            </span>
-          </div>
-          <h3 className="text-gray-500 text-sm font-medium">
-            Nouveaux Utilisateurs
-          </h3>
-          <p className="text-3xl font-bold text-gray-900 mt-1">
-            {stats.new.value}
-          </p>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-visible">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Utilisateur
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Rôle
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Téléphone
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Statut
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Date d'inscription
-              </th>
-              <th className="relative px-6 py-3">
-                <span className="sr-only">Actions</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {filteredUsers.map((user) => (
-              <tr key={user.id} className="hover:bg-gray-50 transition-colors">
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center">
-                    <div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 font-bold text-sm overflow-hidden shrink-0">
-                      {user.name.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="ml-4">
-                      <div className="text-sm font-medium text-gray-900">
-                        {user.name}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-3xl shadow-2xl shadow-slate-200/50 dark:shadow-none border border-slate-200/50 dark:border-white/5 overflow-visible"
+      >
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-slate-200/50 dark:divide-white/5">
+            <thead className="bg-slate-50/50 dark:bg-slate-800/50 backdrop-blur-md">
+              <tr>
+                <th className="px-6 py-4 text-left text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest rounded-tl-3xl">
+                  Utilisateur
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">
+                  Rôle
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest hidden md:table-cell">
+                  Téléphone
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">
+                  Statut
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest hidden lg:table-cell">
+                  Date d'inscription
+                </th>
+                <th className="relative px-6 py-4 rounded-tr-3xl">
+                  <span className="sr-only">Actions</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+              <AnimatePresence>
+                {filteredUsers.map((user) => (
+                  <motion.tr
+                    key={user.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors group"
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 font-bold text-sm shadow-inner shrink-0 group-hover:scale-105 transition-transform">
+                          {user.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="ml-4">
+                          <div className="text-sm font-bold text-slate-900 dark:text-white">
+                            {user.name}
+                          </div>
+                          <div className="text-xs text-slate-500 dark:text-slate-400">{user.email}</div>
+                        </div>
                       </div>
-                      <div className="text-sm text-gray-500">{user.email}</div>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                        ${user.role === "Admin"
-                        ? "bg-purple-100 text-purple-800"
-                        : user.role === "Prestataire"
-                          ? "bg-orange-100 text-orange-800"
-                          : "bg-blue-100 text-blue-800"
-                      }`}
-                  >
-                    {user.role}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {user.phone}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                        ${user.status === "Actif" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}`}
-                  >
-                    {user.status}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {new Date(user.joined_at).toLocaleDateString()}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <div className="relative">
-                    <button
-                      onClick={() =>
-                        setActiveMenu(activeMenu === user.id ? null : user.id)
-                      }
-                      aria-label="Options utilisateur"
-                      className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-full transition-colors"
-                    >
-                      <MoreVertical className="w-5 h-5" />
-                    </button>
-                    {activeMenu === user.id && (
-                      <>
-                        <div
-                          className="fixed inset-0 z-10"
-                          onClick={() => setActiveMenu(null)}
-                        ></div>
-                        <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 z-20 py-1 animate-in fade-in zoom-in duration-200">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedUser(user);
-                              setIsCreateModalOpen(false);
-                              setActiveMenu(null);
-                            }}
-                            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                          >
-                            <User className="w-4 h-4" /> Voir profil
-                          </button>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-black uppercase tracking-widest shadow-sm
+                                            ${user.role === "Admin"
+                            ? "bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-400 shadow-purple-500/10"
+                            : user.role === "Prestataire"
+                              ? "bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400 shadow-orange-500/10"
+                              : "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400 shadow-blue-500/10"
+                          }`}
+                      >
+                        {user.role}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-500 dark:text-slate-400 hidden md:table-cell">
+                      {user.phone}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span
+                        className={`inline-flex flex-row items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-black uppercase tracking-widest shadow-sm
+                                            ${user.status === "Actif"
+                            ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400 shadow-emerald-500/10"
+                            : "bg-slate-100 text-slate-700 dark:bg-slate-500/20 dark:text-slate-400 shadow-slate-500/10"}`}
+                      >
+                        <span className={`w-1.5 h-1.5 rounded-full ${user.status === 'Actif' ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`}></span>
+                        {user.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-500 dark:text-slate-400 hidden lg:table-cell">
+                      {new Date(user.joined_at).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <div className="relative">
+                        <button
+                          onClick={() =>
+                            setActiveMenu(activeMenu === user.id ? null : user.id)
+                          }
+                          aria-label="Options utilisateur"
+                          className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-full transition-colors"
+                        >
+                          <MoreVertical className="w-5 h-5" />
+                        </button>
+                        {activeMenu === user.id && (
+                          <>
+                            <div
+                              className="fixed inset-0 z-10"
+                              onClick={() => setActiveMenu(null)}
+                            ></div>
+                            <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 z-20 py-1 animate-in fade-in zoom-in duration-200">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedUser(user);
+                                  setIsCreateModalOpen(false);
+                                  setActiveMenu(null);
+                                }}
+                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                              >
+                                <User className="w-4 h-4" /> Voir profil
+                              </button>
 
-                          {(() => {
-                            // RBAC Logic
-                            const getRoleRank = (roleName: string) => {
-                              const r = roleName.toLowerCase();
-                              if (r === 'super admin' || r === 'super-admin') return 1;
-                              if (r === 'admin' || r === 'support' || r === 'support manager') return 2;
-                              if (r === 'prestataire' || r === 'forwarder') return 3;
-                              return 4; // Client
-                            };
+                              {(() => {
+                                // RBAC Logic
+                                const getRoleRank = (roleName: string) => {
+                                  const r = roleName.toLowerCase();
+                                  if (r === 'super admin' || r === 'super-admin') return 1;
+                                  if (r === 'admin' || r === 'support' || r === 'support manager') return 2;
+                                  if (r === 'prestataire' || r === 'forwarder') return 3;
+                                  return 4; // Client
+                                };
 
-                            const currentRank = getRoleRank(profile?.role || 'client');
-                            // user.role in this component is formatted (Admin, Client etc), so we lower case it
-                            const targetRank = getRoleRank(user.role);
-                            const canManage = currentRank === 1 || (currentRank < targetRank);
+                                const currentRank = getRoleRank(profile?.role || 'client');
+                                // user.role in this component is formatted (Admin, Client etc), so we lower case it
+                                const targetRank = getRoleRank(user.role);
+                                const canManage = currentRank === 1 || (currentRank < targetRank);
 
-                            if (!canManage) {
-                              return (
-                                <div className="px-4 py-2 text-sm text-gray-500 italic flex items-center gap-2 border-t border-gray-50 mt-1 pt-1">
-                                  <Shield className="w-3 h-3" /> Action protégée
-                                </div>
-                              );
-                            }
+                                if (!canManage) {
+                                  return (
+                                    <div className="px-4 py-2 text-sm text-gray-500 italic flex items-center gap-2 border-t border-gray-50 mt-1 pt-1">
+                                      <Shield className="w-3 h-3" /> Action protégée
+                                    </div>
+                                  );
+                                }
 
-                            return (
-                              <>
-                                {user.role === "Client" && (
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setConfirmation({
-                                        isOpen: true,
-                                        type: "upgrade",
-                                        user: user,
-                                        title: "Promouvoir en Prestataire",
-                                        message: `Voulez-vous vraiment donner le rôle de Prestataire à ${user.name} ? Cette action lui donnera accès au tableau de bord prestataire.`,
-                                        variant: "warning",
-                                      });
-                                      setActiveMenu(null);
-                                    }}
-                                    className="w-full text-left px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 flex items-center gap-2"
-                                  >
-                                    <Shield className="w-4 h-4" /> Promouvoir
-                                    Prestataire
-                                  </button>
-                                )}
+                                return (
+                                  <>
+                                    {user.role === "Client" && (
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setConfirmation({
+                                            isOpen: true,
+                                            type: "upgrade",
+                                            user: user,
+                                            title: "Promouvoir en Prestataire",
+                                            message: `Voulez-vous vraiment donner le rôle de Prestataire à ${user.name} ? Cette action lui donnera accès au tableau de bord prestataire.`,
+                                            variant: "warning",
+                                          });
+                                          setActiveMenu(null);
+                                        }}
+                                        className="w-full text-left px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 flex items-center gap-2"
+                                      >
+                                        <Shield className="w-4 h-4" /> Promouvoir
+                                        Prestataire
+                                      </button>
+                                    )}
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setConfirmation({
+                                          isOpen: true,
+                                          type: "delete",
+                                          user: user,
+                                          title: "Supprimer l'utilisateur",
+                                          message: `ATTENTION : Cette action est irréversible. Voulez-vous vraiment supprimer définitivement ${user.name} ?`,
+                                          variant: "danger",
+                                        });
+                                        setActiveMenu(null);
+                                      }}
+                                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                                    >
+                                      <X className="w-4 h-4" /> Supprimer
+                                    </button>
+                                  </>
+                                );
+                              })()}
+
+                              <div className="border-t border-gray-100 my-1"></div>
+
+                              {profile?.role === "super-admin" && (
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    setConfirmation({
-                                      isOpen: true,
-                                      type: "delete",
-                                      user: user,
-                                      title: "Supprimer l'utilisateur",
-                                      message: `ATTENTION : Cette action est irréversible. Voulez-vous vraiment supprimer définitivement ${user.name} ?`,
-                                      variant: "danger",
-                                    });
+                                    setSelectedUserWallet(user);
+                                    setIsWalletModalOpen(true);
                                     setActiveMenu(null);
                                   }}
-                                  className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
                                 >
-                                  <X className="w-4 h-4" /> Supprimer
+                                  <Wallet className="w-4 h-4" /> Gérer Portefeuille
                                 </button>
-                              </>
-                            );
-                          })()}
-
-                          <div className="border-t border-gray-100 my-1"></div>
-
-                          {profile?.role === "super-admin" && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedUserWallet(user);
-                                setIsWalletModalOpen(true);
-                                setActiveMenu(null);
-                              }}
-                              className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                            >
-                              <Wallet className="w-4 h-4" /> Gérer Portefeuille
-                            </button>
-                          )}
+                              )}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </td>
+                  </motion.tr>
+                ))}
+                {filteredUsers.length === 0 && (
+                  <motion.tr
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                  >
+                    <td
+                      colSpan={5}
+                      className="px-6 py-12 text-center text-gray-500"
+                    >
+                      <div className="flex flex-col items-center justify-center">
+                        <div className="p-4 bg-gray-50 rounded-full mb-3">
+                          <Search className="w-8 h-8 text-gray-400" />
                         </div>
-                      </>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            ))}
-            {filteredUsers.length === 0 && (
-              <tr>
-                <td
-                  colSpan={5}
-                  className="px-6 py-12 text-center text-gray-500"
-                >
-                  <div className="flex flex-col items-center justify-center">
-                    <div className="p-4 bg-gray-50 rounded-full mb-3">
-                      <Search className="w-8 h-8 text-gray-400" />
-                    </div>
-                    <p>Aucun utilisateur trouvé</p>
-                  </div>
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+                        <p>Aucun utilisateur trouvé</p>
+                      </div>
+                    </td>
+                  </motion.tr>
+                )}
+              </AnimatePresence>
+            </tbody>
+          </table>
+        </div>
+      </motion.div>
 
       {
         isCreateModalOpen && (

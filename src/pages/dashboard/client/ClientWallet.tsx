@@ -1,16 +1,15 @@
 import { useState, useEffect } from "react";
 import PageHeader from "../../../components/common/PageHeader";
 import {
-  Wallet,
   ArrowUpRight,
   ArrowDownLeft,
   Clock,
   CreditCard,
   RefreshCw,
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "../../../lib/supabase";
 import { useAuth } from "../../../contexts/AuthContext";
-import { useToast } from "../../../contexts/ToastContext";
 import { useDataSync } from "../../../contexts/DataSyncContext";
 import TopUpModal from "../../../components/dashboard/TopUpModal";
 
@@ -18,7 +17,6 @@ import { Transaction } from "../../../types/transaction";
 
 export default function ClientWallet() {
   const { user } = useAuth();
-  const { success } = useToast();
   const [balance, setBalance] = useState(0);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
@@ -100,167 +98,200 @@ export default function ClientWallet() {
         }}
       />
 
-      {/* Balance Card */}
-      <div className="bg-gradient-to-r from-gray-900 to-gray-800 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 p-8 opacity-10">
-          <Wallet size={120} />
-        </div>
+      {/* Fintech Holographic Wallet Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative overflow-hidden rounded-3xl p-8 text-white shadow-2xl shadow-indigo-500/20 group"
+      >
+        {/* Holographic Background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-900 via-slate-900 to-black z-0"></div>
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay z-0"></div>
+        <div className="absolute -top-24 -right-24 w-96 h-96 bg-primary/30 rounded-full blur-3xl group-hover:bg-primary/40 transition-colors z-0 duration-700"></div>
+        <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-blue-500/20 rounded-full blur-3xl z-0"></div>
 
-        <div className="relative z-10">
-          <p className="text-gray-400 font-medium mb-1">Solde Disponible</p>
-          <h2 className="text-4xl font-bold mb-6">
-            {balance.toLocaleString()} FCFA
-          </h2>
-
-          <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-lg backdrop-blur-sm">
-            <div className="bg-green-500/20 p-1 rounded-full">
-              <ArrowDownLeft className="w-4 h-4 text-green-400" />
+        <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <CreditCard className="w-5 h-5 text-indigo-300" />
+              <p className="text-indigo-200 font-medium uppercase tracking-widest text-sm">NextMove Card</p>
             </div>
-            <div>
-              <p className="text-xs text-gray-400">Dernier Dépôt</p>
-              <p className="text-sm font-semibold">
-                {transactions.find((t) => t.amount > 0)
-                  ? `+${transactions.find((t) => t.amount > 0)?.amount.toLocaleString()} F`
-                  : "--"}
-              </p>
+            <p className="text-slate-400 font-medium mb-1 mt-6">Solde Disponible</p>
+            <h2 className="text-5xl font-black tracking-tight [text-shadow:0_2px_10px_rgba(0,0,0,0.5)]">
+              {balance.toLocaleString()} <span className="text-2xl text-slate-400 font-medium tracking-normal">FCFA</span>
+            </h2>
+          </div>
+
+          <div className="flex gap-4 w-full md:w-auto">
+            <div className="flex items-center gap-3 bg-white/10 border border-white/5 px-4 py-3 rounded-2xl backdrop-blur-md flex-1 md:flex-none hover:bg-white/20 transition-colors shadow-lg">
+              <div className="bg-emerald-500/20 p-2 rounded-xl text-emerald-400 shadow-inner">
+                <ArrowDownLeft className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-xs text-slate-300 font-medium">Dernier Dépôt</p>
+                <p className="text-sm font-black text-white">
+                  {transactions.find((t) => t.amount > 0)
+                    ? `+${transactions.find((t) => t.amount > 0)?.amount.toLocaleString()} F`
+                    : "--"}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 bg-white/10 border border-white/5 px-4 py-3 rounded-2xl backdrop-blur-md flex-1 md:flex-none hover:bg-white/20 transition-colors shadow-lg">
+              <div className="bg-rose-500/20 p-2 rounded-xl text-rose-400 shadow-inner">
+                <ArrowUpRight className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-xs text-slate-300 font-medium">Dernière Dépense</p>
+                <p className="text-sm font-black text-white">
+                  {transactions.find((t) => t.amount < 0)
+                    ? `${transactions.find((t) => t.amount < 0)?.amount.toLocaleString()} F`
+                    : "--"}
+                </p>
+              </div>
             </div>
           </div>
-          <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-lg backdrop-blur-sm">
-            <div className="bg-red-500/20 p-1 rounded-full">
-              <ArrowUpRight className="w-4 h-4 text-red-400" />
-            </div>
-            <div>
-              <p className="text-xs text-gray-400">Dernière Dépense</p>
-              <p className="text-sm font-semibold">
-                {transactions.find((t) => t.amount < 0)
-                  ? `${transactions.find((t) => t.amount < 0)?.amount.toLocaleString()} F`
-                  : "--"}
-              </p>
-            </div>
-          </div>
         </div>
-      </div>
+      </motion.div>
 
 
       {/* Transactions */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-gray-50 dark:border-gray-700 flex justify-between items-center">
-          <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-            Historique des Transactions
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="bg-white/90 dark:bg-slate-900/90 rounded-3xl border border-slate-200/50 dark:border-white/5 shadow-2xl shadow-slate-200/50 dark:shadow-none backdrop-blur-xl overflow-visible"
+      >
+        <div className="p-6 border-b border-slate-100 dark:border-white/5 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/50 rounded-t-3xl backdrop-blur-md">
+          <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
+            <Clock className="w-5 h-5 text-indigo-500" /> Historique des Transactions
           </h3>
           <button
             onClick={fetchWalletData}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+            className="p-2 hover:bg-white dark:hover:bg-slate-700 rounded-xl transition-all shadow-sm border border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800"
             title="Actualiser"
           >
             <RefreshCw
-              className={`w-5 h-5 text-gray-500 ${loading ? "animate-spin" : ""}`}
+              className={`w-4 h-4 text-slate-600 dark:text-slate-300 ${loading ? "animate-spin" : ""}`}
             />
           </button>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50/50 dark:bg-gray-900/50">
+          <table className="w-full text-left">
+            <thead className="bg-slate-50/80 dark:bg-slate-800/80 backdrop-blur-sm border-b border-slate-100 dark:border-white/5">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Date
+                <th className="px-6 py-4 text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest pl-10">
+                  Transaction
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Description
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-4 text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">
                   Type
                 </th>
-                <th className="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-4 text-right text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">
                   Montant
                 </th>
-                <th className="px-6 py-4 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-4 text-center text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">
                   Statut
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
-              {loading ? (
-                <tr>
-                  <td
-                    colSpan={5}
-                    className="px-6 py-8 text-center text-gray-500"
-                  >
-                    Chargement...
-                  </td>
-                </tr>
-              ) : transactions.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={5}
-                    className="px-6 py-8 text-center text-gray-500"
-                  >
-                    Aucune transaction trouvée.
-                  </td>
-                </tr>
-              ) : (
-                transactions.map((tx) => (
-                  <tr
-                    key={tx.id}
-                    className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
-                  >
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
-                      <div className="flex items-center gap-2">
-                        <Clock className="w-4 h-4 text-gray-400" />
-                        {new Date(tx.created_at).toLocaleDateString()}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-900 dark:text-white font-medium">
-                      {tx.description || "Transaction"}
-                      {tx.reference_id && (
-                        <span className="block text-xs text-gray-500 font-mono mt-0.5">
-                          {tx.reference_id}
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize
-                                                ${tx.amount > 0 ? "bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400" : "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300"}
-                                            `}
-                      >
-                        {tx.amount > 0 ? "Crédit" : "Débit"}
-                      </span>
-                    </td>
+            <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+              <AnimatePresence>
+                {loading ? (
+                  <tr>
                     <td
-                      className={`px-6 py-4 whitespace-nowrap text-sm font-bold text-right ${tx.amount > 0
-                        ? "text-green-600"
-                        : "text-gray-900 dark:text-white"
-                        }`}
+                      colSpan={4}
+                      className="px-6 py-12 text-center text-slate-500 font-bold"
                     >
-                      {tx.amount > 0 ? "+" : ""}
-                      {Number(tx.amount).toLocaleString()} FCFA
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize
-                                                ${tx.status === "completed"
-                            ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-                            : tx.status === "pending"
-                              ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400"
-                              : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
-                          }`}
-                      >
-                        {tx.status === "completed"
-                          ? "Succès"
-                          : tx.status === "pending"
-                            ? "En attente"
-                            : "Échoué"}
-                      </span>
+                      Chargement protégé...
                     </td>
                   </tr>
-                ))
-              )}
+                ) : transactions.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={4}
+                      className="px-6 py-12 text-center text-slate-400 font-medium"
+                    >
+                      Aucune transaction récente.
+                    </td>
+                  </tr>
+                ) : (
+                  transactions.map((tx, idx) => (
+                    <motion.tr
+                      key={tx.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: idx * 0.05 }}
+                      exit={{ opacity: 0 }}
+                      className="hover:bg-slate-50/80 dark:hover:bg-slate-800/80 transition-colors group"
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center gap-4">
+                          <div className={`p-3 rounded-2xl shadow-inner shrink-0 group-hover:scale-110 transition-transform ${tx.amount > 0 ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400" : "bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400"}`}>
+                            {tx.amount > 0 ? <ArrowDownLeft className="w-5 h-5" /> : <ArrowUpRight className="w-5 h-5" />}
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-slate-900 dark:text-white">
+                              {tx.description || "Transaction"}
+                            </p>
+                            <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mt-1">
+                              <Clock className="w-3 h-3" />
+                              {new Date(tx.created_at).toLocaleString()}
+                              {tx.reference_id && (
+                                <>
+                                  <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
+                                  <span className="font-mono text-xs">{tx.reference_id}</span>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-black uppercase tracking-widest shadow-sm
+                          ${tx.amount > 0 ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400 shadow-emerald-500/10" : "bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300 shadow-slate-500/10"}
+                        `}
+                        >
+                          {tx.amount > 0 ? "Crédit" : "Débit"}
+                        </span>
+                      </td>
+                      <td
+                        className={`px-6 py-4 whitespace-nowrap text-right ${tx.amount > 0
+                          ? "text-emerald-600 dark:text-emerald-400"
+                          : "text-slate-900 dark:text-white"
+                          }`}
+                      >
+                        <span className="text-lg font-black tracking-tight flex justify-end items-center gap-1.5">
+                          {tx.amount > 0 ? "+" : ""}
+                          {Number(tx.amount).toLocaleString()} <span className="text-xs font-bold text-slate-400">FCFA</span>
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        <span
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-black uppercase tracking-widest shadow-sm
+                          ${tx.status === "completed"
+                              ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 shadow-emerald-500/10"
+                              : tx.status === "pending"
+                                ? "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 shadow-amber-500/10"
+                                : "bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-400 shadow-rose-500/10"
+                            }`}
+                        >
+                          <span className={`w-1.5 h-1.5 rounded-full ${tx.status === 'completed' ? 'bg-emerald-500' : tx.status === 'pending' ? 'bg-amber-500 animate-pulse' : 'bg-rose-500'}`}></span>
+                          {tx.status === "completed"
+                            ? "Succès"
+                            : tx.status === "pending"
+                              ? "En attente"
+                              : "Échoué"}
+                        </span>
+                      </td>
+                    </motion.tr>
+                  ))
+                )}
+              </AnimatePresence>
             </tbody>
           </table>
         </div>
-      </div>
+      </motion.div>
 
       <TopUpModal
         isOpen={isTopUpOpen}

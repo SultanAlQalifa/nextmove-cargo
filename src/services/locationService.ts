@@ -5,11 +5,42 @@ export interface Location {
   name: string;
   type: "country" | "port";
   status: "active" | "pending" | "rejected";
-  submitted_by?: string; // User ID of the forwarder who submitted it
+  submitted_by?: string;
   created_at: string;
 }
 
+export interface LatLng {
+  lat: number;
+  lng: number;
+}
+
+const PORT_COORDINATES: Record<string, LatLng> = {
+  "Guangzhou": { lat: 23.1291, lng: 113.2644 },
+  "Shenzhen": { lat: 22.5431, lng: 114.0579 },
+  "Yiwu": { lat: 29.3072, lng: 120.0744 },
+  "Hong Kong": { lat: 22.3193, lng: 114.1694 },
+  "Ningbo": { lat: 29.8683, lng: 121.5440 },
+  "Shanghai": { lat: 31.2304, lng: 121.4737 },
+  "Dakar": { lat: 14.6928, lng: -17.4467 },
+  "Abidjan": { lat: 5.3600, lng: -4.0083 },
+  "Lagos": { lat: 6.5244, lng: 3.3792 },
+  "Casablanca": { lat: 33.5731, lng: -7.5898 },
+  "Marseille": { lat: 43.2965, lng: 5.3698 },
+  "Le Havre": { lat: 49.4944, lng: 0.1014 },
+  "Paris": { lat: 48.8566, lng: 2.3522 },
+  "Valencia": { lat: 39.4699, lng: -0.3763 },
+  "Barcelona": { lat: 41.3851, lng: 2.1734 },
+  "New York": { lat: 40.7128, lng: -74.0060 },
+  "Dubai": { lat: 25.2048, lng: 55.2708 },
+};
+
 export const locationService = {
+  /**
+   * Get coordinates for a port by name or ID
+   */
+  getCoordinates: (name: string): LatLng | null => {
+    return PORT_COORDINATES[name] || null;
+  },
   /**
    * Get all active locations (for dropdowns)
    */

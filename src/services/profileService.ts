@@ -334,4 +334,39 @@ export const profileService = {
       throw error;
     }
   },
+
+  getUserDistributionByCountry: async (): Promise<{ id: string; value: number }[]> => {
+    try {
+      // Fetch all profiles to calculate distribution
+      // Note: In a large scale app, this should be an RPC function to avoid fetching all rows
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("country");
+
+      if (error) throw error;
+      if (!data) return [];
+
+      const countMap = new Map<string, number>();
+
+      data.forEach(p => {
+        if (p.country) {
+          // Normalize: trim and uppercase
+          let code = p.country.trim().toUpperCase();
+
+          // Basic heuristic: if user stored full name, we might ignore or try to map
+          // For now, we assume standard codes (ISO 2/3) are used or consistent names
+          if (code) {
+            countMap.set(code, (countMap.get(code) || 0) + 1);
+          }
+        }
+      });
+
+      return Array.from(countMap.entries())
+        .map(([id, value]) => ({ id, value }))
+        .sort((a, b) => b.value - a.value);
+    } catch (error) {
+      console.error("Error fetching user distribution:", error);
+      return [];
+    }
+  },
 };

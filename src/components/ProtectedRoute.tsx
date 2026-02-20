@@ -1,19 +1,10 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
-
-type UserRole =
-  | "client"
-  | "forwarder"
-  | "admin"
-  | "super-admin"
-  | "supplier"
-  | "driver"
-  | "support"
-  | "manager";
+import { isAdmin, Role } from "../utils/authUtils";
 
 interface ProtectedRouteProps {
   children?: React.ReactNode;
-  allowedRoles?: UserRole[];
+  allowedRoles?: Role[];
   requireActive?: boolean;
 }
 
@@ -101,9 +92,9 @@ export default function ProtectedRoute({
     }
   }
 
-  if (allowedRoles && profile && !allowedRoles.includes(profile.role)) {
+  if (allowedRoles && profile && !allowedRoles.includes(profile.role as any)) {
     // Admins and super-admins can access all routes
-    if (profile.role === "admin" || profile.role === "super-admin") {
+    if (isAdmin(profile.role)) {
       return children ? <>{children}</> : <Outlet />;
     }
 

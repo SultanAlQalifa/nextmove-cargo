@@ -91,6 +91,7 @@ export interface Shipment {
     amount: number;
     amount_forwarder?: number;
     status: string;
+    created_at?: string;
   }[];
   children?: Shipment[];
 }
@@ -171,7 +172,7 @@ export const shipmentService = {
   /**
    * Create shipment from payment transaction
    */
-  createShipmentFromPayment: async (transactionId: string): Promise<Shipment | null> => {
+  createShipmentFromPayment: async (_transactionId: string): Promise<Shipment | null> => {
     // Mock implementation to satisfy interface requirement for now
     // In real scenario, this would extract metadata from transaction to build shipment
 
@@ -796,6 +797,26 @@ export const shipmentService = {
       return data;
     } catch (error) {
       console.error("Error uploading document:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Send a real-time GPS update for a shipment
+   */
+  sendGPSUpdate: async (shipmentId: string, latitude: number, longitude: number): Promise<void> => {
+    try {
+      const { error } = await supabase
+        .from("delivery_updates")
+        .insert({
+          shipment_id: shipmentId,
+          latitude,
+          longitude,
+        });
+
+      if (error) throw error;
+    } catch (error) {
+      console.error("Error sending GPS update:", error);
       throw error;
     }
   },

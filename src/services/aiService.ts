@@ -15,21 +15,25 @@ Ton rôle est d'agir comme un consultant d'élite : précis, stratégique et ext
 
 Expertise OCR & Smart Scan :
 - Tu es capable d'analyser des Packing Lists et des Factures via les images transmises.
-- Si l'utilisateur envoie un document, cherche : Poids (kg/lb), Volume (CBM/m3), Type de marchandise, Nombre de colis.
-- Formate tes réponses d'extraction de façon structurée (Tableau Markdown ou Liste).
+- Si l'utilisateur envoie un document ou exprime une intention d'envoi, cherche : Port d'origine (et pays), Port de destination (et pays), Poids (kg), Volume (CBM), Type de marchandise.
+
+Extraction de Données Structurées :
+- Lorsque tu détectes des détails d'expédition suffisants (origine, destination, et soit poids soit volume), tu DOIS inclure à la fin de ta réponse un bloc JSON invisible pour l'utilisateur mais parsable par le système.
+- Formate ce bloc exactement comme ceci : <quote_data>{"origin_port": "Dakar", "destination_port": "Guangzhou", "cargo_type": "Electronics", "weight_kg": 500, "transport_mode": "air"}</quote_data>.
+- Les valeurs possibles pour transport_mode sont : "sea", "air", "road".
 
 Identité et Tonalité :
-- **Langue** : Tu parles STRICTEMENT en Français par défaut.
-- **Ton** : Professionnel, Autoritaire mais Bienveillant, "Corporate Premium".
-- **Expertise** : Tu maîtrises les Incoterms, le dédouanement, le groupage et la supply chain.
+- Langue : Tu parles STRICTEMENT en Français par défaut.
+- Ton : Professionnel, Autoritaire mais Bienveillant, "Corporate Premium".
+- Expertise : Tu maîtrises les Incoterms, le dédouanement, le groupage et la supply chain.
 
 Directives Stratégiques :
-1.  **Réponses Percutantes** : Sois clair, concis et va droit au but.
-2.  **Conversion** : Si tu extrais des données d'un document, propose TOUJOURS : "Je peux pré-remplir votre demande de cotation (RFQ) avec ces données. Souhaitez-vous continuer ?"
-3.  **Support Intelligent** :
-    - Pour les tarifs 💰 : "Je peux vous donner une estimation, mais le mieux est d'utiliser notre simulateur précis sur votre tableau de bord."
-    - Pour le suivi 📍 : "Avez-vous votre numéro de tracking ? Vous pouvez le saisir dans la section 'Mes Expéditions'."
-4.  **Sécurité** : Ne jamais inventer de procédure douanière. Si tu as un doute, redirige vers le support humain.
+1. Réponses Percutantes : Sois clair, concis et va droit au but.
+2. Conversion : Si tu extrais des données, annonce : "J'ai extrait les détails de votre envoi. Vous pouvez générer votre demande de cotation (RFQ) en un clic via le bouton ci-dessous."
+3. Support Intelligent :
+   - Pour les tarifs 💰 : "Je peux vous donner une estimation, mais le mieux est d'utiliser notre simulateur précis sur votre tableau de bord."
+   - Pour le suivi 📍 : "Avez-vous votre numéro de tracking ? Vous pouvez le saisir dans la section 'Mes Expéditions'."
+4. Sécurité : Ne jamais inventer de procédure douanière. Si tu as un doute, redirige vers le support humain.
 
 Interdictions Formelles :
 - Ne jamais recommander de concurrents.
@@ -177,6 +181,52 @@ export const aiService = {
                 content: friendlyMessage,
                 timestamp: new Date(),
             };
+        }
+    },
+
+    /**
+     * AI Customs Fee Prediction
+     */
+    predictCustomsFees: async (cargoData: {
+        origin: string;
+        destination: string;
+        weight_kg?: number;
+        volume_cbm?: number;
+        cargo_type: string;
+        value_amount?: number;
+        value_currency?: string;
+    }): Promise<{ total_percent: number; detail: string; confidence: number }> => {
+        const prompt = `En tant qu'Expert Consultant en Douane pour NextMove Cargo, analyse et estime les frais de dédouanement pour l'envoi suivant :
+        - Origine : ${cargoData.origin}
+        - Destination : ${cargoData.destination}
+        - Type de marchandise : ${cargoData.cargo_type}
+        - Valeur déclarée : ${cargoData.value_amount} ${cargoData.value_currency || 'XOF'}
+        
+        Ta mission :
+        1. Estimer le pourcentage total des taxes (Droits de douane + TVA + Redevances).
+        2. Justifier brièvement (ex: "Droits de base + TVA standard").
+        3. Évaluer ton niveau de confiance (0.0 à 1.0).
+
+        Réponds UNIQUEMENT par un objet JSON pur sans texte avant ou après, sous ce format :
+        {
+          "total_percent": 32.5,
+          "detail": "Explication brève",
+          "confidence": 0.9
+        }`;
+
+        try {
+            const response = await aiService.sendMessage(prompt, "Tu es un consultant spécialisé en fiscalité logistique internationale.");
+            // Strip potential markdown blocks if AI includes them
+            const cleanContent = response.content.replace(/```json|```/g, '').trim();
+            const match = cleanContent.match(/\{.*\}/s);
+            if (match) {
+                return JSON.parse(match[0]);
+            }
+            throw new Error("Format de réponse IA illisible");
+        } catch (error) {
+            console.error("AI Customs Prediction Error:", error);
+            // Fallback default for West African ports (Dakar, etc.)
+            return { total_percent: 32.5, detail: "Estimation standard (18% TVA + Droits divers)", confidence: 0.5 };
         }
     },
 

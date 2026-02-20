@@ -57,46 +57,43 @@ export default function PWAInstallPrompt() {
   if (!isVisible) return null;
 
   return (
-    <div className="fixed bottom-24 left-4 right-4 md:left-auto md:right-8 md:bottom-8 z-[100] animate-in slide-in-from-bottom-10 fade-in duration-700">
-      <div className="group relative">
-        {/* Iridescent Border Effect */}
-        <div className="absolute -inset-0.5 bg-gradient-to-r from-primary via-purple-500 to-secondary rounded-[2rem] opacity-30 group-hover:opacity-100 blur transition duration-1000 group-hover:duration-200"></div>
+    <div className="fixed bottom-24 left-0 right-0 z-[60] animate-in slide-in-from-bottom-10 fade-in duration-700 pointer-events-none p-4">
+      <div className="max-w-md mx-auto pointer-events-auto">
+        <div className="relative group">
+          {/* subtle glow */}
+          <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 via-blue-500/20 to-secondary/20 rounded-[2rem] blur-xl opacity-0 group-hover:opacity-100 transition duration-1000"></div>
 
-        <div className="relative bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl px-6 py-5 rounded-[1.8rem] shadow-2xl border border-white/20 flex flex-col sm:flex-row items-center gap-5 max-w-sm mx-auto md:mx-0">
-
-          <div className="bg-gradient-to-br from-primary to-blue-600 p-3.5 rounded-2xl shadow-lg shadow-primary/20 transform group-hover:rotate-6 transition-transform">
-            <Download className="w-7 h-7 text-white" />
-          </div>
-
-          <div className="flex-1 text-center sm:text-left">
-            <div className="flex items-center justify-center sm:justify-start gap-2 mb-1">
-              <h3 className="font-black text-slate-900 dark:text-white text-base tracking-tight">
-                NextMove App
-              </h3>
-              <span className="px-2 py-0.5 bg-emerald-500 text-[8px] font-black text-white uppercase rounded-full tracking-widest animate-pulse">
-                Gratuit
-              </span>
+          <div className="relative bg-white/70 dark:bg-slate-900/60 backdrop-blur-2xl px-6 py-4 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-white/40 dark:border-white/10 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-primary/20">
+                <Download className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-sm font-black text-slate-900 dark:text-white tracking-tight">
+                  NextMove Cargo App
+                </h3>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">
+                  Expérience Ultra-Fluide
+                </p>
+              </div>
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
-              Installez l'app pour un suivi <br className="hidden sm:block" /> instantané & hors-ligne.
-            </p>
-          </div>
 
-          <div className="flex items-center gap-3 w-full sm:w-auto border-t sm:border-t-0 sm:border-l border-slate-200 dark:border-slate-700 pt-4 sm:pt-0 sm:pl-4">
-            <button
-              onClick={() => setIsVisible(false)}
-              aria-label="Fermer"
-              className="flex-1 sm:flex-none p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
-            >
-              <X className="w-6 h-6" />
-            </button>
-            <button
-              onClick={handleInstallClick}
-              title="Installer l'application sur votre appareil"
-              className="flex-[2] sm:flex-none bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-6 py-3 rounded-2xl text-sm font-black shadow-xl hover:scale-105 active:scale-95 transition-all"
-            >
-              Installer
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsVisible(false)}
+                title="Fermer"
+                aria-label="Fermer"
+                className="p-2 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+              <button
+                onClick={handleInstallClick}
+                className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-5 py-2.5 rounded-xl text-xs font-black shadow-xl hover:scale-105 active:scale-95 transition-all"
+              >
+                Installer
+              </button>
+            </div>
           </div>
         </div>
       </div>

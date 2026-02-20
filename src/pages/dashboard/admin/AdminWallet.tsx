@@ -11,8 +11,10 @@ import {
     User,
     Download,
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "../../../contexts/ToastContext";
 import { paymentService } from "../../../services/paymentService";
+import { exportToExcel } from "../../../utils/exportUtils";
 
 interface WalletData {
     id: string;
@@ -125,137 +127,182 @@ export default function AdminWallet() {
                 title="Gestion des Portefeuilles"
                 subtitle="Vue d'ensemble et gestion des soldes utilisateurs"
                 action={{
-                    label: "Exporter",
-                    onClick: () => success("Export non implémenté"),
+                    label: "Exporter (Excel)",
+                    onClick: () => {
+                        const exportData = filteredWallets.map(w => ({
+                            "Nom d'Utilisateur": w.profiles?.full_name || "Sans nom",
+                            "Email": w.profiles?.email || "",
+                            "Rôle": w.profiles?.role || "",
+                            "Solde": w.balance,
+                            "Devise": w.currency,
+                            "Dernière MAJ": new Date(w.updated_at).toLocaleDateString()
+                        }));
+                        exportToExcel(exportData, "Rapport_Portefeuilles_NextMove");
+                        success("Fichier Excel généré avec succès !");
+                    },
                     icon: Download,
                 }}
             />
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-6 rounded-3xl shadow-xl shadow-indigo-500/10 dark:shadow-none border border-indigo-100 dark:border-indigo-500/20 relative overflow-hidden group"
+                >
+                    <div className="absolute -right-6 -top-6 w-24 h-24 bg-indigo-500/10 rounded-full blur-2xl group-hover:bg-indigo-500/20 transition-colors"></div>
+                    <div className="flex items-center gap-4 relative z-10">
+                        <div className="p-4 bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded-2xl shadow-inner group-hover:scale-110 transition-transform">
                             <Wallet className="w-8 h-8" />
                         </div>
                         <div>
-                            <p className="text-sm font-medium text-gray-500">Solde Total Système</p>
-                            <h3 className="text-2xl font-bold text-gray-900">
+                            <p className="text-sm font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Solde Total Système</p>
+                            <h3 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight mt-1">
                                 {new Intl.NumberFormat("fr-XO", { style: "currency", currency: "XOF" }).format(totalSystemBalance)}
                             </h3>
                         </div>
                     </div>
-                </div>
+                </motion.div>
 
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 }}
+                    className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-6 rounded-3xl shadow-xl shadow-emerald-500/10 dark:shadow-none border border-emerald-100 dark:border-emerald-500/20 relative overflow-hidden group"
+                >
+                    <div className="absolute -right-6 -top-6 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition-colors"></div>
+                    <div className="flex items-center gap-4 relative z-10">
+                        <div className="p-4 bg-emerald-50 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-2xl shadow-inner group-hover:scale-110 transition-transform">
                             <User className="w-8 h-8" />
                         </div>
                         <div>
-                            <p className="text-sm font-medium text-gray-500">Portefeuilles Actifs</p>
-                            <h3 className="text-2xl font-bold text-gray-900">{wallets.length}</h3>
+                            <p className="text-sm font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Portefeuilles Actifs</p>
+                            <h3 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight mt-1">{wallets.length}</h3>
                         </div>
                     </div>
-                </div>
+                </motion.div>
             </div>
 
             {/* Filters */}
-            <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col md:flex-row gap-4 items-center justify-between">
-                <div className="flex items-center gap-4 w-full md:w-auto">
-                    <div className="relative flex-1 md:w-64">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-3 rounded-2xl shadow-lg shadow-slate-200/40 dark:shadow-none border border-slate-200/50 dark:border-white/5 flex flex-col md:flex-row gap-4 items-center justify-between relative z-10"
+            >
+                <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+                    <div className="relative flex-1 sm:w-80">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                         <input
                             type="text"
                             placeholder="Rechercher un utilisateur..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 border rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all"
+                            className="w-full pl-11 pr-4 py-3 bg-slate-50/50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-xl focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none transition-all font-medium"
                         />
                     </div>
 
-                    <select
-                        aria-label="Filter by Role"
-                        value={roleFilter}
-                        onChange={(e) => setRoleFilter(e.target.value)}
-                        className="px-4 py-2 border rounded-xl bg-gray-50 focus:bg-white transition-all cursor-pointer"
-                    >
-                        <option value="all">Tous les rôles</option>
-                        <option value="client">Clients</option>
-                        <option value="forwarder">Prestataires</option>
-                        <option value="driver">Chauffeurs</option>
-                    </select>
+                    <div className="relative w-full sm:w-auto">
+                        <select
+                            aria-label="Filter by Role"
+                            value={roleFilter}
+                            onChange={(e) => setRoleFilter(e.target.value)}
+                            className="w-full sm:w-auto appearance-none pl-4 pr-10 py-3 border border-slate-200 dark:border-white/5 rounded-xl bg-slate-50/50 dark:bg-slate-800/50 focus:bg-white dark:focus:bg-slate-800 transition-all cursor-pointer font-bold text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-indigo-500/50"
+                        >
+                            <option value="all">Tous les rôles</option>
+                            <option value="client">Clients</option>
+                            <option value="forwarder">Prestataires</option>
+                            <option value="driver">Chauffeurs</option>
+                        </select>
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                            <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            </motion.div>
 
             {/* Table */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="bg-white/90 dark:bg-slate-900/90 rounded-3xl backdrop-blur-xl shadow-2xl shadow-slate-200/50 dark:shadow-none border border-slate-200/50 dark:border-white/5 overflow-visible"
+            >
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left">
-                        <thead className="bg-gray-50 border-b border-gray-100">
+                    <table className="min-w-full divide-y divide-slate-200/50 dark:divide-white/5 text-left">
+                        <thead className="bg-slate-50/80 dark:bg-slate-800/80 backdrop-blur-md rounded-t-3xl">
                             <tr>
-                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">Utilisateur</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">Rôle</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase text-right">Solde Actuel</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase">Dernière MAJ</th>
-                                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase text-right">Actions</th>
+                                <th className="px-6 py-4 text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest rounded-tl-3xl">Utilisateur</th>
+                                <th className="px-6 py-4 text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Rôle</th>
+                                <th className="px-6 py-4 text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest text-right">Solde Actuel</th>
+                                <th className="px-6 py-4 text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Dernière MAJ</th>
+                                <th className="relative px-6 py-4 rounded-tr-3xl"><span className="sr-only">Actions</span></th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100">
-                            {loading ? (
-                                <tr>
-                                    <td colSpan={5} className="px-6 py-12 text-center text-gray-500">Chargement...</td>
-                                </tr>
-                            ) : filteredWallets.length === 0 ? (
-                                <tr>
-                                    <td colSpan={5} className="px-6 py-12 text-center text-gray-500">Aucun portefeuille trouvé</td>
-                                </tr>
-                            ) : (
-                                filteredWallets.map((wallet) => (
-                                    <tr key={wallet.id} className="hover:bg-gray-50 transition-colors">
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold">
-                                                    {wallet.profiles?.full_name?.charAt(0) || wallet.profiles?.email?.charAt(0) || "?"}
-                                                </div>
-                                                <div>
-                                                    <p className="font-medium text-gray-900">{wallet.profiles?.full_name || "Sans nom"}</p>
-                                                    <p className="text-xs text-gray-500">{wallet.profiles?.email}</p>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-lg text-xs font-medium uppercase">
-                                                {wallet.profiles?.role}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 text-right">
-                                            <div className="font-bold text-gray-900">
-                                                {new Intl.NumberFormat("fr-XO", { style: "currency", currency: wallet.currency || "XOF" }).format(wallet.balance)}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 text-sm text-gray-500">
-                                            {new Date(wallet.updated_at).toLocaleDateString()}
-                                        </td>
-                                        <td className="px-6 py-4 text-right">
-                                            <button
-                                                onClick={() => {
-                                                    setSelectedWallet(wallet);
-                                                    setIsModalOpen(true);
-                                                }}
-                                                className="p-2 hover:bg-gray-100 rounded-full text-gray-500 hover:text-indigo-600 transition-colors"
-                                                title="Ajuster le solde"
-                                            >
-                                                <CreditCard className="w-5 h-5" />
-                                            </button>
-                                        </td>
+                        <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+                            <AnimatePresence>
+                                {loading ? (
+                                    <tr>
+                                        <td colSpan={5} className="px-6 py-12 text-center text-slate-500 font-bold">Chargement centralisé...</td>
                                     </tr>
-                                ))
-                            )}
+                                ) : filteredWallets.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={5} className="px-6 py-12 text-center text-slate-400 font-medium">Aucun portefeuille trouvé</td>
+                                    </tr>
+                                ) : (
+                                    filteredWallets.map((wallet, idx) => (
+                                        <motion.tr
+                                            key={wallet.id}
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: idx * 0.05 }}
+                                            exit={{ opacity: 0, scale: 0.95 }}
+                                            className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors group"
+                                        >
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-100 to-indigo-200 dark:from-indigo-900/40 dark:to-indigo-800/40 flex items-center justify-center text-indigo-700 dark:text-indigo-400 font-bold shadow-inner group-hover:scale-105 transition-transform shrink-0">
+                                                        {wallet.profiles?.full_name?.charAt(0) || wallet.profiles?.email?.charAt(0) || "?"}
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-bold text-slate-900 dark:text-white">{wallet.profiles?.full_name || "Sans nom"}</p>
+                                                        <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-0.5">{wallet.profiles?.email}</p>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className="px-3 py-1 bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 rounded-lg text-xs font-black uppercase tracking-widest shadow-sm">
+                                                    {wallet.profiles?.role}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 text-right whitespace-nowrap">
+                                                <div className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
+                                                    {new Intl.NumberFormat("fr-XO", { style: "currency", currency: wallet.currency || "XOF" }).format(wallet.balance)}
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 text-sm font-medium text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                                                {new Date(wallet.updated_at).toLocaleDateString()}
+                                            </td>
+                                            <td className="px-6 py-4 text-right whitespace-nowrap">
+                                                <button
+                                                    onClick={() => {
+                                                        setSelectedWallet(wallet);
+                                                        setIsModalOpen(true);
+                                                    }}
+                                                    className="p-2.5 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-500/10 dark:hover:bg-indigo-500/20 rounded-xl text-indigo-600 dark:text-indigo-400 transition-colors shadow-sm"
+                                                    title="Ajuster le solde"
+                                                >
+                                                    <CreditCard className="w-5 h-5" />
+                                                </button>
+                                            </td>
+                                        </motion.tr>
+                                    ))
+                                )}
+                            </AnimatePresence>
                         </tbody>
                     </table>
                 </div>
-            </div>
+            </motion.div>
 
             {/* Adjustment Modal */}
             {isModalOpen && selectedWallet && (

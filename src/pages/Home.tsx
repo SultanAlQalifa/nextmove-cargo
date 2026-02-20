@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import CanBanner from "../components/common/CanBanner";
 import {
   ArrowRight,
   ShieldCheck,
@@ -351,16 +350,22 @@ export default function Home() {
         </div>
       </div>
 
-      {/* CAN Support Banner */}
-      <div className="w-full sticky top-16 z-30">
-        <CanBanner />
-      </div>
+
 
       {/* Stats Section - Clean & Minimal */}
-      <div className="bg-white dark:bg-gray-900 py-16 border-b border-gray-100 dark:border-gray-800 relative overflow-hidden">
+      <div className="bg-white dark:bg-gray-950 py-24 border-b border-gray-100 dark:border-white/5 relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03] dark:opacity-[0.05]"></div>
+        {/* Soft Radiances */}
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-[100px] pointer-events-none"></div>
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-primary/5 rounded-full blur-[100px] pointer-events-none"></div>
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-12 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="grid grid-cols-2 md:grid-cols-4 gap-12 text-center"
+          >
             {[
               { label: branding.stats.shipments, value: "10k+", icon: Package },
               {
@@ -387,7 +392,7 @@ export default function Home() {
                 </div>
               </div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </div>
       {/* Marketplace Showcase Section */}
@@ -423,7 +428,7 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.1 }}
-                className="group relative p-12 bg-white dark:bg-gray-900/40 rounded-[3rem] border border-slate-100 dark:border-white/5 hover:border-blue-500/30 transition-all duration-700 hover:shadow-[0_40px_80px_-20px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_40px_80px_-20px_rgba(0,0,0,0.5)] overflow-hidden"
+                className="group relative p-12 glass-card-premium rounded-[3rem] border border-slate-100 dark:border-white/5 hover:border-blue-500/30 transition-all duration-700 hover:shadow-[0_40px_80px_-20px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_40px_80px_-20px_rgba(0,0,0,0.5)] overflow-hidden"
               >
                 <div className="relative z-10">
                   <div
@@ -577,9 +582,13 @@ export default function Home() {
                 rating: 5,
               },
             ]).map((review, idx) => (
-              <div
+              <motion.div
                 key={idx}
-                className="bg-white dark:bg-gray-900 p-12 rounded-[2.5rem] shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800 relative group hover:-translate-y-2 transition-transform duration-500"
+                initial={{ opacity: 0, scale: 0.95 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: idx * 0.1 }}
+                className="glass-card-premium p-12 rounded-[2.5rem] shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800 relative group hover:-translate-y-2 transition-all duration-500"
               >
                 <div className="absolute top-10 right-10 text-slate-100 dark:text-slate-800 text-9xl font-serif opacity-50 group-hover:scale-110 transition-transform duration-500 line-height-1">
                   "
@@ -613,7 +622,7 @@ export default function Home() {
                     </div>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
@@ -679,11 +688,18 @@ export default function Home() {
       </div>
 
       {/* Wave Payment Highlight Section - Refined */}
-      <div className="py-32 bg-sky-50/50 dark:bg-slate-900/50 border-y border-sky-100 dark:border-slate-800 relative overflow-hidden">
+      <div className="py-40 bg-sky-50/30 dark:bg-slate-950/50 border-y border-sky-100/50 dark:border-white/5 relative overflow-hidden">
+        {/* Ambient Glow */}
+        <div className="absolute top-1/2 left-0 w-[600px] h-[600px] bg-sky-500/10 rounded-full blur-[120px] -translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           <div className="grid md:grid-cols-2 gap-24 items-center">
-            <div>
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400 font-bold text-sm mb-8">
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+            >
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400 font-bold text-[10px] tracking-[0.2em] uppercase mb-8">
                 <ShieldCheck className="w-4 h-4" /> Recommandé pour l'Afrique
               </div>
               <h2 className="text-4xl lg:text-6xl font-bold text-slate-900 dark:text-white mb-8 leading-tight tracking-tight">
@@ -732,9 +748,14 @@ export default function Home() {
               >
                 Commencer maintenant
               </Link>
-            </div>
+            </motion.div>
 
-            <div className="relative group perspective-1000">
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="relative group perspective-1000"
+            >
               <div className="absolute inset-0 bg-gradient-to-tr from-[#1DA1F2]/20 to-transparent rounded-[3rem] transform rotate-6 scale-95 group-hover:rotate-3 transition-transform duration-700"></div>
               <div className="relative bg-white dark:bg-slate-800 rounded-[3rem] shadow-2xl p-12 border border-slate-100 dark:border-slate-700 transform transition-transform duration-500 hover:scale-[1.02]">
                 <div className="flex items-center justify-between mb-12 border-b border-slate-100 dark:border-slate-700 pb-8">
@@ -792,7 +813,7 @@ export default function Home() {
                   </button>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </div>
@@ -885,19 +906,19 @@ export default function Home() {
             </div>
           </div>
         </div>
-      </div>
+      </div >
 
       {/* CEO's Word Section Header */}
-      <div className="bg-slate-50 dark:bg-gray-950 pt-20">
+      < div className="bg-slate-50 dark:bg-gray-950 pt-20" >
         <CEOSection />
-      </div>
+      </div >
 
       {/* Referral Program Section - NEW PREMIUM SECTION (Light Version) */}
-      <div className="py-32 relative overflow-hidden bg-white dark:bg-gray-900 border-y border-slate-100 dark:border-slate-800">
+      < div className="py-32 relative overflow-hidden bg-white dark:bg-gray-900 border-y border-slate-100 dark:border-slate-800" >
         {/* Abstract Background - Light */}
-        <div className="absolute inset-0">
+        < div className="absolute inset-0" >
           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03] dark:opacity-[0.05]"></div>
-        </div>
+        </div >
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid lg:grid-cols-2 gap-20 items-center">
@@ -980,7 +1001,7 @@ export default function Home() {
             </div>
           </div>
         </div>
-      </div>
+      </div >
 
       {/* FAQ Section - Premium Accordion */}
       {

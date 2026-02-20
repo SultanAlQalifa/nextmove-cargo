@@ -13,127 +13,133 @@ export default function EcommerceAcademy() {
     ];
 
     return (
-        <div className="py-32 bg-slate-50 dark:bg-gray-950 relative overflow-hidden border-t border-slate-200 dark:border-white/5">
-            {/* Background decoration */}
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-500/5 via-transparent to-transparent opacity-50"></div>
+        <div className="py-32 bg-slate-50 dark:bg-slate-950 relative overflow-hidden border-t border-slate-200 dark:border-white/5">
+            {/* Ultra-Soft Ambient Glows */}
+            <div className="absolute top-1/2 left-0 w-[600px] h-[600px] bg-orange-500/10 rounded-full blur-[140px] -translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
+            <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-red-600/10 rounded-full blur-[140px] translate-x-1/3 translate-y-1/3 pointer-events-none"></div>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                <div className="grid lg:grid-cols-2 gap-20 items-center">
+                <div className="grid lg:grid-cols-2 gap-24 items-center">
 
                     {/* Left Content */}
                     <motion.div
                         initial={{ opacity: 0, x: -50 }}
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true }}
-                        className="space-y-8 text-center lg:text-left"
+                        className="space-y-10 text-center lg:text-left"
                     >
-                        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-[10px] font-black uppercase tracking-[0.3em] border border-orange-200 dark:border-orange-500/20">
-                            <BookOpen className="w-3 h-3" /> NextMove Academy
+                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-[10px] font-black uppercase tracking-[0.3em] border border-orange-200 dark:border-orange-500/20">
+                            <BookOpen className="w-4 h-4" /> NextMove Academy
                         </div>
 
-                        <h2 className="text-4xl lg:text-6xl font-black text-slate-900 dark:text-white leading-tight tracking-tight">
+                        <h2 className="text-5xl lg:text-7xl font-black text-slate-900 dark:text-white leading-tight tracking-tighter">
                             Devenez un Pro de <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-600">
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 via-red-500 to-orange-600">
                                 l'Import Vendeur
                             </span>
                         </h2>
 
                         <p className="text-xl text-slate-500 dark:text-slate-400 font-light leading-relaxed max-w-2xl mx-auto lg:mx-0">
                             Ne vous limitez pas au transport. Maîtrisez l'art d'acheter intelligemment sur
-                            <span className="font-bold text-slate-800 dark:text-slate-200"> Alibaba, 1688, Shein</span> et lancez un business e-commerce rentable en Afrique.
+                            <span className="font-bold text-slate-800 dark:text-slate-200"> Alibaba, 1688, Shein</span> et lancez un business e-commerce rentable en Afrique grâce à notre formation certifiante.
                         </p>
 
                         <div className="flex flex-col sm:flex-row gap-6 justify-center lg:justify-start pt-4">
                             <Link
                                 to="/academy"
-                                className="group relative inline-flex items-center justify-center px-8 py-4 text-lg font-bold rounded-2xl text-white overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-xl shadow-orange-500/30"
+                                className="group relative inline-flex items-center justify-center px-10 py-5 text-lg font-black rounded-2xl text-white overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-2xl shadow-orange-500/20"
                             >
-                                <div className="absolute inset-0 bg-gradient-to-r from-orange-600 to-red-600 transition-colors" />
-                                <span className="relative z-10 flex items-center">
+                                <div className="absolute inset-0 bg-gradient-to-r from-orange-600 to-red-600 transition-transform duration-500 group-hover:scale-110" />
+                                <span className="relative z-10 flex items-center gap-3">
                                     Rejoindre l'Académie
-                                    <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                    <ArrowRight className="w-6 h-6 group-hover:translate-x-1.5 transition-transform" />
                                 </span>
                             </Link>
                         </div>
 
-                        <div className="flex items-center justify-center lg:justify-start gap-8 pt-6 opacity-70">
-                            <div className="flex items-center gap-2 text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                <ShoppingBag className="w-4 h-4" /> Sourcing
-                            </div>
-                            <div className="flex items-center gap-2 text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                <Truck className="w-4 h-4" /> Logistics
-                            </div>
-                            <div className="flex items-center gap-2 text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                <Globe className="w-4 h-4" /> Sales
-                            </div>
+                        <div className="grid grid-cols-3 gap-6 pt-10 opacity-60">
+                            {[
+                                { icon: ShoppingBag, label: "Sourcing" },
+                                { icon: Truck, label: "Logistique" },
+                                { icon: Globe, label: "Ventes" }
+                            ].map((item, i) => (
+                                <div key={i} className="flex flex-col items-center lg:items-start gap-2">
+                                    <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/20 text-orange-600">
+                                        <item.icon className="w-5 h-5" />
+                                    </div>
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">{item.label}</span>
+                                </div>
+                            ))}
                         </div>
 
                     </motion.div>
 
                     {/* Right Content - Visual Animation */}
-                    <div className="relative h-[500px] flex items-center justify-center">
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        viewport={{ once: true }}
+                        className="relative h-[600px] flex items-center justify-center"
+                    >
                         {/* Center Hub */}
-                        <motion.div
-                            className="relative z-20 w-32 h-32 rounded-full bg-white dark:bg-slate-800 shadow-[0_0_50px_rgba(0,0,0,0.1)] dark:shadow-[0_0_50px_rgba(255,255,255,0.05)] flex items-center justify-center border-4 border-slate-100 dark:border-slate-700"
-                            initial={{ scale: 0 }}
-                            whileInView={{ scale: 1 }}
-                            viewport={{ once: true }}
-                            transition={{ type: "spring", stiffness: 260, damping: 20 }}
+                        <div
+                            className="relative z-20 w-40 h-40 rounded-full glass-card-premium flex items-center justify-center border-4 border-white/50 dark:border-white/5 shadow-2xl"
                         >
                             <motion.div
-                                className="relative z-10 p-2 bg-white dark:bg-slate-800 rounded-full"
-                                animate={{ y: [-5, 5, -5] }}
-                                transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+                                className="relative z-10 p-3 bg-white dark:bg-slate-900 rounded-3xl shadow-xl"
+                                animate={{ y: [-8, 8, -8], rotate: [-2, 2, -2] }}
+                                transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
                             >
-                                <img src="/assets/icons/icon-192.webp" alt="NextMove Cargo" className="w-20 h-20 object-contain rounded-xl" />
+                                <img src="/assets/icons/icon-192.webp" alt="NextMove Cargo" className="w-20 h-20 object-contain" />
                             </motion.div>
 
                             {/* Orbit Rings */}
-                            <div className="absolute inset-0 -m-12 border border-slate-200 dark:border-slate-700 rounded-full opacity-50 animate-[spin_10s_linear_infinite]" />
-                            <div className="absolute inset-0 -m-24 border border-slate-200 dark:border-slate-700/50 rounded-full opacity-30 animate-[spin_15s_linear_infinite_reverse]" />
-                            <div className="absolute inset-0 -m-36 border border-slate-200 dark:border-slate-700/30 rounded-full opacity-20 animate-[spin_20s_linear_infinite]" />
-                        </motion.div>
+                            <div className="absolute inset-0 -m-16 border border-orange-500/20 rounded-full animate-[spin_12s_linear_infinite]" />
+                            <div className="absolute inset-0 -m-32 border border-orange-500/10 rounded-full animate-[spin_18s_linear_infinite_reverse]" />
+                            <div className="absolute inset-0 -m-48 border border-orange-500/5 rounded-full animate-[spin_24s_linear_infinite]" />
+                        </div>
 
                         {/* Floating Platform Bubbles */}
                         {platforms.map((platform, i) => (
                             <motion.div
                                 key={i}
-                                className={`absolute z-10 w-24 h-24 rounded-full ${platform.color} shadow-xl flex items-center justify-center border-4 border-white dark:border-slate-800 cursor-pointer overflow-hidden p-4`}
+                                className={`absolute z-10 w-28 h-28 rounded-[2rem] ${platform.color} shadow-2xl flex items-center justify-center border-4 border-white dark:border-slate-800 cursor-pointer overflow-hidden p-5 group`}
                                 initial={{ opacity: 0, scale: 0, x: 0, y: 0 }}
                                 whileInView={{
                                     opacity: 1,
                                     scale: 1,
-                                    x: platform.x,
-                                    y: platform.y
+                                    x: platform.x * 1.2,
+                                    y: platform.y * 1.2
                                 }}
                                 viewport={{ once: true }}
                                 transition={{
-                                    delay: platform.delay * 0.2,
+                                    delay: platform.delay * 0.15,
                                     type: "spring",
-                                    stiffness: 100
+                                    stiffness: 80,
+                                    damping: 12
                                 }}
+                                whileHover={{ scale: 1.1, zIndex: 30 }}
                             >
                                 <motion.div
                                     className="w-full h-full flex items-center justify-center"
                                     animate={{
-                                        y: [-10, 10, -10],
+                                        y: [-12, 12, -12],
+                                        rotate: [i % 2 === 0 ? -3 : 3, i % 2 === 0 ? 3 : -3, i % 2 === 0 ? -3 : 3]
                                     }}
                                     transition={{
                                         repeat: Infinity,
-                                        duration: 3 + i,
+                                        duration: 4 + i,
                                         ease: "easeInOut"
                                     }}
                                 >
                                     <img
                                         src={platform.logo}
                                         alt={platform.name}
-                                        className="w-full h-full object-contain drop-shadow-md brightness-0 invert"
+                                        className="w-full h-full object-contain drop-shadow-lg brightness-0 invert transition-all group-hover:brightness-100 group-hover:invert-0"
                                         onError={(e) => {
-                                            // Amazon logo needs original colors (force remove invert)
                                             if (platform.name === 'Amazon') {
                                                 (e.target as HTMLImageElement).classList.remove('brightness-0', 'invert');
                                             }
-                                            // Fallback to text if image fails
                                             (e.target as HTMLImageElement).style.display = 'none';
                                             (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
                                         }}
@@ -143,11 +149,11 @@ export default function EcommerceAcademy() {
                                             }
                                         }}
                                     />
-                                    <span className="hidden text-[10px] font-black text-white">{platform.name}</span>
+                                    <span className="hidden text-xs font-black text-white">{platform.name}</span>
                                 </motion.div>
                             </motion.div>
                         ))}
-                    </div>
+                    </motion.div>
 
                 </div>
             </div>

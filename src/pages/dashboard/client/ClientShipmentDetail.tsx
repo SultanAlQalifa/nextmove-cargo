@@ -10,8 +10,12 @@ import {
     CheckCircle2,
     FileText,
     ShieldCheck,
-    CreditCard
+    CreditCard,
+    Zap,
+    Anchor,
+    MapPin as MapPinIcon
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { shipmentService, Shipment } from "../../../services/shipmentService";
 import { useToast } from "../../../contexts/ToastContext";
 import { useCurrency } from "../../../contexts/CurrencyContext";
@@ -21,6 +25,8 @@ import PaymentModal from "../../../components/payment/PaymentModal";
 import { addressService, ForwarderAddress } from "../../../services/addressService";
 import ReviewModal from "../../../components/shipments/ReviewModal";
 import { reviewService } from "../../../services/reviewService";
+import TrackingMap from "../../../components/shipment/TrackingMap";
+
 
 // Helper Component for Addresses
 const ForwarderAddressesDisplay = ({ forwarderId, originCountry, destCountry }: { forwarderId: string, originCountry: string, destCountry: string }) => {
@@ -37,29 +43,35 @@ const ForwarderAddressesDisplay = ({ forwarderId, originCountry, destCountry }: 
     const originAddr = addresses.find(a => a.type === 'collection' && (a.country === originCountry || a.is_default));
     const destAddr = addresses.find(a => a.type === 'reception' && (a.country === destCountry || a.is_default));
 
-    if (loading) return <div className="p-4 text-center text-xs text-gray-500">Chargement adresses...</div>;
+    if (loading) return <div className="p-4 text-center text-xs text-slate-500 animate-pulse">Chargement des adresses...</div>;
     if (!originAddr && !destAddr) return null;
 
     return (
         <div className="space-y-4">
             {originAddr && (
-                <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
-                    <h4 className="text-xs font-bold uppercase text-blue-800 mb-2 flex items-center gap-2">
-                        <Package className="w-3.5 h-3.5" /> Adresse de Dépôt ({originAddr.country})
+                <div className="bg-white/60 dark:bg-slate-800/40 backdrop-blur-md p-5 rounded-2xl border border-white/50 dark:border-white/5 shadow-sm hover:shadow-md hover:border-blue-200 dark:hover:border-blue-900/50 transition-all group">
+                    <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3 flex items-center gap-2">
+                        <div className="p-1.5 bg-blue-50 dark:bg-blue-500/20 rounded-lg text-blue-500">
+                            <Package className="w-3.5 h-3.5" />
+                        </div>
+                        Adresse de Dépôt ({originAddr.country})
                     </h4>
-                    <p className="text-sm font-semibold text-blue-900">{originAddr.name}</p>
-                    <p className="text-xs text-blue-800 mt-1 whitespace-pre-line">{originAddr.address_line1} {originAddr.city}</p>
-                    {originAddr.contact_phone && <p className="text-xs text-blue-700 mt-1">Tel: {originAddr.contact_phone}</p>}
+                    <p className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-blue-600 transition-colors uppercase tracking-tight">{originAddr.name}</p>
+                    <p className="text-xs text-slate-500 mt-1 whitespace-pre-line leading-relaxed">{originAddr.address_line1} {originAddr.city}</p>
+                    {originAddr.contact_phone && <p className="text-xs font-medium text-slate-600 dark:text-slate-400 mt-2 flex items-center gap-1.5"><Zap className="w-3 h-3 text-blue-400" /> Tel: {originAddr.contact_phone}</p>}
                 </div>
             )}
             {destAddr && (
-                <div className="bg-green-50 p-4 rounded-xl border border-green-100">
-                    <h4 className="text-xs font-bold uppercase text-green-800 mb-2 flex items-center gap-2">
-                        <MapPin className="w-3.5 h-3.5" /> Lieu de Retrait ({destAddr.country})
+                <div className="bg-white/60 dark:bg-emerald-900/10 backdrop-blur-md p-5 rounded-2xl border border-white/50 dark:border-emerald-500/10 shadow-sm hover:shadow-md hover:border-emerald-200 dark:hover:border-emerald-500/30 transition-all group">
+                    <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3 flex items-center gap-2">
+                        <div className="p-1.5 bg-emerald-50 dark:bg-emerald-500/20 rounded-lg text-emerald-500">
+                            <MapPin className="w-3.5 h-3.5" />
+                        </div>
+                        Lieu de Retrait ({destAddr.country})
                     </h4>
-                    <p className="text-sm font-semibold text-green-900">{destAddr.name}</p>
-                    <p className="text-xs text-green-800 mt-1 whitespace-pre-line">{destAddr.address_line1} {destAddr.city}</p>
-                    {destAddr.instructions && <p className="text-xs text-green-700 mt-1 italic">Note: {destAddr.instructions}</p>}
+                    <p className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 transition-colors uppercase tracking-tight">{destAddr.name}</p>
+                    <p className="text-xs text-slate-500 mt-1 whitespace-pre-line leading-relaxed">{destAddr.address_line1} {destAddr.city}</p>
+                    {destAddr.instructions && <p className="text-[10px] font-medium text-emerald-600/80 bg-emerald-50 dark:bg-emerald-500/10 px-3 py-2 rounded-xl mt-3 italic border border-emerald-100 dark:border-emerald-500/20">Note: {destAddr.instructions}</p>}
                 </div>
             )}
         </div>
@@ -137,73 +149,94 @@ export default function ClientShipmentDetail() {
 
     const getStatusColor = (status: string) => {
         switch (status) {
-            case "delivered": return "bg-green-100 text-green-800";
-            case "completed": return "bg-green-100 text-green-800";
-            case "cancelled": return "bg-red-100 text-red-800";
-            case "pending": return "bg-blue-100 text-blue-800"; // Confirmed, but not yet picked up
-            case "pending_payment": return "bg-yellow-100 text-yellow-800"; // Waiting payment
-            default: return "bg-gray-100 text-gray-800";
+            case "delivered":
+            case "completed": return "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 glow-emerald-sm";
+            case "cancelled": return "bg-rose-500/10 text-rose-600 border-rose-500/20";
+            case "pending": return "bg-blue-500/10 text-blue-600 border-blue-500/20 glow-blue-sm";
+            case "pending_payment": return "bg-amber-500/10 text-amber-600 border-amber-500/20 glow-amber-sm";
+            case "picked_up":
+            case "in_transit":
+            case "customs": return "bg-sky-500/10 text-sky-600 border-sky-500/20 glow-sky-sm";
+            default: return "bg-slate-500/10 text-slate-600 border-slate-500/20";
         }
     };
 
     const StatusBadge = ({ status }: { status: string }) => (
-        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(status)}`}>
-            {status === 'pending' && 'Confirmé / En Attente Enlèvement'}
-            {status === 'pending_payment' && 'En Attente Paiement'}
+        <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border shadow-sm ${getStatusColor(status)}`}>
+            {status === 'pending' && 'En Attente'}
+            {status === 'pending_payment' && 'Paiement Requis'}
             {status === 'picked_up' && 'Ramassé'}
             {status === 'in_transit' && 'En Transit'}
             {status === 'customs' && 'Douane'}
             {status === 'delivered' && 'Livré'}
-            {status === 'completed' && 'Reçu & Confirmé'}
+            {status === 'completed' && 'Terminé'}
             {status === 'cancelled' && 'Annulé'}
         </span>
     );
 
     const TrackingProgress = ({ status }: { status: string }) => {
         const steps = [
-            { key: 'pending', label: 'En Attente' },
-            { key: 'picked_up', label: 'Ramassé' },
-            { key: 'in_transit', label: 'En Transit' },
-            { key: 'customs', label: 'Douane' },
-            { key: 'delivered', label: 'Livré' }
+            { key: 'pending', label: 'Attente', icon: Clock },
+            { key: 'picked_up', label: 'Ramassé', icon: Box },
+            { key: 'in_transit', label: 'Transit', icon: Truck },
+            { key: 'customs', label: 'Douane', icon: ShieldCheck },
+            { key: 'delivered', label: 'Livré', icon: CheckCircle2 }
         ];
-
-        const barRef = useState<HTMLDivElement | null>(null);
-        const [barEl, setBarEl] = barRef;
 
         const currentIdx = steps.findIndex(s => s.key === status);
         const activeIdx = status === 'completed' ? 4 : (currentIdx === -1 ? 0 : currentIdx);
 
-        useEffect(() => {
-            if (barEl) {
-                barEl.style.setProperty('--progress', `${(activeIdx / (steps.length - 1)) * 100}%`);
-            }
-        }, [barEl, activeIdx, steps.length]);
-
         return (
-            <div className="w-full py-6">
-                <div className="flex items-center justify-between relative">
-                    {/* Progress Bar Background */}
-                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-gray-200 -z-10" />
-                    {/* Active Progress */}
-                    <div
-                        ref={setBarEl}
-                        className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-primary transition-all duration-500 -z-10 w-[var(--progress)]"
+            <div className="w-full py-10 relative">
+                {/* Lueur de fond globale */}
+                <div className="absolute inset-0 bg-blue-500/5 blur-3xl opacity-50 rounded-full pointer-events-none" />
+
+                <div className="relative flex justify-between items-center px-4 md:px-8">
+                    {/* Ligne de fond (Grisée) */}
+                    <div className="absolute left-0 right-0 h-1.5 bg-slate-200/50 dark:bg-slate-800/50 rounded-full mx-10 md:mx-16 backdrop-blur-sm" />
+
+                    {/* Ligne de progression animée */}
+                    <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${(activeIdx / (steps.length - 1)) * 100}%` }}
+                        className="absolute left-0 h-1.5 bg-gradient-to-r from-blue-600 via-sky-400 to-blue-400 rounded-full mx-10 md:mx-16 shadow-[0_0_15px_rgba(56,189,248,0.5)]"
+                        transition={{ duration: 1.2, ease: "circOut" }}
                     />
 
                     {steps.map((step, idx) => {
                         const isCompleted = idx <= activeIdx;
                         const isCurrent = idx === activeIdx;
+                        const StepIcon = step.icon;
 
                         return (
-                            <div key={step.key} className="flex flex-col items-center bg-white px-2">
-                                <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors ${isCompleted ? 'bg-primary border-primary text-white' : 'bg-white border-gray-300 text-gray-400'
-                                    }`}>
-                                    {isCompleted ? <CheckCircle2 className="w-5 h-5" /> : <div className="w-2 h-2 rounded-full bg-gray-300" />}
-                                </div>
-                                <span className={`text-xs font-medium mt-2 ${isCurrent ? 'text-primary' : 'text-gray-500'}`}>
+                            <div key={step.key} className="flex flex-col items-center relative gap-4">
+                                <motion.div
+                                    initial={false}
+                                    animate={{
+                                        scale: isCurrent ? 1.25 : 1,
+                                        backgroundColor: isCompleted ? "rgb(37 99 235)" : "rgba(255, 255, 255, 0.8)",
+                                        borderColor: isCompleted ? "rgba(59, 130, 246, 0.5)" : "rgba(226, 232, 240, 0.5)"
+                                    }}
+                                    className={`w-12 h-12 rounded-2xl md:rounded-full flex items-center justify-center border hover:scale-110 transition-transform cursor-default relative z-10 backdrop-blur-md shadow-lg
+                                        ${isCompleted ? 'text-white shadow-blue-500/30' : 'text-slate-400 dark:bg-slate-900/80 dark:border-slate-700'}
+                                        ${isCurrent ? 'ring-4 ring-blue-500/30 ring-offset-2 ring-offset-white dark:ring-offset-slate-900' : ''}
+                                    `}
+                                >
+                                    <StepIcon className={`w-5 h-5 ${isCurrent ? 'animate-pulse' : ''}`} />
+                                    {isCurrent && (
+                                        <motion.div
+                                            layoutId="pulse"
+                                            className="absolute -inset-3 rounded-[2rem] md:rounded-full border border-sky-400/50"
+                                            animate={{ scale: [1, 1.3, 1], opacity: [0.8, 0, 0.8] }}
+                                            transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+                                        />
+                                    )}
+                                </motion.div>
+                                <motion.span
+                                    animate={{ y: isCurrent ? 5 : 0 }}
+                                    className={`text-[10px] md:text-xs font-black uppercase tracking-widest absolute -bottom-8 whitespace-nowrap px-3 py-1 rounded-full ${isCurrent ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 shadow-sm border border-blue-100 dark:border-blue-800/50' : 'text-slate-400'}`}>
                                     {step.label}
-                                </span>
+                                </motion.span>
                             </div>
                         );
                     })}
@@ -267,7 +300,12 @@ export default function ClientShipmentDetail() {
     if (!shipment) return null;
 
     return (
-        <div className="space-y-6 max-w-5xl mx-auto pb-12">
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-8 max-w-6xl mx-auto pb-20 relative"
+        >
+            <div className="grain-overlay opacity-[0.02]" />
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
@@ -332,93 +370,154 @@ export default function ClientShipmentDetail() {
                 </div>
             </div>
 
+            {/* Tracking Map Integration */}
+            <TrackingMap
+                shipmentId={shipment.id}
+                origin={shipment.origin.port}
+                destination={shipment.destination.port}
+                progress={shipment.progress || 0}
+                status={shipment.status}
+            />
+
             {/* Tracking Visualization */}
-            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">Suivi du Colis</h3>
+            <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.1 }}
+                className="glass-card-premium p-8 rounded-[2rem] border-white/10 relative overflow-hidden group shadow-2xl shadow-blue-500/5"
+            >
+                <div className="grain-overlay opacity-[0.03]" />
+                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+                    <Zap className="w-3 h-3 text-blue-500" /> Suivi Temps Réel
+                </h3>
                 <TrackingProgress status={shipment.status} />
-            </div>
+            </motion.div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Main Info */}
                 <div className="md:col-span-2 space-y-6">
                     {/* Route */}
-                    <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-6 flex items-center gap-2">
-                            <MapPin className="w-5 h-5 text-gray-400" />
-                            Itinéraire
+                    <motion.div
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.2 }}
+                        className="glass-card-premium p-8 rounded-[2rem] border-white/10 relative overflow-hidden"
+                    >
+                        <div className="grain-overlay opacity-[0.02]" />
+                        <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-8 flex items-center gap-3">
+                            <MapPinIcon className="w-5 h-5 text-blue-500" />
+                            Détails de l'Itinéraire
                         </h3>
-                        <div className="flex flex-col md:flex-row items-center gap-8">
-                            <div className="flex-1 text-center md:text-left">
-                                <span className="text-xs text-gray-400 uppercase tracking-wider font-medium">Origine</span>
-                                <div className="text-xl font-bold text-gray-900 mt-1">{shipment.origin.port}</div>
-                                <div className="text-sm text-gray-500">{shipment.origin.country}</div>
-                            </div>
-                            <div className="hidden md:flex flex-col items-center flex-1">
-                                <div className="w-full h-px bg-gray-200 border-t border-dashed border-gray-300" />
-                                <div className="mt-2 text-xs bg-gray-100 px-3 py-1 rounded-full text-gray-600">
-                                    {shipment.transport_mode === 'air' ? '✈️ Aérien' : '🚢 Maritime'}
+                        <div className="flex flex-col md:flex-row items-center gap-10 relative">
+                            <div className="flex-1 text-center md:text-left group/loc relative">
+                                <span className="text-[10px] text-slate-400 uppercase tracking-widest font-black block mb-2">Départ</span>
+                                <div className="text-3xl font-black text-slate-900 dark:text-white mt-1 group-hover:text-blue-500 transition-colors drop-shadow-sm">{shipment.origin.port}</div>
+                                <div className="text-sm font-medium text-slate-500 mt-1 flex items-center justify-center md:justify-start gap-1">
+                                    <MapPin className="w-3.5 h-3.5 text-slate-400" /> {shipment.origin.country}
                                 </div>
                             </div>
-                            <div className="flex-1 text-center md:text-right">
-                                <span className="text-xs text-gray-400 uppercase tracking-wider font-medium">Destination</span>
-                                <div className="text-xl font-bold text-gray-900 mt-1">{shipment.destination.port}</div>
-                                <div className="text-sm text-gray-500">{shipment.destination.country}</div>
+
+                            <div className="hidden md:flex flex-col items-center flex-1 relative px-8">
+                                <div className="w-full h-[3px] bg-slate-100 dark:bg-slate-800 rounded-full relative overflow-hidden">
+                                    <motion.div
+                                        animate={{ x: ["-100%", "100%"] }}
+                                        transition={{ repeat: Infinity, duration: 2.5, ease: "linear" }}
+                                        className="absolute inset-y-0 w-1/3 bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-80"
+                                    />
+                                    <div className="absolute inset-0 bg-blue-400/20 blur-sm"></div>
+                                </div>
+                                <motion.div
+                                    whileHover={{ scale: 1.05 }}
+                                    className="mt-6 text-[10px] font-black uppercase tracking-widest bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 px-5 py-2.5 rounded-2xl border border-blue-200 dark:border-blue-800/50 shadow-sm backdrop-blur-md flex items-center gap-2">
+                                    {shipment.transport_mode === 'air' ? '✈️ Air Cargo' : '🚢 Sea Freight'}
+                                </motion.div>
+                            </div>
+
+                            <div className="flex-1 text-center md:text-right group/loc relative">
+                                <span className="text-[10px] text-slate-400 uppercase tracking-widest font-black block mb-2">Arrivée</span>
+                                <div className="text-3xl font-black text-slate-900 dark:text-white mt-1 group-hover:text-blue-500 transition-colors drop-shadow-sm">{shipment.destination.port}</div>
+                                <div className="text-sm font-medium text-slate-500 mt-1 flex items-center justify-center md:justify-end gap-1">
+                                    <MapPin className="w-3.5 h-3.5 text-slate-400" /> {shipment.destination.country}
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    </motion.div>
 
                     {/* Cargo Details */}
-                    <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                            <Package className="w-5 h-5 text-gray-400" />
-                            Votre Marchandise
+                    <motion.div
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.3 }}
+                        className="glass-card-premium p-8 rounded-[2rem] border-white/10 relative overflow-hidden shadow-lg shadow-slate-200/50 dark:shadow-none"
+                    >
+                        <div className="grain-overlay opacity-[0.02]" />
+                        <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-3">
+                            <div className="p-2 bg-blue-50 dark:bg-blue-500/20 rounded-xl">
+                                <Package className="w-5 h-5 text-blue-500" />
+                            </div>
+                            Détails de la Cargaison
                         </h3>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <div className="p-3 bg-gray-50 rounded-xl">
-                                <div className="text-xs text-gray-500 font-medium">Poids Total</div>
-                                <div className="text-lg font-bold text-gray-900">{shipment.cargo.weight} kg</div>
+                            <div className="p-5 bg-white/60 dark:bg-slate-800/40 backdrop-blur-md rounded-[1.5rem] border border-white/50 dark:border-white/5 transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/10 hover:border-blue-200 dark:hover:border-blue-800 group relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-blue-100 to-transparent dark:from-blue-900/40 rounded-bl-[2rem] opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2 relative z-10">Poids</div>
+                                <div className="text-2xl font-black text-slate-900 dark:text-white group-hover:text-blue-500 transition-colors relative z-10 flex items-baseline gap-1">{shipment.cargo.weight} <span className="text-xs font-bold text-slate-400">KG</span></div>
                             </div>
-                            <div className="p-3 bg-gray-50 rounded-xl">
-                                <div className="text-xs text-gray-500 font-medium">Volume Total</div>
-                                <div className="text-lg font-bold text-gray-900">{shipment.cargo.volume} m³</div>
+                            <div className="p-5 bg-white/60 dark:bg-slate-800/40 backdrop-blur-md rounded-[1.5rem] border border-white/50 dark:border-white/5 transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/10 hover:border-blue-200 dark:hover:border-blue-800 group relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-blue-100 to-transparent dark:from-blue-900/40 rounded-bl-[2rem] opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2 relative z-10">Volume</div>
+                                <div className="text-2xl font-black text-slate-900 dark:text-white group-hover:text-blue-500 transition-colors relative z-10 flex items-baseline gap-1">{shipment.cargo.volume} <span className="text-xs font-bold text-slate-400">M³</span></div>
                             </div>
-                            <div className="p-3 bg-gray-50 rounded-xl">
-                                <div className="text-xs text-gray-500 font-medium">Colis</div>
-                                <div className="text-lg font-bold text-gray-900">{shipment.cargo.packages}</div>
+                            <div className="p-5 bg-white/60 dark:bg-slate-800/40 backdrop-blur-md rounded-[1.5rem] border border-white/50 dark:border-white/5 transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/10 hover:border-blue-200 dark:hover:border-blue-800 group relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-blue-100 to-transparent dark:from-blue-900/40 rounded-bl-[2rem] opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2 relative z-10">Colis</div>
+                                <div className="text-2xl font-black text-slate-900 dark:text-white group-hover:text-blue-500 transition-colors relative z-10 flex items-baseline gap-1">{shipment.cargo.packages} <span className="text-xs font-bold text-slate-400">Unités</span></div>
                             </div>
-                            <div className="p-3 bg-gray-50 rounded-xl">
-                                <div className="text-xs text-gray-500 font-medium">Nature</div>
-                                <div className="text-lg font-bold text-gray-900 capitalize">{shipment.cargo.type || 'Standard'}</div>
+                            <div className="p-5 bg-white/60 dark:bg-slate-800/40 backdrop-blur-md rounded-[1.5rem] border border-white/50 dark:border-white/5 transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/10 hover:border-blue-200 dark:hover:border-blue-800 group relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-blue-100 to-transparent dark:from-blue-900/40 rounded-bl-[2rem] opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2 relative z-10">Type</div>
+                                <div className="text-sm font-black text-slate-900 dark:text-white group-hover:text-blue-500 transition-colors mt-2 uppercase tracking-wide relative z-10">{shipment.cargo.type}</div>
                             </div>
                         </div>
-                    </div>
+                    </motion.div>
                 </div>
 
                 {/* Sidebar */}
                 <div className="space-y-6">
                     {/* Carrier Info */}
-                    <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                        <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">
-                            Effectué par
+                    <motion.div
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.4 }}
+                        className="glass-card-premium p-6 rounded-[2rem] border-white/10 relative overflow-hidden group shadow-xl shadow-slate-200/50 dark:shadow-none"
+                    >
+                        <div className="grain-overlay opacity-[0.02]" />
+                        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 px-1 flex items-center gap-2">
+                            <Truck className="w-3 h-3 text-blue-500" /> Opérateur Logistique
                         </h3>
-                        <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center overflow-hidden">
-                                {shipment.carrier.logo ? (
-                                    <img src={shipment.carrier.logo} alt="Logo" className="w-full h-full object-cover" />
-                                ) : (
-                                    <Truck className="w-6 h-6 text-blue-600" />
-                                )}
+                        <div className="flex items-center gap-4 bg-white/60 dark:bg-slate-800/40 backdrop-blur-md p-4 rounded-2xl border border-white/50 dark:border-white/5 shadow-sm transition-all hover:bg-white dark:hover:bg-slate-800 hover:shadow-md hover:border-blue-200 dark:hover:border-blue-800">
+                            <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-sky-400 p-[2px] rounded-2xl shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform">
+                                <div className="w-full h-full bg-white dark:bg-slate-900 rounded-[14px] flex items-center justify-center overflow-hidden">
+                                    {shipment.carrier.logo ? (
+                                        <img src={shipment.carrier.logo} alt="Logo" className="w-full h-full object-cover" />
+                                    ) : (
+                                        <Truck className="w-6 h-6 text-blue-500 group-hover:animate-pulse" />
+                                    )}
+                                </div>
                             </div>
                             <div>
-                                <div className="font-bold text-gray-900">{shipment.carrier.name}</div>
-                                <div className="text-xs text-gray-500">{shipment.service_type === 'express' ? 'Service Express' : 'Service Standard'}</div>
+                                <div className="font-black text-slate-900 dark:text-white group-hover:text-blue-600 transition-colors uppercase tracking-tight text-lg">{shipment.carrier.name}</div>
+                                <div className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1.5 mt-0.5">
+                                    <Zap className="w-3 h-3 text-amber-500" />
+                                    {shipment.service_type === 'express' ? 'Prioritaire' : 'Standard'}
+                                </div>
                             </div>
                         </div>
-                        <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
-                            <span className="text-sm text-gray-500">Coût Estimé</span>
-                            <span className="font-bold text-gray-900">{formatPrice(shipment.price)}</span>
+                        <div className="mt-6 pt-4 border-t border-slate-100 dark:border-white/5 flex justify-between items-center px-2">
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Investissement Total</span>
+                            <span className="text-xl font-black text-blue-600 dark:text-blue-400">{formatPrice(shipment.price)}</span>
                         </div>
-                    </div>
+                    </motion.div>
 
                     {/* Forwarder Addresses (New Feature) */}
                     {shipment.forwarder && (
@@ -426,27 +525,42 @@ export default function ClientShipmentDetail() {
                     )}
 
                     {/* Dates */}
-                    <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
-                        <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-2">Dates Clés</h3>
-                        <div className="flex items-start gap-3">
-                            <Calendar className="w-4 h-4 text-gray-400 mt-0.5" />
-                            <div>
-                                <div className="text-sm text-gray-500">Départ</div>
-                                <div className="font-medium text-gray-900">
-                                    {shipment.dates.departure ? new Date(shipment.dates.departure).toLocaleDateString() : 'Non défini'}
+                    <motion.div
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.5 }}
+                        className="glass-card-premium p-6 rounded-[2rem] border-white/10 relative overflow-hidden shadow-xl shadow-slate-200/50 dark:shadow-none"
+                    >
+                        <div className="grain-overlay opacity-[0.02]" />
+                        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 px-1 flex items-center gap-2">
+                            <Calendar className="w-3 h-3 text-blue-500" /> Calendrier
+                        </h3>
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-4 group p-3 rounded-2xl hover:bg-white/50 dark:hover:bg-slate-800/50 transition-colors border border-transparent hover:border-blue-100 dark:hover:border-blue-900/30">
+                                <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex flex-shrink-0 items-center justify-center border border-blue-100 dark:border-blue-800/50 group-hover:bg-blue-500 group-hover:border-transparent transition-all text-blue-600 group-hover:text-white shadow-sm">
+                                    <Anchor className="w-5 h-5" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Départ Effectif</div>
+                                    <div className="font-bold text-slate-900 dark:text-white mt-0.5">
+                                        {shipment.dates.departure ? new Date(shipment.dates.departure).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : 'À confirmer'}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-4 group p-3 rounded-2xl hover:bg-white/50 dark:hover:bg-slate-800/50 transition-colors border border-transparent hover:border-emerald-100 dark:hover:border-emerald-900/30">
+                                <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 flex flex-shrink-0 items-center justify-center border border-emerald-100 dark:border-emerald-800/50 group-hover:bg-emerald-500 group-hover:border-transparent transition-all text-emerald-600 group-hover:text-white shadow-sm">
+                                    <CheckCircle2 className="w-5 h-5" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Arrivée Estimée</div>
+                                    <div className="font-bold text-slate-900 dark:text-white mt-0.5">
+                                        {shipment.dates.arrival_estimated ? new Date(shipment.dates.arrival_estimated).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : 'À confirmer'}
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <div className="flex items-start gap-3">
-                            <Clock className="w-4 h-4 text-gray-400 mt-0.5" />
-                            <div>
-                                <div className="text-sm text-gray-500">Arrivée Estimée</div>
-                                <div className="font-medium text-gray-900">
-                                    {shipment.dates.arrival_estimated ? new Date(shipment.dates.arrival_estimated).toLocaleDateString() : 'Non défini'}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    </motion.div>
                 </div>
             </div>
 
@@ -492,6 +606,6 @@ export default function ClientShipmentDetail() {
                     )}
                 </>
             )}
-        </div>
+        </motion.div>
     );
 }
