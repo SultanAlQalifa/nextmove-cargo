@@ -46,7 +46,7 @@ serve(async (req) => {
                 currency: currency || "XOF",
                 ref_command,
                 command_name: item_name,
-                env,
+                env: "live", // Production mode
                 success_url,
                 cancel_url,
                 // Add legacy/variant names to be safe

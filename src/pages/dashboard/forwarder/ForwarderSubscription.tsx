@@ -103,7 +103,9 @@ export default function ForwarderSubscription() {
   // We expect canonical names: "Starter", "Pro", "Enterprise"
   const getPlanForTier = (tierName: string) => {
     return plans.find(
-      (p) => p.name === tierName && p.billing_cycle === billingCycle,
+      (p) =>
+        (p.name === tierName || p.name === `${tierName} Annuel`) &&
+        p.billing_cycle === billingCycle,
     );
   };
 
