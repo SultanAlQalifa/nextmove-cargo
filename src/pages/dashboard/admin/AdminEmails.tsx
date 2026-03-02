@@ -786,13 +786,24 @@ export default function AdminEmails() {
               </button>
               <button
                 onClick={(e) => {
-                  setPreviewOpen(false);
+                  if (sending) return;
                   handleSend(e as any);
+                  setPreviewOpen(false);
                 }}
-                className="px-6 py-2 bg-primary text-white font-medium rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2"
+                disabled={sending}
+                className="px-6 py-2 bg-primary text-white font-medium rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Send className="w-4 h-4" />
-                Envoyer maintenant
+                {sending ? (
+                  <>
+                    <RefreshCcw className="w-4 h-4 animate-spin" />
+                    Envoi en cours...
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4" />
+                    Envoyer maintenant
+                  </>
+                )}
               </button>
             </div>
           </div>

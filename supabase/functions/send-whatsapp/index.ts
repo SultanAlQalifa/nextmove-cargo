@@ -31,17 +31,18 @@ serve(async (req: Request) => {
             Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
         );
 
-        const { data: settingsData, error: settingsError } = await supabaseAdmin
-            .from('system_settings')
-            .select('integrations')
+        const { data: secretsData, error: secretsError } = await supabaseAdmin
+            .from('system_secrets')
+            .select('value')
+            .eq('key', 'integrations_secrets')
             .single();
 
-        if (settingsError || !settingsData) {
-            console.error("Failed to fetch settings", settingsError);
-            throw new Error("Configuration missing");
+        if (secretsError || !secretsData) {
+            console.error("Failed to fetch secrets", secretsError);
+            throw new Error("Configuration secrets missing");
         }
 
-        const whatsappConfig = settingsData.integrations?.whatsapp;
+        const whatsappConfig = secretsData.value?.whatsapp;
 
         if (!whatsappConfig?.enabled) {
             console.log("WhatsApp disabled in settings.");

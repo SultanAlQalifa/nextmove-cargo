@@ -35,14 +35,19 @@ export default function NewsTicker() {
         <div className="fixed bottom-0 left-0 w-full bg-slate-900/95 backdrop-blur-md text-white h-10 flex items-center z-40 border-t border-slate-800 shadow-lg">
 
             {/* Label Section */}
-            <div className="bg-primary h-full px-4 flex items-center gap-2 font-bold text-xs uppercase tracking-wider min-w-fit shadow-lg z-20 relative">
-                <Zap className="w-3 h-3 fill-white animate-pulse" />
-                <span className="hidden sm:inline">Flash Info</span>
+            <div className="bg-gradient-to-r from-sky-950 to-slate-900 h-full px-6 flex items-center gap-3 font-black text-[10px] uppercase tracking-[0.2em] min-w-fit shadow-2xl z-20 relative border-r border-white/5">
+                <div className="relative">
+                    <Zap className="w-3.5 h-3.5 text-sky-400 group-hover:scale-110 transition-transform" />
+                    <div className="absolute inset-0 bg-sky-400/20 blur-sm animate-pulse" />
+                </div>
+                <span className="hidden sm:inline bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
+                    Flash Info Tactical
+                </span>
             </div>
 
             {/* Marquee Section */}
             <div className="flex-1 overflow-hidden relative h-full flex items-center">
-                <div className="whitespace-nowrap animate-marquee flex items-center gap-8 text-xs font-medium text-slate-300">
+                <div className="whitespace-nowrap animate-marquee flex items-center gap-8 text-xs font-semibold text-white/90">
                     {messages.map((message, index) => (
                         <Fragment key={index}>
                             {index > 0 && <span className="w-1 h-1 bg-slate-600 rounded-full"></span>}
@@ -55,7 +60,7 @@ export default function NewsTicker() {
             {/* Partners Section (Right) */}
             {partners.length > 0 && (
                 <div className="hidden md:flex items-center gap-4 h-full px-4 bg-slate-900/50 backdrop-blur-sm border-l border-slate-800 z-20 min-w-fit">
-                    <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Nos Partenaires</span>
+                    <span className="text-[10px] uppercase font-black text-slate-400 tracking-wider">Nos Partenaires</span>
                     <div className="flex items-center gap-2">
                         {partners.map((partner) => (
                             partner.website_url ? (

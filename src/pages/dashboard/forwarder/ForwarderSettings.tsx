@@ -110,6 +110,13 @@ export default function ForwarderSettings() {
           fetchDocuments(user.id);
           fetchSubscriptionData(user.id);
         }
+        if (profile?.automation_settings) {
+          setNotifications({
+            email_enabled: profile.automation_settings.email_enabled !== false,
+            sms_enabled: !!profile.automation_settings.sms_enabled,
+            push_enabled: profile.automation_settings.push_enabled !== false,
+          });
+        }
       }
     };
     fetchProfile();
@@ -177,7 +184,14 @@ export default function ForwarderSettings() {
           setSuccessMessage("Mot de passe mis à jour !");
         }
       } else if (activeTab === "notifications") {
-        // Save notifications preferences (mock implementation)
+        if (!user) return;
+        const currentSettings = userProfile?.automation_settings || { admin_disabled: [] };
+        await profileService.updateAutomationSettings(user.id, {
+          ...currentSettings,
+          email_enabled: notifications.email_enabled,
+          sms_enabled: notifications.sms_enabled,
+          push_enabled: notifications.push_enabled,
+        });
         setSuccessMessage("Préférences de notifications enregistrées !");
       }
 

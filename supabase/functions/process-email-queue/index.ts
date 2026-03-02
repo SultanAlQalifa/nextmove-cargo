@@ -1,21 +1,13 @@
-// @ts-nocheck
-/// <reference lib="deno.ns" />
-// @ts-ignore
-import { serve } from "std/http/server.ts";
-// @ts-ignore
-import { createClient } from "supabase-js";
-// @ts-ignore
-import { createTransport } from "nodemailer";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.7";
+import { createTransport } from "https://esm.sh/nodemailer@6.9.10";
 import { Buffer } from "node:buffer";
 
-// @ts-ignore: Buffer is needed for nodemailer
+// Buffer is needed for nodemailer
 globalThis.Buffer = Buffer;
 
-// @ts-ignore
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-// @ts-ignore
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-// @ts-ignore
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 const corsHeaders = {
@@ -28,9 +20,9 @@ interface EmailQueueRecord {
     subject: string;
     body: string;
     recipient_group: 'all' | 'clients' | 'forwarders' | 'specific';
-    recipient_emails?: string[]; // stored as JSONB in DB
-    attachments?: any[];
-    sender_id: string;
+    recipient_emails?: string[];
+    attachments?: Array<{ name: string; publicUrl: string }>;
+    sender_id: string | null;
 }
 
 serve(async (req: Request) => {
@@ -79,15 +71,15 @@ serve(async (req: Request) => {
             .eq('key', 'branding')
             .single();
 
-        const { data: emailData } = await supabaseAdmin
-            .from('system_settings')
+        const { data: secretsData } = await supabaseAdmin
+            .from('system_secrets')
             .select('value')
-            .eq('key', 'email')
+            .eq('key', 'email_secrets')
             .single();
 
         const settingsMap = {
             branding: brandingData?.value,
-            email: emailData?.value
+            email: secretsData?.value
         };
 
         const smtpConfig = settingsMap.email || {};
@@ -158,7 +150,7 @@ serve(async (req: Request) => {
                 }
 
                 // Attachments
-                const emailAttachments = record.attachments?.map((att: any) => ({
+                const emailAttachments = record.attachments?.map((att) => ({
                     filename: att.name,
                     path: att.publicUrl
                 })) || [];

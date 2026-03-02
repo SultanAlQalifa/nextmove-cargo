@@ -8,9 +8,16 @@ import {
   History,
   Crown,
   Gift,
-  Sliders
+  Sliders,
+  Activity,
+  ArrowUpRight,
+  ArrowDownRight,
+  Star,
+  Settings
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "../../../lib/supabase";
+
 import PageHeader from "../../../components/common/PageHeader";
 import { showNotification } from "../../../components/common/NotificationToast";
 
@@ -324,104 +331,189 @@ export default function AdminLoyalty() {
 
       {activeTab === 'overview' && (
         <div className="space-y-8">
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-full text-blue-600">
+          {/* Bento Stats Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl p-6 rounded-[2rem] border border-white/20 dark:border-white/10 shadow-xl group hover:scale-[1.02] transition-all"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 bg-blue-500/10 text-blue-600 rounded-2xl">
                   <Users className="w-6 h-6" />
                 </div>
-                <div>
-                  <h3 className="text-gray-500 text-sm">Total Parrainages</h3>
-                  <p className="text-3xl font-bold mt-1">{stats.totalReferrals}</p>
-                </div>
+                <span className="text-[10px] font-black bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full uppercase tracking-widest">Utilisateurs</span>
               </div>
-            </div>
+              <h3 className="text-slate-500 dark:text-slate-400 text-xs font-black uppercase tracking-widest">Total Parrainages</h3>
+              <p className="text-3xl font-black text-slate-900 dark:text-white mt-1">{stats.totalReferrals}</p>
+            </motion.div>
 
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-indigo-100 dark:bg-indigo-900/30 rounded-full text-indigo-600">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl p-6 rounded-[2rem] border border-white/20 dark:border-white/10 shadow-xl group hover:scale-[1.02] transition-all"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 bg-indigo-500/10 text-indigo-600 rounded-2xl">
                   <Gift className="w-6 h-6" />
                 </div>
-                <div>
-                  <h3 className="text-gray-500 text-sm">Points en Circulation</h3>
-                  <p className="text-3xl font-bold mt-1">{stats.totalPoints.toLocaleString()}</p>
-                </div>
+                <span className="text-[10px] font-black bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full uppercase tracking-widest">Points</span>
               </div>
-            </div>
+              <h3 className="text-slate-500 dark:text-slate-400 text-xs font-black uppercase tracking-widest">Points Circulants</h3>
+              <p className="text-3xl font-black text-slate-900 dark:text-white mt-1">{stats.totalPoints.toLocaleString()}</p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl p-6 rounded-[2rem] border border-white/20 dark:border-white/10 shadow-xl group hover:scale-[1.02] transition-all"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 bg-emerald-500/10 text-emerald-600 rounded-2xl">
+                  <TrendingUp className="w-6 h-6" />
+                </div>
+                <span className="text-[10px] font-black bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full uppercase tracking-widest">Activité</span>
+              </div>
+              <h3 className="text-slate-500 dark:text-slate-400 text-xs font-black uppercase tracking-widest">Points Distribués</h3>
+              <p className="text-3xl font-black text-slate-900 dark:text-white mt-1">{stats.pointsDistributed.toLocaleString()}</p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl p-6 rounded-[2rem] border border-white/20 dark:border-white/10 shadow-xl group hover:scale-[1.02] transition-all"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 bg-amber-500/10 text-amber-600 rounded-2xl">
+                  <Crown className="w-6 h-6" />
+                </div>
+                <span className="text-[10px] font-black bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full uppercase tracking-widest">Elite</span>
+              </div>
+              <h3 className="text-slate-500 dark:text-slate-400 text-xs font-black uppercase tracking-widest">Top Parrains</h3>
+              <p className="text-3xl font-black text-slate-900 dark:text-white mt-1">{stats.topReferrers.length}</p>
+            </motion.div>
           </div>
 
-          {/* Top Referrers */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-            <h3 className="text-lg font-bold mb-4">Top Parrains</h3>
-            {stats.topReferrers.length > 0 ? (
-              <table className="min-w-full text-left text-sm">
-                <thead>
-                  <tr className="border-b dark:border-gray-700">
-                    <th className="py-3 font-medium text-gray-500">Parrain</th>
-                    <th className="py-3 font-medium text-gray-500">Email</th>
-                    <th className="py-3 font-medium text-gray-500 text-right">Filleuls Recrutés</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y dark:divide-gray-700">
-                  {stats.topReferrers.map((referrer: any, index: number) => (
-                    <tr key={index}>
-                      <td className="py-3 font-medium">
-                        {referrer.full_name || "Utilisateur"}
-                        {index === 0 && <span className="ml-2 text-yellow-500">👑</span>}
-                      </td>
-                      <td className="py-3 text-gray-500">{referrer.email}</td>
-                      <td className="py-3 font-bold text-right">{referrer.count}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            ) : (
-              <div className="text-center py-4 text-gray-500 italic">
-                Aucun top parrain identifié pour le moment.
-              </div>
-            )}
-
-            {/* Diagnostic report always visible at bottom of overview */}
-            {diagnosticHint && (
-              <div className="mt-12 pt-6 border-t border-gray-100 dark:border-gray-700">
-                <div className="bg-blue-50 dark:bg-blue-900/10 p-4 rounded-xl border border-blue-100 dark:border-blue-800/50">
-                  <h4 className="text-sm font-bold text-blue-900 dark:text-blue-200 mb-2 flex items-center gap-2">
-                    🔍 Diagnostic des Parrainages & Erreurs de Saisie
-                  </h4>
-                  <pre className="text-xs text-blue-800 dark:text-blue-300 whitespace-pre-wrap font-sans leading-relaxed">
-                    {diagnosticHint}
-                  </pre>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Top Referrers Table - Elite Style */}
+            <div className="lg:col-span-2 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-[2.5rem] border border-white/20 dark:border-white/10 shadow-xl overflow-hidden">
+              <div className="p-8 border-b border-white/10 flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-black text-slate-800 dark:text-white">Champions du Parrainage</h3>
+                  <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">Meilleurs recruteurs de la plateforme</p>
                 </div>
+                <Star className="w-6 h-6 text-amber-500 fill-amber-500/20" />
               </div>
-            )}
+              <div className="overflow-x-auto">
+                {stats.topReferrers.length > 0 ? (
+                  <table className="min-w-full text-left">
+                    <thead>
+                      <tr className="bg-slate-50/50 dark:bg-slate-800/30">
+                        <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Parrain</th>
+                        <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Email</th>
+                        <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Filleuls</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/10">
+                      {stats.topReferrers.map((referrer: any, index: number) => (
+                        <tr key={index} className="hover:bg-white/50 dark:hover:bg-white/5 transition-colors group">
+                          <td className="px-8 py-5">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center font-black text-primary">
+                                {referrer.full_name?.charAt(0) || "U"}
+                              </div>
+                              <div className="font-bold text-slate-800 dark:text-slate-200">
+                                {referrer.full_name || "Utilisateur"}
+                                {index === 0 && <span className="ml-2">👑</span>}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-8 py-5 text-sm font-medium text-slate-500">{referrer.email}</td>
+                          <td className="px-8 py-5 text-right">
+                            <span className="px-4 py-1.5 bg-primary/10 text-primary rounded-full font-black text-sm">
+                              {referrer.count}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <div className="p-12 text-center text-slate-500 font-bold italic">
+                    Aucune activité de parrainage détectée.
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Status & Diagnostic - Elite Style */}
+            <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-[2.5rem] border border-white/20 dark:border-white/10 shadow-xl p-8">
+              <h3 className="text-xl font-black text-slate-800 dark:text-white mb-6">Santé du Système</h3>
+              <div className="space-y-6">
+                <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl">
+                  <p className="text-[10px] font-black text-emerald-600 uppercase mb-1">Programme</p>
+                  <p className="text-sm font-bold text-emerald-900 dark:text-emerald-200">Actif & Opérationnel</p>
+                </div>
+                <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-2xl">
+                  <p className="text-[10px] font-black text-blue-600 uppercase mb-1">Dernier Calcul</p>
+                  <p className="text-sm font-bold text-blue-900 dark:text-blue-200">Il y a quelques instants</p>
+                </div>
+
+                {diagnosticHint && (
+                  <div className="mt-6 pt-6 border-t border-white/10">
+                    <p className="text-[10px] font-black text-slate-400 uppercase mb-4 flex items-center gap-2">
+                      <Activity className="w-3 h-3" /> Diagnostic Détail
+                    </p>
+                    <div className="bg-slate-950/50 p-4 rounded-xl border border-white/5">
+                      <pre className="text-[10px] text-slate-300 whitespace-pre-wrap font-mono leading-relaxed opacity-80">
+                        {diagnosticHint.trim().split('\n').filter(l => l.trim()).slice(0, 5).join('\n')}
+                        {"\n"}... (Plus d'infos en console)
+                      </pre>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       )}
 
+
       <div className="mt-6">
         {activeTab === 'transactions' && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-              <thead className="bg-gray-50 dark:bg-gray-900/50">
+          <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-[2.5rem] border border-white/20 dark:border-white/10 shadow-xl overflow-hidden">
+            <table className="min-w-full divide-y divide-white/10">
+              <thead className="bg-slate-50/50 dark:bg-slate-800/30">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Utilisateur</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Points</th>
+                  <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Date</th>
+                  <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Utilisateur</th>
+                  <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Action</th>
+                  <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Points</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+              <tbody className="divide-y divide-white/10">
                 {transactions.map(tx => (
-                  <tr key={tx.id}>
-                    <td className="px-6 py-4 text-sm text-gray-500">{new Date(tx.created_at).toLocaleDateString()}</td>
-                    <td className="px-6 py-4">
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">{tx.profiles?.full_name || 'Alimou'}</p>
-                      <p className="text-xs text-gray-500">{tx.profiles?.email}</p>
+                  <tr key={tx.id} className="hover:bg-white/50 dark:hover:bg-white/5 transition-colors">
+                    <td className="px-8 py-5 text-sm font-medium text-slate-500">{new Date(tx.created_at).toLocaleDateString()}</td>
+                    <td className="px-8 py-5">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-xs">
+                          {tx.profiles?.full_name?.charAt(0) || 'A'}
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-slate-900 dark:text-white">{tx.profiles?.full_name || 'Alimou'}</p>
+                          <p className="text-[10px] text-slate-500">{tx.profiles?.email}</p>
+                        </div>
+                      </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">{tx.reason}</td>
-                    <td className={`px-6 py-4 text-sm font-bold ${tx.points > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {tx.points > 0 ? '+' : ''}{tx.points}
+                    <td className="px-8 py-5 text-sm font-medium text-slate-500">{tx.reason}</td>
+                    <td className={`px-8 py-5 text-sm font-black ${tx.points > 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                      <span className={`px-3 py-1 rounded-full ${tx.points > 0 ? 'bg-emerald-500/10' : 'bg-rose-500/10'}`}>
+                        {tx.points > 0 ? '+' : ''}{tx.points}
+                      </span>
                     </td>
                   </tr>
                 ))}
@@ -430,265 +522,270 @@ export default function AdminLoyalty() {
           </div>
         )}
 
-        {
-          activeTab === 'adjustments' && (
-            <div className="max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-8">
-              <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
-                <Crown className="w-5 h-5 text-amber-500" />
-                Créditer ou Débiter un Client
-              </h3>
+        {activeTab === 'adjustments' && (
+          <div className="max-w-2xl mx-auto bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-[2.5rem] border border-white/20 dark:border-white/10 shadow-xl p-8 lg:p-12 relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-8 opacity-5">
+              <Sliders className="w-32 h-32" />
+            </div>
 
-              <div className="space-y-6">
-                {/* Search User */}
+            <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-8 flex items-center gap-3 relative z-10">
+              <div className="p-2 bg-amber-500/10 rounded-xl">
+                <Crown className="w-6 h-6 text-amber-500" />
+              </div>
+              Ajustement Manuel de Points
+            </h3>
 
-                {/* Search User Autocomplete */}
-                <div className="relative z-20">
-                  <label className="block text-sm font-medium mb-1">Rechercher un client (Nom, Email, Tel)</label>
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input
-                      type="text"
-                      value={searchTerm}
-                      onChange={(e) => {
-                        setSearchTerm(e.target.value);
-                        setFoundUser(null); // Reset selection on edit
-                      }}
-                      onFocus={() => {
-                        if (suggestions.length > 0) setShowSuggestions(true);
-                      }}
-                      className="w-full pl-10 pr-4 py-2 rounded-lg border dark:bg-gray-700 dark:border-gray-600 focus:ring-2 focus:ring-primary/20 outline-none"
-                      placeholder="Tapez pour rechercher..."
-                    />
-                    {searchingUser && (
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                      </div>
-                    )}
-                  </div>
+            <div className="space-y-8 relative z-10">
+              {/* Search User Autocomplete */}
+              <div className="relative">
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Cibler un Client</label>
+                <div className="relative group">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-primary transition-colors" />
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => {
+                      setSearchTerm(e.target.value);
+                      setFoundUser(null);
+                    }}
+                    onFocus={() => {
+                      if (suggestions.length > 0) setShowSuggestions(true);
+                    }}
+                    className="w-full pl-12 pr-4 py-4 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-white/20 dark:border-white/5 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold text-slate-900 dark:text-white"
+                    placeholder="Nom, Email ou Téléphone..."
+                  />
+                  {searchingUser && (
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                      <div className="animate-spin rounded-full h-5 w-5 border-2 border-primary border-t-transparent"></div>
+                    </div>
+                  )}
+                </div>
 
-                  {/* Suggestions Dropdown */}
+                {/* Suggestions Dropdown */}
+                <AnimatePresence>
                   {showSuggestions && suggestions.length > 0 && (
-                    <ul className="absolute w-full mt-1 bg-white dark:bg-gray-700 rounded-xl shadow-lg border border-gray-100 dark:border-gray-600 max-h-60 overflow-y-auto z-50">
+                    <ul
+                      className="absolute w-full mt-2 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 dark:border-white/10 max-h-64 overflow-y-auto z-50 p-2"
+                    >
                       {suggestions.map((user) => (
                         <li
                           key={user.id}
                           onClick={() => selectUser(user)}
-                          className="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-0"
+                          className="px-4 py-3 hover:bg-primary/10 rounded-xl cursor-pointer transition-colors group"
                         >
                           <div className="flex justify-between items-center">
                             <div>
-                              <p className="font-medium text-gray-900 dark:text-white">{user.full_name || 'Sans nom'}</p>
-                              <p className="text-sm text-gray-500">{user.email}</p>
+                              <p className="font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">{user.full_name || 'Sans nom'}</p>
+                              <p className="text-xs text-slate-500 font-medium">{user.email}</p>
                             </div>
-                            <div className="text-right text-xs text-gray-400">
-                              <p>{user.loyalty_points || 0} pts</p>
-                              {/* DEBUG DISPLAY */}
-                              {user.referred_by && (
-                                <p className="text-blue-500" title={user.referred_by}>
-                                  Parrain: {user.referred_by.substring(0, 6)}...
-                                </p>
-                              )}
+                            <div className="text-right">
+                              <p className="text-sm font-black text-primary">{user.loyalty_points || 0} pts</p>
+                              {user.referral_code && <p className="text-[10px] font-bold text-slate-400">#{user.referral_code}</p>}
                             </div>
                           </div>
                         </li>
                       ))}
                     </ul>
                   )}
-                </div>
+                </AnimatePresence>
               </div>
 
               {foundUser && (
-                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg flex justify-between items-center">
-                  <div>
-                    <p className="font-bold text-blue-900 dark:text-blue-200">{foundUser.full_name}</p>
-                    <p className="text-sm text-blue-700 dark:text-blue-300">Solde actuel: {foundUser.loyalty_points} pts</p>
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="bg-primary/5 border border-primary/20 p-6 rounded-2xl flex justify-between items-center shadow-inner"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center font-black text-primary text-xl shadow-lg">
+                      {foundUser.full_name?.charAt(0)}
+                    </div>
+                    <div>
+                      <p className="font-black text-slate-900 dark:text-white text-lg">{foundUser.full_name}</p>
+                      <p className="text-xs font-bold text-primary uppercase tracking-widest">Solde: {foundUser.loyalty_points} pts</p>
+                    </div>
                   </div>
-                  <Check className="text-green-500" />
-                </div>
+                  <div className="p-2 bg-emerald-500/20 text-emerald-500 rounded-full">
+                    <Check className="w-6 h-6" />
+                  </div>
+                </motion.div>
               )}
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium mb-1">Type d'opération</label>
-                  <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Type d'opération</label>
+                  <div className="flex bg-slate-100/50 dark:bg-slate-800/50 p-1.5 rounded-2xl border border-white/5">
                     <button
                       onClick={() => setAdjustForm({ ...adjustForm, type: 'credit' })}
-                      className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${adjustForm.type === 'credit' ? 'bg-white text-green-600 shadow-sm' : 'text-gray-500'}`}
+                      className={`flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${adjustForm.type === 'credit' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 scale-105' : 'text-slate-500 hover:text-slate-700 dark:hover:text-white'}`}
                     >
                       Crédit (+)
                     </button>
                     <button
                       onClick={() => setAdjustForm({ ...adjustForm, type: 'debit' })}
-                      className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${adjustForm.type === 'debit' ? 'bg-white text-red-600 shadow-sm' : 'text-gray-500'}`}
+                      className={`flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${adjustForm.type === 'debit' ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/20 scale-105' : 'text-slate-500 hover:text-slate-700 dark:hover:text-white'}`}
                     >
                       Débit (-)
                     </button>
                   </div>
                 </div>
                 <div>
-                  <label htmlFor="adjust-amount" className="block text-sm font-medium mb-1">Montant (Points)</label>
+                  <label htmlFor="adjust-amount" className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Montant (Points)</label>
                   <input
                     id="adjust-amount"
                     type="number"
-                    placeholder="0"
                     value={adjustForm.amount}
                     onChange={e => setAdjustForm({ ...adjustForm, amount: parseInt(e.target.value) })}
-                    className="w-full px-4 py-2 rounded-lg border dark:bg-gray-700 dark:border-gray-600"
+                    className="w-full px-4 py-4 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-white/20 dark:border-white/5 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-black text-lg text-slate-900 dark:text-white"
+                    placeholder="0"
                   />
                 </div>
               </div>
 
               <div>
-                <label htmlFor="adjust-reason" className="block text-sm font-medium mb-1">Motif (Visible par le client)</label>
+                <label htmlFor="adjust-reason" className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Motif Officiel</label>
                 <input
                   id="adjust-reason"
                   type="text"
                   value={adjustForm.reason}
                   onChange={e => setAdjustForm({ ...adjustForm, reason: e.target.value })}
-                  className="w-full px-4 py-2 rounded-lg border dark:bg-gray-700 dark:border-gray-600"
-                  placeholder="Ex: Geste commercial, Bonus anniversaire..."
+                  className="w-full px-4 py-4 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-white/20 dark:border-white/5 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold text-slate-900 dark:text-white"
+                  placeholder="Geste commercial, Bonus exceptionnel..."
                 />
               </div>
 
               <button
                 onClick={handleAdjustment}
-                disabled={!foundUser || loading}
-                className="w-full py-3 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={!foundUser || loading || !adjustForm.amount || !adjustForm.reason}
+                className="w-full py-5 bg-gradient-to-r from-primary to-indigo-600 hover:scale-[1.02] active:scale-[0.98] text-white font-black uppercase tracking-[0.2em] rounded-[2rem] shadow-2xl shadow-primary/30 transition-all disabled:opacity-40 disabled:hover:scale-100 disabled:cursor-not-allowed group relative overflow-hidden"
               >
-                {loading ? "Traitement..." : "Valider l'opération"}
+                <div className="relative z-10 flex items-center justify-center gap-3">
+                  {loading ? (
+                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                  ) : (
+                    <>
+                      <Check className="w-5 h-5" />
+                      Valider l'Opération
+                    </>
+                  )}
+                </div>
               </button>
             </div>
-          )}
+          </div>
+        )}
+        {activeTab === 'config' && (
+          <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-[2.5rem] border border-white/20 dark:border-white/10 p-8 lg:p-12 max-w-4xl mx-auto shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-12 opacity-5">
+              <Settings className="w-48 h-48" />
+            </div>
 
-        {
-          activeTab === 'config' && (
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 max-w-2xl">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">
-                Règles du Programme
+            <div className="relative z-10">
+              <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-2 flex items-center gap-3">
+                <div className="p-2 bg-primary/10 rounded-xl">
+                  <Settings className="w-6 h-6 text-primary" />
+                </div>
+                Paramètres du Programme
               </h3>
+              <p className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-10 px-1">Gouvernance et règles de fidélité</p>
 
-              <div className="space-y-6">
-                <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/30 rounded-xl">
-                  <div>
-                    <p className="font-medium text-gray-900 dark:text-white">
-                      Activer le Parrainage
-                    </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Autoriser les nouveaux utilisateurs à s'inscrire avec un code
-                    </p>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Rule Card 1 */}
+                <div className="p-6 rounded-[2rem] bg-white/40 dark:bg-slate-800/40 border border-white/20 dark:border-white/5 shadow-xl group">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="p-3 bg-emerald-500/10 text-emerald-500 rounded-2xl">
+                      <TrendingUp className="w-6 h-6" />
+                    </div>
+                    <label htmlFor="program_enabled" className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        id="program_enabled"
+                        type="checkbox"
+                        aria-label="Activer le parrainage"
+                        checked={config.program_enabled}
+
+                        onChange={(e) => setConfig({ ...config, program_enabled: e.target.checked })}
+                        className="sr-only peer"
+                      />
+                      <div className="w-14 h-7 bg-slate-200 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-6 after:transition-all peer-checked:bg-emerald-500"></div>
+                    </label>
                   </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
+                  <h4 className="text-lg font-black text-slate-800 dark:text-white mb-1">Mise en Service</h4>
+                  <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Activer le Parrainage</p>
+                  <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+                    Autoriser les nouveaux utilisateurs à s'inscrire avec un code parrain et générer des récompenses automatiques.
+                  </p>
+                </div>
+
+                {/* Rule Card 2 */}
+                <div className="p-6 rounded-[2rem] bg-white/40 dark:bg-slate-800/40 border border-white/20 dark:border-white/5 shadow-xl group">
+                  <div className="p-3 bg-indigo-500/10 text-indigo-500 rounded-2xl w-fit mb-6">
+                    <Gift className="w-6 h-6" />
+                  </div>
+                  <h4 className="text-lg font-black text-slate-800 dark:text-white mb-1">Bonus de Bienvenue</h4>
+                  <label htmlFor="points_per_referral" className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4 block">Points par Parrainage</label>
+                  <div className="relative">
                     <input
-                      type="checkbox"
-                      aria-label="Activer le programme de parrainage"
-                      checked={config.program_enabled}
-                      onChange={(e) =>
-                        setConfig({ ...config, program_enabled: e.target.checked })
-                      }
-                      className="sr-only peer"
+                      id="points_per_referral"
+                      type="number"
+                      value={config.points_per_referral}
+                      onChange={(e) => setConfig({ ...config, points_per_referral: Number(e.target.value) })}
+                      className="w-full pl-6 pr-12 py-4 rounded-2xl bg-slate-50/50 dark:bg-slate-900/50 border border-transparent focus:border-primary outline-none transition-all font-black text-2xl text-primary"
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-                  </label>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label
-                      htmlFor="points_per_referral"
-                      className="text-sm font-medium text-gray-700 dark:text-gray-300"
-                    >
-                      Points par Parrainage
-                    </label>
-                    <div className="relative">
-                      <Gift className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                      <input
-                        id="points_per_referral"
-                        type="number"
-                        value={config.points_per_referral}
-                        onChange={(e) =>
-                          setConfig({
-                            ...config,
-                            points_per_referral: Number(e.target.value),
-                          })
-                        }
-                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
-                      />
-                    </div>
-                    <p className="text-xs text-gray-500">
-                      Points attribués au parrain lors de l'inscription.
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label
-                      htmlFor="point_value"
-                      className="text-sm font-medium text-gray-700 dark:text-gray-300"
-                    >
-                      Valeur du Point (FCFA)
-                    </label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold">
-                        ₣
-                      </span>
-                      <input
-                        id="point_value"
-                        type="number"
-                        value={config.point_value || 50}
-                        onChange={(e) =>
-                          setConfig({
-                            ...config,
-                            point_value: Number(e.target.value),
-                          })
-                        }
-                        className="w-full pl-8 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
-                      />
-                    </div>
-                    <p className="text-xs text-gray-500">
-                      Montant en FCFA crédité pour 1 point converti.
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label
-                      htmlFor="max_referrals"
-                      className="text-sm font-medium text-gray-700 dark:text-gray-300"
-                    >
-                      Max Filleuls par User
-                    </label>
-                    <div className="relative">
-                      <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                      <input
-                        id="max_referrals"
-                        type="number"
-                        value={config.max_referrals_per_user}
-                        onChange={(e) =>
-                          setConfig({
-                            ...config,
-                            max_referrals_per_user: Number(e.target.value),
-                          })
-                        }
-                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
-                      />
-                    </div>
-                    <p className="text-xs text-gray-500">
-                      Limite de filleuls actifs par parrain.
-                    </p>
+                    <span className="absolute right-6 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400 uppercase">Points</span>
                   </div>
                 </div>
 
-                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-xl text-sm">
-                  <p className="font-bold flex items-center gap-2">
-                    <TrendingUp className="w-4 h-4" />
-                    Info
-                  </p>
-                  <p className="mt-1">
-                    Les modifications s'appliquent uniquement aux futurs
-                    parrainages. L'historique n'est pas recalculé.
-                  </p>
+                {/* Rule Card 3 */}
+                <div className="p-6 rounded-[2rem] bg-white/40 dark:bg-slate-800/40 border border-white/20 dark:border-white/5 shadow-xl group">
+                  <div className="p-3 bg-amber-500/10 text-amber-500 rounded-2xl w-fit mb-6">
+                    <Activity className="w-6 h-6" />
+                  </div>
+                  <h4 className="text-lg font-black text-slate-800 dark:text-white mb-1">Taux de Change</h4>
+                  <label htmlFor="point_value" className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4 block">Valeur du Point (FCFA)</label>
+                  <div className="relative">
+                    <input
+                      id="point_value"
+                      type="number"
+                      value={config.point_value || 50}
+                      onChange={(e) => setConfig({ ...config, point_value: Number(e.target.value) })}
+                      className="w-full pl-10 pr-4 py-4 rounded-2xl bg-slate-50/50 dark:bg-slate-900/50 border border-transparent focus:border-primary outline-none transition-all font-black text-2xl text-amber-500"
+                    />
+                    <span className="absolute left-6 top-1/2 -translate-y-1/2 text-lg font-black text-amber-500 opacity-50">₣</span>
+                  </div>
+                </div>
+
+                {/* Rule Card 4 */}
+                <div className="p-6 rounded-[2rem] bg-white/40 dark:bg-slate-800/40 border border-white/20 dark:border-white/5 shadow-xl group">
+                  <div className="p-3 bg-rose-500/10 text-rose-500 rounded-2xl w-fit mb-6">
+                    <Users className="w-6 h-6" />
+                  </div>
+                  <h4 className="text-lg font-black text-slate-800 dark:text-white mb-1">Limitation</h4>
+                  <label htmlFor="max_referrals" className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4 block">Max Filleuls / User</label>
+                  <div className="relative">
+                    <input
+                      id="max_referrals"
+                      type="number"
+                      value={config.max_referrals_per_user}
+                      onChange={(e) => setConfig({ ...config, max_referrals_per_user: Number(e.target.value) })}
+                      className="w-full pl-6 pr-4 py-4 rounded-2xl bg-slate-50/50 dark:bg-slate-900/50 border border-transparent focus:border-primary outline-none transition-all font-black text-2xl text-rose-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="lg:col-span-2 p-6 rounded-[2rem] bg-blue-500/5 border border-blue-500/10 flex items-start gap-5">
+                  <div className="p-3 bg-blue-500/20 text-blue-500 rounded-2xl shrink-0">
+                    <Activity className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h5 className="font-black text-blue-900 dark:text-blue-200 text-sm uppercase tracking-widest mb-1">Information Importante</h5>
+                    <p className="text-sm text-blue-700 dark:text-blue-300 font-medium leading-relaxed">
+                      Les modifications s'appliquent uniquement aux futurs parrainages. L'historique n'est pas recalculé rétroactivement pour les anciens dossiers.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
-          )}
+          </div>
+        )}
       </div>
     </div>
   );

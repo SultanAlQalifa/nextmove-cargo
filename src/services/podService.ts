@@ -39,7 +39,7 @@ export const podService = {
                 )
             `,
       )
-      .order("submitted_at", { ascending: false });
+      .order("created_at", { ascending: false });
 
     if (error) throw error;
 
@@ -67,7 +67,7 @@ export const podService = {
             `,
       )
       .eq("shipment.forwarder_id", user.id)
-      .order("submitted_at", { ascending: false });
+      .order("created_at", { ascending: false });
 
     if (error) throw error;
 
@@ -75,6 +75,21 @@ export const podService = {
   },
 
   reviewPOD: async (
+    id: string,
+    status: "verified" | "rejected",
+    notes?: string,
+  ): Promise<void> => {
+    const updates: any = { status, notes };
+    if (status === "verified") {
+      updates.verified_at = new Date().toISOString();
+    }
+
+    const { error } = await supabase.from("shipment_pods").update(updates).eq("id", id);
+
+    if (error) throw error;
+  },
+
+  verifyPOD: async (
     id: string,
     status: "verified" | "rejected",
     notes?: string,
@@ -103,7 +118,9 @@ export const podService = {
       .from("shipment_pods")
       .insert({
         ...pod,
-        delivered_at: new Date().toISOString()
+        delivered_at: new Date().toISOString(),
+        submitted_at: new Date().toISOString(),
+        status: 'pending'
       })
       .select()
       .single();
@@ -127,7 +144,7 @@ export const podService = {
             `,
       )
       .eq("driver_id", driverId)
-      .order("delivered_at", { ascending: false });
+      .order("created_at", { ascending: false });
 
     if (error) throw error;
     return (data || []).map(mapDbPODToApp);
@@ -140,8 +157,8 @@ function mapDbPODToApp(dbRecord: any): POD {
     shipment_id: dbRecord.shipment_id,
     tracking_number:
       dbRecord.tracking_number || dbRecord.shipment?.tracking_number,
-    status: dbRecord.status,
-    submitted_at: dbRecord.submitted_at,
+    status: dbRecord.status || "pending",
+    submitted_at: dbRecord.submitted_at || dbRecord.created_at || new Date().toISOString(),
     verified_at: dbRecord.verified_at,
     forwarder: {
       id: dbRecord.shipment?.forwarder?.id,
@@ -151,7 +168,7 @@ function mapDbPODToApp(dbRecord: any): POD {
       id: dbRecord.shipment?.client?.id,
       name: dbRecord.shipment?.client?.company_name || "Unknown",
     },
-    documents: dbRecord.documents || [],
+    documents: dbRecord.documents || dbRecord.photo_urls?.map((url: string) => ({ url, name: 'Photo de livraison', type: 'image' })) || [],
     recipient_name: dbRecord.recipient_name,
     notes: dbRecord.notes,
   };

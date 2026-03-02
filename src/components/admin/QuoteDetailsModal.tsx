@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import {
   X,
   FileText,
@@ -5,6 +6,7 @@ import {
   Calendar,
   Truck,
 } from "lucide-react";
+import { supabase } from "../../lib/supabase";
 
 interface QuoteDetailsModalProps {
   rfqId: string;
@@ -15,20 +17,60 @@ export default function QuoteDetailsModal({
   rfqId,
   onClose,
 }: QuoteDetailsModalProps) {
-  // Mock quote data
-  const quote = {
-    id: "Q-2024-001",
-    amount: 1250.0,
-    currency: "EUR",
-    valid_until: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-    forwarder: {
-      name: "Global Freight Solutions",
-      rating: 4.8,
-    },
-    transit_time: "14-18 jours",
-    incoterms: "CIF",
-    notes: "Inclut tous les frais de port et de douane à l'origine.",
-  };
+  const [quote, setQuote] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchQuote() {
+      try {
+        setLoading(true);
+        const { data, error } = await supabase
+          .from("quotes")
+          .select(`
+            *,
+            forwarder:forwarder_id(
+              company_name,
+              rating
+            )
+          `)
+          .eq("rfq_id", rfqId)
+          .single();
+
+        if (error) {
+          console.error("No quote found", error);
+        } else {
+          setQuote(data);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchQuote();
+  }, [rfqId]);
+
+  if (loading) {
+    return (
+      <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="bg-white p-8 rounded-2xl flex items-center justify-center">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!quote) {
+    return (
+      <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="bg-white p-8 rounded-2xl max-w-sm w-full text-center">
+          <h3 className="text-xl font-bold mb-4">Aucun devis trouvé</h3>
+          <p className="text-gray-500 mb-6">Ce RFQ n'a pas encore de devis associé ou une erreur s'est produite.</p>
+          <button onClick={onClose} className="px-4 py-2 bg-gray-100 rounded-xl w-full">Fermer</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -44,7 +86,7 @@ export default function QuoteDetailsModal({
                 Devis pour {rfqId}
               </h2>
               <p className="text-sm text-gray-500">
-                Proposé par {quote.forwarder.name}
+                Proposé par {quote.forwarder?.company_name || "Prestataire inconnu"}
               </p>
             </div>
           </div>
@@ -65,9 +107,9 @@ export default function QuoteDetailsModal({
                 Montant Total
               </p>
               <p className="text-4xl font-bold text-green-700">
-                {quote.amount.toLocaleString("fr-FR", {
+                {quote.amount?.toLocaleString("fr-FR", {
                   style: "currency",
-                  currency: quote.currency,
+                  currency: quote.currency || "XOF",
                 })}
               </p>
             </div>
@@ -80,7 +122,7 @@ export default function QuoteDetailsModal({
                 <span className="text-xs font-medium uppercase">Validité</span>
               </div>
               <p className="font-semibold text-gray-900">
-                {new Date(quote.valid_until).toLocaleDateString()}
+                {quote.valid_until ? new Date(quote.valid_until).toLocaleDateString() : "Non spécifié"}
               </p>
             </div>
 
@@ -90,7 +132,7 @@ export default function QuoteDetailsModal({
                 <span className="text-xs font-medium uppercase">Transit</span>
               </div>
               <p className="font-semibold text-gray-900">
-                {quote.transit_time}
+                {quote.transit_time || "Standard"}
               </p>
             </div>
           </div>
@@ -100,7 +142,7 @@ export default function QuoteDetailsModal({
               Notes du prestataire
             </h3>
             <div className="p-4 bg-gray-50 rounded-xl text-sm text-gray-600 italic border border-gray-100">
-              "{quote.notes}"
+              "{quote.notes || "Aucune note additionnelle."}"
             </div>
           </div>
         </div>

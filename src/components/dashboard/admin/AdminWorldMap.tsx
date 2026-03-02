@@ -1,165 +1,263 @@
+import React, { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Globe, MapPin, Zap } from "lucide-react";
+import { Globe, MapPin, Zap, ChevronRight, Activity } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import {
+    ComposableMap,
+    Geographies,
+    Geography,
+    Marker,
+    Line,
+} from "react-simple-maps";
+import { rfqService } from "../../../services/rfqService";
 
-// Simplified Schematic World Map Path (Low poly/Stylized)
-const WORLD_PATH = "M156.417,143.585l-1.071,0.548l-0.655,0.063l-0.344,0.187l-0.545,0l-0.627,0.306l-0.298,0.244l-0.283,0.334l-0.41,0.147l-0.126,0.342l-0.219,0l-0.201,0.224l-0.344,0.573l0,0.528l0.111,0.342l-0.081,0l-0.155,0.482l0,0.364l0.428,0.124l0.435,0.358l-0.181,0.643l-0.12,0l0.046,0.246l-0.522,0.165l-0.686,0.013l-0.138,0.337l-0.426,0l-0.178,0.191l-0.203,0.51l0.322,0.672l0.306,0l-0.134,0.473l0.495,0.473l0.436,0.122l0.479,0.366l0.286,0.722l0.43,0.485l0.487,0.038l0.479,0.34l-0.122,0.428l-0.421,0l0.106,0.758l0.298,0.28l0.264,0l0.612,0.317l-0.141,0.612l0.252,0.473l0.384,0.143l0.135,0.467l0.614,0.314l0.555,0.021l0.407,0.139l0.49,0.354l0.122,0.346l-0.186,0.638l0.395,0.41l0.165,0.621l0.159,0.054l0.473,0l0.354,0.354l0.35,0.412l0.444,0.149l0.323,0.262l0.205,0.548l0.315,0.37l0.471,0.457l0.399,0.436l0.45,0.395l0.537,0l0.428,0.224l0.592,0.597l0.385,0.301l0.56,0l0.459,0.528l0.697,0.44l0.485,0.402l0.524,0l0.463,0.491l0.344,0l0.207,0.551l0.231,0.492l0.091,0.578l0.286,0.445l0.424,0.505l0.315,0.357l0.71,0.2l0.327,0l0.584,0.25l0.58,0.51l0.334,0.351l0.582,0.046l0.469,0.418l0.15,0.496l0.194,0.344l0.418,0.113l0.222,0.587l0.4,0.442l0.44,0.35l0.312,0.449l0.434,0l0.312,0.338l0.364,0l0.427,0.218l0.318,0.58l0.399,0l0.327,0.354l0.257,0.373l0.16,0.451l0.452,0l0.279,0.533l0.427,0.32l0.392,0l0.384,0.506l0.466,0l0.497,0.382l0.076,0l0.168,0.563l0.504,0.346l0.292,0l-0.301,0.732l0.379,0.513l0.354,0.47l0.465,0l0.117,1.077l0.198,0.297l0.407,0l0.178,0.504l0.236,0.513l0.297,0.287l0.427,0l0.141,0.204l0.324,0l0.212,0.513l0.076,0l0.126,0.513l0.333,0.41l0.298,0l0.207,0.453l0.333,0l0.321,0.212l0.301,0.528l0.356,0l0.081,0.116l0.353,0.472l0.422,0l0.199,0.334l0.725,0.204l0.176,0.548l0.416,0l0.126,0.344l0.171,0.359l0.446,0.152l0.16,0.536l0.412,0.37l0.415,0l0.273,0.613l0.51,0.334l0.41,0.395l0.37,0l0.264,0.342l0.337,0l0.327,0.211l0.37,0l0.298,0.384l0.354,0.063l0.344,0.394l0.412,0.417l0.41,0.383l0.432,0l0.326,0.336l0.38,0.284l0.443,0l0.356,0.33l0.407,0.081l0.584,0.492l0.435,0l0.292,0.312l0.423,0l0.106,0.322l0.337,0l0.104,0.351l0.284,0.28l0.71,0.231l0.289,0.465l0.442,0l0.297,0.28l0.323,0l0.27,0.333l0.33,0l0.252,0.322l0.301,0.551l0.37,0l0.215,0.355l0.364,0.543l0.315,0.337l0.467,0l0.211,0.548l0.298,0.395l0.286,0.49l0.18,0.55l0.315,0.214l0.344,0.344l0.337,0l0.245,0.354l0.315,0.315l0.551,0l0.473,0.333l0.44,0l0.284,0.354l0.443,0.314l0.463,0.427l0.344,0.054l0.31,0.306l0.55,0l0.322,0.354l0.548,0.584l0.45,0.359l0.442,0.373l0.412,0.126l0.584,0.473l0.32,0.351l0.555,0l0.473,0.301l0.422,0l0.315,0.337l0.495,0l0.134,0.322l0.222,0.333l0.381,0l0.207,0.322l0.41,0.442l0.505,0l0.216,0.297l0.41,0l0.155,0.548l0.106,0.211l0.186,0l0.122,0.482l0.422,0.492l0.407,0.333l0.264,0l0.015,0.536l0.418,0.117l0.442,0.542l0.422,0l0.207,0.528l0.315,0.359l0.415,0.113l0.428,0.106l0.428,0.334l0.45,0.697l0.41,0.351l0.485,0.046l0.421,0.334l0.545,0.355l0.427,0l0.198,0.513l0.387,0.126l0.465,0.612l0.301,0l0.211,0.57l0.435,0.354l0.41,0l0.165,0.513l0.418,0l0.211,0.507l-0.122,0.479l0.41,0l0.111,0.48l0.528,0.364l0.422,0l0.207,0.537l0.384,0.116l0.126,0l0.211,0.51l0.337,0.301l0.222,0.545l0.44,0l0.136,1.071l0.18,0l0.211,0.463l0.33,0.344l0.415,0.354l0.312,0.638l0.578,0l0.33,0.322z";
+const geoUrl = "/world-110m.json";
 
-const PulseCircle = ({ cx, cy, color, size = 3 }: { cx: number; cy: number; color: string; size?: number }) => (
-    <>
-        <motion.circle
-            cx={cx}
-            cy={cy}
-            r={size}
-            fill={color}
-            initial={{ scale: 1, opacity: 0.8 }}
-            animate={{ scale: [1, 2.5], opacity: [0.8, 0] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }}
+// Real-world coordinates [longitude, latitude] for major hubs
+const PORT_COORDINATES: Record<string, { coordinates: [number, number], color: string, name: string }> = {
+    "DAKAR": { coordinates: [-17.4677, 14.7167], color: "#ea580c", name: "Dakar, SN" }, // NextMove Orange
+    "SHENZHEN": { coordinates: [114.0579, 22.5431], color: "#fbbf24", name: "Shenzhen, CN" },
+    "GUANGZHOU": { coordinates: [113.2644, 23.1291], color: "#fcd34d", name: "Guangzhou, CN" },
+    "PARIS": { coordinates: [2.3522, 48.8566], color: "#60a5fa", name: "Paris, FR" },
+    "MARSEILLE": { coordinates: [5.3698, 43.2965], color: "#93c5fd", name: "Marseille, FR" },
+    "DUBAI": { coordinates: [55.2708, 25.2048], color: "#f472b6", name: "Dubai, AE" },
+    "NYC": { coordinates: [-74.006, 40.7128], color: "#34d399", name: "New York, US" },
+    "CASABLANCA": { coordinates: [-7.5898, 33.5731], color: "#a78bfa", name: "Casablanca, MA" },
+    "ISTANBUL": { coordinates: [28.9784, 41.0082], color: "#f87171", name: "Istanbul, TR" },
+};
+
+// Fallback logic to get coordinates if exact port name isn't matched
+function getCoordinatesForPort(portName: string): [number, number] | null {
+    const upperPort = portName.toUpperCase();
+    for (const [key, data] of Object.entries(PORT_COORDINATES)) {
+        if (upperPort.includes(key) || key.includes(upperPort)) {
+            return data.coordinates;
+        }
+    }
+    // Try mapping countries directly to an approximate center if port unknown
+    if (upperPort.includes("SENEGAL")) return PORT_COORDINATES["DAKAR"].coordinates;
+    if (upperPort.includes("CHINA") || upperPort.includes("CHINE")) return PORT_COORDINATES["SHENZHEN"].coordinates;
+    if (upperPort.includes("FRANCE")) return PORT_COORDINATES["PARIS"].coordinates;
+    if (upperPort.includes("USA") || upperPort.includes("ETATS-UNIS")) return PORT_COORDINATES["NYC"].coordinates;
+    if (upperPort.includes("MOROCCO") || upperPort.includes("MAROC")) return PORT_COORDINATES["CASABLANCA"].coordinates;
+
+    return null;
+}
+
+const RoutingComet = ({
+    start,
+    end,
+    color,
+    duration = 3,
+    delay = 0
+}: {
+    start: [number, number];
+    end: [number, number];
+    color: string;
+    duration?: number;
+    delay?: number;
+}) => {
+    // We use framer-motion to draw an arc between the start and end coordinates.
+    // Using a <path> we calculate a simple quadratic bezier curve.
+
+    // To correctly place SVG paths over react-simple-maps, we usually draw them inside
+    // an SVG overlay if we want CSS offset paths, but inside `<Line>` or pure SVG it can be complex.
+    // For simplicity and pure react-simple-maps compatibility, we use `<Line>` to draw the arc
+    // and animate the dasharray.
+    return (
+        <Line
+            from={start}
+            to={end}
+            stroke={color}
+            strokeWidth={2}
+            strokeLinecap="round"
+            className="animate-pulse opacity-60 mix-blend-screen"
+            style={{
+                filter: `drop-shadow(0 0 3px ${color}) drop-shadow(0 0 5px ${color})`
+            }}
         />
-        <motion.circle
-            cx={cx}
-            cy={cy}
-            r={size}
-            fill={color}
-            initial={{ scale: 1, opacity: 0.6 }}
-            animate={{ scale: [1, 1.8], opacity: [0.6, 0] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeOut", delay: 0.5 }}
-        />
-        <circle cx={cx} cy={cy} r={size - 0.5} fill={color} />
-    </>
-);
-
-const RoutingComet = ({ path, color, duration = 3, delay = 0 }: { path: string; color: string; duration?: number; delay?: number }) => (
-    <motion.circle
-        r="1.5"
-        fill={color}
-        initial={{ style: { offsetDistance: "0%" } } as any}
-        animate={{ style: { offsetDistance: "100%" } } as any}
-        transition={{
-            duration,
-            repeat: Infinity,
-            ease: "linear",
-            delay
-        }}
-        style={{
-            offsetPath: `path("${path}")`,
-            filter: `drop-shadow(0 0 2px ${color})`,
-        }}
-        className="absolute"
-    />
-);
+    );
+};
 
 export const AdminWorldMap = () => {
-    // Port Coordinates
-    const PORTS = {
-        DAKAR: { x: 106, y: 151, color: "#6366f1" },
-        SHENZHEN: { x: 280, y: 120, color: "#fbbf24" },
-        PARIS: { x: 140, y: 65, color: "#60a5fa" },
-        DUBAI: { x: 200, y: 110, color: "#f472b6" },
-        NYC: { x: 50, y: 80, color: "#34d399" },
-        CASABLANCA: { x: 115, y: 95, color: "#a78bfa" }
+    const navigate = useNavigate();
+    const [loading, setLoading] = useState(true);
+    const [routes, setRoutes] = useState<{
+        origin: string,
+        destination: string,
+        count: number,
+        weight: number,
+        startCoords: [number, number] | null,
+        endCoords: [number, number] | null
+    }[]>([]);
+
+    useEffect(() => {
+        fetchRoutes();
+    }, []);
+
+    const fetchRoutes = async () => {
+        setLoading(true);
+        try {
+            const rawRoutes = await rfqService.getGlobalOperationsStats();
+            // Process coordinates
+            const mappedRoutes = rawRoutes.map(r => ({
+                origin: r.origin_port,
+                destination: r.destination_port,
+                count: r.route_count,
+                weight: Number(r.total_weight),
+                startCoords: getCoordinatesForPort(r.origin_port),
+                endCoords: getCoordinatesForPort(r.destination_port)
+            })).filter(r => r.startCoords && r.endCoords); // Only keep routes we can draw
+
+            setRoutes(mappedRoutes);
+        } catch (error) {
+            console.error("Failed to load global routes", error);
+        } finally {
+            setLoading(false);
+        }
     };
 
-    // Path definitions
-    const PATHS = {
-        DKR_SZW: "M 106 151 Q 193 100 280 120",
-        DKR_PAR: "M 106 151 Q 123 100 140 65",
-        DKR_DXB: "M 106 151 Q 153 130 200 110",
-        DXB_SZW: "M 200 110 Q 240 115 280 120",
-        NYC_PAR: "M 50 80 Q 95 72 140 65",
-        DKR_CAS: "M 106 151 Q 110 123 115 95"
-    };
+    const totalTonnage = useMemo(() => {
+        return routes.reduce((acc, curr) => acc + curr.weight, 0);
+    }, [routes]);
+
+    // Get unique active port coordinates for drawing pulsing dots
+    const activePorts = useMemo(() => {
+        const ports = new Map<string, { coords: [number, number], count: number }>();
+        routes.forEach(r => {
+            if (r.startCoords) {
+                const key = r.startCoords.join(',');
+                ports.set(key, { coords: r.startCoords, count: (ports.get(key)?.count || 0) + 1 });
+            }
+            if (r.endCoords) {
+                const key = r.endCoords.join(',');
+                ports.set(key, { coords: r.endCoords, count: (ports.get(key)?.count || 0) + 1 });
+            }
+        });
+        return Array.from(ports.values());
+    }, [routes]);
 
     return (
-        <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl p-8 rounded-[2.5rem] border border-white/20 dark:border-white/10 shadow-xl flex flex-col h-full min-h-[400px]">
-            <div className="flex items-center justify-between mb-8">
+        <div className="bg-slate-900/90 backdrop-blur-xl p-8 rounded-[2.5rem] border border-slate-800 shadow-2xl flex flex-col h-full min-h-[450px] relative overflow-hidden group hover:border-slate-700 transition duration-500">
+            {/* Dark gradient overlay for spatial depth */}
+            <div className="absolute inset-0 bg-gradient-to-tr from-slate-950 via-slate-900 to-slate-800 opacity-80 pointer-events-none"></div>
+
+            <div className="flex items-center justify-between mb-8 relative z-10">
                 <div>
                     <div className="flex items-center gap-2 mb-1">
-                        <Globe className="w-5 h-5 text-primary animate-pulse" />
-                        <span className="text-primary text-[10px] font-black uppercase tracking-[0.2em]">Global Logistics</span>
+                        <Globe className="w-5 h-5 text-primary animate-pulse shadow-primary drop-shadow-[0_0_8px_rgba(249,115,22,0.8)]" />
+                        <span className="text-primary text-[10px] font-black uppercase tracking-[0.2em] drop-shadow-md">Global Logistics</span>
                     </div>
-                    <h3 className="text-xl font-black text-slate-800 dark:text-white">Opérations Mondiales</h3>
+                    <h3 className="text-xl font-black text-white drop-shadow-md">Opérations Mondiales</h3>
                 </div>
                 <div className="flex gap-2">
-                    <span className="px-3 py-1 bg-emerald-50 text-emerald-600 text-[10px] font-black rounded-lg border border-emerald-100 flex items-center gap-1">
+                    <span className="px-3 py-1 bg-emerald-500/20 text-emerald-400 text-[10px] font-black rounded-lg border border-emerald-500/30 flex items-center gap-1 shadow-[0_0_10px_rgba(16,185,129,0.2)]">
                         <Zap className="w-3 h-3 fill-current" />
                         LIVE
                     </span>
+                    <button
+                        onClick={() => navigate('/dashboard/admin/community')}
+                        className="px-3 py-1 bg-white/10 hover:bg-white/20 text-white text-[10px] font-bold rounded-lg border border-white/10 flex items-center gap-1 transition-all"
+                    >
+                        VOIR TOUT
+                        <ChevronRight className="w-3 h-3" />
+                    </button>
                 </div>
             </div>
 
-            <div className="flex-1 relative overflow-hidden flex items-center justify-center">
-                <svg
-                    viewBox="0 0 400 300"
-                    className="w-full h-full max-h-[250px] opacity-20 dark:opacity-10 scale-150"
-                    preserveAspectRatio="xMidYMid meet"
-                >
-                    <path
-                        d={WORLD_PATH}
-                        fill="currentColor"
-                        className="text-slate-400"
-                    />
-                </svg>
+            <div className="flex-1 relative overflow-hidden flex items-center justify-center z-10 -mx-8 -my-4">
+                {loading ? (
+                    <div className="w-10 h-10 border-4 border-slate-700 border-t-primary rounded-full animate-spin"></div>
+                ) : (
+                    <ComposableMap
+                        projectionConfig={{ scale: 140, center: [20, 20] }}
+                        className="w-full h-full scale-125 md:scale-150 outline-none"
+                    >
+                        <Geographies geography={geoUrl}>
+                            {({ geographies }) =>
+                                geographies.map((geo) => (
+                                    <Geography
+                                        key={geo.rsmKey}
+                                        geography={geo}
+                                        fill="#1e293b"
+                                        stroke="#0f172a"
+                                        strokeWidth={0.5}
+                                        style={{
+                                            default: { outline: "none" },
+                                            hover: { fill: "#334155", outline: "none" },
+                                            pressed: { outline: "none" },
+                                        }}
+                                    />
+                                ))
+                            }
+                        </Geographies>
 
-                {/* Animated Map Overlay */}
-                <div className="absolute inset-0">
-                    <svg viewBox="0 0 400 300" className="w-full h-full scale-150">
-                        {/* Static Route Arcs (Subtle) */}
-                        {Object.values(PATHS).map((d, i) => (
-                            <path
-                                key={i}
-                                d={d}
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="0.5"
-                                className="text-slate-200 dark:text-slate-700 opacity-50"
-                            />
+                        {/* Draw curved lines for active RFQ routes */}
+                        {routes.map((route, i) => {
+                            if (!route.startCoords || !route.endCoords) return null;
+                            // Alternate colors slightly for visual richness based on index
+                            const colors = ["#ea580c", "#f97316", "#fb923c", "#fcd34d", "#38bdf8"];
+                            const color = colors[i % colors.length];
+
+                            return (
+                                <RoutingComet
+                                    key={`route-${i}`}
+                                    start={route.startCoords}
+                                    end={route.endCoords}
+                                    color={color}
+                                />
+                            );
+                        })}
+
+                        {/* Draw pulsing markers for active hubs */}
+                        {activePorts.map((hub, i) => (
+                            <Marker key={`hub-${i}`} coordinates={hub.coords}>
+                                <circle r={4} fill="#f97316" className="animate-ping opacity-75" />
+                                <circle r={2} fill="#fff" />
+                            </Marker>
                         ))}
 
-                        {/* Moving Comets (Cargo Traffic) */}
-                        <RoutingComet path={PATHS.DKR_SZW} color={PORTS.SHENZHEN.color} duration={4} />
-                        <RoutingComet path={PATHS.DKR_SZW} color={PORTS.SHENZHEN.color} duration={4} delay={2} />
-                        <RoutingComet path={PATHS.DKR_PAR} color={PORTS.PARIS.color} duration={2.5} />
-                        <RoutingComet path={PATHS.DXB_SZW} color={PORTS.DUBAI.color} duration={3} />
-                        <RoutingComet path={PATHS.NYC_PAR} color={PORTS.NYC.color} duration={3.5} />
-                        <RoutingComet path={PATHS.DKR_CAS} color={PORTS.CASABLANCA.color} duration={1.5} />
-
-                        {/* Pulsing Hubs */}
-                        <PulseCircle cx={PORTS.DAKAR.x} cy={PORTS.DAKAR.y} color={PORTS.DAKAR.color} size={4} />
-                        <PulseCircle cx={PORTS.SHENZHEN.x} cy={PORTS.SHENZHEN.y} color={PORTS.SHENZHEN.color} />
-                        <PulseCircle cx={PORTS.PARIS.x} cy={PORTS.PARIS.y} color={PORTS.PARIS.color} />
-                        <PulseCircle cx={PORTS.DUBAI.x} cy={PORTS.DUBAI.y} color={PORTS.DUBAI.color} />
-                        <PulseCircle cx={PORTS.NYC.x} cy={PORTS.NYC.y} color={PORTS.NYC.color} />
-                        <PulseCircle cx={PORTS.CASABLANCA.x} cy={PORTS.CASABLANCA.y} color={PORTS.CASABLANCA.color} />
-                    </svg>
-                </div>
+                        {/* Always highlight Dakar as main hub */}
+                        <Marker coordinates={PORT_COORDINATES["DAKAR"].coordinates}>
+                            <circle r={8} fill="rgba(234, 88, 12, 0.4)" className="animate-pulse" />
+                            <circle r={4} fill="#ea580c" />
+                            <circle r={2} fill="#fff" />
+                            <text
+                                textAnchor="middle"
+                                y={-15}
+                                fontFamily="system-ui"
+                                fill="#fbd38d"
+                                fontSize="10px"
+                                fontWeight="bold"
+                            >
+                                DAKAR HUB
+                            </text>
+                        </Marker>
+                    </ComposableMap>
+                )}
             </div>
 
-            <div className="mt-8 grid grid-cols-2 gap-4">
-                <div className="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Hub Principal</p>
-                    <div className="flex items-center gap-2">
-                        <MapPin className="w-4 h-4 text-emerald-500" />
-                        <span className="text-sm font-black text-slate-700 dark:text-white">Dakar, SN</span>
+            <div className="mt-6 grid grid-cols-3 gap-3 relative z-10 glass-panel bg-slate-900/60 p-4 rounded-2xl border border-slate-700/50 backdrop-blur-md">
+                <div>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1">
+                        <MapPin className="w-3 h-3" /> Hub Principal
+                    </p>
+                    <div className="text-sm font-black text-white">Dakar, SN</div>
+                </div>
+                <div className="border-l border-slate-700/50 pl-3">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1">
+                        <Activity className="w-3 h-3" /> Routes Actives
+                    </p>
+                    <div className="text-sm font-black text-primary flex items-end gap-1">
+                        {routes.length} <span className="text-[10px] text-slate-500 font-bold mb-0.5">lignes</span>
                     </div>
                 </div>
-                <div className="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Axe Transit</p>
-                    <div className="flex items-center gap-2">
-                        <div className="flex -space-x-2">
-                            {Object.values(PORTS).slice(1, 4).map((p, i) => (
-                                <div
-                                    key={i}
-                                    className={`w-6 h-6 rounded-full border-2 border-white dark:border-slate-900 ${p.color === "#fbbf24" ? "bg-amber-400" :
-                                            p.color === "#60a5fa" ? "bg-blue-400" :
-                                                p.color === "#f472b6" ? "bg-pink-400" :
-                                                    p.color === "#34d399" ? "bg-emerald-400" :
-                                                        p.color === "#a78bfa" ? "bg-violet-400" :
-                                                            "bg-indigo-500"
-                                        }`}
-                                />
-                            ))}
-                        </div>
-                        <span className="text-sm font-black text-slate-700 dark:text-white">+18 Hubs</span>
+                <div className="border-l border-slate-700/50 pl-3">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1">
+                        <Globe className="w-3 h-3" /> Volumétrie
+                    </p>
+                    <div className="text-sm font-black text-white flex items-end gap-1">
+                        {totalTonnage.toLocaleString()} <span className="text-[10px] text-slate-500 font-bold mb-0.5">kg</span>
                     </div>
                 </div>
             </div>

@@ -40,7 +40,8 @@ export const forwarderService = {
    * Get all forwarders (Admin only)
    */
   getForwarders: async (): Promise<ForwarderProfile[]> => {
-    console.log("forwarderService: Fetching profiles with role='forwarder'...");
+    // Log or trace
+
     const { data, error } = await supabase
       .from("profiles")
       .select(
@@ -57,8 +58,8 @@ export const forwarderService = {
       throw error;
     }
 
-    console.log("forwarderService: Raw data received from DB:", data);
-    console.log("forwarderService: Row count:", data?.length || 0);
+    // Log or trace
+
 
     return (data || []).map(mapDbForwarderToApp);
   },

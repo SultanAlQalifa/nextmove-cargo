@@ -1,20 +1,16 @@
 import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "../../contexts/AuthContext";
-import { useUI } from "../../contexts/UIContext";
 import PaymentModal from "../../components/dashboard/PaymentModal";
 import ChatWindow from "../../components/dashboard/ChatWindow";
 import { quoteService, QuoteRequest } from "../../services/quoteService";
 import { supabase } from "../../lib/supabase";
-import PageHeader from "../../components/common/PageHeader";
 import {
   Package,
   Truck,
   FileText,
-  Plus,
   ArrowRight,
   Clock,
   TrendingUp,
-  Calculator,
   ArrowUpRight,
   X,
   Activity,
@@ -25,7 +21,6 @@ import {
 import { motion } from "framer-motion";
 import LoyaltyCenter from "../../components/dashboard/LoyaltyCenter";
 import { Link, useNavigate } from "react-router-dom";
-import { useTranslation } from "react-i18next";
 import {
   XAxis,
   YAxis,
@@ -43,10 +38,8 @@ import { useSettings } from "../../contexts/SettingsContext";
 import { useFeature } from "../../contexts/FeatureFlagContext";
 
 export default function ClientDashboard() {
-  const { t } = useTranslation();
   const navigate = useNavigate();
   const { profile, user } = useAuth();
-  const { openCalculator } = useUI();
   const { settings } = useSettings();
   const showPredictiveAnalytics = useFeature('predictive_analytics');
 
@@ -91,14 +84,26 @@ export default function ClientDashboard() {
 
   const loadShipments = async () => {
     if (!user) return;
-    const { data, error } = await supabase
+    const { data: shipmentsData, error: shipError } = await supabase
       .from("shipments")
       .select("*, forwarder:forwarder_id(full_name, company_name), payment:payments(*)")
       .eq("client_id", user.id)
       .order("created_at", { ascending: false });
 
-    if (error) console.error("Error loading shipments:", error);
-    else setShipments(data || []);
+    if (shipError) console.error("Error loading shipments:", shipError);
+    else setShipments(shipmentsData || []);
+
+    // Also ensure we have the latest tier info
+    const { data: profileData } = await supabase
+      .from("profiles")
+      .select("*, loyalty_tier:loyalty_tiers(name, discount_percent, color_hex)")
+      .eq("id", user.id)
+      .single();
+
+    if (profileData) {
+      // We can use this to show the real tier name in the UI
+      Object.assign(profile || {}, profileData);
+    }
   };
 
   const { success, error: toastError } = useToast();
@@ -221,34 +226,6 @@ export default function ClientDashboard() {
 
   return (
     <div className="space-y-8 pb-12">
-      <PageHeader
-        title={t("dashboard.menu.dashboard")}
-        subtitle={`Ravi de vous revoir, ${profile?.full_name?.split(' ')[0] || "Client"}.`}
-        action={{
-          label: "Nouvelle Demande",
-          onClick: () => (window.location.href = "/dashboard/client/rfq/create"),
-          icon: Plus,
-        }}
-      >
-        <div className="flex gap-3">
-          <button
-            onClick={openCalculator}
-            className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-slate-600 bg-white/50 hover:bg-white border border-slate-200 hover:border-primary/20 rounded-xl transition-all shadow-sm hover:shadow-md backdrop-blur-sm group"
-          >
-            <div className="p-1 bg-slate-100 rounded-lg group-hover:bg-orange-50 group-hover:text-orange-600 transition-colors">
-              <Calculator className="w-4 h-4" />
-            </div>
-            <span className="hidden sm:inline group-hover:text-orange-600 transition-colors">Calculateur</span>
-          </button>
-          <Link
-            to="/dashboard/client/groupage"
-            className="flex items-center gap-2 px-4 py-2.5 text-sm font-bold text-white bg-orange-600 hover:bg-orange-500 rounded-xl transition-all shadow-md hover:shadow-lg hover:shadow-orange-200 hover:-translate-y-0.5"
-          >
-            <Package className="w-4 h-4" />
-            <span className="hidden sm:inline">Groupage</span>
-          </Link>
-        </div>
-      </PageHeader>
 
       {/* Founder Pack Banner */}
       {showFounderBanner && (
@@ -281,159 +258,163 @@ export default function ClientDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 auto-rows-[minmax(140px,auto)]">
 
         {/* 1. Main Stats Chart - Spans 2 cols, 2 rows on large screens */}
-        <div className="md:col-span-2 lg:col-span-2 row-span-2 glass-card-premium rounded-3xl p-6 relative overflow-hidden group hover:shadow-2xl transition-all duration-500">
-          <div className="flex justify-between items-start mb-6 relative z-10">
+        <div className="md:col-span-2 lg:col-span-2 row-span-2 bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl rounded-[2.5rem] p-8 relative overflow-hidden group hover:shadow-2xl transition-all duration-700 border border-white/40 dark:border-white/5">
+          <div className="flex justify-between items-start mb-8 relative z-10">
             <div>
-              <h3 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                <Activity className="w-5 h-5 text-primary" />
+              <h3 className="text-xl font-black text-slate-900 dark:text-white flex items-center gap-3 uppercase tracking-tighter">
+                <div className="p-2 bg-primary/10 rounded-xl">
+                  <Activity className="w-5 h-5 text-primary" />
+                </div>
                 Activité Mensuelle
               </h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400">Expéditions vs Demandes</p>
+              <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">Expéditions vs Demandes</p>
             </div>
-            <div className="p-2 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
-              <TrendingUp className="w-5 h-5 text-emerald-500" />
+            <div className="p-3 bg-emerald-50 dark:bg-emerald-500/10 rounded-2xl shadow-inner">
+              <TrendingUp className="w-6 h-6 text-emerald-500" />
             </div>
           </div>
 
-          {/* eslint-disable-next-line react/forbid-dom-props */}
           <div className="relative z-10 w-full h-[300px]">
             <ChartGuard height={300}>
-              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0} debounce={1}>
-                <AreaChart data={chartData}>
-                  <defs>
-                    <linearGradient id="colorExp" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#FB923C" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#FB923C" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient id="colorReq" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" opacity={0.5} />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 12 }} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 12 }} />
-                  <Tooltip
-                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                    cursor={{ stroke: '#CBD5E1', strokeWidth: 1, strokeDasharray: '4 4' }}
-                  />
-                  <Area type="monotone" dataKey="expeditions" stackId="1" stroke="#FB923C" strokeWidth={3} fill="url(#colorExp)" />
-                  <Area type="monotone" dataKey="demandes" stackId="1" stroke="#3B82F6" strokeWidth={3} fill="url(#colorReq)" />
-                  {showPredictiveAnalytics && <Area type="monotone" dataKey="prevision" stroke="#94A3B8" strokeWidth={2} strokeDasharray="5 5" fill="transparent" />}
-                </AreaChart>
-              </ResponsiveContainer>
+              <div className="w-full min-h-[300px]">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0} debounce={1}>
+                  <AreaChart data={chartData}>
+                    <defs>
+                      <linearGradient id="colorExp" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#FB923C" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#FB923C" stopOpacity={0} />
+                      </linearGradient>
+                      <linearGradient id="colorReq" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" opacity={0.5} />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 12 }} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 12 }} />
+                    <Tooltip
+                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                      cursor={{ stroke: '#CBD5E1', strokeWidth: 1, strokeDasharray: '4 4' }}
+                    />
+                    <Area type="monotone" dataKey="expeditions" stackId="1" stroke="#FB923C" strokeWidth={3} fill="url(#colorExp)" />
+                    <Area type="monotone" dataKey="demandes" stackId="1" stroke="#3B82F6" strokeWidth={3} fill="url(#colorReq)" />
+                    {showPredictiveAnalytics && <Area type="monotone" dataKey="prevision" stroke="#94A3B8" strokeWidth={2} strokeDasharray="5 5" fill="transparent" />}
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
             </ChartGuard>
           </div>
-          {/* Decorative bg blobs */}
-          <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors pointer-events-none"></div>
+
+          {/* Decorative IA blobs */}
+          <div className="absolute -top-20 -right-20 w-64 h-64 bg-primary/10 rounded-full blur-[100px] group-hover:bg-primary/20 transition-all duration-1000 pointer-events-none animate-pulse"></div>
+          <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-blue-400/10 rounded-full blur-[100px] group-hover:bg-blue-400/20 transition-all duration-1000 pointer-events-none"></div>
         </div>
 
-        {/* Referral Promo Card - Replaces Pie Chart */}
-        <div className="md:col-span-1 lg:col-span-1 row-span-2 bg-gradient-to-br from-violet-600 to-fuchsia-700 rounded-3xl p-6 text-white relative overflow-hidden shadow-lg shadow-violet-500/20 group hover:-translate-y-1 transition-transform">
+        {/* Referral Promo Card */}
+        <div className="md:col-span-1 lg:col-span-1 row-span-2 bg-gradient-to-br from-violet-600 to-fuchsia-700 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-lg shadow-violet-500/20 group hover:-translate-y-1 transition-transform border border-white/20">
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-20 -mt-20 blur-3xl animate-pulse"></div>
           <div className="relative z-10 flex flex-col h-full justify-between">
             <div>
-              <div className="flex justify-between items-start mb-4">
-                <div className="p-2.5 bg-white/20 backdrop-blur-sm rounded-xl">
-                  <Gift className="w-5 h-5 text-white" />
+              <div className="flex justify-between items-start mb-6">
+                <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl border border-white/20">
+                  <Gift className="w-6 h-6 text-white" />
                 </div>
-                <span className="text-xs font-bold bg-white/20 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10">
-                  +500 pts / ami
+                <span className="text-[10px] font-black bg-white text-violet-700 px-3 py-1 rounded-full uppercase tracking-widest">
+                  +500 pts
                 </span>
               </div>
-              <h3 className="text-2xl font-bold mb-2">Invitez & Gagnez</h3>
-              <p className="text-violet-100 text-sm leading-relaxed">
-                Partagez votre code unique avec vos amis. Ils gagnent des réductions et vous recevez 500 points à leur première expédition !
+              <h3 className="text-2xl font-black mb-2 uppercase tracking-tight">Invitez & Gagnez</h3>
+              <p className="text-violet-100 text-sm font-medium leading-relaxed">
+                Partagez votre code unique et recevez 500 points à leur première expédition !
               </p>
             </div>
 
-            <div className="mt-6 p-4 bg-white/10 backdrop-blur-md rounded-xl border border-white/10 text-center">
-              <p className="text-xs font-medium text-violet-200 mb-1">Votre Code</p>
-              <code className="block text-xl font-mono font-bold tracking-widest text-white">
+            <div className="mt-8 p-5 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10 text-center relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-t from-violet-900/40 to-transparent"></div>
+              <p className="text-xs font-bold text-violet-200 mb-2 relative z-10 uppercase tracking-widest">Votre Code</p>
+              <code className="block text-2xl font-black tracking-widest text-white relative z-10">
                 {profile?.referral_code || "---"}
               </code>
             </div>
 
             <Link
               to="/dashboard/client/loyalty?tab=referrals"
-              className="mt-4 w-full py-3 bg-white text-violet-700 font-bold rounded-xl hover:bg-violet-50 transition-colors text-center text-sm shadow-md flex items-center justify-center gap-2 group-hover:gap-3"
+              className="mt-6 w-full py-4 bg-white text-violet-700 font-black rounded-2xl hover:bg-violet-50 transition-all text-center text-xs uppercase tracking-widest shadow-xl flex items-center justify-center gap-2 group-hover:gap-3"
             >
-              Inviter des amis <ArrowRight className="w-4 h-4 transition-all" />
+              Inviter un ami <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
         </div>
 
-        {/* 2. Loyalty Center - Premium Gamified Section (Spans 2 cols on LG) */}
         <div className="lg:col-span-2 md:col-span-2 row-span-2">
           <LoyaltyCenter
             points={profile?.loyalty_points || 0}
             tier={profile?.tier || "Bronze"}
-            pointValue={0.5} // Logic: 1 point = 0.5 XOF
+            pointValue={0.5}
             onConvert={() => navigate('/dashboard/client/loyalty?action=convert')}
             onTransfer={() => navigate('/dashboard/client/loyalty?action=transfer')}
           />
         </div>
 
         {/* 3. Active Shipments */}
-        <div className="bg-white/80 dark:bg-dark-card/80 backdrop-blur-xl rounded-3xl p-6 border border-white/40 dark:border-white/10 shadow-sm hover:shadow-md transition-all group">
-          <div className="flex justify-between items-start mb-4">
-            <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl group-hover:bg-emerald-100 transition-colors">
-              <Truck className="w-5 h-5" />
+        <div className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl rounded-[2.5rem] p-8 border border-white/40 dark:border-white/5 shadow-sm hover:shadow-xl transition-all group relative overflow-hidden">
+          <div className="flex justify-between items-start mb-6">
+            <div className="p-3 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-2xl group-hover:scale-110 transition-transform">
+              <Truck className="w-6 h-6" />
             </div>
-            <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">
+            <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full uppercase tracking-widest border border-emerald-100">
               Actives
             </span>
           </div>
-          <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Expéditions en cours</p>
-          <h3 className="text-3xl font-bold text-slate-800 dark:text-white mt-1">{stats.activeShipments}</h3>
-          <div className="mt-4 flex -space-x-2 overflow-hidden">
-            {/* Fake user avatars/icons representing active shipments agents */}
+          <p className="text-slate-500 dark:text-slate-400 text-xs font-black uppercase tracking-widest">Expéditions</p>
+          <h3 className="text-4xl font-black text-slate-900 dark:text-white mt-1 tracking-tighter">{stats.activeShipments}</h3>
+          <div className="mt-6 flex -space-x-3 overflow-hidden">
             {[1, 2, 3].map(i => (
-              <div key={i} className="inline-block h-6 w-6 rounded-full ring-2 ring-white dark:ring-slate-800 bg-slate-200 flex items-center justify-center text-[8px] font-bold text-slate-500 dark:text-slate-400">A{i}</div>
+              <div key={i} className="inline-block h-8 w-8 rounded-full ring-4 ring-white dark:ring-slate-900 bg-slate-200 flex items-center justify-center text-[10px] font-black text-slate-500">A{i}</div>
             ))}
-            <div className="inline-block h-6 w-6 rounded-full ring-2 ring-white dark:ring-slate-800 bg-slate-100 flex items-center justify-center text-[8px] font-bold text-slate-400">+</div>
+            <div className="inline-block h-8 w-8 rounded-full ring-4 ring-white dark:ring-slate-900 bg-slate-100 flex items-center justify-center text-[10px] font-black text-slate-400">+</div>
           </div>
         </div>
 
         {/* 4. Pending Requests */}
-        <div className="bg-white/80 dark:bg-dark-card/80 backdrop-blur-xl rounded-3xl p-6 border border-white/40 dark:border-white/10 shadow-sm hover:shadow-md transition-all group">
-          <div className="flex justify-between items-start mb-4">
-            <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl group-hover:bg-amber-100 transition-colors">
-              <FileText className="w-5 h-5" />
+        <div className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl rounded-[2.5rem] p-8 border border-white/40 dark:border-white/5 shadow-sm hover:shadow-xl transition-all group relative overflow-hidden">
+          <div className="flex justify-between items-start mb-6">
+            <div className="p-3 bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-2xl group-hover:scale-110 transition-transform">
+              <FileText className="w-6 h-6" />
             </div>
-            <span className="text-xs font-bold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-100">
-              {stats.pendingRequests} En attente
+            <span className="text-[10px] font-black text-amber-600 bg-amber-50 px-3 py-1 rounded-full uppercase tracking-widest border border-amber-100">
+              Devis
             </span>
           </div>
-          <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Demandes de devis</p>
-          <h3 className="text-3xl font-bold text-slate-800 dark:text-white mt-1">{stats.pendingRequests}</h3>
-          <Link to="/dashboard/client/rfq" className="mt-4 text-xs font-semibold text-amber-600 hover:text-amber-700 flex items-center gap-1">
-            Voir les offres <ArrowRight className="w-3 h-3" />
+          <p className="text-slate-500 dark:text-slate-400 text-xs font-black uppercase tracking-widest">Demandes</p>
+          <h3 className="text-4xl font-black text-slate-900 dark:text-white mt-1 tracking-tighter">{stats.pendingRequests}</h3>
+          <Link to="/dashboard/client/rfq" className="mt-6 text-[10px] font-black text-amber-600 hover:text-amber-700 flex items-center gap-1 uppercase tracking-widest group-hover:gap-2 transition-all">
+            Voir les offres <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
 
         {/* 5. Smart Impact & Loyalty */}
         {showPredictiveAnalytics && (
-          <div className="glass-card-premium rounded-3xl p-6 hover:shadow-xl transition-all duration-300 group relative overflow-hidden animate-delay-400">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -mr-12 -mt-12 blur-2xl" />
-            <div className="flex justify-between items-start mb-4">
-              <div className="p-2.5 bg-primary/10 text-primary rounded-xl group-hover:bg-primary/20 transition-colors">
-                <Zap className="w-5 h-5 fill-current" />
+          <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white hover:shadow-2xl transition-all duration-300 group relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full -mr-16 -mt-16 blur-3xl animate-pulse" />
+            <div className="flex justify-between items-start mb-6">
+              <div className="p-3 bg-white/10 text-primary rounded-2xl border border-white/10 group-hover:rotate-12 transition-transform">
+                <Zap className="w-6 h-6 fill-current" />
               </div>
               <div className="text-right">
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Impact Score</span>
-                <div className="text-lg font-black text-primary">{stats.impactScore}/100</div>
+                <div className="text-2xl font-black text-white">{stats.impactScore}<span className="text-sm text-slate-500">/100</span></div>
               </div>
             </div>
-            <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Prochain Palier</p>
-            <div className="mt-2 h-2 w-full bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+            <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">Progression Elite</p>
+            <div className="mt-4 h-3 w-full bg-white/10 rounded-full overflow-hidden border border-white/5">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${stats.impactScore}%` }}
-                className="h-full bg-primary"
+                className="h-full bg-gradient-to-r from-primary to-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.5)]"
               />
             </div>
-            <p className="text-[9px] text-slate-400 mt-2 font-bold uppercase italic">Logistique Premium activée</p>
+            <p className="text-[9px] text-primary/80 mt-4 font-black uppercase tracking-[0.2em] animate-pulse">Assistant IA Activé</p>
           </div>
         )}
 
@@ -541,73 +522,79 @@ export default function ClientDashboard() {
       </div>
 
       {/* Modals */}
-      {selectedRequestQuotes && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-          <div className="bg-white dark:bg-dark-card rounded-3xl p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto shadow-2xl border border-white/20 dark:border-white/10">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white">
-                Offres Disponibles
-              </h3>
-              <button
-                onClick={() => setSelectedRequestQuotes(null)}
-                className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors"
-                aria-label="Fermer"
-              >
-                <X className="w-5 h-5 text-slate-500 dark:text-slate-400" />
-              </button>
-            </div>
-            <div className="space-y-4">
-              {selectedRequestQuotes.map((quote) => (
-                <div
-                  key={quote.id}
-                  className="border border-slate-100 dark:border-slate-700 rounded-2xl p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center hover:shadow-lg transition-all bg-slate-50/50 dark:bg-slate-900/50 group"
+      {
+        selectedRequestQuotes && (
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+            <div className="bg-white dark:bg-dark-card rounded-3xl p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto shadow-2xl border border-white/20 dark:border-white/10">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white">
+                  Offres Disponibles
+                </h3>
+                <button
+                  onClick={() => setSelectedRequestQuotes(null)}
+                  className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors"
+                  aria-label="Fermer"
                 >
-                  <div>
-                    <p className="font-bold text-lg text-slate-900 dark:text-white flex items-center gap-2">
-                      {quote.forwarder?.company_name || "Prestataire"}
-                      <div className="text-[10px] px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full">Verifié</div>
-                    </p>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      Valide jusqu'au: {quote.valid_until ? new Date(quote.valid_until).toLocaleDateString() : "N/A"}
-                    </p>
+                  <X className="w-5 h-5 text-slate-500 dark:text-slate-400" />
+                </button>
+              </div>
+              <div className="space-y-4">
+                {selectedRequestQuotes.map((quote) => (
+                  <div
+                    key={quote.id}
+                    className="border border-slate-100 dark:border-slate-700 rounded-2xl p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center hover:shadow-lg transition-all bg-slate-50/50 dark:bg-slate-900/50 group"
+                  >
+                    <div>
+                      <p className="font-bold text-lg text-slate-900 dark:text-white flex items-center gap-2">
+                        {quote.forwarder?.company_name || "Prestataire"}
+                        <div className="text-[10px] px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full">Verifié</div>
+                      </p>
+                      <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        Valide jusqu'au: {quote.valid_until ? new Date(quote.valid_until).toLocaleDateString() : "N/A"}
+                      </p>
+                    </div>
+                    <div className="mt-4 sm:mt-0 text-right">
+                      <p className="text-2xl font-bold text-primary">
+                        {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: quote.currency || 'XOF' }).format(quote.amount)}
+                      </p>
+                      <button
+                        onClick={() => handleAcceptQuote(quote.id, quote.request_id)}
+                        className="mt-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-6 py-2.5 rounded-xl hover:bg-slate-800 dark:hover:bg-slate-100 text-sm font-bold transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                      >
+                        Accepter
+                      </button>
+                    </div>
                   </div>
-                  <div className="mt-4 sm:mt-0 text-right">
-                    <p className="text-2xl font-bold text-primary">
-                      {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: quote.currency || 'XOF' }).format(quote.amount)}
-                    </p>
-                    <button
-                      onClick={() => handleAcceptQuote(quote.id, quote.request_id)}
-                      className="mt-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-6 py-2.5 rounded-xl hover:bg-slate-800 dark:hover:bg-slate-100 text-sm font-bold transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
-                    >
-                      Accepter
-                    </button>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
-      {paymentShipment && (
-        <PaymentModal
-          shipment={paymentShipment}
-          onClose={() => setPaymentShipment(null)}
-          onSuccess={() => {
-            setPaymentShipment(null);
-            loadData();
-          }}
-        />
-      )}
+      {
+        paymentShipment && (
+          <PaymentModal
+            shipment={paymentShipment}
+            onClose={() => setPaymentShipment(null)}
+            onSuccess={() => {
+              setPaymentShipment(null);
+              loadData();
+            }}
+          />
+        )
+      }
 
-      {activeChat && (
-        <ChatWindow
-          chatId={activeChat.chatId}
-          recipientName={activeChat.recipientName}
-          onClose={() => setActiveChat(null)}
-        />
-      )}
+      {
+        activeChat && (
+          <ChatWindow
+            chatId={activeChat.chatId}
+            recipientName={activeChat.recipientName}
+            onClose={() => setActiveChat(null)}
+          />
+        )
+      }
 
       <ConfirmationModal
         isOpen={confirmation.isOpen}
@@ -617,6 +604,6 @@ export default function ClientDashboard() {
         message="Êtes-vous sûr de vouloir accepter cette offre ? Cela créera une expédition automatiquement."
         confirmLabel="Accepter et Payer"
       />
-    </div>
+    </div >
   );
 }

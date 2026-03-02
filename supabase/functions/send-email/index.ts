@@ -70,13 +70,13 @@ serve(async (req: Request) => {
 
 
 
-        const { data: settingsData } = await adminClient
-            .from('system_settings')
+        const { data: secretsData } = await adminClient
+            .from('system_secrets')
             .select('value')
-            .eq('key', 'email')
+            .eq('key', 'email_secrets')
             .single();
 
-        const smtpConfig = settingsData?.value;
+        const smtpConfig = secretsData?.value;
 
         // 3. Send Email
         if (smtpConfig?.smtp_host && smtpConfig?.smtp_user) {

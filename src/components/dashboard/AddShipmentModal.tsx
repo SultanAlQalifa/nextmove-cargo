@@ -44,7 +44,7 @@ interface AddShipmentModalProps {
     rate_id?: string;
   };
   rate_id?: string;
-  parentShipment?: any; // Using any for now to avoid circular dependency import but should be Shipment
+  parentShipment?: any; // Keep any for now if circular, or use a partial if defined
 }
 
 export default function AddShipmentModal({

@@ -1,0 +1,293 @@
+supabase/migrations/002_notifications.sql:20:    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+supabase/migrations/002_notifications.sql:30:CREATE INDEX idx_notif_user ON notifications(user_id);
+supabase/migrations/002_notifications.sql:37:SELECT USING (auth.uid() = user_id);
+supabase/migrations/002_notifications.sql:40:UPDATE USING (auth.uid() = user_id);
+supabase/migrations/002_notifications.sql:52:INSERT INTO notifications (user_id, title, message, type, link)
+supabase/migrations/002_notifications.sql:67:INSERT INTO notifications (user_id, title, message, type, link)
+supabase/migrations/002_notifications.sql:96:INSERT INTO notifications (user_id, title, message, type, link)
+supabase/migrations/002_notifications.sql:113:INSERT INTO notifications (user_id, title, message, type, link)
+supabase/migrations/002_notifications.sql:123:INSERT INTO notifications (user_id, title, message, type, link)
+supabase/migrations/003_coupons.sql:41:    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+supabase/migrations/003_coupons.sql:52:CREATE INDEX idx_coupon_usages_user ON coupon_usages(user_id);
+supabase/migrations/003_coupons.sql:71:SELECT USING (auth.uid() = user_id);
+supabase/migrations/003_coupons.sql:74:INSERT WITH CHECK (auth.uid() = user_id);
+supabase/migrations/005_messaging.sql:18:    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+supabase/migrations/005_messaging.sql:21:    PRIMARY KEY (conversation_id, user_id)
+supabase/migrations/005_messaging.sql:34:CREATE INDEX idx_conv_participants_user ON conversation_participants(user_id);
+supabase/migrations/005_messaging.sql:48:                AND cp.user_id = auth.uid()
+supabase/migrations/005_messaging.sql:58:                AND cp.user_id = auth.uid()
+supabase/migrations/005_messaging.sql:68:                AND cp.user_id = auth.uid()
+supabase/migrations/005_messaging.sql:78:                AND cp.user_id = auth.uid()
+supabase/migrations/007_remaining_services.sql:212:    user_id UUID REFERENCES profiles(id) NOT NULL,
+supabase/migrations/007_remaining_services.sql:222:CREATE INDEX IF NOT EXISTS idx_user_subscriptions_user ON user_subscriptions(user_id);
+supabase/migrations/007_remaining_services.sql:225:SELECT USING (auth.uid() = user_id);
+supabase/migrations/007_remaining_services.sql:282:    user_id UUID REFERENCES profiles(id) NOT NULL,
+supabase/migrations/007_remaining_services.sql:293:CREATE INDEX IF NOT EXISTS idx_tickets_user ON tickets(user_id);
+supabase/migrations/007_remaining_services.sql:297:SELECT USING (auth.uid() = user_id);
+supabase/migrations/007_remaining_services.sql:299:INSERT WITH CHECK (auth.uid() = user_id);
+supabase/migrations/007_remaining_services.sql:334:                AND user_id = auth.uid()
+supabase/migrations/007_remaining_services.sql:353:                    AND user_id = auth.uid()
+supabase/migrations/009_fix_notification_policy.sql:3:INSERT WITH CHECK (auth.uid() = user_id);
+supabase/migrations/011_fix_subscription_rls.sql:8:INSERT WITH CHECK (auth.uid() = user_id);
+supabase/migrations/011_fix_subscription_rls.sql:12:UPDATE USING (auth.uid() = user_id);
+supabase/migrations/012_fix_subscription_rls_final.sql:13:SELECT USING (auth.uid() = user_id);
+supabase/migrations/012_fix_subscription_rls_final.sql:16:INSERT WITH CHECK (auth.uid() = user_id);
+supabase/migrations/012_fix_subscription_rls_final.sql:19:UPDATE USING (auth.uid() = user_id);
+supabase/migrations/013_platform_consolidation.sql:83:    user_id UUID REFERENCES profiles(id) NOT NULL,
+supabase/migrations/013_platform_consolidation.sql:99:SELECT TO authenticated USING (auth.uid() = user_id);
+supabase/migrations/013_platform_consolidation.sql:110:    user_id UUID REFERENCES profiles(id),
+supabase/migrations/013_platform_consolidation.sql:125:SELECT TO authenticated USING (auth.uid() = user_id);
+supabase/migrations/013_platform_consolidation.sql:227:DECLARE v_user_id UUID;
+supabase/migrations/013_platform_consolidation.sql:229:BEGIN v_user_id := auth.uid();
+supabase/migrations/013_platform_consolidation.sql:230:IF v_user_id IS NULL THEN RAISE EXCEPTION 'Not authenticated';
+supabase/migrations/013_platform_consolidation.sql:234:WHERE id = v_user_id;
+supabase/migrations/013_platform_consolidation.sql:243:WHERE id = v_user_id;
+supabase/migrations/016_fix_transactions_rls.sql:3:INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
+supabase/migrations/024_sync_roles_with_subscriptions.sql:10:        SELECT user_id
+supabase/migrations/024_sync_roles_with_subscriptions.sql:21:WHERE id = NEW.user_id
+supabase/migrations/026_add_friendly_ids.sql:2:CREATE SEQUENCE IF NOT EXISTS user_id_seq START 10000;
+supabase/migrations/026_add_friendly_ids.sql:4:CREATE OR REPLACE FUNCTION generate_friendly_id() RETURNS TEXT AS $$ BEGIN RETURN 'USR-' || nextval('user_id_seq');
+supabase/migrations/029_seed_test_transaction.sql:4:DECLARE v_user_id UUID;
+supabase/migrations/029_seed_test_transaction.sql:6:SELECT id INTO v_user_id
+supabase/migrations/029_seed_test_transaction.sql:12:IF v_user_id IS NULL THEN
+supabase/migrations/029_seed_test_transaction.sql:13:SELECT id INTO v_user_id
+supabase/migrations/029_seed_test_transaction.sql:17:IF v_user_id IS NOT NULL THEN
+supabase/migrations/029_seed_test_transaction.sql:19:        user_id,
+supabase/migrations/029_seed_test_transaction.sql:29:        v_user_id,
+supabase/migrations/034_restore_missing_transaction.sql:3:DECLARE v_user_id UUID;
+supabase/migrations/034_restore_missing_transaction.sql:5:SELECT id INTO v_user_id
+supabase/migrations/034_restore_missing_transaction.sql:8:IF v_user_id IS NOT NULL THEN -- Insert the transaction if it doesn't exist
+supabase/migrations/034_restore_missing_transaction.sql:13:        AND user_id = v_user_id
+supabase/migrations/034_restore_missing_transaction.sql:16:        user_id,
+supabase/migrations/034_restore_missing_transaction.sql:26:        v_user_id,
+supabase/migrations/036_ensure_coupons_table.sql:36:    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+supabase/migrations/036_ensure_coupons_table.sql:45:CREATE INDEX IF NOT EXISTS idx_coupon_usages_user ON coupon_usages(user_id);
+supabase/migrations/036_ensure_coupons_table.sql:64:SELECT USING (auth.uid() = user_id);
+supabase/migrations/036_ensure_coupons_table.sql:67:INSERT WITH CHECK (auth.uid() = user_id);
+supabase/migrations/039_fix_messaging_recursion.sql:9:            AND user_id = auth.uid()
+supabase/migrations/040_strict_data_isolation.sql:18:        auth.uid() = user_id
+supabase/migrations/040_strict_data_isolation.sql:25:        auth.uid() = user_id
+supabase/migrations/041_ensure_tickets_column.sql:32:SELECT USING (auth.uid() = user_id);
+supabase/migrations/041_ensure_tickets_column.sql:58:                    user_id = auth.uid()
+supabase/migrations/054_debug_trigger.sql:40:            'user_id',
+supabase/migrations/20251213014000_process_refund.sql:11:DECLARE v_user_id UUID;
+supabase/migrations/20251213014000_process_refund.sql:21:v_user_id := v_transaction.user_id;
+supabase/migrations/20251213014000_process_refund.sql:27:WHERE user_id = v_user_id;
+supabase/migrations/20251213014000_process_refund.sql:38:        user_id,
+supabase/migrations/20251213014000_process_refund.sql:50:        v_user_id,
+supabase/migrations/20251222000001_create_audit_logs.sql:3:DROP INDEX IF EXISTS public.idx_audit_logs_user_id;
+supabase/migrations/20251222000001_create_audit_logs.sql:12:    user_id UUID REFERENCES public.profiles(id) ON DELETE
+supabase/migrations/20251222000001_create_audit_logs.sql:28:CREATE INDEX IF NOT EXISTS idx_audit_logs_user_id ON public.audit_logs(user_id);
+supabase/migrations/20251222000002_create_saved_quotes.sql:4:    user_id UUID REFERENCES auth.users(id),
+supabase/migrations/20251222000002_create_saved_quotes.sql:18:            WHERE user_id = auth.uid()
+supabase/migrations/20251222000002_create_saved_quotes.sql:24:SELECT USING (auth.uid() = user_id);
+supabase/migrations/20260101000003_update_user_trigger_transport.sql:44:            'user_id',
+supabase/migrations/20260101000006_wallets_and_transactions.sql:20:    user_id uuid NOT NULL REFERENCES public.profiles(id),
+supabase/migrations/20260101000006_wallets_and_transactions.sql:25:    UNIQUE(user_id)
+supabase/migrations/20260101000006_wallets_and_transactions.sql:45:SELECT USING (auth.uid() = user_id);
+supabase/migrations/20260101000006_wallets_and_transactions.sql:52:            WHERE user_id = auth.uid()
+supabase/migrations/20260101000006_wallets_and_transactions.sql:95:INSERT INTO public.wallets (user_id, balance, currency)
+supabase/migrations/20260101000006_wallets_and_transactions.sql:96:VALUES (NEW.id, 0.00, 'XOF') ON CONFLICT (user_id) DO NOTHING;
+supabase/migrations/20260101000006_wallets_and_transactions.sql:106:        p_user_id uuid,
+supabase/migrations/20260101000006_wallets_and_transactions.sql:116:WHERE id = p_user_id;
+supabase/migrations/20260101000006_wallets_and_transactions.sql:123:WHERE user_id = p_user_id;
+supabase/migrations/20260101000006_wallets_and_transactions.sql:125:INSERT INTO public.wallets (user_id, balance)
+supabase/migrations/20260101000006_wallets_and_transactions.sql:126:VALUES (p_user_id, 0)
+supabase/migrations/20260101000006_wallets_and_transactions.sql:132:WHERE id = p_user_id;
+supabase/migrations/20260101000006_wallets_and_transactions.sql:158:        p_user_id uuid,
+supabase/migrations/20260101000006_wallets_and_transactions.sql:170:WHERE user_id = p_user_id FOR
+supabase/migrations/20260101000006_wallets_and_transactions.sql:207:        p_user_id uuid,
+supabase/migrations/20260101000006_wallets_and_transactions.sql:223:WHERE user_id = p_user_id FOR
+supabase/migrations/20260101000006_wallets_and_transactions.sql:226:INSERT INTO public.wallets (user_id, balance)
+supabase/migrations/20260101000006_wallets_and_transactions.sql:227:VALUES (p_user_id, 0)
+supabase/migrations/20260101000006_wallets_and_transactions.sql:264:INSERT INTO public.wallets (user_id, balance, currency)
+supabase/migrations/20260101000006_wallets_and_transactions.sql:270:        SELECT user_id
+supabase/migrations/20260101000006_wallets_and_transactions.sql:272:    ) ON CONFLICT (user_id) DO NOTHING;
+supabase/migrations/20260101000008_pay_with_wallet.sql:3:        p_user_id UUID,
+supabase/migrations/20260101000008_pay_with_wallet.sql:17:WHERE user_id = p_user_id;
+supabase/migrations/20260101000008_pay_with_wallet.sql:34:        user_id,
+supabase/migrations/20260101000008_pay_with_wallet.sql:44:        p_user_id,
+supabase/migrations/20260101000009_admin_wallet_func.sql:3:        p_user_id UUID,
+supabase/migrations/20260101000009_admin_wallet_func.sql:25:WHERE user_id = p_user_id;
+supabase/migrations/20260101000009_admin_wallet_func.sql:27:INSERT INTO public.wallets (user_id, balance)
+supabase/migrations/20260101000009_admin_wallet_func.sql:28:VALUES (p_user_id, 0)
+supabase/migrations/20260101000009_admin_wallet_func.sql:48:        user_id,
+supabase/migrations/20260101000009_admin_wallet_func.sql:59:        p_user_id,
+supabase/migrations/20260101000010_backfill_wallets.sql:4:INSERT INTO public.wallets (user_id, balance, currency)
+supabase/migrations/20260101000010_backfill_wallets.sql:10:        SELECT user_id
+supabase/migrations/20260101000020_fix_notification_triggers.sql:15:INSERT INTO notifications (user_id, title, message, type, link)
+supabase/migrations/20260101000020_fix_notification_triggers.sql:29:INSERT INTO notifications (user_id, title, message, type, link)
+supabase/migrations/20260101000020_fix_notification_triggers.sql:54:INSERT INTO notifications (user_id, title, message, type, link)
+supabase/migrations/20260101000020_fix_notification_triggers.sql:69:INSERT INTO notifications (user_id, title, message, type, link)
+supabase/migrations/20260101000020_fix_notification_triggers.sql:79:INSERT INTO notifications (user_id, title, message, type, link)
+supabase/migrations/20260101000086_notification_trigger.sql:18:WHERE id = NEW.user_id;
+supabase/migrations/20260101000086_notification_trigger.sql:33:        NEW.user_id,
+supabase/migrations/20260101000112_fix_deep_schema_gaps.sql:57:-- Add user_id (Direct link for easier querying, typically implicit via wallet but explicit in code)
+supabase/migrations/20260101000112_fix_deep_schema_gaps.sql:62:        AND column_name = 'user_id'
+supabase/migrations/20260101000112_fix_deep_schema_gaps.sql:65:ADD COLUMN user_id UUID REFERENCES public.profiles(id);
+supabase/migrations/20260101000113_fix_shipment_rls.sql:15:            WHERE ur.user_id = auth.uid()
+supabase/migrations/20260101000113_fix_shipment_rls.sql:30:        WHERE ur.user_id = auth.uid()
+supabase/migrations/20260101000117_mutual_connections.sql:56:INSERT INTO public.notifications (user_id, title, message, type, link)
+supabase/migrations/20260101000117_mutual_connections.sql:71:INSERT INTO public.notifications (user_id, title, message, type, link)
+supabase/migrations/20260101000120_fix_tickets_rls.sql:21:        user_id = auth.uid()
+supabase/migrations/20260101000120_fix_tickets_rls.sql:32:INSERT WITH CHECK (auth.uid() = user_id);
+supabase/migrations/20260101000120_fix_tickets_rls.sql:37:        user_id = auth.uid()
+supabase/migrations/20260101000120_fix_tickets_rls.sql:68:                    user_id = auth.uid()
+supabase/migrations/20260101000120_fix_tickets_rls.sql:89:                    user_id = auth.uid()
+supabase/migrations/20260101000200_secure_wallets.sql:17:            auth.uid() = user_id
+supabase/migrations/20260101000200_secure_wallets.sql:43:                WHERE user_id = auth.uid()
+supabase/migrations/20260101000300_financial_core.sql:132:CREATE OR REPLACE FUNCTION process_shipment_payment_escrow(p_shipment_id UUID, p_user_id UUID) RETURNS JSONB AS $$
+supabase/migrations/20260101000300_financial_core.sql:153:WHERE user_id = p_user_id;
+supabase/migrations/20260101000300_financial_core.sql:168:        user_id,
+supabase/migrations/20260101000300_financial_core.sql:179:        p_user_id,
+supabase/migrations/20260101000300_financial_core.sql:197:WHERE user_id = v_shipment.forwarder_id;
+supabase/migrations/20260101000300_financial_core.sql:200:INSERT INTO wallets (user_id, currency, balance)
+supabase/migrations/20260101000300_financial_core.sql:206:        user_id,
+supabase/migrations/20260101000300_secure_role_assignment.sql:90:INSERT INTO public.wallets (user_id, balance, currency)
+supabase/migrations/20260101000300_secure_role_assignment.sql:95:    ) ON CONFLICT (user_id) DO NOTHING;
+supabase/migrations/20260101000400_fix_wallet_security.sql:5:INSERT INTO public.wallets (user_id, balance, currency)
+supabase/migrations/20260101000400_fix_wallet_security.sql:6:VALUES (NEW.id, 0.00, 'XOF') ON CONFLICT (user_id) DO NOTHING;
+supabase/migrations/20260101000610_secure_notification_rpc.sql:4:        p_user_id UUID,
+supabase/migrations/20260101000610_secure_notification_rpc.sql:12:        user_id,
+supabase/migrations/20260101000610_secure_notification_rpc.sql:20:        p_user_id,
+supabase/migrations/20260101000800_sync_user_phone.sql:51:            'user_id',
+supabase/migrations/20260101000900_trial_and_settings.sql:80:            'user_id',
+supabase/migrations/20260101002000_loyalty_automation_v2.sql:20:DECLARE v_user_id UUID;
+supabase/migrations/20260101002000_loyalty_automation_v2.sql:26:BEGIN v_user_id := auth.uid();
+supabase/migrations/20260101002000_loyalty_automation_v2.sql:30:WHERE id = v_user_id;
+supabase/migrations/20260101002000_loyalty_automation_v2.sql:38:WHERE user_id = v_user_id;
+supabase/migrations/20260101002000_loyalty_automation_v2.sql:41:INSERT INTO public.wallets (user_id, balance, currency)
+supabase/migrations/20260101002000_loyalty_automation_v2.sql:42:VALUES (v_user_id, 0, 'XOF')
+supabase/migrations/20260101002000_loyalty_automation_v2.sql:50:WHERE id = v_user_id;
+supabase/migrations/20260101003000_enable_referral_signup.sql:66:            'user_id',
+supabase/migrations/20260101004000_performance_indexes.sql:27:-- Ensure user_id exists for direct user history queries (Denormalization for perf)
+supabase/migrations/20260101004000_performance_indexes.sql:32:        AND column_name = 'user_id'
+supabase/migrations/20260101004000_performance_indexes.sql:35:ADD COLUMN user_id UUID REFERENCES public.profiles(id);
+supabase/migrations/20260101004000_performance_indexes.sql:49:        AND column_name = 'user_id'
+supabase/migrations/20260101004000_performance_indexes.sql:50:) THEN CREATE INDEX IF NOT EXISTS idx_transactions_user_id ON public.transactions(user_id);
+supabase/migrations/20260101004000_performance_indexes.sql:72:        AND column_name = 'user_id'
+supabase/migrations/20260101004000_performance_indexes.sql:73:) THEN CREATE INDEX IF NOT EXISTS idx_notifications_user_unread ON public.notifications(user_id)
+supabase/migrations/20260101004000_performance_indexes.sql:110:        AND column_name = 'user_id'
+supabase/migrations/20260101004000_performance_indexes.sql:111:) THEN CREATE INDEX IF NOT EXISTS idx_tickets_user_status ON public.tickets(user_id);
+supabase/migrations/20260101004030_enforce_usage_limits.sql:5:CREATE OR REPLACE FUNCTION get_plan_limit(p_user_id UUID, p_feature_key TEXT) RETURNS INTEGER AS $$
+supabase/migrations/20260101004030_enforce_usage_limits.sql:11:WHERE id = p_user_id;
+supabase/migrations/20260101004030_enforce_usage_limits.sql:18:WHERE us.user_id = p_user_id
+supabase/migrations/20260101005000_support_system_v2.sql:18:WHERE user_id = NEW.user_id
+supabase/migrations/20260101005000_support_system_v2.sql:32:-- UNLESS the inserter is an admin (we check by seeing if user_id != auth.uid() usually, 
+supabase/migrations/20260101006000_notifications_system.sql:16:    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+supabase/migrations/20260101006000_notifications_system.sql:36:CREATE INDEX IF NOT EXISTS idx_notifications_user_read ON public.notifications(user_id, read_at);
+supabase/migrations/20260101006000_notifications_system.sql:41:SELECT USING (auth.uid() = user_id);
+supabase/migrations/20260101006000_notifications_system.sql:43:UPDATE USING (auth.uid() = user_id);
+supabase/migrations/20260101006000_notifications_system.sql:47:    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+supabase/migrations/20260101006000_notifications_system.sql:54:    PRIMARY KEY (user_id, event_type)
+supabase/migrations/20260101006000_notifications_system.sql:58:SELECT USING (auth.uid() = user_id);
+supabase/migrations/20260101006000_notifications_system.sql:60:UPDATE USING (auth.uid() = user_id);
+supabase/migrations/20260101006000_notifications_system.sql:65:        p_user_id UUID,
+supabase/migrations/20260101006000_notifications_system.sql:74:INSERT INTO public.notifications (user_id, title, message, type, link, data)
+supabase/migrations/20260101006000_notifications_system.sql:76:        p_user_id,
+supabase/migrations/20260101006000_notifications_system.sql:93:SELECT user_id,
+supabase/migrations/20260101006000_notifications_system.sql:118:        NEW.user_id,
+supabase/migrations/20260101007000_security_hardening.sql:88:    -- format: 'user_id:action'
+supabase/migrations/20260101007000_security_hardening.sql:98:        p_user_id UUID,
+supabase/migrations/20260101007000_security_hardening.sql:107:BEGIN v_key := p_user_id::text || ':' || p_action;
+supabase/migrations/20260101007001_fix_rate_limit_schema.sql:88:        p_user_id UUID,
+supabase/migrations/20260101007001_fix_rate_limit_schema.sql:95:BEGIN v_key := p_user_id::text || ':' || p_action;
+supabase/migrations/20260101007200_heal_audit_logs.sql:7:        AND column_name = 'user_id'
+supabase/migrations/20260101007200_heal_audit_logs.sql:10:ADD COLUMN user_id UUID REFERENCES public.profiles(id) ON DELETE
+supabase/migrations/20260101007200_heal_audit_logs.sql:74:-- 3. Sync user_id and changed_by if both exist (for consistency)
+supabase/migrations/20260101008000_database_integrity.sql:18:CREATE INDEX IF NOT EXISTS idx_tickets_user_id ON public.tickets(user_id);
+supabase/migrations/20260101008000_database_integrity.sql:27:WHERE user_id IS NOT NULL
+supabase/migrations/20260101008000_database_integrity.sql:28:    AND user_id NOT IN (
+supabase/migrations/20260101008000_database_integrity.sql:34:WHERE user_id NOT IN (
+supabase/migrations/20260101009000_business_engine.sql:22:    user_id UUID REFERENCES auth.users(id) NOT NULL,
+supabase/migrations/20260101009000_business_engine.sql:23:    -- "client_id" in logic, but standardizing on user_id for billing
+supabase/migrations/20260101009000_business_engine.sql:49:CREATE INDEX IF NOT EXISTS idx_invoices_user_status ON public.invoices(user_id, status);
+supabase/migrations/20260101009000_business_engine.sql:84:        user_id,
+supabase/migrations/20260101009000_business_engine.sql:140:SELECT USING (auth.uid() = user_id);
+supabase/migrations/20260101009000_fix_ticket_sla_trigger.sql:6:    user_id UUID REFERENCES auth.users(id) NOT NULL,
+supabase/migrations/20260101009000_fix_ticket_sla_trigger.sql:25:WHERE id = NEW.user_id;
+supabase/migrations/20260101009000_fix_ticket_sla_trigger.sql:56:        user_id = auth.uid()
+supabase/migrations/20260101009000_fix_ticket_sla_trigger.sql:71:INSERT WITH CHECK (auth.uid() = user_id);
+supabase/migrations/20260101009000_fix_ticket_sla_trigger.sql:76:        user_id = auth.uid()
+supabase/migrations/20260101009100_launch_promotions.sql:77:            'user_id',
+supabase/migrations/20260101009200_fix_point_prices.sql:15:DECLARE v_user_id UUID;
+supabase/migrations/20260101009200_fix_point_prices.sql:20:BEGIN v_user_id := auth.uid();
+supabase/migrations/20260101009200_fix_point_prices.sql:31:WHERE id = v_user_id;
+supabase/migrations/20260101009200_fix_point_prices.sql:39:WHERE user_id = v_user_id;
+supabase/migrations/20260101009200_fix_point_prices.sql:42:INSERT INTO public.wallets (user_id, balance, currency)
+supabase/migrations/20260101009200_fix_point_prices.sql:43:VALUES (v_user_id, 0, 'XOF')
+supabase/migrations/20260101009200_fix_point_prices.sql:51:WHERE id = v_user_id;
+supabase/migrations/20260101009400_improve_auth_trigger.sql:74:            'user_id',
+supabase/migrations/20260101009901_fix_admin_status.sql:106:            'user_id',
+supabase/migrations/20260101009907_fix_wallet_security.sql:5:        p_user_id uuid,
+supabase/migrations/20260101009907_fix_wallet_security.sql:13:IF p_user_id != auth.uid() THEN RAISE EXCEPTION 'Unauthorized: You can only convert your own points';
+supabase/migrations/20260101009907_fix_wallet_security.sql:17:WHERE id = p_user_id;
+supabase/migrations/20260101009907_fix_wallet_security.sql:24:WHERE user_id = p_user_id;
+supabase/migrations/20260101009907_fix_wallet_security.sql:26:INSERT INTO public.wallets (user_id, balance)
+supabase/migrations/20260101009907_fix_wallet_security.sql:27:VALUES (p_user_id, 0)
+supabase/migrations/20260101009907_fix_wallet_security.sql:33:WHERE id = p_user_id;
+supabase/migrations/20260101009907_fix_wallet_security.sql:58:        p_user_id uuid,
+supabase/migrations/20260101009907_fix_wallet_security.sql:66:IF p_user_id != auth.uid() THEN RAISE EXCEPTION 'Unauthorized: You can only pay with your own wallet';
+supabase/migrations/20260101009907_fix_wallet_security.sql:72:WHERE user_id = p_user_id FOR
+supabase/migrations/20260101009916_academy_system.sql:41:    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+supabase/migrations/20260101009916_academy_system.sql:49:    UNIQUE(user_id, course_id)
+supabase/migrations/20260101009916_academy_system.sql:72:            WHERE user_id = auth.uid()
+supabase/migrations/20260101009916_academy_system.sql:92:SELECT USING (auth.uid() = user_id);
+supabase/migrations/20260101009916_academy_system.sql:143:    JOIN profiles p ON p.id = e.user_id
+supabase/migrations/20260101009917_academy_feedback.sql:8:    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+supabase/migrations/20260101009917_academy_feedback.sql:16:    UNIQUE(course_id, user_id)
+supabase/migrations/20260101009917_academy_feedback.sql:22:    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+supabase/migrations/20260101009917_academy_feedback.sql:24:    UNIQUE(lesson_id, user_id)
+supabase/migrations/20260101009917_academy_feedback.sql:30:    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+supabase/migrations/20260101009917_academy_feedback.sql:43:INSERT WITH CHECK (auth.uid() = user_id);
+supabase/migrations/20260101009917_academy_feedback.sql:45:UPDATE USING (auth.uid() = user_id);
+supabase/migrations/20260101009917_academy_feedback.sql:47:    auth.uid() = user_id
+supabase/migrations/20260101009917_academy_feedback.sql:59:INSERT WITH CHECK (auth.uid() = user_id);
+supabase/migrations/20260101009917_academy_feedback.sql:60:CREATE POLICY "Users can unlike lessons" ON academy_lesson_likes FOR DELETE USING (auth.uid() = user_id);
+supabase/migrations/20260101009917_academy_feedback.sql:65:INSERT WITH CHECK (auth.uid() = user_id);
+supabase/migrations/20260101009917_academy_feedback.sql:67:UPDATE USING (auth.uid() = user_id);
+supabase/migrations/20260101009917_academy_feedback.sql:69:    auth.uid() = user_id
+supabase/migrations/20260101009919_academy_v3.sql:38:    user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+supabase/migrations/20260101009919_academy_v3.sql:58:SELECT USING (auth.uid() = user_id);
+supabase/migrations/20260101010000_unified_points_system.sql:5:    user_id uuid NOT NULL REFERENCES public.profiles(id),
+supabase/migrations/20260101010000_unified_points_system.sql:19:SELECT USING (auth.uid() = user_id);
+supabase/migrations/20260101010000_unified_points_system.sql:22:        p_user_id uuid,
+supabase/migrations/20260101010000_unified_points_system.sql:28:INSERT INTO public.point_history (user_id, amount, reason, related_id, metadata)
+supabase/migrations/20260101010000_unified_points_system.sql:30:        p_user_id,
+supabase/migrations/20260101010000_unified_points_system.sql:40:DECLARE v_user_id uuid;
+supabase/migrations/20260101010000_unified_points_system.sql:45:BEGIN v_user_id := auth.uid();
+supabase/migrations/20260101010000_unified_points_system.sql:54:WHERE id = v_user_id;
+supabase/migrations/20260101010000_unified_points_system.sql:60:WHERE id = v_user_id;
+supabase/migrations/20260101010000_unified_points_system.sql:62:PERFORM public.log_point_transaction(v_user_id, - p_amount, 'wallet_conversion', null);
+supabase/migrations/20260101010000_unified_points_system.sql:67:WHERE user_id = v_user_id;
+supabase/migrations/20260101010000_unified_points_system.sql:69:INSERT INTO public.wallets (user_id, balance)
+supabase/migrations/20260101010000_unified_points_system.sql:70:VALUES (v_user_id, 0)
+supabase/migrations/20260101010002_add_award_points_rpc.sql:4:        p_user_id uuid,
+supabase/migrations/20260101010002_add_award_points_rpc.sql:15:WHERE id = p_user_id
+supabase/migrations/20260101010002_add_award_points_rpc.sql:19:    p_user_id,
+supabase/migrations/20260102000000_add_sales_leads.sql:4:    user_id UUID REFERENCES auth.users(id),
+supabase/migrations/20260102000000_add_sales_leads.sql:26:SELECT USING (auth.uid() = user_id);
+supabase/migrations/20260102000000_add_sales_leads.sql:34:INSERT INTO public.sales_leads (user_id, query, metadata)
+supabase/migrations/20260102000001_fix_sales_leads_relationship.sql:2:ALTER TABLE IF EXISTS public.sales_leads DROP CONSTRAINT IF EXISTS sales_leads_user_id_fkey;
+supabase/migrations/20260102000001_fix_sales_leads_relationship.sql:4:ADD CONSTRAINT sales_leads_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE
+supabase/migrations/20260129000000_security_audit_remediation.sql:21:SELECT TO authenticated USING (auth.uid() = user_id);
+supabase/migrations/20260129000000_security_audit_remediation.sql:70:SELECT TO authenticated USING (auth.uid() = user_id);
+supabase/migrations/20260129000000_security_audit_remediation.sql:78:                AND wallets.user_id = auth.uid()
+supabase/migrations/20260209000000_add_user_push_tokens.sql:4:    user_id uuid references auth.users(id) on delete cascade not null,
+supabase/migrations/20260209000000_add_user_push_tokens.sql:13:create policy "Users can manage their own push tokens" on public.user_push_tokens for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+supabase/migrations/20260209000000_add_user_push_tokens.sql:15:create index if not exists idx_user_push_tokens_user_id on public.user_push_tokens(user_id);
+supabase/migrations/20260223000000_offer_acceptance_refactor.sql:49:WHERE us.user_id = v_offer.client_id
+supabase/migrations/20260223000001_security_hardening.sql:9:        auth.uid() = user_id
+supabase/migrations/20260223000001_security_hardening.sql:15:        auth.uid() = user_id
+supabase/migrations/20260223000002_innovation_pricing_loyalty.sql:85:        p_user_id uuid DEFAULT NULL,
+supabase/migrations/20260223000002_innovation_pricing_loyalty.sql:99:IF p_user_id IS NOT NULL THEN
+supabase/migrations/20260223000002_innovation_pricing_loyalty.sql:105:WHERE p.id = p_user_id;
+supabase/migrations/20260223000003_financial_integrity.sql:29:SELECT USING (auth.uid() = user_id);
+supabase/migrations/20260223000006_add_kyc_rpc_functions.sql:6:CREATE OR REPLACE FUNCTION public.get_monthly_transaction_volume(p_user_id uuid) RETURNS numeric AS $$
+supabase/migrations/20260223000006_add_kyc_rpc_functions.sql:12:WHERE w.user_id = p_user_id
+supabase/migrations/20260223000006_add_kyc_rpc_functions.sql:20:CREATE OR REPLACE FUNCTION public.check_kyc_required(p_user_id uuid, p_pending_amount numeric) RETURNS boolean AS $$
+supabase/migrations/20260223000006_add_kyc_rpc_functions.sql:28:WHERE id = p_user_id;
+supabase/migrations/20260223000006_add_kyc_rpc_functions.sql:33:v_monthly_volume := public.get_monthly_transaction_volume(p_user_id);
+supabase/migrations/20260223223500_force_fix_rfq_limits.sql:4:CREATE OR REPLACE FUNCTION get_plan_limit(p_user_id UUID, p_feature_key TEXT) RETURNS INTEGER AS $$
+supabase/migrations/20260223223500_force_fix_rfq_limits.sql:10:WHERE id = p_user_id;
+supabase/migrations/20260223223500_force_fix_rfq_limits.sql:17:WHERE us.user_id = p_user_id

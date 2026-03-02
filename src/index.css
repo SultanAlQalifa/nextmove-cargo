@@ -10,19 +10,19 @@
 
 @layer utilities {
   .glass {
-    @apply bg-white/10 backdrop-blur-md border border-white/20;
+    @apply bg-white/20 backdrop-blur-lg border border-white/30 shadow-sm;
   }
 
   .glass-dark {
-    @apply bg-slate-950/40 backdrop-blur-2xl border border-white/5;
+    @apply bg-slate-950/60 backdrop-blur-2xl border border-white/10;
   }
 
   .glass-card {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.08);
     -webkit-backdrop-filter: blur(24px);
     backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
   }
 
   .text-gradient {
@@ -233,8 +233,9 @@
     background-size: 40px 40px;
   }
 
-  .animate-delay-400 {
-    animation-delay: 0.4s;
+  .bg-dot-pattern {
+    background-image: radial-gradient(circle at 2px 2px, rgba(255, 255, 255, 0.05) 1px, transparent 0);
+    background-size: 40px 40px;
   }
 }
 

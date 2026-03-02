@@ -1,4 +1,4 @@
-export type LessonType = 'video' | 'audio' | 'pdf' | 'text';
+export type LessonType = 'video' | 'audio' | 'pdf' | 'text' | 'quiz';
 
 export interface AcademyLesson {
     id: string;
@@ -12,6 +12,16 @@ export interface AcademyLesson {
     order_index: number;
     created_at?: string;
     updated_at?: string;
+}
+
+export interface AcademyResource {
+    id: string;
+    lesson_id: string;
+    title: string;
+    file_name: string;
+    url: string;
+    file_size?: number;
+    created_at?: string;
 }
 
 export interface AcademyCourse {
@@ -28,6 +38,7 @@ export interface AcademyCourse {
     students?: number;
     rating?: number;
     certificate_price?: number;
+    academy_resources?: AcademyResource[];
 }
 
 export interface AcademyEnrollment {
@@ -83,7 +94,7 @@ export interface AcademyQuiz {
     title: string;
     description?: string;
     passing_score: number;
-    questions?: AcademyQuizQuestion[];
+    academy_quiz_questions?: AcademyQuizQuestion[];
 }
 
 export interface AcademyQuizQuestion {
@@ -91,7 +102,7 @@ export interface AcademyQuizQuestion {
     quiz_id: string;
     question_text: string;
     order_index: number;
-    options?: AcademyQuizOption[];
+    academy_quiz_options?: AcademyQuizOption[];
 }
 
 export interface AcademyQuizOption {

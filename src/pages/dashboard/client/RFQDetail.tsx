@@ -149,7 +149,7 @@ export default function RFQDetail() {
             loadRFQ(id);
           }
         } catch (error) {
-          console.error("Error cancelling RFQ:", error);
+          console.error("Error cancelling RFQ:", error?.message || error);
           toastError("Erreur lors de l'annulation de la demande.");
         }
       },
@@ -283,7 +283,7 @@ export default function RFQDetail() {
 
         {/* Actions */}
         <div className="flex items-center gap-3">
-          {rfq.status === "draft" && (
+          {(rfq.status === "draft" || (rfq.status === "published" && (!rfq.offers || rfq.offers.length === 0))) && (
             <>
               <button
                 onClick={() =>
@@ -291,14 +291,14 @@ export default function RFQDetail() {
                     state: { mode: "edit", rfqData: rfq },
                   })
                 }
-                className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center gap-2"
+                className="px-4 py-2 text-sm font-bold text-slate-700 bg-white border border-slate-200 rounded-xl hover:text-blue-600 hover:bg-blue-50/50 hover:border-blue-200 transition-all flex items-center gap-2 shadow-sm"
               >
                 <FileText className="w-4 h-4" />
                 Modifier
               </button>
               <button
                 onClick={confirmDelete}
-                className="px-4 py-2 bg-red-50 text-red-600 rounded-lg font-medium hover:bg-red-100 transition-colors flex items-center gap-2"
+                className="px-4 py-2 text-sm font-bold text-red-600 bg-red-50/50 border border-red-100 rounded-xl hover:bg-red-50 hover:border-red-200 transition-all flex items-center gap-2"
               >
                 <Archive className="w-4 h-4" />
                 Supprimer
@@ -310,7 +310,7 @@ export default function RFQDetail() {
             !rfq.offers.some((o) => o.status === "accepted") && (
               <button
                 onClick={confirmCancel}
-                className="px-4 py-2 bg-red-50 text-red-600 rounded-lg font-medium hover:bg-red-100 transition-colors flex items-center gap-2"
+                className="px-4 py-2 text-sm font-bold text-amber-600 bg-amber-50/50 border border-amber-100 rounded-xl hover:bg-amber-50 hover:border-amber-200 transition-all flex items-center gap-2"
               >
                 <AlertCircle className="w-4 h-4" />
                 Annuler la demande
@@ -320,7 +320,7 @@ export default function RFQDetail() {
           {rfq.status === "cancelled" && (
             <button
               onClick={confirmDelete}
-              className="px-4 py-2 bg-red-50 text-red-600 rounded-lg font-medium hover:bg-red-100 transition-colors flex items-center gap-2"
+              className="px-4 py-2 text-sm font-bold text-red-600 bg-red-50/50 border border-red-100 rounded-xl hover:bg-red-50 hover:border-red-200 transition-all flex items-center gap-2"
             >
               <Archive className="w-4 h-4" />
               Supprimer

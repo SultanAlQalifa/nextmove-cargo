@@ -140,7 +140,7 @@ export default function ForwarderPersonnel() {
     setStats({
       total: {
         value: result.length,
-        trend: "+0", // Mock trend
+        trend: "+0%",
         trendUp: true,
       },
       active: {

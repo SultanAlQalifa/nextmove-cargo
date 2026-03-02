@@ -11,6 +11,7 @@ import {
   Edit2,
   Trash2,
   Lock,
+  Clock,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -25,7 +26,6 @@ import RoleModal from "../../../components/admin/RoleModal";
 import AddStaffModal from "../../../components/admin/AddStaffModal";
 import TransportBadge from "../../../components/common/TransportBadge";
 import KYCBadge from "../../../components/common/KYCBadge";
-import ClientTierBadge from "../../../components/common/ClientTierBadge";
 
 export default function AdminPersonnel() {
   const [activeTab, setActiveTab] = useState<"team" | "roles">("team");
@@ -198,7 +198,33 @@ export default function AdminPersonnel() {
       </div>
 
       {activeTab === "team" && (
-        <div className="space-y-6">
+        <div className="space-y-8">
+          {/* Stats Summary */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {[
+              { label: "Total Équipe", value: staff.length, icon: Users, color: "blue" },
+              { label: "Actifs", value: staff.filter(s => s.status === 'active').length, icon: CheckCircle, color: "emerald" },
+              { label: "Inactifs", value: staff.filter(s => s.status === 'inactive').length, icon: XCircle, color: "gray" },
+              { label: "Vérifiés", value: staff.filter(s => s.kyc_status === 'verified').length, icon: Shield, color: "indigo" },
+            ].map((stat, idx) => (
+              <motion.div
+                key={stat.label}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.1 }}
+                className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-6 rounded-[2rem] border border-slate-200/50 dark:border-white/5 shadow-xl shadow-slate-200/40 dark:shadow-none flex items-center gap-4 group hover:-translate-y-1 transition-all"
+              >
+                <div className={`p-4 bg-${stat.color}-500/10 text-${stat.color}-600 dark:text-${stat.color}-400 rounded-2xl group-hover:scale-110 transition-transform`}>
+                  <stat.icon className="w-6 h-6" />
+                </div>
+                <div>
+                  <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{stat.label}</p>
+                  <p className="text-2xl font-black text-slate-900 dark:text-white leading-tight">{stat.value}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
           {/* Search */}
           <motion.div
             initial={{ opacity: 0, y: -10 }}
@@ -218,28 +244,31 @@ export default function AdminPersonnel() {
 
           {/* Staff List */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-3xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-200/50 dark:border-white/5 overflow-visible"
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2 }}
+            className="group relative"
           >
-            <div className="overflow-x-auto">
+            {/* Ambient Background Glow */}
+            <div className="absolute -inset-4 bg-gradient-to-tr from-primary/10 via-transparent to-indigo-500/5 blur-3xl opacity-50 -z-10 rounded-[3rem]"></div>
+
+            <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-3xl rounded-[2.5rem] shadow-2xl shadow-slate-200/50 dark:shadow-none border border-slate-200/50 dark:border-white/5 overflow-hidden">
               <table className="min-w-full divide-y divide-slate-200/50 dark:divide-white/5 text-left">
-                <thead className="bg-slate-50/50 dark:bg-slate-800/50 backdrop-blur-md">
+                <thead className="bg-slate-50/30 dark:bg-slate-800/20 backdrop-blur-md">
                   <tr>
-                    <th className="px-6 py-4 text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest rounded-tl-3xl">
+                    <th className="px-8 py-5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">
                       Membre
                     </th>
-                    <th className="px-6 py-4 text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">
-                      Rôle
+                    <th className="px-8 py-5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">
+                      Rôle & Expertise
                     </th>
-                    <th className="px-6 py-4 text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">
-                      Statut
+                    <th className="px-8 py-5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">
+                      État de Compte
                     </th>
-                    <th className="px-6 py-4 text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">
-                      Dernière activité
+                    <th className="px-8 py-5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">
+                      Dernière Connexion
                     </th>
-                    <th className="relative px-6 py-4 rounded-tr-3xl">
+                    <th className="px-8 py-5 relative">
                       <span className="sr-only">Actions</span>
                     </th>
                   </tr>
@@ -249,72 +278,74 @@ export default function AdminPersonnel() {
                     {filteredStaff.map((member) => (
                       <motion.tr
                         key={member.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, scale: 0.95 }}
-                        className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors group"
+                        className="hover:bg-slate-50/40 dark:hover:bg-white/[0.02] transition-colors group relative"
                       >
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 font-bold shadow-inner shrink-0 group-hover:scale-105 transition-transform">
-                              {member.name.charAt(0)}
+                        <td className="px-8 py-5">
+                          <div className="flex items-center gap-4">
+                            <div className="relative">
+                              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 font-black shadow-inner group-hover:scale-110 transition-transform duration-500">
+                                {member.name.charAt(0)}
+                              </div>
+                              <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white dark:border-slate-900 ${member.status === 'active' ? 'bg-emerald-500' : 'bg-slate-300'}`}></div>
                             </div>
                             <div>
-                              <p className="font-medium text-gray-900">
+                              <p className="font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">
                                 {member.name}
                               </p>
-                              <p className="text-sm text-gray-500">
+                              <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500">
                                 {member.email}
                               </p>
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4">
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
-                            {member.role_details?.name || member.role}
-                          </span>
-                          {(member.role === "forwarder" ||
-                            member.role_details?.role_family === "forwarder") && (
-                              <div className="mt-1 flex flex-wrap gap-1">
-                                <TransportBadge
-                                  modes={member.transport_modes}
-                                  size="sm"
-                                />
-                                {member.kyc_status && (
-                                  <KYCBadge
-                                    status={member.kyc_status}
+                        <td className="px-8 py-5">
+                          <div className="flex flex-col gap-1.5">
+                            <span className="inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-black bg-blue-500/10 text-blue-600 dark:text-blue-400 uppercase tracking-widest w-fit border border-blue-500/10">
+                              {member.role_details?.name || member.role}
+                            </span>
+                            {(member.role === "forwarder" ||
+                              member.role_details?.role_family === "forwarder") && (
+                                <div className="flex flex-wrap gap-1">
+                                  <TransportBadge
+                                    modes={member.transport_modes}
                                     size="sm"
-                                    showLabel={false}
                                   />
-                                )}
-                              </div>
+                                </div>
+                              )}
+                          </div>
+                        </td>
+                        <td className="px-8 py-5">
+                          <div className="flex items-center gap-2">
+                            {member.kyc_status && (
+                              <KYCBadge
+                                status={member.kyc_status}
+                                size="sm"
+                                showLabel={true}
+                              />
                             )}
-                          {(member.role === "client" ||
-                            member.role_details?.role_family === "client") &&
-                            member.client_tier && (
-                              <div className="mt-1">
-                                <ClientTierBadge
-                                  tier={member.client_tier}
-                                  size="sm"
-                                  showLabel={true}
-                                />
-                              </div>
+                            {member.status === 'active' ? (
+                              <span className="flex items-center gap-1.5 text-[10px] font-black text-emerald-600 uppercase tracking-widest bg-emerald-500/10 px-2 py-1 rounded-lg border border-emerald-500/10">
+                                <CheckCircle className="w-3 h-3" /> Actif
+                              </span>
+                            ) : (
+                              <span className="flex items-center gap-1.5 text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-500/10 px-2 py-1 rounded-lg border border-slate-500/10">
+                                <XCircle className="w-3 h-3" /> Inactif
+                              </span>
                             )}
+                          </div>
                         </td>
-                        <td className="px-6 py-4">
-                          <span
-                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${member.status === "active"
-                              ? "bg-green-50 text-green-700"
-                              : "bg-gray-100 text-gray-600"
-                              }`}
-                          >
-                            {member.status === "active" ? "Actif" : "Inactif"}
-                          </span>
+                        <td className="px-8 py-5">
+                          <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                            <Clock className="w-4 h-4 opacity-40" />
+                            <span className="text-sm font-medium">
+                              {new Date(member.last_active).toLocaleDateString()}
+                            </span>
+                          </div>
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-500">
-                          {new Date(member.last_active).toLocaleDateString()}
-                        </td>
-                        <td className="px-6 py-4 text-right">
+                        <td className="px-8 py-5 text-right">
                           <div className="relative">
                             <button
                               onClick={() =>

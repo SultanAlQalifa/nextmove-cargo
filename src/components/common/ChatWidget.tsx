@@ -115,6 +115,50 @@ export default function ChatWidget() {
     }
   }, [user, isOpen]);
 
+  // Handle Real-time updates for conversations and messages
+  useEffect(() => {
+    if (!user || !isOpen) return;
+
+    // Subscribe to all conversations for this user to update unread counts and last message
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'conversations'
+        },
+        () => {
+          loadConversations();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages'
+        },
+        (payload) => {
+          // If new message is for current selected conversation, reload messages
+          if (selectedConversation && payload.new.conversation_id === selectedConversation) {
+            loadMessages(selectedConversation);
+          }
+          // Always reload conversations to update unread count/last message teaser
+          loadConversations();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, isOpen, selectedConversation]);
+
+  // Calculate Total Unread Count
+  const totalUnreadCount = conversations.reduce((acc, conv) => acc + (conv.unread_count || 0), 0);
+
   // ... (keep loadContext same)
 
   // ... handleSendMessage
@@ -258,8 +302,11 @@ export default function ChatWidget() {
           className="w-14 h-14 bg-primary text-white rounded-full shadow-lg hover:bg-primary/90 transition-all flex items-center justify-center group relative"
         >
           <MessageCircle className="w-7 h-7 group-hover:scale-110 transition-transform" />
-          {/* Unread Badge - Mocked for now as we need a separate query for unread count */}
-          {/* <span className="absolute top-0 right-0 w-4 h-4 bg-red-500 rounded-full border-2 border-white"></span> */}
+          {totalUnreadCount > 0 && (
+            <span className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 text-white text-[10px] font-black rounded-full border-2 border-white flex items-center justify-center animate-bounce shadow-lg">
+              {totalUnreadCount > 9 ? "9+" : totalUnreadCount}
+            </span>
+          )}
         </button>
       )}
 
@@ -496,7 +543,7 @@ export default function ChatWidget() {
                           <div className="p-3 border-b border-gray-100">
                             <div className="relative">
                               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-                              <input type="text" placeholder="Rechercher..." className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-transparent rounded-xl text-sm focus:bg-white focus:border-primary/20 focus:outline-none transition-all" />
+                              <input type="text" placeholder="Rechercher..." className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-transparent rounded-xl text-base md:text-sm focus:bg-white focus:border-primary/20 focus:outline-none transition-all" />
                             </div>
                           </div>
                           <div className="flex-1 overflow-y-auto">

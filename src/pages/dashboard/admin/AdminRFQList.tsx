@@ -8,7 +8,6 @@ import {
   Filter,
   Calendar,
   X,
-  TrendingUp,
   Clock,
   CheckCircle,
   MoreVertical,
@@ -17,10 +16,10 @@ import {
 } from "lucide-react";
 import { rfqService } from "../../../services/rfqService";
 import ConfirmationModal from "../../../components/common/ConfirmationModal";
+import { useToast } from "../../../contexts/ToastContext";
 
 export default function AdminRFQList() {
   const [rfqs, setRfqs] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
 
   // Filter State
   const [timeRange, setTimeRange] = useState<
@@ -40,11 +39,25 @@ export default function AdminRFQList() {
     isOpen: boolean;
     id: string | null;
   }>({ isOpen: false, id: null });
+  const [deleting, setDeleting] = useState(false);
 
-  const confirmDeleteRFQ = () => {
+  const { success, error: toastError } = useToast();
+
+  const confirmDeleteRFQ = async () => {
     if (confirmation.id) {
-      setFilteredRFQs(filteredRFQs.filter((r) => r.id !== confirmation.id));
-      setConfirmation({ isOpen: false, id: null });
+      setDeleting(true);
+      try {
+        await rfqService.deleteRFQ(confirmation.id);
+        success("Demande de devis supprimée avec succès.");
+        setFilteredRFQs(filteredRFQs.filter((r) => r.id !== confirmation.id));
+        setRfqs(rfqs.filter((r) => r.id !== confirmation.id));
+      } catch (err) {
+        console.error("Error deleting RFQ:", err);
+        toastError("Erreur lors de la suppression de la demande de devis.");
+      } finally {
+        setDeleting(false);
+        setConfirmation({ isOpen: false, id: null });
+      }
     }
   };
 
@@ -57,7 +70,6 @@ export default function AdminRFQList() {
 
   const fetchData = async () => {
     try {
-      setLoading(true);
       const data = await rfqService.getAllRFQs();
 
       // Format data for display
@@ -83,8 +95,6 @@ export default function AdminRFQList() {
       setFilteredRFQs(formattedRFQs);
     } catch (error) {
       console.error("Error fetching RFQs:", error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -495,6 +505,7 @@ export default function AdminRFQList() {
         message="Êtes-vous sûr de vouloir supprimer cette demande de devis ? Cette action est irréversible."
         variant="danger"
         confirmLabel="Supprimer"
+        isLoading={deleting}
       />
     </div>
   );

@@ -56,6 +56,24 @@ import {
   Scan,
   Target,
   Search,
+  Plus,
+  ArrowUpRight,
+  CircleDollarSign,
+  FileStack,
+  Landmark,
+  Settings2,
+  Tags,
+  Lock,
+  UserCheck,
+  ToggleRight,
+  Cpu,
+  MapPin,
+  Box,
+  Key,
+  UserPlus,
+  Briefcase,
+  Users,
+  Activity
 } from "lucide-react";
 import NewsTicker from "../common/NewsTicker";
 import { supabase } from "../../lib/supabase";
@@ -78,6 +96,7 @@ import InstallGuideModal from "../common/InstallGuideModal";
 import { useChat } from "../../contexts/ChatContext";
 import CalculatorModal from "../dashboard/CalculatorModal";
 import { CustomToast, showNotification } from "../common/NotificationToast";
+import DashboardBanner from "../common/DashboardBanner";
 
 interface NavItem {
   name: string;
@@ -138,6 +157,52 @@ export default function DashboardLayout() {
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const [kycModalOpen, setKycModalOpen] = useState(false);
   const [showInstallGuide, setShowInstallGuide] = useState(false);
+
+
+  // Dynamic Banner Stats
+  const [stats, setStats] = useState({
+    activeShipments: 0,
+    pendingRFQs: 0,
+    unreadMessages: 0,
+    pendingInvoices: 0
+  });
+
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchStats = async () => {
+      try {
+        // Fetch active shipments count
+        const { count: shipmentsCount } = await supabase
+          .from('shipments')
+          .select('*', { count: 'exact', head: true })
+          .neq('status', 'completed')
+          .eq('client_id', user.id);
+
+        // Fetch pending RFQs count
+        const { count: rfqCount } = await supabase
+          .from('rfq_requests')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'pending')
+          .eq('client_id', user.id);
+
+        // Fetch unread messages (simulation or real if table exists)
+        // For now, let's just get a mock or try ticket_messages
+        // const { count: msgCount } = await supabase...
+
+        setStats({
+          activeShipments: shipmentsCount || 0,
+          pendingRFQs: rfqCount || 0,
+          unreadMessages: 0, // Placeholder
+          pendingInvoices: 0 // Placeholder
+        });
+      } catch (err) {
+        console.error("Error fetching banner stats:", err);
+      }
+    };
+
+    fetchStats();
+  }, [user]);
 
   useEffect(() => {
     const handleOpenKYC = () => setKycModalOpen(true);
@@ -475,6 +540,11 @@ export default function DashboardLayout() {
               icon: User,
             },
             {
+              name: "Communauté",
+              path: "/dashboard/admin/community",
+              icon: Users,
+            },
+            {
               name: t("dashboard.menu.forwarders"),
               path: "/dashboard/admin/forwarders",
               icon: Truck,
@@ -787,7 +857,7 @@ export default function DashboardLayout() {
                     <span className="text-primary">NextMove</span>
                     <span className="text-secondary ml-1">Cargo</span>
                   </div>
-                  <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mt-1">
+                  <span className="text-[10px] font-bold text-gray-500 dark:text-dark-muted uppercase tracking-widest mt-1">
                     Logistique Premium
                   </span>
                 </div>
@@ -969,7 +1039,7 @@ export default function DashboardLayout() {
               <button
                 onClick={() => setSidebarOpen(true)}
                 aria-label="Open sidebar"
-                className="lg:hidden p-2.5 text-gray-500 hover:bg-white/60 hover:text-primary rounded-2xl transition-all duration-300 hover:shadow-sm"
+                className="lg:hidden p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-500 hover:bg-white/60 hover:text-[#0A192F] rounded-2xl transition-all duration-300 hover:shadow-sm"
               >
                 <Menu className="w-6 h-6" />
               </button>
@@ -978,7 +1048,7 @@ export default function DashboardLayout() {
               <div className="hidden md:flex items-center text-sm">
                 <Link
                   to="/"
-                  className="flex items-center justify-center w-8 h-8 text-slate-400 hover:text-primary hover:bg-white dark:hover:bg-slate-800 hover:shadow-md hover:shadow-slate-200/50 dark:hover:shadow-black/20 rounded-xl transition-all duration-300 group/home"
+                  className="flex items-center justify-center w-8 h-8 text-slate-400 hover:text-[#0A192F] hover:bg-white dark:hover:bg-slate-800 hover:shadow-md hover:shadow-slate-200/50 dark:hover:shadow-black/20 rounded-xl transition-all duration-300 group/home"
                   title="Accueil"
                 >
                   <Home className="w-4 h-4 group-hover/home:scale-110 transition-transform duration-300" />
@@ -1023,6 +1093,7 @@ export default function DashboardLayout() {
                       messages: "Messages",
                       notifications: "Notifications",
                       users: "Utilisateurs",
+                      community: "Communauté",
                       documents: "Documents",
                       support: "Support",
                       payments: "Paiements",
@@ -1032,7 +1103,6 @@ export default function DashboardLayout() {
                     };
 
                     return segmentsToShow.map((segment, index) => (
-                      // eslint-disable-next-line react/forbid-dom-props
                       <div key={segment} className="flex items-center gap-2 animate-in fade-in slide-in-from-left-2 duration-300">
                         <span className="font-semibold text-slate-700 dark:text-slate-200 capitalize">
                           {translations[segment] || segment.replace(/-/g, " ")}
@@ -1067,7 +1137,7 @@ export default function DashboardLayout() {
               {/* Theme Toggle */}
               <button
                 onClick={toggleTheme}
-                className="p-2.5 text-slate-500 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-xl transition-all duration-300 hover:shadow-sm"
+                className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-500 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-xl transition-all duration-300 hover:shadow-sm"
                 title={theme === 'dark' ? 'Mode clair' : 'Mode sombre'}
               >
                 {theme === "dark" ? (
@@ -1089,10 +1159,10 @@ export default function DashboardLayout() {
               <div className="relative ml-2">
                 <button
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  className="flex items-center gap-3 pl-2 pr-4 py-1.5 bg-white/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-800 border border-slate-200/50 dark:border-slate-700/50 rounded-full transition-all duration-300 hover:shadow-md group"
+                  className="flex items-center gap-3 pl-2 pr-4 py-1.5 min-h-[44px] bg-white/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-800 border border-slate-200/50 dark:border-slate-700/50 rounded-full transition-all duration-300 hover:shadow-md group"
                 >
                   <div className="relative">
-                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-secondary p-0.5 shadow-sm group-hover:shadow-md transition-shadow">
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#0A192F] to-secondary p-0.5 shadow-sm group-hover:shadow-md transition-shadow">
                       <div className="w-full h-full rounded-full bg-slate-50 dark:bg-slate-900 flex items-center justify-center overflow-hidden">
                         {profile?.avatar_url ? (
                           <img
@@ -1210,6 +1280,377 @@ export default function DashboardLayout() {
         <main className={`flex-1 overflow-x-hidden overflow-y-auto w-full max-w-full custom-scrollbar relative z-0 ${isChatOpen ? 'pb-32' : 'pb-12'}`}>
           <div className="grain-overlay opacity-[0.02]" />
           <div className="container mx-auto px-6 py-8">
+            {/* Premium Dashboard Banner Implementation */}
+            {(() => {
+              const currentPath = location.pathname;
+
+              const bannerConfigs: Record<string, any> = {
+                // --- CLIENT ROUTES ---
+                '/dashboard/client': {
+                  title: `Bonjour ${profile?.full_name?.split(' ')[0] || 'Elite'}`,
+                  description: stats.activeShipments > 0
+                    ? `Vous avez ${stats.activeShipments} expéditions actives en cours. Suivez leur progression en temps réel.`
+                    : "Bienvenue dans votre centre de pilotage. Commencez par créer une demande ou explorez nos services.",
+                  badge: stats.activeShipments > 0 ? "Activité en direct" : "Pilotage Intelligent",
+                  icon: LayoutDashboard,
+                  action: { label: "Nouveau Devis", to: "/calculator", icon: Zap },
+                  variant: "primary",
+                  size: "lg"
+                },
+                '/dashboard/client/rfq': {
+                  title: "Mes Demandes de Devis",
+                  description: "Gérez vos appels d'offres, comparez les propositions et sélectionnez le meilleur prestataire.",
+                  badge: "Opérations RFQ",
+                  icon: FileText,
+                  action: { label: "Créer un RFQ", to: "/dashboard/client/rfq/create", icon: Plus },
+                  variant: "primary",
+                  size: "lg"
+                },
+                '/dashboard/client/shipments': {
+                  title: "Suivi de Flotte Global",
+                  description: "Visualisez l'acheminement de vos marchandises avec une précision chirurgicale sur l'ensemble du réseau.",
+                  badge: "Live Tracking",
+                  icon: Truck,
+                  variant: "primary",
+                  size: "lg"
+                },
+                '/dashboard/client/groupage': {
+                  title: "Groupage Collaboratif",
+                  description: "Optimisez vos coûts logistiques en fusionnant vos envois avec d'autres expéditeurs stratégiques.",
+                  badge: "Intelligence Mutualisée",
+                  icon: Package,
+                  variant: "primary",
+                  size: "lg"
+                },
+                '/dashboard/client/payments': {
+                  title: "Flux Financiers",
+                  description: "Historique souverain de vos transactions et gestion de vos protocoles de règlement sécurisés.",
+                  badge: "Finance Elite",
+                  icon: Wallet,
+                  variant: "primary",
+                  size: "md"
+                },
+                '/dashboard/client/wallet': {
+                  title: "Portefeuille Numérique",
+                  description: "Gérez vos fonds avec une agilité totale pour des transactions instantanées au sein de l'écosystème.",
+                  badge: "Liquidité Nexus",
+                  icon: CreditCard,
+                  variant: "primary",
+                  size: "md"
+                },
+                '/dashboard/client/loyalty': {
+                  title: "Club Prestige & Alliance",
+                  description: "Cumulez des privilèges à chaque expédition et accédez aux avantages exclusifs du programme Elite.",
+                  badge: "Excellence Loyalty",
+                  icon: Gift,
+                  variant: "primary",
+                  size: "lg"
+                },
+                '/dashboard/client/messages': {
+                  title: "Nexus de Communication",
+                  description: "Échangez en temps réel avec vos prestataires via notre protocole de messagerie sécurisé.",
+                  badge: "Support Live",
+                  icon: MessageCircle,
+                  variant: "primary",
+                  size: "md"
+                },
+                '/dashboard/client/academy': {
+                  title: "Exploration Logistique",
+                  description: "Maîtrisez les rouages de l'industrie avec les certifications exclusives de la NextMove Academy.",
+                  badge: "Apprentissage",
+                  icon: GraduationCap,
+                  variant: "primary",
+                  size: "lg"
+                },
+
+                // --- FORWARDER ROUTES ---
+                '/dashboard/forwarder': {
+                  title: "Commandement Prestataire",
+                  description: "Orchestrez votre croissance commerciale et dominez le marché du fret avec nos outils d'analyse avancés.",
+                  badge: "Business Intelligence",
+                  icon: Building2,
+                  variant: "primary",
+                  size: "lg"
+                },
+                '/dashboard/forwarder/rfq': {
+                  title: "Opportunités Stratégiques",
+                  description: "Accédez à un flux exclusif de demandes de fret et proposez votre expertise tarifaire au meilleur niveau.",
+                  badge: "Marché Privé",
+                  icon: Target,
+                  variant: "primary",
+                  size: "lg"
+                },
+                '/dashboard/forwarder/shipments': {
+                  title: "Exécution Logistique",
+                  description: "Garantissez l'excellence opérationnelle et le respect des jalons critiques pour chaque mission assignée.",
+                  badge: "Opérations Elite",
+                  icon: Truck,
+                  variant: "primary",
+                  size: "lg"
+                },
+                '/dashboard/forwarder/pod': {
+                  title: "Certification de Livraison",
+                  description: "Authentifiez les preuves de livraison et accélérez vos cycles de facturation avec nos protocoles sécurisés.",
+                  badge: "Conformité",
+                  icon: ShieldCheck,
+                  variant: "primary",
+                  size: "md"
+                },
+                '/dashboard/forwarder/rates': {
+                  title: "Architecte Tarifaire",
+                  description: "Structurez vos offres et déployez vos grilles de services avec une flexibilité totale par destination.",
+                  badge: "Pricing Master",
+                  icon: Briefcase,
+                  variant: "primary",
+                  size: "md"
+                },
+
+                // --- ADMIN OPERATIONAL ---
+                '/dashboard/admin/rfq': {
+                  title: "Gouvernance des Flux",
+                  description: "Supervisez l'intégralité des échanges commerciaux et arbitrez les propositions du réseau mondial.",
+                  badge: "Admin Control",
+                  icon: FileText,
+                  variant: "primary",
+                  size: "lg"
+                },
+                '/dashboard/admin/shipments': {
+                  title: "Tour de Contrôle Mondiale",
+                  description: "Audit temps réel de la santé logistique planétaire et résolution proactive des incidents réseau.",
+                  badge: "Global Oversight",
+                  icon: Truck,
+                  variant: "primary",
+                  size: "lg"
+                },
+                '/dashboard/admin/leads': {
+                  title: "Pipelines de Croissance",
+                  description: "Accélérez l'expansion de l'écosystème en convertissant les prospects stratégiques en partenaires certifiés.",
+                  badge: "Growth Hacking",
+                  icon: UserPlus,
+                  variant: "primary",
+                  size: "md"
+                },
+
+                // --- ADMIN USERS & PARTNERS ---
+                '/dashboard/admin/users': {
+                  title: "Gouvernance des Profils",
+                  description: "Administration centrale des identités et orchestration des habilitations au sein de la plateforme.",
+                  badge: "Global Directory",
+                  icon: Users,
+                  variant: "primary",
+                  size: "lg"
+                },
+                '/dashboard/admin/forwarders': {
+                  title: "Réseau Prestataires Elite",
+                  description: "Certification et monitoring de la performance des entreprises logistiques partenaires.",
+                  badge: "Audit & Compliance",
+                  icon: Building2,
+                  variant: "primary",
+                  size: "lg"
+                },
+                '/dashboard/admin/clients': {
+                  title: "Intelligence Clientèle",
+                  description: "Analyse prédictive des comportements et segmentation stratégique pour l'excellence marketing.",
+                  badge: "Strategic CRM",
+                  icon: ShieldCheck,
+                  variant: "primary",
+                  size: "md"
+                },
+                '/dashboard/admin/personnel': {
+                  title: "États-Major & Privilèges",
+                  description: "Configuration fine des permissions internes et gestion sécurisée du staff NextMove.",
+                  badge: "Habilitations",
+                  icon: Key,
+                  variant: "primary",
+                  size: "md"
+                },
+
+                // --- ADMIN CONTENT & BRANDING ---
+                '/dashboard/admin/blog': {
+                  title: "Ligne Éditoriale",
+                  description: "Diffusez l'expertise NextMove et informez l'industrie sur les révolutions du secteur logistique.",
+                  badge: "Leadership Contenu",
+                  icon: Newspaper,
+                  variant: "primary",
+                  size: "md"
+                },
+                '/dashboard/admin/testimonials': {
+                  title: "Preuve d'Excellence",
+                  description: "Valorisez les succès de nos utilisateurs et diffusez la confiance au sein du réseau.",
+                  badge: "Social Proof",
+                  icon: Star,
+                  variant: "primary",
+                  size: "md"
+                },
+                '/dashboard/admin/faq': {
+                  title: "Base de Savoir",
+                  description: "Architecturez la connaissance plateforme pour une autonomie totale des membres de l'écosystème.",
+                  badge: "Intelligence Knowledge",
+                  icon: HelpCircle,
+                  variant: "primary",
+                  size: "md"
+                },
+                '/dashboard/admin/branding': {
+                  title: "Identité de Marque",
+                  description: "Incarnez l'excellence visuelle et gérez l'impact de NextMove à travers chaque interface.",
+                  badge: "Visual System",
+                  icon: Palette,
+                  variant: "primary",
+                  size: "md"
+                },
+
+                // --- ADMIN FINANCIALS ---
+                '/dashboard/admin/payments': {
+                  title: "Architecture Financière",
+                  description: "Audit souverain de l'économie plateforme et monitoring des flux de revenus mondiaux.",
+                  badge: "Trésorerie Centrale",
+                  icon: CircleDollarSign,
+                  variant: "primary",
+                  size: "lg"
+                },
+                '/dashboard/admin/invoices': {
+                  title: "Flux Documentaires",
+                  description: "Orchestration automatique de la documentation comptable et légale du réseau.",
+                  badge: "Finance Ops",
+                  icon: FileStack,
+                  variant: "primary",
+                  size: "md"
+                },
+                '/dashboard/admin/cash-payments': {
+                  title: "Validation de Flux Cash",
+                  description: "Authentifiez les transactions physiques et assurez la convergence des flux agences.",
+                  badge: "Contrôle Souverain",
+                  icon: Landmark,
+                  variant: "primary",
+                  size: "lg"
+                },
+                '/dashboard/admin/fund-calls': {
+                  title: "Pulsations de Décaissement",
+                  description: "Gestion stratégique des appels de fonds et orchestration des payouts prestataires.",
+                  badge: "Liquidité Réseau",
+                  icon: ArrowUpRight,
+                  variant: "primary",
+                  size: "md"
+                },
+                '/dashboard/admin/subscriptions': {
+                  title: "Économie Récurrente",
+                  description: "Monitoring de la santé du modèle SaaS et analyse de la fidélité des abonnés.",
+                  badge: "Revenu Premium",
+                  icon: Activity,
+                  variant: "primary",
+                  size: "md"
+                },
+                '/dashboard/admin/fees': {
+                  title: "Ingénierie des Marges",
+                  description: "Configuration précise de l'économie système et déploiement des services additionnels.",
+                  badge: "Core Economics",
+                  icon: Settings2,
+                  variant: "primary",
+                  size: "md"
+                },
+                '/dashboard/admin/platform-rates': {
+                  title: "Tarifs Plateforme",
+                  description: "Grille tarifaire globale appliquée par défaut sur les calculateurs publics.",
+                  badge: "Global Pricing",
+                  icon: Tags,
+                  variant: "primary",
+                  size: "md"
+                },
+
+                // --- ADMIN SECURITY & CONFIG ---
+                '/dashboard/admin/security': {
+                  title: "Forteresse Numérique",
+                  description: "Surveillance cybernétique avancée et audit complet de l'intégrité du système.",
+                  badge: "Cyber-Défense Elite",
+                  icon: Lock,
+                  variant: "primary",
+                  size: "lg"
+                },
+                '/dashboard/admin/kyc': {
+                  title: "Protocoles de Confiance",
+                  description: "Validation d'identité multicouche pour garantir un écosystème de transport sécurisé.",
+                  badge: "Vérification Souveraine",
+                  icon: UserCheck,
+                  variant: "primary",
+                  size: "lg"
+                },
+                '/dashboard/admin/features': {
+                  title: "Déploiement Agile",
+                  description: "Orchestrez l'évolution du système en activant les modules technologiques de pointe.",
+                  badge: "Engineering Ops",
+                  icon: ToggleRight,
+                  variant: "primary",
+                  size: "md"
+                },
+                '/dashboard/admin/payment-gateway': {
+                  title: "Nexus Fintech",
+                  description: "Intégrez les passerelles de paiement mondiales et gérez l'infrastructure des flux.",
+                  badge: "Config API Gateway",
+                  icon: Cpu,
+                  variant: "primary",
+                  size: "md"
+                },
+                '/dashboard/admin/locations': {
+                  title: "Cartographie du Réseau",
+                  description: "Gérez les points névralgiques du transport mondial (Ports, Aéroports, Hubs).",
+                  badge: "Infrastructure Data",
+                  icon: MapPin,
+                  variant: "primary",
+                  size: "md"
+                },
+                '/dashboard/admin/package-types': {
+                  title: "Nomenclatures Fret",
+                  description: "Définissez les standards logistiques et les contraintes par nature de marchandise.",
+                  badge: "Masterdata Logs",
+                  icon: Box,
+                  variant: "primary",
+                  size: "md"
+                },
+                '/dashboard/admin/settings': {
+                  title: "Configuration Racine",
+                  description: "Paramétrage profond de l'intelligence système et des variables environnementales.",
+                  badge: "System Core",
+                  icon: Settings,
+                  variant: "primary",
+                  size: "sm"
+                },
+
+                // --- OTHERS ---
+                '/dashboard/notifications': {
+                  title: "Centre de Flux Informationnels",
+                  description: "Restez connecté aux alertes critiques et aux pulsations vitales de votre activité.",
+                  badge: "Information Live",
+                  icon: Bell,
+                  variant: "primary",
+                  size: "md"
+                },
+                '/dashboard/certificates': {
+                  title: "Palmarès & Distinctions",
+                  description: "Consultez l'historique de vos expertises validées et attestations de réussite.",
+                  badge: "Excellence Academy",
+                  icon: Award,
+                  variant: "primary",
+                  size: "md"
+                }
+              };
+
+              const configsKeys = Object.keys(bannerConfigs).sort((a, b) => b.length - a.length);
+              const matchedKey = configsKeys.find(key => currentPath.startsWith(key));
+              const config = bannerConfigs[matchedKey || '/dashboard/client'];
+
+              return config ? (
+                <DashboardBanner
+                  title={config.title}
+                  description={config.description}
+                  badge={config.badge}
+                  icon={config.icon}
+                  action={config.action}
+                  variant={config.variant}
+                  size={config.size}
+                />
+              ) : null;
+            })()}
+
             <GlobalErrorBoundary>
               <Outlet />
             </GlobalErrorBoundary>

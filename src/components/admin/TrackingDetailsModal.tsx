@@ -2,10 +2,7 @@ import {
   X,
   Truck,
   MapPin,
-  Calendar,
   CheckCircle,
-  Clock,
-  Package,
   FileText,
 } from "lucide-react";
 import ShipmentTracker from "../shipment/ShipmentTracker";
@@ -13,6 +10,7 @@ import ShipmentTracker from "../shipment/ShipmentTracker";
 interface TrackingDetailsModalProps {
   shipmentId: string;
   status: any;
+  shipment?: any; // The full shipment object containing logs
   onClose: () => void;
   onViewDetails: () => void;
 }
@@ -20,21 +18,32 @@ interface TrackingDetailsModalProps {
 export default function TrackingDetailsModal({
   shipmentId,
   status,
+  shipment,
   onClose,
   onViewDetails,
 }: TrackingDetailsModalProps) {
-  // Mock tracking data
-  const trackingEvents = [
-    {
-      id: 1,
-      status: "Livré",
-      location: "Paris, FR",
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-      description: "Colis livré au destinataire",
-      completed: true,
-    },
-    // ... (mock data truncated for brevity, assume present or use original if not replacing block)
-  ];
+
+  // Real tracking data parsed from the shipment object
+  const trackingEvents = (shipment?.logs || []).map((log: any) => ({
+    id: log.id || Math.random().toString(),
+    status: log.status || "Mise à jour",
+    location: log.location || "Localisation non spécifiée",
+    timestamp: log.created_at || new Date().toISOString(),
+    description: log.notes || "Suivi mis à jour",
+    completed: true,
+  })).sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+  // If no logs exist, provide a fallback generic "Created" event so the modal isn't totally empty
+  if (trackingEvents.length === 0) {
+    trackingEvents.push({
+      id: "initial",
+      status: "Expédition Créée",
+      location: shipment?.origin?.port || "Origine",
+      timestamp: shipment?.created_at || new Date().toISOString(),
+      description: "L'expédition a été enregistrée dans notre système.",
+      completed: true
+    });
+  }
 
   return (
     <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -69,7 +78,7 @@ export default function TrackingDetailsModal({
 
         <div className="p-6 max-h-[50vh] overflow-y-auto">
           <div className="relative pl-8 space-y-8 before:absolute before:left-3.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-gray-100">
-            {trackingEvents.map((event, index) => (
+            {trackingEvents.map((event: any, index: number) => (
               <div key={event.id} className="relative">
                 <div
                   className={`absolute -left-[34px] p-1.5 rounded-full border-4 border-white shadow-sm ${index === 0 ? "bg-green-500" : "bg-gray-200"}`}

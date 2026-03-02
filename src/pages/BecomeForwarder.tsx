@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Check,
   Shield,
   Globe,
   TrendingUp,
@@ -15,6 +14,7 @@ import {
   Star,
   FileText,
   PenTool,
+  Search,
 } from "lucide-react";
 import { subscriptionService } from "../services/subscriptionService";
 import { emailService } from "../services/emailService";
@@ -233,15 +233,6 @@ export default function BecomeForwarder() {
     }
   };
 
-  // Helper to group all definitions by category
-  const definitionsByCategory = FEATURE_DEFINITIONS.reduce(
-    (acc, def) => {
-      if (!acc[def.category]) acc[def.category] = [];
-      acc[def.category].push(def);
-      return acc;
-    },
-    {} as Record<string, typeof FEATURE_DEFINITIONS>,
-  );
 
   const categories = [
     {
@@ -280,14 +271,11 @@ export default function BecomeForwarder() {
 
       {/* Hero Section */}
       <div className="relative min-h-[70vh] flex items-center overflow-hidden">
-        <div className="absolute inset-0 z-0">
-          <img
-            src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?q=80&w=2070&auto=format&fit=crop"
-            alt="Logistics Professional"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-slate-900/95 via-slate-900/80 to-slate-900/40" />
-          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
+        <div className="absolute inset-0 z-0 bg-slate-950">
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-transparent mix-blend-overlay"></div>
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-slate-950/50 to-slate-950"></div>
+          {/* Subtle grid pattern */}
+          <div className="absolute inset-0 opacity-20 bg-dot-pattern"></div>
         </div>
 
         <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
@@ -301,11 +289,8 @@ export default function BecomeForwarder() {
             </span>
           </div>
 
-          <h1 className="text-5xl lg:text-7xl font-bold text-white mb-8 leading-tight tracking-tight max-w-5xl mx-auto animate-in fade-in slide-in-from-bottom-6 duration-700 delay-100">
-            Développez votre activité avec{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">
-              NextMove Cargo
-            </span>
+          <h1 className="text-6xl lg:text-8xl font-black text-white mb-8 leading-tight tracking-tighter max-w-5xl mx-auto animate-in fade-in slide-in-from-bottom-6 duration-700 delay-100">
+            Propulsez Votre <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-500">Empire Logistique</span>.
           </h1>
 
           <p className="text-xl text-slate-300 mb-12 max-w-2xl mx-auto font-light leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
@@ -390,40 +375,42 @@ export default function BecomeForwarder() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="group bg-white dark:bg-gray-900 p-10 rounded-[2.5rem] shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800 hover:-translate-y-2 transition-all duration-300">
-              <div className="w-20 h-20 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-3xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-300">
+            <div className="group relative bg-white dark:bg-slate-900 p-10 rounded-[3rem] shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800 hover:-translate-y-2 transition-all duration-500 overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="relative z-10 w-20 h-20 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-3xl flex items-center justify-center mb-8 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
                 <Globe className="w-10 h-10" />
               </div>
-              <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">
+              <h3 className="relative z-10 text-2xl font-black text-slate-900 dark:text-white mb-4">
                 Visibilité Mondiale
               </h3>
-              <p className="text-slate-500 dark:text-slate-400 leading-relaxed text-lg">
-                Touchez des clients internationaux et développez votre présence
-                sur de nouveaux marchés sans effort marketing supplémentaire.
+              <p className="relative z-10 text-slate-500 dark:text-slate-400 leading-relaxed text-lg">
+                Touchez des clients internationaux et développez votre présence sur de nouveaux marchés sans effort marketing.
               </p>
             </div>
-            <div className="group bg-white dark:bg-gray-900 p-10 rounded-[2.5rem] shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800 hover:-translate-y-2 transition-all duration-300">
-              <div className="w-20 h-20 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-3xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-300">
+
+            <div className="group relative bg-white dark:bg-slate-900 p-10 rounded-[3rem] shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800 hover:-translate-y-2 transition-all duration-500 overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="relative z-10 w-20 h-20 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-3xl flex items-center justify-center mb-8 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
                 <TrendingUp className="w-10 h-10" />
               </div>
-              <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">
+              <h3 className="relative z-10 text-2xl font-black text-slate-900 dark:text-white mb-4">
                 Plus de Business
               </h3>
-              <p className="text-slate-500 dark:text-slate-400 leading-relaxed text-lg">
-                Recevez des demandes de cotation (RFQ) qualifiées directement
-                sur votre tableau de bord et répondez-y en quelques clics.
+              <p className="relative z-10 text-slate-500 dark:text-slate-400 leading-relaxed text-lg">
+                Recevez des demandes de cotation (RFQ) qualifiées directement sur votre tableau de bord stratégique.
               </p>
             </div>
-            <div className="group bg-white dark:bg-gray-900 p-10 rounded-[2.5rem] shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800 hover:-translate-y-2 transition-all duration-300">
-              <div className="w-20 h-20 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded-3xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-300">
+
+            <div className="group relative bg-white dark:bg-slate-900 p-10 rounded-[3rem] shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800 hover:-translate-y-2 transition-all duration-500 overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="relative z-10 w-20 h-20 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded-3xl flex items-center justify-center mb-8 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
                 <Truck className="w-10 h-10" />
               </div>
-              <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">
+              <h3 className="relative z-10 text-2xl font-black text-slate-900 dark:text-white mb-4">
                 Gestion Simplifiée
               </h3>
-              <p className="text-slate-500 dark:text-slate-400 leading-relaxed text-lg">
-                Un outil tout-en-un pour gérer vos expéditions, votre tracking,
-                vos documents et votre facturation.
+              <p className="relative z-10 text-slate-500 dark:text-slate-400 leading-relaxed text-lg">
+                Un outil tout-en-un pour gérer vos expéditions, votre tracking et votre facturation automatisée.
               </p>
             </div>
           </div>

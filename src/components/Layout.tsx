@@ -180,7 +180,7 @@ export default function Layout() {
 
                     <div className="bg-gray-50 rounded-full p-1 group-hover/profile:bg-primary/10 group-hover/profile:text-primary transition-colors shadow-sm">
                       <ChevronDown
-                        className={`w - 3 h - 3 text - gray - 400 transition - transform duration - 300 ${userMenuOpen ? "rotate-180" : ""} `}
+                        className={`w-3 h-3 text-gray-500 dark:text-dark-muted transition-transform duration-300 ${userMenuOpen ? "rotate-180" : ""}`}
                       />
                     </div>
                   </button>
@@ -342,7 +342,7 @@ export default function Layout() {
                 <span className="text-primary">NextMove</span>
                 <span className="text-secondary ml-1">Cargo</span>
               </h3>
-              <p className="text-gray-400 mb-4">
+              <p className="text-gray-300 mb-4">
                 {settings?.footer?.tagline ||
                   "Simplifying logistics across Africa."}
               </p>
@@ -351,7 +351,7 @@ export default function Layout() {
               <h4 className="font-bold mb-4">
                 {settings?.footer?.platform || "Platform"}
               </h4>
-              <ul className="space-y-2 text-gray-400">
+              <ul className="space-y-2 text-gray-300">
                 <li>
                   <Link
                     to="/calculator"
@@ -382,7 +382,7 @@ export default function Layout() {
               <h4 className="font-bold mb-4">
                 {settings?.footer?.company || "Company"}
               </h4>
-              <ul className="space-y-2 text-gray-400">
+              <ul className="space-y-2 text-gray-300">
                 <li>
                   <Link to="/about" className="hover:text-white transition-colors">
                     À Propos
@@ -428,7 +428,7 @@ export default function Layout() {
               </div>
             </div>
           </div>
-          <div className="border-t border-gray-800 pt-8 text-center text-gray-400">
+          <div className="border-t border-gray-800 pt-8 text-center text-gray-300">
             <p>
               &copy; 2026 {settings?.platform_name || "NextMove Cargo"}.{" "}
               {settings?.footer?.rights || "All rights reserved."}

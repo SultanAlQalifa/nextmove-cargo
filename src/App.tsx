@@ -29,6 +29,9 @@ const ForwarderDashboard = lazy(
 const AdminDashboard = lazy(
   () => import("./pages/dashboard/admin/AdminDashboard"),
 );
+const AdminCommunity = lazy(
+  () => import("./pages/dashboard/admin/AdminCommunity"),
+);
 const CalculatorPage = lazy(() => import("./pages/CalculatorPage"));
 const SupplierQuoteRequest = lazy(() => import("./pages/SupplierQuoteRequest"));
 const DriverDashboard = lazy(() => import("./pages/dashboard/DriverDashboard"));
@@ -570,6 +573,10 @@ function App() {
                                         <Route
                                           path="admin"
                                           element={<AdminDashboard />}
+                                        />
+                                        <Route
+                                          path="admin/community"
+                                          element={<AdminCommunity />}
                                         />
                                         <Route
                                           path="admin/users"

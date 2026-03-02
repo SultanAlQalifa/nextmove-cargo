@@ -116,14 +116,19 @@ export default function AdminFundCalls() {
       result = result.filter((c) => c.status === statusFilter);
     }
 
-    // Mock time range filtering
+    // Actual time range filtering
     if (timeRange !== "all") {
-      if (timeRange === "7d")
-        result = result.slice(0, Math.max(1, Math.floor(result.length * 0.2)));
-      else if (timeRange === "30d")
-        result = result.slice(0, Math.max(1, Math.floor(result.length * 0.5)));
-      else if (timeRange === "3m")
-        result = result.slice(0, Math.max(1, Math.floor(result.length * 0.8)));
+      const now = new Date();
+      let limitDate = new Date();
+
+      if (timeRange === "7d") limitDate.setDate(now.getDate() - 7);
+      else if (timeRange === "30d") limitDate.setDate(now.getDate() - 30);
+      else if (timeRange === "3m") limitDate.setMonth(now.getMonth() - 3);
+      else if (timeRange === "1y") limitDate.setFullYear(now.getFullYear() - 1);
+
+      if (timeRange !== "custom") {
+        result = result.filter((c) => new Date(c.created_at) >= limitDate);
+      }
     }
 
     setFilteredCalls(result);

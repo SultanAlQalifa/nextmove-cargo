@@ -18,7 +18,8 @@ import {
 import { AdminWorldMap } from "../../../components/dashboard/admin/AdminWorldMap";
 import { UserDistributionMap } from "../../../components/dashboard/admin/UserDistributionMap";
 import { AdminAlerts } from "../../../components/dashboard/admin/AdminAlerts";
-import { profileService } from "../../../services/profileService";
+import { profileService, UserDistributionData } from "../../../services/profileService";
+import { rfqService } from "../../../services/rfqService";
 import {
   AreaChart,
   Area,
@@ -50,7 +51,8 @@ export const AdminDashboard = () => {
   const [shipmentStatusData, setShipmentStatusData] = useState<any[]>([]);
   const [recentActivities, setRecentActivities] = useState<any[]>([]);
   const [supportDonors, setSupportDonors] = useState<any[]>([]);
-  const [userGeoData, setUserGeoData] = useState<any[]>([]);
+  const [userGeoData, setUserGeoData] = useState<UserDistributionData[]>([]);
+  const [trueTotalUsers, setTrueTotalUsers] = useState<number>(0);
   const [loading, setLoading] = useState(true);
 
   // Stats State
@@ -93,24 +95,48 @@ export const AdminDashboard = () => {
         .order('created_at', { ascending: false });
 
       // 7. User Geo Data
-      const geoData = await profileService.getUserDistributionByCountry();
-      setUserGeoData(geoData);
+      const distribution = await profileService.getUserDistributionByCountry();
+      setUserGeoData(distribution.mapData);
+      setTrueTotalUsers(distribution.totalUsers);
 
-      const uCount = users?.length || 0;
-      const sCount = shipments?.filter(s => s.status !== 'delivered' && s.status !== 'cancelled').length || 0;
-      const revTotal = payments?.reduce((a: number, b: any) => a + b.amount, 0) || 0;
+      const sCount = (shipments || []).length;
+      const revTotal = (payments || []).reduce((a: number, b: any) => a + b.amount, 0) || 0;
       const convRate = rfqs?.length ? Math.round((rfqs.filter((r: any) => ['booked', 'completed'].includes(r.status)).length / rfqs.length) * 100) : 0;
       const supportTotalVal = (donors || []).reduce((acc: number, curr: any) => acc + (Number(curr.metadata?.amount) || 0), 0);
 
+      // Trend Calculation Helper
+      const calcTrendData = (data: any[]) => {
+        const now = new Date();
+        const rangeDays = timeRange === "7d" ? 7 : timeRange === "30d" ? 30 : 90;
+        const currentPeriodStart = new Date(now.getTime() - rangeDays * 24 * 60 * 60 * 1000);
+        const previousPeriodStart = new Date(now.getTime() - rangeDays * 2 * 24 * 60 * 60 * 1000);
+
+        const current = data.filter(d => new Date(d.created_at) >= currentPeriodStart).length;
+        const previous = data.filter(d => {
+          const dt = new Date(d.created_at);
+          return dt >= previousPeriodStart && dt < currentPeriodStart;
+        }).length;
+
+        if (previous === 0) return { trend: "+100%", up: true };
+        const d = ((current - previous) / previous) * 100;
+        return { trend: `${d >= 0 ? '+' : ''}${Math.round(d)}%`, up: d >= 0 };
+      };
+
+      const uTrend = calcTrendData(users || []);
+      const sTrend = calcTrendData(shipments || []);
+      const rTrend = calcTrendData(payments || []);
+      const cTrend = calcTrendData(rfqs || []);
+
       setStats({
-        users: { value: uCount, trend: "+12%", trendUp: true },
-        shipments: { value: sCount, trend: "+5%", trendUp: true },
-        revenue: { value: revTotal, trend: "+18%", trendUp: true },
-        conversion: { value: convRate, trend: "+2%", trendUp: true },
+        users: { value: distribution.totalUsers, trend: uTrend.trend, trendUp: uTrend.up },
+        shipments: { value: sCount, trend: sTrend.trend, trendUp: sTrend.up },
+        revenue: { value: revTotal, trend: rTrend.trend, trendUp: rTrend.up },
+        conversion: { value: convRate, trend: cTrend.trend, trendUp: cTrend.up },
         kycPending: { value: kycCount || 0 },
-        activeShipments: { value: sCount },
+        activeShipments: { value: shipments?.filter(s => s.status !== 'delivered' && s.status !== 'cancelled').length || 0 },
         supportTotal: { value: supportTotalVal, target: 10000000 }
       });
+
 
       setSupportDonors((donors || []).slice(0, 5));
 
@@ -122,36 +148,25 @@ export const AdminDashboard = () => {
 
       setRecentActivities(feed.slice(0, 8));
 
-      // Revenue Chart Data
-      const chartMap = new Map();
-      payments?.forEach(p => {
-        const d = new Date(p.created_at).toLocaleDateString('fr-FR', { month: 'short' });
-        chartMap.set(d, (chartMap.get(d) || 0) + p.amount);
-      });
-      setRevenueData(Array.from(chartMap.entries()).map(([name, value]) => ({ name, value })));
+      // Financial Performance (Revenue over Time)
+      const financialData = await rfqService.getFinancialPerformance();
+      setRevenueData(
+        financialData.map((d: { mois: string; revenu: number }) => ({
+          name: new Date(d.mois).toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' }),
+          value: Number(d.revenu)
+        }))
+      );
 
-      // Status Chart Data (Pie)
-      const statusCounts: Record<string, number> = {
-        'draft': 0, 'pending': 0, 'picked_up': 0, 'in_transit': 0, 'arrived': 0, 'delivered': 0
-      };
-      shipments?.forEach(s => {
-        if (statusCounts[s.status] !== undefined) statusCounts[s.status]++;
-      });
-
-      const COLORS_MAP: Record<string, string> = {
-        'draft': '#94A3B8',
-        'pending': '#FBBF24',
-        'picked_up': '#6366F1',
-        'in_transit': '#8B5CF6',
-        'arrived': '#10B981',
-        'delivered': '#059669'
-      };
-
-      setShipmentStatusData(Object.entries(statusCounts).map(([name, value]) => ({
-        name: name === 'picked_up' ? 'Collecté' : name === 'in_transit' ? 'En transit' : name === 'arrived' ? 'Arrivé' : name,
-        value,
-        color: COLORS_MAP[name]
-      })).filter((item: any) => item.value > 0));
+      // Logistics Distribution (Cargo Type counts)
+      const logisticsData = await rfqService.getLogisticsDistribution();
+      const COLORS_MAP: string[] = ['#6366F1', '#8B5CF6', '#FBBF24', '#10B981', '#059669', '#F43F5E', '#0EA5E9'];
+      setShipmentStatusData(
+        logisticsData.map((d: { name: string; value: number }, idx: number) => ({
+          name: d.name,
+          value: Number(d.value),
+          color: COLORS_MAP[idx % COLORS_MAP.length]
+        }))
+      );
 
     } catch (err) {
       console.error(err);
@@ -293,23 +308,29 @@ export const AdminDashboard = () => {
             </div>
           </div>
           <ChartGuard height={350}>
-            <ResponsiveContainer width="100%" height="100%" debounce={1} minWidth={0} minHeight={0}>
-              <AreaChart data={revenueData}>
-                <defs>
-                  <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" opacity={0.5} />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 12, fontWeight: 700 }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 12, fontWeight: 700 }} tickFormatter={(v) => `${v / 1000}k`} />
-                <Tooltip
-                  contentStyle={{ borderRadius: '1.5rem', border: 'none', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)', fontWeight: 800 }}
-                />
-                <Area type="monotone" dataKey="value" stroke="#6366f1" strokeWidth={4} fillOpacity={1} fill="url(#colorRevenue)" />
-              </AreaChart>
-            </ResponsiveContainer>
+            <div className="w-full flex justify-center items-center min-h-[250px] h-[350px]">
+              {revenueData.length === 0 ? (
+                <div className="text-slate-400 italic font-bold">Aucune donnée disponible</div>
+              ) : (
+                <ResponsiveContainer width="100%" height={250}>
+                  <AreaChart data={revenueData}>
+                    <defs>
+                      <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" opacity={0.5} />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 12, fontWeight: 700 }} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 12, fontWeight: 700 }} tickFormatter={(v) => `${v / 1000}k`} />
+                    <Tooltip
+                      contentStyle={{ borderRadius: '1.5rem', border: 'none', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)', fontWeight: 800 }}
+                    />
+                    <Area type="monotone" dataKey="value" stroke="#6366f1" strokeWidth={4} fillOpacity={1} fill="url(#colorRevenue)" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              )}
+            </div>
           </ChartGuard>
         </div>
 
@@ -317,25 +338,31 @@ export const AdminDashboard = () => {
         <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl p-8 rounded-[2.5rem] border border-white/20 dark:border-white/10 shadow-xl">
           <h3 className="text-xl font-black text-slate-800 dark:text-white mb-6">Répartition Logistique</h3>
           <ChartGuard height={300} className="relative">
-            <ResponsiveContainer width="100%" height="100%" debounce={1} minWidth={0} minHeight={0}>
-              <PieChart>
-                <Pie
-                  data={shipmentStatusData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {shipmentStatusData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip />
-                <Legend verticalAlign="bottom" align="center" />
-              </PieChart>
-            </ResponsiveContainer>
+            <div className="w-full flex justify-center items-center min-h-[250px] h-[300px]">
+              {shipmentStatusData.length === 0 ? (
+                <div className="text-slate-400 italic font-bold">Aucune donnée disponible</div>
+              ) : (
+                <ResponsiveContainer width="100%" height={250}>
+                  <PieChart>
+                    <Pie
+                      data={shipmentStatusData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={80}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {shipmentStatusData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend verticalAlign="bottom" align="center" />
+                  </PieChart>
+                </ResponsiveContainer>
+              )}
+            </div>
           </ChartGuard>
         </div>
       </div>
@@ -387,7 +414,7 @@ export const AdminDashboard = () => {
 
         {/* Global Maps Section */}
         <div className="lg:col-span-2 flex flex-col gap-6">
-          <UserDistributionMap data={userGeoData} loading={loading} />
+          <UserDistributionMap data={userGeoData} totalUsers={trueTotalUsers} loading={loading} />
           <div className="min-h-[300px]">
             <AdminWorldMap />
           </div>

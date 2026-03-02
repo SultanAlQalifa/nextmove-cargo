@@ -7,6 +7,9 @@ export interface AutomationSettings {
     ticket_auto_ack_enabled?: boolean;
     shipment_update_enabled?: boolean;
     whatsapp_enabled?: boolean;
+    email_enabled?: boolean;
+    sms_enabled?: boolean;
+    push_enabled?: boolean;
     // Array of feature keys that are disabled by admin
     // e.g. ['auto_quote', 'smart_closure']
     admin_disabled: string[];

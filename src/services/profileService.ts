@@ -5,13 +5,18 @@ import { auditService } from "./auditService";
 
 export type { UserProfile };
 
+export type UserDistributionData = {
+  id: string;
+  value: number;
+};
+
 export const profileService = {
   getProfile: async (
     userId: string,
     skipCache = false,
   ): Promise<UserProfile | null> => {
     // 1. Try to get from localStorage first
-    const cachedProfile = localStorage.getItem(`user_profile_${userId}`);
+    const cachedProfile = localStorage.getItem(`user_profile_${userId} `);
     if (!skipCache && cachedProfile) {
       const data = JSON.parse(cachedProfile);
       // Skip invalid cache
@@ -34,7 +39,7 @@ export const profileService = {
       }
 
       // Cache the result
-      localStorage.setItem(`user_profile_${userId}`, JSON.stringify(data));
+      localStorage.setItem(`user_profile_${userId} `, JSON.stringify(data));
       return data;
     } catch (error) {
       console.warn(
@@ -61,7 +66,7 @@ export const profileService = {
         };
         // Cache this temporary fallback
         localStorage.setItem(
-          `user_profile_${userId}`,
+          `user_profile_${userId} `,
           JSON.stringify(fallbackProfile),
         );
         return fallbackProfile;
@@ -75,17 +80,17 @@ export const profileService = {
     updates: Partial<UserProfile>,
   ): Promise<void> => {
     // 1. Update localStorage
-    const cachedProfileStr = localStorage.getItem(`user_profile_${userId}`);
+    const cachedProfileStr = localStorage.getItem(`user_profile_${userId} `);
     if (cachedProfileStr) {
       const cachedProfile = JSON.parse(cachedProfileStr);
       const updatedProfile = { ...cachedProfile, ...updates };
       localStorage.setItem(
-        `user_profile_${userId}`,
+        `user_profile_${userId} `,
         JSON.stringify(updatedProfile),
       );
     } else {
       localStorage.setItem(
-        `user_profile_${userId}`,
+        `user_profile_${userId} `,
         JSON.stringify({ id: userId, ...updates }),
       );
     }
@@ -147,14 +152,14 @@ export const profileService = {
         fetchWithRetry<any[]>(() =>
           supabase
             .from("shipments")
-            .select(`user:profiles!client_id(*)`)
+            .select(`user: profiles!client_id(*)`)
             .eq("forwarder_id", user.id),
         ),
         // Source 2: Explicitly added clients
         fetchWithRetry<any[]>(() =>
           supabase
             .from("forwarder_clients")
-            .select(`user:profiles!client_id(*)`)
+            .select(`user: profiles!client_id(*)`)
             .eq("forwarder_id", user.id),
         ),
       ]);
@@ -213,7 +218,7 @@ export const profileService = {
       let builder = supabase
         .from("profiles")
         .select("*")
-        .or(`full_name.ilike.%${query}%,email.ilike.%${query}%`)
+        .or(`full_name.ilike.% ${query}%, email.ilike.% ${query}% `)
         .limit(10);
 
       if (role) {
@@ -252,12 +257,12 @@ export const profileService = {
       );
 
       // Also update local storage to reflect the change immediately
-      const cachedProfileStr = localStorage.getItem(`user_profile_${userId}`);
+      const cachedProfileStr = localStorage.getItem(`user_profile_${userId} `);
       if (cachedProfileStr) {
         const cachedProfile = JSON.parse(cachedProfileStr);
         cachedProfile.role = "forwarder";
         localStorage.setItem(
-          `user_profile_${userId}`,
+          `user_profile_${userId} `,
           JSON.stringify(cachedProfile),
         );
       }
@@ -316,11 +321,11 @@ export const profileService = {
   ): Promise<void> => {
     try {
       // Optimistic update
-      const cachedProfileStr = localStorage.getItem(`user_profile_${userId}`);
+      const cachedProfileStr = localStorage.getItem(`user_profile_${userId} `);
       if (cachedProfileStr) {
         const cachedProfile = JSON.parse(cachedProfileStr);
         cachedProfile.automation_settings = settings;
-        localStorage.setItem(`user_profile_${userId}`, JSON.stringify(cachedProfile));
+        localStorage.setItem(`user_profile_${userId} `, JSON.stringify(cachedProfile));
       }
 
       await fetchWithRetry(() =>
@@ -335,38 +340,110 @@ export const profileService = {
     }
   },
 
-  getUserDistributionByCountry: async (): Promise<{ id: string; value: number }[]> => {
+  getUserDistributionByCountry: async (): Promise<{ mapData: UserDistributionData[], totalUsers: number }> => {
     try {
-      // Fetch all profiles to calculate distribution
-      // Note: In a large scale app, this should be an RPC function to avoid fetching all rows
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("country");
-
-      if (error) throw error;
-      if (!data) return [];
-
       const countMap = new Map<string, number>();
 
-      data.forEach(p => {
-        if (p.country) {
-          // Normalize: trim and uppercase
-          let code = p.country.trim().toUpperCase();
+      const getCountryCode = (countryName: string) => {
+        if (!countryName) return null;
+        const name = countryName.trim().toUpperCase();
+        if (name.includes("SENEGAL") || name.includes("SÉNÉGAL") || name === "SN") return "SN";
+        if (name.includes("FRANCE") || name === "FR") return "FR";
+        if (name.includes("MALI") || name === "ML") return "ML";
+        if (name.includes("COTE D'IVOIRE") || name.includes("CÔTE D'IVOIRE") || name === "CI") return "CI";
+        if (name.includes("MAROC") || name === "MA") return "MA";
+        if (name.includes("ETATS-UNIS") || name.includes("US") || name.includes("USA")) return "US";
+        if (name.includes("CANADA") || name === "CA") return "CA";
+        if (name.includes("CHINE") || name.includes("CHINA") || name === "CN") return "CN";
+        if (name.includes("EMIRATS") || name === "AE") return "AE";
+        if (name.length === 2) return name;
+        return name;
+      };
 
-          // Basic heuristic: if user stored full name, we might ignore or try to map
-          // For now, we assume standard codes (ISO 2/3) are used or consistent names
+      // 1. Fetch total users safely via RPC
+      const totalData = await fetchWithRetry<any>(() =>
+        supabase.rpc("get_total_users_count")
+      );
+      const totalUsersCount = Number(totalData) || 0;
+
+      // 2. Fetch pre-aggregated distribution via RPC (bypasses RLS)
+      const rpcData = await fetchWithRetry<{ country: string, total: number }[]>(() =>
+        supabase.rpc("get_user_distribution_by_country")
+      );
+
+      (rpcData || []).forEach(item => {
+        if (item.country) {
+          const code = getCountryCode(item.country);
+          if (code) {
+            countMap.set(code, (countMap.get(code) || 0) + Number(item.total));
+          }
+        }
+      });
+
+      // 2. Enrich with RFQ destinations
+      const { data: rfqData } = await supabase
+        .from("rfq_requests")
+        .select("destination_port")
+        .not("destination_port", "is", null)
+        .neq("destination_port", "")
+        .order("created_at", { ascending: false })
+        .limit(5000);
+
+      (rfqData || []).forEach((r) => {
+        if (typeof r.destination_port === 'string' && r.destination_port.trim() !== '') {
+          const code = getCountryCode(r.destination_port);
           if (code) {
             countMap.set(code, (countMap.get(code) || 0) + 1);
           }
         }
       });
 
-      return Array.from(countMap.entries())
+      const mapData = Array.from(countMap.entries())
         .map(([id, value]) => ({ id, value }))
         .sort((a, b) => b.value - a.value);
+
+      return {
+        mapData,
+        totalUsers: totalUsersCount || 0
+      };
+
     } catch (error) {
       console.error("Error fetching user distribution:", error);
+      return { mapData: [], totalUsers: 0 };
+    }
+  },
+
+  getCommunityKPIs: async () => {
+    try {
+      const data = await fetchWithRetry<any>(() => supabase.rpc("get_community_kpis"));
+      return data || { total_users: 0, total_countries: 0, new_this_week: 0, completion_rate: 0 };
+    } catch (error) {
+      console.error("Error fetching community KPIs:", error);
+      return { total_users: 0, total_countries: 0, new_this_week: 0, completion_rate: 0 };
+    }
+  },
+
+  getDetailedUserDistribution: async (roleFilter?: string) => {
+    try {
+      const data = await fetchWithRetry<any[]>(() =>
+        supabase.rpc("get_detailed_user_distribution", roleFilter ? { role_filter: roleFilter } : {})
+      );
+      return data || [];
+    } catch (error) {
+      console.error("Error fetching detailed distribution:", error);
       return [];
     }
   },
+
+  getHistoricalUserGrowth: async (countryFilter?: string) => {
+    try {
+      const data = await fetchWithRetry<any[]>(() =>
+        supabase.rpc("get_user_growth_by_month", countryFilter ? { country_filter: countryFilter } : {})
+      );
+      return data || [];
+    } catch (error) {
+      console.error("Error fetching historical growth:", error);
+      return [];
+    }
+  }
 };

@@ -18,7 +18,8 @@ export const notificationService = {
   // --- Push Notifications Logic ---
   initPushNotifications: async () => {
     if (Capacitor.getPlatform() === 'web') {
-      console.log('Push notifications not available on web');
+      // Trace silently
+
       return;
     }
 
@@ -38,7 +39,8 @@ export const notificationService = {
 
     // Listeners
     PushNotifications.addListener('registration', async (token) => {
-      console.log('Push registration success, token: ' + token.value);
+      // Trace silently
+
       await notificationService.savePushToken(token.value);
     });
 
@@ -47,11 +49,13 @@ export const notificationService = {
     });
 
     PushNotifications.addListener('pushNotificationReceived', (notification) => {
-      console.log('Push received: ' + JSON.stringify(notification));
+      // Trace silently
+
     });
 
     PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
-      console.log('Push action performed: ' + JSON.stringify(notification));
+      // Trace silently
+
       if (notification.notification.data?.link) {
         window.location.href = notification.notification.data.link;
       }

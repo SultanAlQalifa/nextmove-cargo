@@ -3,45 +3,33 @@
 -- Author: Antigravity Audit
 -- 1. Helper function to get plan feature limit
 CREATE OR REPLACE FUNCTION get_plan_limit(p_user_id UUID, p_feature_key TEXT) RETURNS INTEGER AS $$
-DECLARE v_plan_features JSONB;
-v_limit INTEGER;
-BEGIN
-SELECT sp.features INTO v_plan_features
-FROM user_subscriptions us
-    JOIN subscription_plans sp ON us.plan_id = sp.id
-WHERE us.user_id = p_user_id
-    AND us.status = 'active';
--- If no subscription, assume default (starter-like) or 0
-IF v_plan_features IS NULL THEN RETURN 0;
+DECLARE v_role TEXT;
+v_plan_name TEXT;
+BEGIN -- 1. Identify User Role (Clients & Admins are exempt)
+SELECT role INTO v_role
+FROM profiles
+WHERE id = p_user_id;
+IF v_role IN ('client', 'admin', 'super-admin') THEN RETURN 9999;
 END IF;
--- Extract limit from features JSONB (feature structure in array: {key: "max_active_rfqs", value: 3})
--- Note: The structure in subscriptionFeatures.ts implies an array of definitions, 
--- but usually 'features' in DB is simpler. 
--- Assuming features column is JSONB like: {"max_active_rfqs": 3} or array.
--- If it's an array of strings like ["Groupage", "API"], we need a better lookup.
--- Based on previous migration 20260...10, features is an array of strings ["Feature A"].
--- Wait, LIMITS are usually separate columns or a specific json object.
--- Let's assume for this migration we hardcode limits based on plan name for robustness if schema is simple strings.
-DECLARE v_plan_name TEXT;
-BEGIN
+-- 2. For Forwarders, check active subscription
 SELECT sp.name INTO v_plan_name
 FROM user_subscriptions us
     JOIN subscription_plans sp ON us.plan_id = sp.id
 WHERE us.user_id = p_user_id
-    AND us.status = 'active';
+    AND us.status = 'active'
+LIMIT 1;
+-- 3. Map Plan Name to Limits
 IF v_plan_name ILIKE '%Starter%' THEN IF p_feature_key = 'rfq_monthly_limit' THEN RETURN 3;
 END IF;
 IF p_feature_key = 'shipment_monthly_limit' THEN RETURN 5;
 END IF;
-ELSIF v_plan_name ILIKE '%Pro%' THEN IF p_feature_key = 'rfq_monthly_limit' THEN RETURN 9999;
-END IF;
-IF p_feature_key = 'shipment_monthly_limit' THEN RETURN 9999;
-END IF;
-ELSE -- Elite/Enterprise
+ELSIF v_plan_name ILIKE '%Pro%' THEN RETURN 9999;
+-- Unlimited
+ELSIF v_plan_name IS NOT NULL THEN -- Elite / Enterprise
 RETURN 99999;
+-- Unlimited
 END IF;
-RETURN 0;
-END;
+-- 4. Default for Forwarders without active plan
 RETURN 0;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

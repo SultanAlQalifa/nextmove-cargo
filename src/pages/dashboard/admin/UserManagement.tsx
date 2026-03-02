@@ -27,12 +27,25 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { exportToExcel, exportToPDF } from "../../../utils/exportUtils";
 
+interface UserListItem {
+  id: string;
+  friendly_id?: string;
+  name: string;
+  email: string;
+  role: string;
+  status: string;
+  joined_at: string;
+  phone: string;
+  company: string;
+  location: string;
+}
+
 export default function UserManagement() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { profile } = useAuth();
   const { success, error: toastError } = useToast();
   // Data State
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<UserListItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Filter State
@@ -45,7 +58,7 @@ export default function UserManagement() {
   });
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [filteredUsers, setFilteredUsers] = useState<any[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<UserListItem[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
@@ -136,6 +149,7 @@ export default function UserManagement() {
 
   const handleToggleStatus = async (userId: string, currentStatus: string) => {
     try {
+      setLoading(true);
       const { profileService } =
         await import("../../../services/profileService");
       // If currently active, suspend. If suspended or inactive, activate.
@@ -148,6 +162,8 @@ export default function UserManagement() {
     } catch (err) {
       console.error(err);
       toastError("Erreur lors de la mise à jour du statut.");
+    } finally {
+      setLoading(false);
     }
   };
 

@@ -625,6 +625,7 @@ export default function AdminShipments() {
             shipments.find((s) => s.id === showTrackingForShipment)
               ?.rawStatus || "pending"
           }
+          shipment={shipments.find((s) => s.id === showTrackingForShipment)}
           onClose={() => setShowTrackingForShipment(null)}
           onViewDetails={() => {
             setShowInvoiceForShipment(showTrackingForShipment);

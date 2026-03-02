@@ -4,160 +4,11 @@ import { logger } from "../utils/logger";
 
 export const automationService = {
     /**
-     * Checks if an RFQ should be automatically closed (e.g. when an offer is accepted)
-     * This is typically called after an offer is accepted.
+     * handleOfferAcceptance is now handled exclusively by the 'accept_rfq_offer' RPC in the backend.
+     * This client method is kept as a reference for the logic moved to PostgreSQL.
      */
-    handleOfferAcceptance: async (acceptedOfferId: string, rfqId: string): Promise<void> => {
-        try {
-            // Check if automation is enabled for the forwarder who owns the accepted offer
-            const { data: offer } = await supabase
-                .from('rfq_offers')
-                .select('*, forwarder:profiles!forwarder_id(company_name, avatar_url), rfq:rfq_requests(*)')
-                .eq('id', acceptedOfferId)
-                .single();
-
-            if (!offer) {
-                logger.error("[Automation] Offer not found:", acceptedOfferId);
-                return;
-            }
-
-
-
-            // 1. Update RFQ status to 'offer_accepted'
-            await fetchWithRetry(() =>
-                supabase
-                    .from("rfq_requests")
-                    .update({ status: "offer_accepted" })
-                    .eq("id", rfqId)
-            );
-
-            // 2. Reject all other pending offers for this RFQ (Cleanup)
-            await fetchWithRetry(() =>
-                supabase
-                    .from("rfq_offers")
-                    .update({ status: "rejected", rejected_reason: "Une autre offre a été acceptée (Automation)" })
-                    .eq("rfq_id", rfqId)
-                    .neq("id", acceptedOfferId)
-                    .eq("status", "pending")
-            );
-
-            // 3. Resolve Client Email & Calculate Final Price
-            const rfq = offer.rfq;
-            const { data: clientProfile } = await supabase.from('profiles').select('email').eq('id', rfq.client_id).single();
-            const { data: forwarderProfile } = await supabase.from('profiles').select('email').eq('id', offer.forwarder_id).single();
-
-            // Calculate Discount based on Plan
-            const { data: sub } = await supabase.from('user_subscriptions')
-                .select('plan:subscription_plans(name)')
-                .eq('user_id', rfq.client_id)
-                .eq('status', 'active')
-                .single();
-
-            const planObj = Array.isArray(sub?.plan) ? sub?.plan[0] : sub?.plan;
-            const planName = planObj?.name?.toLowerCase() || '';
-            let discount = 0;
-            if (planName.includes('elite') || planName.includes('enterprise')) discount = 0.10;
-            else if (planName.includes('pro')) discount = 0.05;
-
-            const finalPrice = Math.floor(offer.total_price * (1 - discount));
-
-            // 4. CREATE SHIPMENT (The "Post-Acceptance" Workflow)
-            const trackingNumber = `SHP-${Date.now().toString().slice(-6)}-${Math.floor(Math.random() * 1000)}`;
-
-            // Calculate Arrival Date based on Departure + Transit Days
-            const departureDate = offer.departure_date ? new Date(offer.departure_date) : new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
-            const arrivalDate = new Date(departureDate);
-            arrivalDate.setDate(arrivalDate.getDate() + (offer.estimated_transit_days || 30));
-
-            const { error: shipmentError } = await supabase.from("shipments").insert({
-                tracking_number: trackingNumber,
-                rfq_id: rfq.id,
-                client_id: rfq.client_id,
-                forwarder_id: offer.forwarder_id,
-                status: "pending_payment",
-                origin_port: rfq.origin_port,
-                origin_country: rfq.origin_country || "XX",
-                destination_port: rfq.destination_port,
-                destination_country: rfq.destination_country || "XX",
-                cargo_type: rfq.cargo_type,
-                cargo_weight: rfq.weight_kg || 0,
-                cargo_volume: rfq.volume_cbm || 0,
-                cargo_packages: rfq.quantity || 1,
-                transport_mode: rfq.transport_mode,
-                transport_type: rfq.transport_mode,
-                service_type: rfq.service_type,
-                price: finalPrice,
-                currency: offer.currency,
-                departure_date: departureDate.toISOString(),
-                arrival_estimated_date: arrivalDate.toISOString(),
-                carrier_name: offer.forwarder?.company_name || "Forwarder",
-                carrier_logo: offer.forwarder?.avatar_url
-            });
-
-            // 5. QUEUE AUTOMATED EMAIL (Client Notification)
-            if (clientProfile?.email) {
-                const clientEmailSubject = `Confirmation d'Acceptation de l'Offre - RFQ ${rfq.id.slice(0, 8)}`;
-                const clientEmailBody = `
-                    <div style="font-family: sans-serif; padding: 20px;">
-                        <h2 style="color: #2563eb;">Offre Acceptée !</h2>
-                        <p>Bonjour,</p>
-                        <p>Vous avez accepté l'offre de transport de <strong>${offer.forwarder?.company_name || 'votre prestataire'}</strong>.</p>
-                        <p><strong>Détails de l'expédition :</strong></p>
-                        <ul>
-                            <li>Numéro de Suivi : <strong>${trackingNumber}</strong></li>
-                            <li>Montant : ${finalPrice} ${offer.currency}</li>
-                            <li>Départ estimé : ${departureDate.toLocaleDateString()}</li>
-                        </ul>
-                        <p>Votre expédition a été créée et est en attente de paiement.</p>
-                    </div>
-                `;
-
-                await fetchWithRetry(() =>
-                    supabase.from('email_queue').insert({
-                        sender_id: null,
-                        subject: clientEmailSubject,
-                        body: clientEmailBody,
-                        recipient_group: 'specific',
-                        recipient_emails: [clientProfile.email],
-                        status: 'pending'
-                    })
-                );
-            }
-
-            // 6. QUEUE AUTOMATED EMAIL (Forwarder Notification)
-            if (forwarderProfile?.email) {
-                const forwarderEmailSubject = `Nouveau Contrat Remporté - RFQ ${rfq.id.slice(0, 8)}`;
-                const forwarderEmailBody = `
-                    <div style="font-family: sans-serif; padding: 20px;">
-                        <h2 style="color: #16a34a;">Félicitations !</h2>
-                        <p>Votre offre a été retenue pour la demande de cotation.</p>
-                        <p>Un nouveau dossier d'expédition a été généré : <strong>${trackingNumber}</strong>.</p>
-                        <p>Veuillez préparer les documents nécessaires.</p>
-                    </div>
-                `;
-
-                await fetchWithRetry(() =>
-                    supabase.from('email_queue').insert({
-                        sender_id: null,
-                        subject: forwarderEmailSubject,
-                        body: forwarderEmailBody,
-                        recipient_group: 'specific',
-                        recipient_emails: [forwarderProfile.email],
-                        status: 'pending'
-                    })
-                );
-            }
-
-            if (shipmentError) {
-                logger.error("[Automation] Error creating shipment:", shipmentError);
-            } else {
-                logger.info(`[Automation] Shipment created: ${trackingNumber} for Price: ${finalPrice}`);
-            }
-
-            logger.info(`[Automation] RFQ ${rfqId} closed. Other offers rejected.`);
-        } catch (error) {
-            logger.error("[Automation] Error handling offer acceptance:", error);
-        }
+    handleOfferAcceptance: async (_acceptedOfferId: string, _rfqId: string): Promise<void> => {
+        logger.info("[Automation] handleOfferAcceptance skipped: now handled by backend RPC.");
     },
 
     /**
@@ -238,33 +89,35 @@ export const automationService = {
 
             if (error) throw error;
 
-            for (const invoice of (invoices || [])) {
-                // Check if reminders are enabled for this user
-                if (invoice.profile?.automation_settings?.invoice_reminder_enabled === false) continue;
-
-                const subject = `Rappel de Paiement : Facture ${invoice.number}`;
-                const body = `
-                    <div style="font-family: sans-serif; padding: 20px;">
-                        <h2 style="color: #ef4444;">Rappel de Paiement</h2>
-                        <p>Bonjour ${invoice.profile?.full_name || 'Utilisateur'},</p>
-                        <p>Votre facture <strong>${invoice.number}</strong> d'un montant de <strong>${invoice.amount} ${invoice.currency}</strong> est arrivée à échéance le ${new Date(invoice.due_date).toLocaleDateString()}.</p>
-                        <p>Merci de régulariser votre situation dans les plus brefs délais pour éviter toute interruption de service.</p>
-                        <div style="margin-top: 20px;">
-                            <a href="${window.location.origin}/dashboard/client/billing" style="background-color: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
-                                Voir ma facture
-                            </a>
+            const emailsToQueue = (invoices || [])
+                .filter(invoice => invoice.profile?.automation_settings?.invoice_reminder_enabled !== false)
+                .map(invoice => {
+                    const subject = `Rappel de Paiement: Facture ${invoice.number}`;
+                    const body = `
+                        <div style="font-family: sans-serif; padding: 20px;">
+                            <h2 style="color: #ef4444;">Rappel de Paiement</h2>
+                            <p>Bonjour ${invoice.profile?.full_name || 'Utilisateur'},</p>
+                            <p>Votre facture <strong>${invoice.number}</strong> d'un montant de <strong>${invoice.amount} ${invoice.currency}</strong> est arrivée à échéance le ${new Date(invoice.due_date).toLocaleDateString()}.</p>
+                            <p>Merci de régulariser votre situation dans les plus brefs délais pour éviter toute interruption de service.</p>
+                            <div style="margin-top: 20px;">
+                                <a href="${window.location.origin}/dashboard/client/billing" style="background-color: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+                                    Voir ma facture
+                                </a>
+                            </div>
                         </div>
-                    </div>
-                `;
-
-                await supabase.from('email_queue').insert({
-                    recipient_emails: [invoice.profile?.email || invoice.user_id],
-                    subject,
-                    body,
-                    status: 'pending'
+                    `;
+                    return {
+                        recipient_emails: [invoice.profile?.email || invoice.user_id],
+                        subject,
+                        body,
+                        status: 'pending',
+                        sender_id: null
+                    };
                 });
 
-                logger.info(`[Automation] Reminder queued for invoice ${invoice.number}`);
+            if (emailsToQueue.length > 0) {
+                await supabase.from('email_queue').insert(emailsToQueue);
+                logger.info(`[Automation] ${emailsToQueue.length} reminders queued in batch.`);
             }
         } catch (e) {
             logger.error("[Automation] Error checking overdue invoices:", e);
@@ -272,17 +125,19 @@ export const automationService = {
     },
 
     /**
-     * Simulation: Checks weather for active shipments. (Stub)
+     * Triggers a weather check for active shipments via Supabase Edge Function.
      */
     checkWeatherConditions: async (userId: string): Promise<void> => {
         try {
-            const { data: profile } = await supabase.from('profiles').select('automation_settings').eq('id', userId).single();
-            if (profile?.automation_settings?.weather_alert_enabled === false) return;
+            const { data, error } = await supabase.functions.invoke('weather-alerts', {
+                body: { userId }
+            });
 
-            // In a real app, this would call a weather API (OpenWeather)
-            // For now, we remain as a conceptual stub or log it.
-            logger.info("[Automation] Weather check simulation for user", userId);
-        } catch (e) { logger.error(e); }
+            if (error) throw error;
+            logger.info("[Automation] Weather check triggered via Edge Function", data);
+        } catch (e) {
+            logger.error("[Automation] Weather check failed:", e);
+        }
     },
 
     /**
@@ -317,33 +172,30 @@ export const automationService = {
             // Find RFQs created > 48h ago that are still pending
             const { data: staleRFQs, error } = await supabase
                 .from('rfq_requests')
-                .select('*, profile:profiles!client_id(email, full_name)')
+                .select(`
+    *,
+    profile: profiles!client_id(email, full_name),
+        offers: rfq_offers(id)
+                `)
                 .eq('status', 'pending')
                 .lt('created_at', fortyEightHoursAgo);
 
             if (error) throw error;
 
-            for (const rfq of (staleRFQs || [])) {
-                // Check if there are truly 0 offers
-                const { count } = await supabase
-                    .from('rfq_offers')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('rfq_id', rfq.id);
+            const notifications = (staleRFQs || [])
+                .filter(rfq => !rfq.offers || (rfq.offers as any[]).length === 0)
+                .map(rfq => ({
+                    user_id: rfq.client_id,
+                    type: 'rfq_stale',
+                    title: 'Votre demande est sans réponse',
+                    message: `Votre demande RFQ ${rfq.id.slice(0, 8)} n'a pas encore reçu d'offres. Souhaitez-vous la modifier ?`,
+                    link: `/dashboard/client/rfq/${rfq.id}`,
+                    read: false
+                }));
 
-                if (count === 0) {
-                    // Send notification to client
-                    await supabase.from('notifications').insert({
-                        user_id: rfq.client_id,
-                        type: 'rfq_stale',
-                        title: 'Votre demande est sans réponse',
-                        message: `Votre demande RFQ ${rfq.id.slice(0, 8)} n'a pas encore reçu d'offres. Souhaitez-vous la modifier ?`,
-                        link: `/dashboard/client/rfq/${rfq.id}`,
-                        read: false
-                    });
-
-                    // Optionnally queue an email if preferred
-                    logger.info(`[Automation] Stale RFQ notification sent for ${rfq.id}`);
-                }
+            if (notifications.length > 0) {
+                await supabase.from('notifications').insert(notifications);
+                logger.info(`[Automation] ${notifications.length} stale RFQ notifications sent in batch.`);
             }
         } catch (e) {
             logger.error("[Automation] Error checking stale RFQs:", e);

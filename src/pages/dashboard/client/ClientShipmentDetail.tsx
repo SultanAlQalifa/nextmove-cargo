@@ -51,14 +51,14 @@ const ForwarderAddressesDisplay = ({ forwarderId, originCountry, destCountry }: 
             {originAddr && (
                 <div className="bg-white/60 dark:bg-slate-800/40 backdrop-blur-md p-5 rounded-2xl border border-white/50 dark:border-white/5 shadow-sm hover:shadow-md hover:border-blue-200 dark:hover:border-blue-900/50 transition-all group">
                     <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3 flex items-center gap-2">
-                        <div className="p-1.5 bg-blue-50 dark:bg-blue-500/20 rounded-lg text-blue-500">
+                        <div className="p-1.5 bg-orange-50 dark:bg-orange-500/20 rounded-lg text-orange-500">
                             <Package className="w-3.5 h-3.5" />
                         </div>
                         Adresse de Dépôt ({originAddr.country})
                     </h4>
-                    <p className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-blue-600 transition-colors uppercase tracking-tight">{originAddr.name}</p>
+                    <p className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-orange-600 transition-colors uppercase tracking-tight">{originAddr.name}</p>
                     <p className="text-xs text-slate-500 mt-1 whitespace-pre-line leading-relaxed">{originAddr.address_line1} {originAddr.city}</p>
-                    {originAddr.contact_phone && <p className="text-xs font-medium text-slate-600 dark:text-slate-400 mt-2 flex items-center gap-1.5"><Zap className="w-3 h-3 text-blue-400" /> Tel: {originAddr.contact_phone}</p>}
+                    {originAddr.contact_phone && <p className="text-xs font-medium text-slate-600 dark:text-slate-400 mt-2 flex items-center gap-1.5"><Zap className="w-3 h-3 text-orange-400" /> Tel: {originAddr.contact_phone}</p>}
                 </div>
             )}
             {destAddr && (
@@ -152,11 +152,11 @@ export default function ClientShipmentDetail() {
             case "delivered":
             case "completed": return "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 glow-emerald-sm";
             case "cancelled": return "bg-rose-500/10 text-rose-600 border-rose-500/20";
-            case "pending": return "bg-blue-500/10 text-blue-600 border-blue-500/20 glow-blue-sm";
+            case "pending": return "bg-orange-500/10 text-orange-600 border-orange-500/20 glow-orange-sm";
             case "pending_payment": return "bg-amber-500/10 text-amber-600 border-amber-500/20 glow-amber-sm";
             case "picked_up":
             case "in_transit":
-            case "customs": return "bg-sky-500/10 text-sky-600 border-sky-500/20 glow-sky-sm";
+            case "customs": return "bg-orange-500/10 text-orange-600 border-orange-500/20 glow-orange-sm";
             default: return "bg-slate-500/10 text-slate-600 border-slate-500/20";
         }
     };
@@ -189,7 +189,7 @@ export default function ClientShipmentDetail() {
         return (
             <div className="w-full py-10 relative">
                 {/* Lueur de fond globale */}
-                <div className="absolute inset-0 bg-blue-500/5 blur-3xl opacity-50 rounded-full pointer-events-none" />
+                <div className="absolute inset-0 bg-orange-500/5 blur-3xl opacity-50 rounded-full pointer-events-none" />
 
                 <div className="relative flex justify-between items-center px-4 md:px-8">
                     {/* Ligne de fond (Grisée) */}
@@ -199,7 +199,7 @@ export default function ClientShipmentDetail() {
                     <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${(activeIdx / (steps.length - 1)) * 100}%` }}
-                        className="absolute left-0 h-1.5 bg-gradient-to-r from-blue-600 via-sky-400 to-blue-400 rounded-full mx-10 md:mx-16 shadow-[0_0_15px_rgba(56,189,248,0.5)]"
+                        className="absolute left-0 h-1.5 bg-gradient-to-r from-orange-600 via-orange-400 to-orange-400 rounded-full mx-10 md:mx-16 shadow-[0_0_15px_rgba(249,115,22,0.5)]"
                         transition={{ duration: 1.2, ease: "circOut" }}
                     />
 
@@ -214,19 +214,19 @@ export default function ClientShipmentDetail() {
                                     initial={false}
                                     animate={{
                                         scale: isCurrent ? 1.25 : 1,
-                                        backgroundColor: isCompleted ? "rgb(37 99 235)" : "rgba(255, 255, 255, 0.8)",
-                                        borderColor: isCompleted ? "rgba(59, 130, 246, 0.5)" : "rgba(226, 232, 240, 0.5)"
+                                        backgroundColor: isCompleted ? "rgb(234 88 12)" : "rgba(255, 255, 255, 0.8)",
+                                        borderColor: isCompleted ? "rgba(234, 88, 12, 0.5)" : "rgba(226, 232, 240, 0.5)"
                                     }}
                                     className={`w-12 h-12 rounded-2xl md:rounded-full flex items-center justify-center border hover:scale-110 transition-transform cursor-default relative z-10 backdrop-blur-md shadow-lg
-                                        ${isCompleted ? 'text-white shadow-blue-500/30' : 'text-slate-400 dark:bg-slate-900/80 dark:border-slate-700'}
-                                        ${isCurrent ? 'ring-4 ring-blue-500/30 ring-offset-2 ring-offset-white dark:ring-offset-slate-900' : ''}
+                                        ${isCompleted ? 'text-white shadow-orange-500/30' : 'text-slate-400 dark:bg-slate-900/80 dark:border-slate-700'}
+                                        ${isCurrent ? 'ring-4 ring-orange-500/30 ring-offset-2 ring-offset-white dark:ring-offset-slate-900' : ''}
                                     `}
                                 >
                                     <StepIcon className={`w-5 h-5 ${isCurrent ? 'animate-pulse' : ''}`} />
                                     {isCurrent && (
                                         <motion.div
                                             layoutId="pulse"
-                                            className="absolute -inset-3 rounded-[2rem] md:rounded-full border border-sky-400/50"
+                                            className="absolute -inset-3 rounded-[2rem] md:rounded-full border border-orange-400/50"
                                             animate={{ scale: [1, 1.3, 1], opacity: [0.8, 0, 0.8] }}
                                             transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
                                         />
@@ -234,7 +234,7 @@ export default function ClientShipmentDetail() {
                                 </motion.div>
                                 <motion.span
                                     animate={{ y: isCurrent ? 5 : 0 }}
-                                    className={`text-[10px] md:text-xs font-black uppercase tracking-widest absolute -bottom-8 whitespace-nowrap px-3 py-1 rounded-full ${isCurrent ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 shadow-sm border border-blue-100 dark:border-blue-800/50' : 'text-slate-400'}`}>
+                                    className={`text-[10px] md:text-xs font-black uppercase tracking-widest absolute -bottom-8 whitespace-nowrap px-3 py-1 rounded-full ${isCurrent ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 shadow-sm border border-orange-100 dark:border-orange-800/50' : 'text-slate-400'}`}>
                                     {step.label}
                                 </motion.span>
                             </div>
@@ -249,21 +249,25 @@ export default function ClientShipmentDetail() {
     const handleDownloadInvoice = async () => {
         if (!shipment) return;
         try {
+            const createdAt = new Date(shipment.created_at || new Date());
+            const dueDate = new Date(createdAt);
+            dueDate.setDate(dueDate.getDate() + 3); // Payment usually due shortly after creation, not 15 days arbitrarily from now
+
             const invoiceData = {
                 invoiceNumber: shipment.tracking_number,
-                date: new Date().toLocaleDateString('fr-FR'),
-                dueDate: new Date(new Date().setDate(new Date().getDate() + 15)).toLocaleDateString('fr-FR'), // Mock due date
+                date: createdAt.toLocaleDateString('fr-FR'),
+                dueDate: dueDate.toLocaleDateString('fr-FR'),
                 status: (shipment.status === 'completed' || shipment.payment?.some(p => p.status === 'completed')) ? 'paid' : 'pending',
                 sender: {
                     name: shipment.forwarder?.company_name || shipment.carrier.name,
-                    address: [shipment.origin.country, shipment.origin.port], // Mock address
+                    address: [shipment.origin.country, shipment.origin.port],
                     email: shipment.forwarder?.email || "contact@forwarder.com",
-                    currency: "XOF",
-                    phone: "+221 00 000 00 00" // Mock phone
+                    currency: shipment.currency || "XOF",
+                    phone: shipment.forwarder?.phone || "Non renseigné"
                 },
                 client: {
-                    name: "Client", // Should fetch user name if available
-                    address: [shipment.destination.country, shipment.destination.port],
+                    name: profile?.company_name || profile?.full_name || "Client",
+                    address: [profile?.country || shipment.destination.country, shipment.destination.port],
                 },
                 items: [
                     {
@@ -274,9 +278,9 @@ export default function ClientShipmentDetail() {
                     }
                 ],
                 subtotal: shipment.price,
-                tax: 0, // Mock tax
+                tax: 0, // In this system tax is already inside the RFQ quote or considered 0
                 total: shipment.price,
-                currency: "XOF",
+                currency: shipment.currency || "XOF",
                 notes: `Ref Colis: ${shipment.tracking_number}`
             };
 
@@ -384,11 +388,11 @@ export default function ClientShipmentDetail() {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.1 }}
-                className="glass-card-premium p-8 rounded-[2rem] border-white/10 relative overflow-hidden group shadow-2xl shadow-blue-500/5"
+                className="glass-card-premium p-8 rounded-[2rem] border-white/10 relative overflow-hidden group shadow-2xl shadow-orange-500/5"
             >
                 <div className="grain-overlay opacity-[0.03]" />
                 <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
-                    <Zap className="w-3 h-3 text-blue-500" /> Suivi Temps Réel
+                    <Zap className="w-3 h-3 text-orange-500" /> Suivi Temps Réel
                 </h3>
                 <TrackingProgress status={shipment.status} />
             </motion.div>
@@ -405,13 +409,13 @@ export default function ClientShipmentDetail() {
                     >
                         <div className="grain-overlay opacity-[0.02]" />
                         <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-8 flex items-center gap-3">
-                            <MapPinIcon className="w-5 h-5 text-blue-500" />
+                            <MapPinIcon className="w-5 h-5 text-orange-500" />
                             Détails de l'Itinéraire
                         </h3>
                         <div className="flex flex-col md:flex-row items-center gap-10 relative">
                             <div className="flex-1 text-center md:text-left group/loc relative">
                                 <span className="text-[10px] text-slate-400 uppercase tracking-widest font-black block mb-2">Départ</span>
-                                <div className="text-3xl font-black text-slate-900 dark:text-white mt-1 group-hover:text-blue-500 transition-colors drop-shadow-sm">{shipment.origin.port}</div>
+                                <div className="text-3xl font-black text-slate-900 dark:text-white mt-1 group-hover:text-orange-500 transition-colors drop-shadow-sm">{shipment.origin.port}</div>
                                 <div className="text-sm font-medium text-slate-500 mt-1 flex items-center justify-center md:justify-start gap-1">
                                     <MapPin className="w-3.5 h-3.5 text-slate-400" /> {shipment.origin.country}
                                 </div>
@@ -422,20 +426,20 @@ export default function ClientShipmentDetail() {
                                     <motion.div
                                         animate={{ x: ["-100%", "100%"] }}
                                         transition={{ repeat: Infinity, duration: 2.5, ease: "linear" }}
-                                        className="absolute inset-y-0 w-1/3 bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-80"
+                                        className="absolute inset-y-0 w-1/3 bg-gradient-to-r from-transparent via-orange-500 to-transparent opacity-80"
                                     />
-                                    <div className="absolute inset-0 bg-blue-400/20 blur-sm"></div>
+                                    <div className="absolute inset-0 bg-orange-400/20 blur-sm"></div>
                                 </div>
                                 <motion.div
                                     whileHover={{ scale: 1.05 }}
-                                    className="mt-6 text-[10px] font-black uppercase tracking-widest bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 px-5 py-2.5 rounded-2xl border border-blue-200 dark:border-blue-800/50 shadow-sm backdrop-blur-md flex items-center gap-2">
+                                    className="mt-6 text-[10px] font-black uppercase tracking-widest bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 px-5 py-2.5 rounded-2xl border border-orange-200 dark:border-orange-800/50 shadow-sm backdrop-blur-md flex items-center gap-2">
                                     {shipment.transport_mode === 'air' ? '✈️ Air Cargo' : '🚢 Sea Freight'}
                                 </motion.div>
                             </div>
 
                             <div className="flex-1 text-center md:text-right group/loc relative">
                                 <span className="text-[10px] text-slate-400 uppercase tracking-widest font-black block mb-2">Arrivée</span>
-                                <div className="text-3xl font-black text-slate-900 dark:text-white mt-1 group-hover:text-blue-500 transition-colors drop-shadow-sm">{shipment.destination.port}</div>
+                                <div className="text-3xl font-black text-slate-900 dark:text-white mt-1 group-hover:text-orange-500 transition-colors drop-shadow-sm">{shipment.destination.port}</div>
                                 <div className="text-sm font-medium text-slate-500 mt-1 flex items-center justify-center md:justify-end gap-1">
                                     <MapPin className="w-3.5 h-3.5 text-slate-400" /> {shipment.destination.country}
                                 </div>
@@ -452,31 +456,31 @@ export default function ClientShipmentDetail() {
                     >
                         <div className="grain-overlay opacity-[0.02]" />
                         <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-3">
-                            <div className="p-2 bg-blue-50 dark:bg-blue-500/20 rounded-xl">
-                                <Package className="w-5 h-5 text-blue-500" />
+                            <div className="p-2 bg-orange-50 dark:bg-orange-500/20 rounded-xl">
+                                <Package className="w-5 h-5 text-orange-500" />
                             </div>
                             Détails de la Cargaison
                         </h3>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <div className="p-5 bg-white/60 dark:bg-slate-800/40 backdrop-blur-md rounded-[1.5rem] border border-white/50 dark:border-white/5 transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/10 hover:border-blue-200 dark:hover:border-blue-800 group relative overflow-hidden">
-                                <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-blue-100 to-transparent dark:from-blue-900/40 rounded-bl-[2rem] opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                            <div className="p-5 bg-white/60 dark:bg-slate-800/40 backdrop-blur-md rounded-[1.5rem] border border-white/50 dark:border-white/5 transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-orange-500/10 hover:border-orange-200 dark:hover:border-orange-800 group relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-orange-100 to-transparent dark:from-orange-900/40 rounded-bl-[2rem] opacity-0 group-hover:opacity-100 transition-opacity"></div>
                                 <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2 relative z-10">Poids</div>
-                                <div className="text-2xl font-black text-slate-900 dark:text-white group-hover:text-blue-500 transition-colors relative z-10 flex items-baseline gap-1">{shipment.cargo.weight} <span className="text-xs font-bold text-slate-400">KG</span></div>
+                                <div className="text-2xl font-black text-slate-900 dark:text-white group-hover:text-orange-500 transition-colors relative z-10 flex items-baseline gap-1">{shipment.cargo.weight} <span className="text-xs font-bold text-slate-400">KG</span></div>
                             </div>
-                            <div className="p-5 bg-white/60 dark:bg-slate-800/40 backdrop-blur-md rounded-[1.5rem] border border-white/50 dark:border-white/5 transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/10 hover:border-blue-200 dark:hover:border-blue-800 group relative overflow-hidden">
-                                <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-blue-100 to-transparent dark:from-blue-900/40 rounded-bl-[2rem] opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                            <div className="p-5 bg-white/60 dark:bg-slate-800/40 backdrop-blur-md rounded-[1.5rem] border border-white/50 dark:border-white/5 transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-orange-500/10 hover:border-orange-200 dark:hover:border-orange-800 group relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-orange-100 to-transparent dark:from-orange-900/40 rounded-bl-[2rem] opacity-0 group-hover:opacity-100 transition-opacity"></div>
                                 <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2 relative z-10">Volume</div>
-                                <div className="text-2xl font-black text-slate-900 dark:text-white group-hover:text-blue-500 transition-colors relative z-10 flex items-baseline gap-1">{shipment.cargo.volume} <span className="text-xs font-bold text-slate-400">M³</span></div>
+                                <div className="text-2xl font-black text-slate-900 dark:text-white group-hover:text-orange-500 transition-colors relative z-10 flex items-baseline gap-1">{shipment.cargo.volume} <span className="text-xs font-bold text-slate-400">M³</span></div>
                             </div>
-                            <div className="p-5 bg-white/60 dark:bg-slate-800/40 backdrop-blur-md rounded-[1.5rem] border border-white/50 dark:border-white/5 transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/10 hover:border-blue-200 dark:hover:border-blue-800 group relative overflow-hidden">
-                                <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-blue-100 to-transparent dark:from-blue-900/40 rounded-bl-[2rem] opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                            <div className="p-5 bg-white/60 dark:bg-slate-800/40 backdrop-blur-md rounded-[1.5rem] border border-white/50 dark:border-white/5 transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-orange-500/10 hover:border-orange-200 dark:hover:border-orange-800 group relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-orange-100 to-transparent dark:from-orange-900/40 rounded-bl-[2rem] opacity-0 group-hover:opacity-100 transition-opacity"></div>
                                 <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2 relative z-10">Colis</div>
-                                <div className="text-2xl font-black text-slate-900 dark:text-white group-hover:text-blue-500 transition-colors relative z-10 flex items-baseline gap-1">{shipment.cargo.packages} <span className="text-xs font-bold text-slate-400">Unités</span></div>
+                                <div className="text-2xl font-black text-slate-900 dark:text-white group-hover:text-orange-500 transition-colors relative z-10 flex items-baseline gap-1">{shipment.cargo.packages} <span className="text-xs font-bold text-slate-400">Unités</span></div>
                             </div>
-                            <div className="p-5 bg-white/60 dark:bg-slate-800/40 backdrop-blur-md rounded-[1.5rem] border border-white/50 dark:border-white/5 transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/10 hover:border-blue-200 dark:hover:border-blue-800 group relative overflow-hidden">
-                                <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-blue-100 to-transparent dark:from-blue-900/40 rounded-bl-[2rem] opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                            <div className="p-5 bg-white/60 dark:bg-slate-800/40 backdrop-blur-md rounded-[1.5rem] border border-white/50 dark:border-white/5 transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-orange-500/10 hover:border-orange-200 dark:hover:border-orange-800 group relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-orange-100 to-transparent dark:from-orange-900/40 rounded-bl-[2rem] opacity-0 group-hover:opacity-100 transition-opacity"></div>
                                 <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2 relative z-10">Type</div>
-                                <div className="text-sm font-black text-slate-900 dark:text-white group-hover:text-blue-500 transition-colors mt-2 uppercase tracking-wide relative z-10">{shipment.cargo.type}</div>
+                                <div className="text-sm font-black text-slate-900 dark:text-white group-hover:text-orange-500 transition-colors mt-2 uppercase tracking-wide relative z-10">{shipment.cargo.type}</div>
                             </div>
                         </div>
                     </motion.div>
@@ -493,20 +497,20 @@ export default function ClientShipmentDetail() {
                     >
                         <div className="grain-overlay opacity-[0.02]" />
                         <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 px-1 flex items-center gap-2">
-                            <Truck className="w-3 h-3 text-blue-500" /> Opérateur Logistique
+                            <Truck className="w-3 h-3 text-orange-500" /> Opérateur Logistique
                         </h3>
-                        <div className="flex items-center gap-4 bg-white/60 dark:bg-slate-800/40 backdrop-blur-md p-4 rounded-2xl border border-white/50 dark:border-white/5 shadow-sm transition-all hover:bg-white dark:hover:bg-slate-800 hover:shadow-md hover:border-blue-200 dark:hover:border-blue-800">
-                            <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-sky-400 p-[2px] rounded-2xl shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform">
+                        <div className="flex items-center gap-4 bg-white/60 dark:bg-slate-800/40 backdrop-blur-md p-4 rounded-2xl border border-white/50 dark:border-white/5 shadow-sm transition-all hover:bg-white dark:hover:bg-slate-800 hover:shadow-md hover:border-orange-200 dark:hover:border-orange-800">
+                            <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-amber-400 p-[2px] rounded-2xl shadow-lg shadow-orange-500/20 group-hover:scale-105 transition-transform">
                                 <div className="w-full h-full bg-white dark:bg-slate-900 rounded-[14px] flex items-center justify-center overflow-hidden">
                                     {shipment.carrier.logo ? (
                                         <img src={shipment.carrier.logo} alt="Logo" className="w-full h-full object-cover" />
                                     ) : (
-                                        <Truck className="w-6 h-6 text-blue-500 group-hover:animate-pulse" />
+                                        <Truck className="w-6 h-6 text-orange-500 group-hover:animate-pulse" />
                                     )}
                                 </div>
                             </div>
                             <div>
-                                <div className="font-black text-slate-900 dark:text-white group-hover:text-blue-600 transition-colors uppercase tracking-tight text-lg">{shipment.carrier.name}</div>
+                                <div className="font-black text-slate-900 dark:text-white group-hover:text-orange-600 transition-colors uppercase tracking-tight text-lg">{shipment.carrier.name}</div>
                                 <div className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1.5 mt-0.5">
                                     <Zap className="w-3 h-3 text-amber-500" />
                                     {shipment.service_type === 'express' ? 'Prioritaire' : 'Standard'}
@@ -515,7 +519,7 @@ export default function ClientShipmentDetail() {
                         </div>
                         <div className="mt-6 pt-4 border-t border-slate-100 dark:border-white/5 flex justify-between items-center px-2">
                             <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Investissement Total</span>
-                            <span className="text-xl font-black text-blue-600 dark:text-blue-400">{formatPrice(shipment.price)}</span>
+                            <span className="text-xl font-black text-orange-600 dark:text-orange-400">{formatPrice(shipment.price)}</span>
                         </div>
                     </motion.div>
 
@@ -533,11 +537,11 @@ export default function ClientShipmentDetail() {
                     >
                         <div className="grain-overlay opacity-[0.02]" />
                         <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 px-1 flex items-center gap-2">
-                            <Calendar className="w-3 h-3 text-blue-500" /> Calendrier
+                            <Calendar className="w-3 h-3 text-orange-500" /> Calendrier
                         </h3>
                         <div className="space-y-4">
-                            <div className="flex items-center gap-4 group p-3 rounded-2xl hover:bg-white/50 dark:hover:bg-slate-800/50 transition-colors border border-transparent hover:border-blue-100 dark:hover:border-blue-900/30">
-                                <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex flex-shrink-0 items-center justify-center border border-blue-100 dark:border-blue-800/50 group-hover:bg-blue-500 group-hover:border-transparent transition-all text-blue-600 group-hover:text-white shadow-sm">
+                            <div className="flex items-center gap-4 group p-3 rounded-2xl hover:bg-white/50 dark:hover:bg-slate-800/50 transition-colors border border-transparent hover:border-orange-100 dark:hover:border-orange-900/30">
+                                <div className="w-10 h-10 rounded-xl bg-orange-50 dark:bg-orange-900/20 flex flex-shrink-0 items-center justify-center border border-orange-100 dark:border-orange-800/50 group-hover:bg-orange-500 group-hover:border-transparent transition-all text-orange-600 group-hover:text-white shadow-sm">
                                     <Anchor className="w-5 h-5" />
                                 </div>
                                 <div className="flex-1 min-w-0">

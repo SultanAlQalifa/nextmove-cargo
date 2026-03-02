@@ -37,10 +37,24 @@ export default function OfferComparison({
   )[0];
 
   // AI Best Offer (Combinaison Prix / Temps)
-  // Pénalité arbitraire pour le calcul : + 25 000 FCFA par jour de transit
-  const aiBestOffer = [...offers].sort(
-    (a, b) => (a.total_price + (a.estimated_transit_days * 25000)) - (b.total_price + (b.estimated_transit_days * 25000))
-  )[0];
+  // Scoring: lower is better. 
+  // Base: Total Price
+  // Penalty for slow transit: + 50,000 FCFA per day (more aggressive than before)
+  // Bonus for High Rating: - 5,000 FCFA per 0.1 rating point (e.g. 5.0 vs 4.0 is -50,000 FCFA)
+  // Penalty for Unverified KYC: + 100,000 FCFA
+  const aiBestOffer = [...offers].sort((a, b) => {
+    const scoreA = a.total_price +
+      (a.estimated_transit_days * 50000) -
+      ((a.forwarder?.rating || 0) * 50000) +
+      (a.forwarder?.kyc_status !== 'verified' ? 100000 : 0);
+
+    const scoreB = b.total_price +
+      (b.estimated_transit_days * 50000) -
+      ((b.forwarder?.rating || 0) * 50000) +
+      (b.forwarder?.kyc_status !== 'verified' ? 100000 : 0);
+
+    return scoreA - scoreB;
+  })[0];
 
   return (
     <div className="overflow-x-auto pb-8 pt-4">
@@ -77,9 +91,14 @@ export default function OfferComparison({
             >
               {/* IA Best Offer Animated Border */}
               {isAiBest && !isAccepted && (
-                <div className="absolute inset-x-0 inset-y-0 rounded-[2.5rem] bg-gradient-to-r from-amber-300 via-orange-500 to-amber-300 p-[2px] z-[-1] opacity-70 group-hover:opacity-100 transition-opacity animate-gradient-xy">
+                <div className="absolute inset-x-0 inset-y-0 rounded-[2.5rem] bg-gradient-to-r from-amber-200 via-orange-500 to-amber-200 p-[2px] z-[-1] opacity-60 group-hover:opacity-100 transition-opacity animate-gradient-xy">
                   <div className="absolute inset-0 bg-white dark:bg-slate-900 rounded-[2.5rem] z-[-1]"></div>
                 </div>
+              )}
+
+              {/* Special Glow for AI Recommendation */}
+              {isAiBest && !isAccepted && (
+                <div className="absolute inset-0 rounded-[2.5rem] bg-amber-400/10 blur-2xl -z-10 animate-pulse"></div>
               )}
               {/* Specialized Badges */}
               <div className="absolute -top-4 inset-x-0 flex justify-center gap-2 pointer-events-none z-20">

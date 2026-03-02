@@ -15,13 +15,10 @@ import {
   CheckCircle,
   AlertCircle,
   Search,
-  Filter,
-  MoreVertical,
   Ship,
   Plane,
   Truck,
   Calendar,
-  MapPin,
 } from "lucide-react";
 import ConfirmationModal from "../common/ConfirmationModal";
 
@@ -75,7 +72,7 @@ export default function ClientRFQList() {
       await rfqService.publishRFQ(id);
       loadRFQs();
     } catch (error) {
-      console.error("Error publishing RFQ:", error);
+      console.error("Error publishing RFQ:", error?.message || error);
     }
   };
 
@@ -179,22 +176,6 @@ export default function ClientRFQList() {
 
   return (
     <div className="space-y-6">
-      {/* Header Actions */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Mes Demandes RFQ</h1>
-          <p className="text-gray-500 mt-1">
-            Gérez vos demandes de devis et suivez les offres.
-          </p>
-        </div>
-        <button
-          onClick={() => navigate("/dashboard/client/rfq/create")}
-          className="inline-flex items-center px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors shadow-lg shadow-primary/30 font-medium"
-        >
-          <Plus className="w-5 h-5 mr-2" />
-          Nouvelle Demande
-        </button>
-      </div>
 
       {/* Filters & Search */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex flex-col sm:flex-row gap-4 justify-between items-center">

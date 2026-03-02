@@ -81,11 +81,16 @@ export default function ForwarderKYC() {
   };
 
   const getDocStatus = (docType: string) => {
-    // Find the most recent document of this type
-    // Note: In a real app, we might have specific types in the DB.
-    // Here we match by name as per the mock service implementation.
     const doc = documents.find((d) => d.name === docType);
     return doc ? doc.status : "missing";
+  };
+
+  const getDocDate = (docType: string) => {
+    const doc = documents.find((d) => d.name === docType);
+    if (doc && doc.created_at) {
+      return new Date(doc.created_at).toLocaleDateString();
+    }
+    return new Date().toLocaleDateString(); // Fallback if no date found
   };
 
   const getStatusIcon = (status: string) => {
@@ -179,7 +184,7 @@ export default function ForwarderKYC() {
                       <div className="flex flex-col items-end">
                         {getStatusLabel(status)}
                         <span className="text-xs text-gray-400">
-                          {new Date().toLocaleDateString()} {/* Mock date */}
+                          {getDocDate(doc.label)}
                         </span>
                       </div>
                     )}

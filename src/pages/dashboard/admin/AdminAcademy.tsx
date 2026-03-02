@@ -1762,17 +1762,19 @@ export default function AdminAcademy() {
                                 </h4>
 
                                 <ChartGuard height={320}>
-                                    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0} debounce={1}>
-                                        <BarChart data={courses.map(c => ({ name: c.title.substring(0, 15), students: c.students || 0, rating: c.rating || 5 }))}>
-                                            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                                            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 'bold' }} />
-                                            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 'bold' }} />
-                                            <Tooltip
-                                                contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', fontWeight: 'bold' }}
-                                            />
-                                            <Bar dataKey="students" fill="#f97316" radius={[10, 10, 0, 0]} barSize={40} />
-                                        </BarChart>
-                                    </ResponsiveContainer>
+                                    <div className="w-full min-h-[320px]">
+                                        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0} debounce={1}>
+                                            <BarChart data={courses.map(c => ({ name: c.title.substring(0, 15), students: c.students || 0, rating: c.rating || 5 }))}>
+                                                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 'bold' }} />
+                                                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 'bold' }} />
+                                                <Tooltip
+                                                    contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', fontWeight: 'bold' }}
+                                                />
+                                                <Bar dataKey="students" fill="#f97316" radius={[10, 10, 0, 0]} barSize={40} />
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    </div>
                                 </ChartGuard>
 
                                 <div className="mt-8 pt-8 border-t border-slate-100 dark:border-slate-700 grid grid-cols-1 md:grid-cols-2 gap-8">

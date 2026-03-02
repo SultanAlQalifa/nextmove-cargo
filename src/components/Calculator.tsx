@@ -12,9 +12,9 @@ import {
   ForwarderOption,
   forwarderService,
 } from "../services/forwarderService";
-import { feeService, FeeConfig } from "../services/feeService";
 import { calculateCBM, LengthUnit } from "../utils/volumeCalculator";
 import { useToast } from "../contexts/ToastContext";
+import { useUI } from "../contexts/UIContext";
 
 // Define Form Interface extending CalculationParams for UI-specific fields
 interface CalculatorFormValues extends CalculationParams {
@@ -60,6 +60,7 @@ import { profileService } from "../services/profileService";
 export default function Calculator() {
   const { t } = useTranslation();
   const { success: toastSuccess, error: toastError } = useToast();
+  const { closeCalculator } = useUI();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
@@ -116,20 +117,13 @@ export default function Calculator() {
   const [showOriginDropdown, setShowOriginDropdown] = useState(false);
   const [showDestDropdown, setShowDestDropdown] = useState(false);
 
-  const [activeFees, setActiveFees] = useState<FeeConfig[]>([]);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [showKYCModal, setShowKYCModal] = useState(false);
   const [quoteToSave, setQuoteToSave] = useState<QuoteResult | null>(null);
-  const [customsPrediction, setCustomsPrediction] = useState<{ total_percent: number; detail: string; confidence: number } | null>(null);
+  const [logisticsInsights, setLogisticsInsights] = useState<{ title: string; insight: string; confidence: number } | null>(null);
 
-  // Fee loading
-  useEffect(() => {
-    feeService.getFees().then((fees) => setActiveFees(fees));
-  }, []);
-
-  const isFeeActive = (category: string) => {
-    return activeFees.some((f) => f.category === category && f.isActive);
-  };
+  // Fee loading: Obsolete (now handled by RPC)
+  const isFeeActive = (_category: string) => true;
 
   // Dimension inputs
   const [dimensionUnit, setDimensionUnit] = useState<LengthUnit>("m");
@@ -179,45 +173,38 @@ export default function Calculator() {
       const formValues = watch();
       const params: CalculationParams = {
         ...formValues,
-        mode: formValues.mode, // Ensure this matches expected "sea" | "air"
+        mode: formValues.mode,
         type: formValues.type,
-        // We might need to map 'calculationMode' if service expects it
-        // The service likely uses 'mode' for transport mode.
-        // If we need to filter by 'platform' or specific forwarder, we might handle it here or in service.
-        // Passing extra params:
         calculationMode: calculationMode,
         forwarder_id: selectedForwarder,
         volume_cbm: calculatedCBM,
         additionalServices: selectedServices
-      }; // Casting to any to avoid strict type checks if definition varies slightly
+      };
 
       const results = await calculatorService.calculateQuotes(params);
       setQuotes(results);
 
-      // Trigger AI Customs Prediction
+      // AI Logistics Insights Retrieval
       if (params.origin && params.destination) {
         import("../services/aiService").then(({ aiService }) => {
-          aiService.predictCustomsFees({
+          aiService.getLogisticsInsights({
             origin: params.origin,
             destination: params.destination,
-            cargo_type: "Marchandises Générales",
-            value_amount: Number(watch("cargoValue")) || 0,
-            value_currency: currency
-          }).then(prediction => {
-            setCustomsPrediction(prediction);
-            // Apply prediction to all quotes to update total_cost
-            setQuotes(prevQuotes => prevQuotes.map(q =>
-              calculatorService.applyAIPrediction(q, prediction, Number(watch("cargoValue")) || 0)
-            ));
+            cargo_type: "Marchandises Générales"
+          }).then(insights => {
+            setLogisticsInsights(insights);
           });
         });
       }
 
-      changeStep(5);
+      // Elegant delay for "Elite" feeling loading
+      setTimeout(() => {
+        setLoading(false);
+        changeStep(5);
+      }, 1500);
     } catch (err) {
       setError("Erreur lors du calcul");
       console.error(err);
-    } finally {
       setLoading(false);
     }
   };
@@ -423,7 +410,7 @@ export default function Calculator() {
                     animate={{
                       opacity: 1,
                       scale: 1,
-                      borderColor: calculationMode === mode.id ? "rgba(234, 88, 12, 0.5)" : "transparent"
+                      borderColor: calculationMode === mode.id ? "rgba(234, 88, 12, 0.5)" : "rgba(255, 255, 255, 0)"
                     }}
                     whileHover={{ scale: 1.05, y: -10 }}
                     onClick={() => setCalculationMode(mode.id as any)}
@@ -792,7 +779,7 @@ export default function Calculator() {
                       animate={{
                         opacity: 1,
                         scale: 1,
-                        borderColor: isSelected ? "rgba(234, 88, 12, 0.5)" : "transparent"
+                        borderColor: isSelected ? "rgba(234, 88, 12, 0.5)" : "rgba(255, 255, 255, 0)"
                       }}
                       whileHover={{ y: -8, scale: 1.02 }}
                       onClick={() => { setValue("mode", option.mode as any); setValue("type", option.type as any); }}
@@ -1221,32 +1208,9 @@ export default function Calculator() {
                     </button>
                   </div>
 
+
                   <div className="glass-card-premium bg-white dark:bg-slate-900/30 p-10 rounded-[3rem] border border-white/20 dark:border-white/5 shadow-2xl relative overflow-hidden">
                     <div className="grain-overlay opacity-[0.02]" />
-
-                    {/* Filter Bar */}
-                    {calculationMode === "compare" && quotes.length > 0 && (
-                      <div className="mb-10 flex flex-wrap gap-4 items-center">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mr-2">Trier par :</span>
-                        {[
-                          { id: 'price', label: 'Meilleur Prix', icon: '💰' },
-                          { id: 'speed', label: 'Livraison Rapide', icon: '🚀' },
-                          { id: 'rating', label: 'Mieux Notés', icon: '⭐' }
-                        ].map((filter) => (
-                          <button
-                            key={filter.id}
-                            onClick={() => setSortBy(filter.id as any)}
-                            className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${sortBy === filter.id
-                              ? "bg-orange-600 text-white shadow-lg shadow-orange-500/20"
-                              : "bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700"
-                              }`}
-                          >
-                            <span className="mr-2">{filter.icon}</span>
-                            {filter.label}
-                          </button>
-                        ))}
-                      </div>
-                    )}
 
                     {loading ? (
                       <div className="flex justify-center py-12">
@@ -1254,33 +1218,73 @@ export default function Calculator() {
                       </div>
                     ) : quotes.length > 0 ? (
                       <div className="space-y-6">
-                        {customsPrediction && (
+                        {logisticsInsights && (
                           <motion.div
-                            initial={{ opacity: 0, y: -20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 rounded-[2rem] text-white shadow-xl shadow-blue-500/20 mb-6"
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="bg-gradient-to-br from-blue-700 via-indigo-800 to-indigo-900 p-8 rounded-[2.5rem] text-white shadow-2xl shadow-blue-500/30 mb-10 relative overflow-hidden group/insight"
                           >
-                            <div className="flex items-center gap-3 mb-3">
-                              <div className="bg-white/20 p-2 rounded-xl backdrop-blur-md">
-                                <Zap className="w-5 h-5 text-yellow-300 fill-current" />
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-blue-400/10 rounded-full -translate-y-32 translate-x-32 blur-3xl group-hover/insight:bg-blue-400/20 transition-all duration-700" />
+
+                            <div className="flex items-center gap-4 mb-5 relative z-10">
+                              <div className="bg-white/10 p-3 rounded-2xl backdrop-blur-xl border border-white/20 shadow-inner">
+                                <Zap className="w-6 h-6 text-yellow-400 fill-current animate-pulse" />
                               </div>
-                              <h3 className="font-black uppercase tracking-widest text-sm">Analyse Prédictive Globale</h3>
+                              <div>
+                                <h3 className="font-black uppercase tracking-widest text-xs opacity-70 mb-1">Analyse Prédictive IA</h3>
+                                <h2 className="text-xl font-black uppercase tracking-tight">{logisticsInsights.title}</h2>
+                              </div>
                             </div>
-                            <p className="text-blue-50 text-sm font-medium leading-relaxed">
-                              Notre IA a analysé les réglementations entre <strong>{watch("origin")}</strong> et <strong>{watch("destination")}</strong>.
-                              Prévoyez environ <strong>{customsPrediction.total_percent}%</strong> de frais de douane sur la valeur déclarée.
+
+                            <p className="text-blue-50 text-base font-medium leading-relaxed relative z-10 mb-6 drop-shadow-sm">
+                              {logisticsInsights.insight}
                             </p>
-                            <div className="mt-4 flex items-center gap-4">
-                              <div className="flex -space-x-2">
-                                {[1, 2, 3].map(i => (
-                                  <div key={i} className="w-8 h-8 rounded-full border-2 border-white/30 bg-white/10 flex items-center justify-center overflow-hidden backdrop-blur-sm">
-                                    <img src={`https://i.pravatar.cc/100?u=ai${i}`} alt="AI Agent" className="w-full h-full object-cover" />
-                                  </div>
-                                ))}
+
+                            <div className="flex items-center justify-between relative z-10 pt-4 border-t border-white/10">
+                              <div className="flex items-center gap-4">
+                                <div className="flex -space-x-2">
+                                  {[1, 2, 3].map(i => (
+                                    <div key={i} className="w-9 h-9 rounded-full border-2 border-white/20 bg-white/5 flex items-center justify-center overflow-hidden backdrop-blur-sm shadow-lg">
+                                      <img src={`https://i.pravatar.cc/100?u=as-ai-${i}`} alt="AI Agent" className="w-full h-full object-cover" />
+                                    </div>
+                                  ))}
+                                </div>
+                                <span className="text-[10px] font-black text-blue-200 uppercase tracking-widest bg-white/5 px-3 py-1.5 rounded-full border border-white/10">
+                                  Validé par le Pool IA Expert
+                                </span>
                               </div>
-                              <span className="text-[10px] font-bold text-blue-100 uppercase tracking-tight">Validé par 3 agents IA experts</span>
+
+                              <div className="flex items-center gap-2">
+                                <div className="text-right">
+                                  <div className="text-[10px] font-black uppercase text-blue-300 opacity-60">Indice Trust</div>
+                                  <div className="text-sm font-black text-yellow-400">{Math.round(logisticsInsights.confidence * 100)}%</div>
+                                </div>
+                              </div>
                             </div>
                           </motion.div>
+                        )}
+
+                        {/* Filter Bar - HIGH VISIBILITY Segmented Control */}
+                        {quotes.length > 0 && (
+                          <div className="flex p-1.5 bg-slate-100/30 dark:bg-slate-800/80 backdrop-blur-md rounded-[1.5rem] border border-slate-200 dark:border-white/10 w-full max-w-md mx-auto shadow-inner relative z-10 mb-8">
+                            {[
+                              { id: 'price', label: 'Prix', icon: '💰' },
+                              { id: 'speed', label: 'Vitesse', icon: '🚀' },
+                              { id: 'rating', label: 'Note', icon: '⭐' }
+                            ].map((filter) => (
+                              <button
+                                key={filter.id}
+                                onClick={() => setSortBy(filter.id as any)}
+                                className={`flex-1 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-500 flex items-center justify-center gap-2 ${sortBy === filter.id
+                                  ? "bg-white dark:bg-slate-600 text-orange-600 shadow-[0_10px_20px_rgba(0,0,0,0.1)] scale-[1.02] z-20"
+                                  : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
+                                  }`}
+                              >
+                                <span className="text-base">{filter.icon}</span>
+                                {filter.label}
+                              </button>
+                            ))}
+                          </div>
                         )}
 
                         <div className="space-y-4">
@@ -1288,13 +1292,10 @@ export default function Calculator() {
                             .sort((a, b) => {
                               if (sortBy === "price") return a.total_cost - b.total_cost;
                               if (sortBy === "speed") {
-                                // Extract max days from string "X-Y days"
-                                const getDays = (s: string) =>
-                                  parseInt(s.split("-")[1]) || 0;
+                                const getDays = (s: string) => parseInt(s.split("-")[1]) || 0;
                                 return getDays(a.transit_time) - getDays(b.transit_time);
                               }
-                              if (sortBy === "rating")
-                                return (b.rating || 0) - (a.rating || 0);
+                              if (sortBy === "rating") return (b.rating || 0) - (a.rating || 0);
                               return 0;
                             })
                             .map((quote, idx) => (
@@ -1308,62 +1309,92 @@ export default function Calculator() {
                               >
                                 <div className="grain-overlay opacity-[0.01]" />
 
-                                <div className="p-8 md:p-10 flex flex-col md:flex-row gap-8 items-center">
+                                <div className="p-8 md:p-10 flex flex-col xl:flex-row gap-8 items-stretch xl:items-center">
                                   {/* Forwarder Logo & Info */}
-                                  <div className="flex flex-col items-center gap-4 min-w-[160px]">
-                                    <div className="w-20 h-20 rounded-3xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center p-4 shadow-inner group-hover/quote:scale-110 transition-transform">
-                                      <img src={quote.forwarder_logo || "/logo-placeholder.png"} alt={quote.forwarder_name} className="w-full h-full object-contain grayscale group-hover/quote:grayscale-0 transition-all" />
+                                  <div className="flex flex-row xl:flex-col items-center gap-6 min-w-[200px] border-b xl:border-b-0 xl:border-r border-slate-100 dark:border-white/5 pb-6 xl:pb-0 xl:pr-8">
+                                    <div className="w-20 h-20 rounded-3xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center p-4 shadow-inner group-hover/quote:scale-105 transition-transform overflow-hidden flex-shrink-0">
+                                      <img
+                                        src={quote.forwarder_logo || (quote.forwarder_id === 'platform' ? "/logo.png" : "")}
+                                        alt={quote.forwarder_name}
+                                        className="w-full h-full object-contain !grayscale-0"
+                                        onError={(e) => {
+                                          const target = e.target as HTMLImageElement;
+                                          if (quote.forwarder_id === 'platform' && !target.src.endsWith('/logo.png')) {
+                                            target.src = "/logo.png";
+                                          } else {
+                                            target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(quote.forwarder_name)}&background=f1f5f9&color=64748b&bold=true&size=128`;
+                                          }
+                                        }}
+                                      />
                                     </div>
-                                    <div className="text-center">
-                                      <h4 className="font-black text-slate-900 dark:text-white uppercase tracking-tighter text-sm">{quote.forwarder_name}</h4>
-                                      <div className="flex items-center justify-center gap-1 mt-1">
+                                    <div className="text-left xl:text-center flex-1">
+                                      <h4 className="font-black text-slate-900 dark:text-white uppercase tracking-tight text-base mb-1">{quote.forwarder_name}</h4>
+                                      <div className="flex items-center xl:justify-center gap-1">
                                         {[...Array(5)].map((_, i) => (
-                                          <Star key={i} size={10} className={i < (quote.rating || 4) ? "text-yellow-400 fill-current" : "text-slate-200"} />
+                                          <Star key={i} size={12} className={i < (quote.rating || 4) ? "text-yellow-400 fill-current" : "text-slate-200"} />
                                         ))}
                                       </div>
                                     </div>
                                   </div>
 
-                                  {/* Transit Details */}
-                                  <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-6 w-full">
-                                    <div className="space-y-1">
-                                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Transit</span>
-                                      <div className="flex items-center gap-2 text-slate-900 dark:text-white font-black">
-                                        <Clock size={14} className="text-orange-600" />
+                                  {/* Transit Details - Reorganized with better spacing */}
+                                  <div className="flex-1 flex flex-wrap gap-8 items-center py-2">
+                                    <div className="space-y-2 min-w-[120px]">
+                                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] block">Durée Transit</span>
+                                      <div className="flex items-center gap-3 text-slate-900 dark:text-white font-black text-lg">
+                                        <div className="p-2 bg-orange-500/10 rounded-lg text-orange-600">
+                                          <Clock size={16} />
+                                        </div>
                                         <span>{quote.transit_time}</span>
                                       </div>
                                     </div>
-                                    <div className="space-y-1">
-                                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Départ</span>
-                                      <div className="flex items-center gap-2 text-slate-900 dark:text-white font-black">
-                                        <Ship size={14} className="text-blue-600" />
-                                        <span className="truncate">{watch("origin")}</span>
+
+                                    <div className="space-y-2 min-w-[140px]">
+                                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] block">Hub de Départ</span>
+                                      <div className="flex items-center gap-3 text-slate-900 dark:text-white font-black text-lg">
+                                        <div className="p-2 bg-blue-500/10 rounded-lg text-blue-600">
+                                          <Ship size={16} />
+                                        </div>
+                                        <span className="truncate max-w-[150px]">{watch("origin")}</span>
                                       </div>
                                     </div>
-                                    <div className="space-y-1 md:col-span-2">
-                                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Services Inclus</span>
+
+                                    <div className="space-y-2 flex-grow">
+                                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] block">Écosystème Services</span>
                                       <div className="flex flex-wrap gap-2">
-                                        {['Assurance', 'Douane', 'Suivi IA'].map(s => (
-                                          <span key={s} className="px-2 py-1 bg-slate-50 dark:bg-slate-800 rounded-lg text-[8px] font-black text-slate-500 uppercase tracking-tight">{s}</span>
-                                        ))}
+                                        {(quote.services || []).map(s => {
+                                          const isSelected = s === 'Assurance' ? selectedServices.insurance : false;
+                                          return (
+                                            <span key={s} className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider border transition-all ${isSelected
+                                              ? "bg-orange-500 text-white border-orange-600 shadow-sm"
+                                              : "bg-slate-50 dark:bg-white/5 text-slate-600 dark:text-slate-300 border-slate-100 dark:border-white/5 group-hover/quote:border-orange-500/20"
+                                              }`}>
+                                              {isSelected && <Check size={8} className="inline mr-1" strokeWidth={4} />}
+                                              {s}
+                                            </span>
+                                          );
+                                        })}
+                                        {(!quote.services || quote.services.length === 0) && (
+                                          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest italic">Aucun service optionnel</span>
+                                        )}
                                       </div>
                                     </div>
                                   </div>
 
                                   {/* Pricing & Call to Action */}
-                                  <div className="flex flex-col items-center md:items-end gap-3 min-w-[200px]">
-                                    <div className="text-center md:text-right">
-                                      <span className="text-[10px] font-black text-orange-600 uppercase tracking-widest block mb-1">Total Estimé</span>
-                                      <p className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter">
+                                  <div className="flex flex-col items-stretch xl:items-end gap-4 min-w-[240px] pl-0 xl:pl-8 border-t xl:border-t-0 xl:border-l border-slate-100 dark:border-white/5 pt-6 xl:pt-0">
+                                    <div className="text-left xl:text-right">
+                                      <span className="text-[10px] font-black text-orange-600 uppercase tracking-[0.2em] block mb-1">Total Estimé Clé en Main</span>
+                                      <p className="text-4xl font-black text-slate-900 dark:text-white tracking-tight leading-none mb-1">
                                         {formatPrice(quote.total_cost)}
                                       </p>
+                                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">TTC • Hors taxes locales</span>
                                     </div>
-
-                                    <QuoteKYCCheck quote={quote} onShowKYC={() => setShowKYCModal(true)} />
 
                                     <button
                                       onClick={() => {
                                         const state = { prefill: { origin_port: watch("origin"), destination_port: watch("destination"), transport_mode: selectedMode, service_type: selectedType, cargo_details: { length, width, height, weight: watch("weight_kg"), unit: dimensionUnit }, budget: quote.total_cost, target_forwarder: quote.forwarder_id, quote_details: quote } };
+                                        closeCalculator();
                                         if (user) navigate("/dashboard/client/rfq/create", { state });
                                         else navigate("/login", { state: { from: "/dashboard/client/rfq/create", ...state } });
                                       }}
@@ -1371,10 +1402,15 @@ export default function Calculator() {
                                     >
                                       <div className="absolute inset-0 bg-gradient-to-r from-orange-600 to-orange-400 opacity-0 group-hover/btn:opacity-100 transition-opacity" />
                                       <span className="relative z-10 flex items-center gap-2">
-                                        Réserver <ArrowRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />
+                                        Confirmer & Réserver <ArrowRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />
                                       </span>
                                     </button>
                                   </div>
+                                </div>
+
+                                {/* KYC Alert repositioned as a full-width banner at the bottom of the content area if needed */}
+                                <div className="px-8 pb-4">
+                                  <QuoteKYCCheck quote={quote} onShowKYC={() => setShowKYCModal(true)} />
                                 </div>
 
                                 {/* Footer trust bar */}
@@ -1445,10 +1481,9 @@ export default function Calculator() {
                   </div>
                 </div>
               </motion.div>
-            )
-          }
-        </AnimatePresence>
-      </div>
+            )}
+        </AnimatePresence >
+      </div >
 
       <SavedQuoteModal
         isOpen={showSaveModal}
@@ -1460,7 +1495,7 @@ export default function Calculator() {
         isOpen={showKYCModal}
         onClose={() => setShowKYCModal(false)}
         onSuccess={() => {
-          if (user) profileService.getProfile(user.id, true).then((p) => console.log('Profile updated', p));
+          if (user) profileService.getProfile(user.id, true);
         }}
       />
     </div >
@@ -1515,26 +1550,25 @@ function QuoteKYCCheck({ quote, onShowKYC }: { quote: any, onShowKYC: () => void
 
   if (requiresKYC && profile?.kyc_status !== 'verified') {
     return (
-      <div className="mt-6 p-5 bg-amber-500/10 dark:bg-amber-500/10 rounded-2xl border-2 border-amber-500/30 animate-in zoom-in group">
-        <div className="flex items-start gap-4">
-          <div className="bg-amber-500 text-white p-2.5 rounded-xl shadow-lg shadow-amber-500/20 group-hover:scale-110 transition-transform">
-            <ShieldCheck className="w-6 h-6" />
+      <div className="mt-4 p-5 bg-amber-500 text-white rounded-3xl shadow-xl shadow-amber-500/20 group relative overflow-hidden">
+        <div className="absolute top-0 right-0 p-2 opacity-10">
+          <ShieldCheck size={80} />
+        </div>
+        <div className="flex items-center gap-6 relative z-10">
+          <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-md">
+            <Zap className="w-6 h-6 fill-current text-white animate-pulse" />
           </div>
           <div className="flex-1">
-            <h5 className="font-extrabold text-amber-900 dark:text-amber-200 text-base leading-tight">
-              Vérification d'Identité Requise
-            </h5>
-            <p className="text-xs text-amber-800/80 dark:text-amber-400/80 mt-1 font-medium leading-relaxed">
-              Le montant total cumulé de vos transactions dépasse <strong>1.000.000 FCFA/mois</strong>.
-              Une vérification KYC (CNI/Passeport) est obligatoire pour continuer.
+            <p className="text-xs font-black leading-tight">
+              Cumul &gt; 1.000.000 FCFA/mois. Identité obligatoire.
             </p>
-            <button
-              onClick={onShowKYC}
-              className="mt-3 w-full bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold py-2.5 rounded-xl transition-all shadow-md flex items-center justify-center gap-2"
-            >
-              Compléter mon KYC <ArrowRight className="w-4 h-4" />
-            </button>
           </div>
+          <button
+            onClick={onShowKYC}
+            className="whitespace-nowrap bg-white text-amber-600 px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
+          >
+            Vérifier KYC <ArrowRight className="w-4 h-4" />
+          </button>
         </div>
       </div>
     );
@@ -1542,4 +1576,3 @@ function QuoteKYCCheck({ quote, onShowKYC }: { quote: any, onShowKYC: () => void
 
   return null;
 }
-

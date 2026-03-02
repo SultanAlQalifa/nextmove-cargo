@@ -64,7 +64,8 @@ export default function TrackingMap({ shipmentId, origin, destination, progress,
                     filter: `shipment_id=eq.${shipmentId}`
                 },
                 (payload) => {
-                    console.log('Realtime GPS Update:', payload);
+                    // Realtime GPS Update
+
                     setDriverCoords({
                         lat: payload.new.latitude,
                         lng: payload.new.longitude

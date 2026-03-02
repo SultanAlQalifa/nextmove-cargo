@@ -433,7 +433,7 @@ export default function TrackingPage() {
                                   animate={{
                                     scale: isActive ? 1.2 : 1,
                                     backgroundColor: isCompleted ? (isActive ? "rgb(249 115 22)" : "rgb(22 163 74)") : "rgb(241 245 249)",
-                                    borderColor: isCompleted ? "transparent" : "rgb(226 232 240)"
+                                    borderColor: isCompleted ? "rgba(226, 232, 240, 0)" : "rgb(226, 232, 240)"
                                   }}
                                   className={`w-12 h-12 rounded-2xl flex items-center justify-center border-2 transition-all shadow-lg ${isActive ? "ring-4 ring-orange-500/20" : ""}`}
                                 >

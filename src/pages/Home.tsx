@@ -135,9 +135,9 @@ export default function Home() {
         {/* Background Image with High-End Overlay */}
         <div className="absolute inset-0 z-0 bg-slate-950">
           <img
-            src="/assets/hero-nexus.png"
+            src="/assets/hero-nexus-premium.png"
             alt="Logistics Nexus - Sea & Air Synergy"
-            className="w-full h-full object-cover object-right opacity-80 dark:opacity-60 transition-opacity duration-1000"
+            className="w-full h-full object-cover object-center opacity-70 dark:opacity-50 transition-opacity duration-1000"
           />
           {/* Deep desaturated blue/slate gradients for corporate authority and readability */}
           <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/60 to-transparent" />
@@ -239,22 +239,23 @@ export default function Home() {
                 </Link>
               </motion.div>
 
-              <div className="flex items-center gap-10 pt-10 border-t border-white/5">
+              <div className="flex items-center gap-6 pt-10 border-t border-white/5">
                 <div className="flex -space-x-3">
-                  {[1, 2, 3, 4].map((i) => (
-                    <div
-                      key={i}
-                      className="w-11 h-11 rounded-full border-2 border-slate-900 glass flex items-center justify-center group overflow-hidden"
-                    >
-                      <div className="p-2 text-[10px] font-black text-blue-400 group-hover:scale-125 transition-transform">NMC</div>
-                    </div>
-                  ))}
+                  <div className="w-11 h-11 rounded-full border-2 border-slate-900 glass flex items-center justify-center group overflow-hidden z-30">
+                    <div className="p-2 text-[10px] font-black text-blue-400 group-hover:scale-125 transition-transform animate-pulse">LIVE</div>
+                  </div>
+                  <div className="w-11 h-11 rounded-full border-2 border-slate-900 glass flex items-center justify-center group overflow-hidden z-20">
+                    <div className="p-2 text-[10px] font-black text-blue-400 group-hover:scale-125 transition-transform">NMC</div>
+                  </div>
+                  <div className="w-11 h-11 rounded-full border-2 border-slate-900 glass flex items-center justify-center group overflow-hidden z-10">
+                    <div className="p-2 text-[10px] font-black text-blue-400 group-hover:scale-125 transition-transform">NMC</div>
+                  </div>
                 </div>
                 <div>
                   <div className="text-white font-black text-xl tracking-tight">
-                    10,000+ <span className="text-slate-500 font-light">Partenaires</span>
+                    <span className="text-blue-400">12,482</span> <span className="text-slate-500 font-light text-sm uppercase tracking-widest ml-2">Colis en Transit</span>
                   </div>
-                  <div className="flex items-center gap-1.5 text-yellow-400">
+                  <div className="flex items-center gap-1.5 text-yellow-500 mt-1">
                     {[1, 2, 3, 4, 5].map((i) => (
                       <Star key={i} size={14} fill="currentColor" className="drop-shadow-[0_0_8px_rgba(250,204,21,0.5)]" />
                     ))}

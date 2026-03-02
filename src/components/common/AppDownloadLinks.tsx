@@ -35,7 +35,7 @@ const AppDownloadLinks: React.FC<AppDownloadLinksProps> = ({ className = "", isC
                 </div>
                 <div>
                     <h4 className="text-sm font-bold text-gray-900 dark:text-white">App Mobile</h4>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Installez NextMove Cargo</p>
+                    <p className="text-xs font-medium text-gray-600 dark:text-slate-300">Installez NextMove Cargo</p>
                 </div>
             </div>
 

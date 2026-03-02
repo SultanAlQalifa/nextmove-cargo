@@ -29,20 +29,20 @@ serve(async (req: Request) => {
             Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
         );
 
-        // Fetch settings
-        const { data: settingsData, error: settingsError } = await supabaseAdmin
-            .from('system_settings')
+        // Fetch secrets from the SECURE table
+        const { data: secretsData, error: secretsError } = await supabaseAdmin
+            .from('system_secrets')
             .select('value')
-            .eq('key', 'integrations')
+            .eq('key', 'integrations_secrets')
             .single();
 
-        if (settingsError || !settingsData) {
-            console.error("Failed to fetch settings", settingsError);
-            throw new Error("Configuration missing");
+        if (secretsError || !secretsData) {
+            console.error("Failed to fetch secrets", secretsError);
+            throw new Error("Configuration secrets missing");
         }
 
-        const intechConfig = settingsData.value?.intech_sms;
-        const twilioConfig = settingsData.value?.twilio;
+        const intechConfig = secretsData.value?.intech_sms;
+        const twilioConfig = secretsData.value?.twilio;
 
         const results = [];
 

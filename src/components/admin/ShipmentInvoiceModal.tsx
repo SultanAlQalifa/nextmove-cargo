@@ -46,57 +46,47 @@ export default function ShipmentInvoiceModal({
   const destination = shipment?.destination || "Paris, FR";
   const weight = shipment?.weight || "0 kg";
 
-  // Mock Invoice Data with Real Shipment Context
+  // Real Invoice Data from Shipment Context
+  const createdAt = new Date(shipment?.created_at || Date.now());
+  const dueDate = new Date(createdAt);
+  dueDate.setDate(dueDate.getDate() + 3);
+
+  const parsedPrice = typeof shipment?.price === 'number' ? shipment.price : 0;
+
   const invoice = {
     id: `FACT-${currentId.split("-")[1] || "001"}`,
-    date: new Date().toLocaleDateString("fr-FR"),
-    dueDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30).toLocaleDateString(
-      "fr-FR",
-    ),
-    deliveryMethod: "delivery", // 'pickup' or 'delivery'
+    date: createdAt.toLocaleDateString("fr-FR"),
+    dueDate: dueDate.toLocaleDateString("fr-FR"),
+    deliveryMethod: shipment?.service_type === 'express' ? "delivery" : "pickup",
     sender: {
       name: "NextMove Cargo",
-      address: "123 Voie de la Logistique, Dakar, Sénégal",
-      email: "facturation@nextmove.com",
-      phone: "+221 77 658 17 41",
+      address: "Dakar, Sénégal",
+      email: "contact@nextmovecargo.com",
+      phone: "+221 77 000 00 00",
     },
     forwarder: {
-      name: "Global Freight Solutions",
-      address: "Zone Fret, Aéroport AIBD, Sénégal",
-      email: "contact@gfs-logistics.com",
-      phone: "+221 77 123 45 67",
+      name: shipment?.forwarder?.company_name || shipment?.carrier?.name || "Prestataire",
+      address: [shipment?.origin?.country, shipment?.origin?.port].filter(Boolean).join(', ') || "Non défini",
+      email: shipment?.forwarder?.email || "Non défini",
+      phone: shipment?.forwarder?.phone || "Non défini",
     },
     client: {
       name: clientName,
-      address: "Adresse client, Ville, Pays", // We might not have full address in listing
-      email: "client@exemple.com",
-      phone: clientPhone || "+33 1 00 00 00 00",
+      address: [shipment?.destination?.country, shipment?.destination?.port].filter(Boolean).join(', ') || "Non défini",
+      email: shipment?.client?.email || "Non renseigné",
+      phone: clientPhone || "Non renseigné",
     },
     items: [
       {
         description: `Fret (${weight}) - ${origin} vers ${destination}`,
         quantity: 1,
-        price: 2500000,
-        total: 2500000,
+        price: parsedPrice,
+        total: parsedPrice,
         type: "service",
-      },
-      {
-        description: "Assurance (Garantie Plateforme)",
-        quantity: 1,
-        price: 50000,
-        total: 50000,
-        type: "platform",
-      },
-      {
-        description: "Livraison à Domicile",
-        quantity: 1,
-        price: 75000,
-        total: 75000,
-        type: "service",
-      },
+      }
     ],
-    subtotal: 2625000,
-    taxRate: 0.18,
+    subtotal: parsedPrice,
+    taxRate: 0, // Simplified: platform tax applied elsewhere or 0
   };
 
   // Filter items based on delivery method

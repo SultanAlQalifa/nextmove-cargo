@@ -28,7 +28,10 @@ import {
   Warehouse,
   Truck,
   CheckCircle,
+  CreditCard,
+  Headphones,
 } from "lucide-react";
+import { motion } from "framer-motion";
 import { locationService, Location } from "../../services/locationService";
 import {
   packageTypeService,
@@ -376,6 +379,11 @@ export default function CreateRFQForm() {
 
         // Show success modal with different message
         setShowSuccessModal(true);
+
+        // Auto redirect after 2.5 seconds
+        setTimeout(() => {
+          navigate(`/dashboard/client/rfq/${editId}`);
+        }, 2500);
       } else {
         // Create new RFQ
         rfq = await rfqService.createRFQ(formData);
@@ -391,6 +399,11 @@ export default function CreateRFQForm() {
         setHeight("");
         setCalculatedCBM(0);
         setShowSuccessModal(true);
+
+        // Auto redirect after 2.5 seconds
+        setTimeout(() => {
+          navigate("/dashboard/client/rfq");
+        }, 2500);
       }
     } catch (error) {
       console.error("Error saving RFQ:", error);
@@ -430,223 +443,233 @@ export default function CreateRFQForm() {
     const quote = location.state.prefill.quote_details;
 
     return (
-      <form ref={formRef} className="max-w-4xl mx-auto p-6">
-        <div className="mb-8">
+      <form ref={formRef} className="max-w-6xl mx-auto px-4 py-12">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-12 text-center"
+        >
           <button
             type="button"
             onClick={() => navigate("/calculator")}
-            className="flex items-center text-gray-500 hover:text-gray-900 transition-colors mb-4"
+            className="inline-flex items-center text-sm font-medium text-gray-400 hover:text-blue-500 transition-colors mb-6 group"
           >
-            <ArrowLeft className="w-5 h-5 mr-2" />
+            <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
             Retour au calculateur
           </button>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Finaliser votre Réservation
-          </h1>
-          <p className="text-gray-600">
-            Confirmez les détails de votre expédition pour valider la demande.
-          </p>
-        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-6">
-            {/* Selected Quote Card */}
-            <div className="bg-white rounded-xl shadow-lg border-2 border-primary/10 overflow-hidden">
-              <div className="bg-primary/5 px-6 py-4 border-b border-primary/10 flex justify-between items-center">
-                <span className="font-bold text-primary flex items-center gap-2">
-                  <Check className="w-5 h-5" /> Offre Sélectionnée
-                </span>
-                <span className="bg-primary text-white text-xs px-3 py-1 rounded-full font-medium">
-                  OFFICIEL
-                </span>
+          <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight mb-4">
+            Finaliser votre <span className="text-blue-600">Réservation</span>
+          </h1>
+
+          {/* Progress Stepper */}
+          <div className="flex items-center justify-center gap-4 mt-8">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center text-sm font-bold shadow-lg shadow-green-200">
+                <Check className="w-4 h-4" />
               </div>
-              <div className="p-6">
-                <div className="flex justify-between items-start mb-6">
-                  <div>
-                    <h3 className="text-xl font-bold text-gray-900">
-                      {quote.forwarder_name}
-                    </h3>
-                    <div className="flex items-center gap-2 text-gray-500 mt-1">
-                      <Clock className="w-4 h-4" />
-                      <span>Transit: {quote.transit_time}</span>
+              <span className="text-sm font-bold text-slate-900">Devis</span>
+            </div>
+            <div className="w-12 h-0.5 bg-blue-100"></div>
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-bold shadow-lg shadow-blue-200 ring-4 ring-blue-50">
+                2
+              </div>
+              <span className="text-sm font-bold text-slate-900">Réservation</span>
+            </div>
+            <div className="w-12 h-0.5 bg-slate-100"></div>
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center text-sm font-bold">
+                3
+              </div>
+              <span className="text-sm font-medium text-slate-400">Confirmation</span>
+            </div>
+          </div>
+        </motion.div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+          <div className="lg:col-span-8 space-y-8">
+            {/* Selected Quote Card - Premium Redesign */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1 }}
+              className="relative group"
+            >
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-3xl blur opacity-10 group-hover:opacity-20 transition duration-1000"></div>
+              <div className="relative bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-100">
+                <div className="bg-slate-900 px-8 py-5 flex justify-between items-center text-white">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-blue-500/20 glass flex items-center justify-center">
+                      <ShieldCheck className="w-6 h-6 text-blue-400" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">Offre Sélectionnée</p>
+                      <h3 className="text-lg font-bold tracking-tight">{quote.forwarder_name}</h3>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm text-gray-500">Coût Total Estimé</p>
-                    <p className="text-2xl font-bold text-primary">
-                      {new Intl.NumberFormat(undefined, {
-                        style: "currency",
-                        currency: formData.budget_currency || "XOF",
-                        maximumFractionDigits: 0,
-                      }).format(quote.total_cost)}
-                    </p>
+                  <div className="flex items-center gap-2">
+                    <span className="px-3 py-1 rounded-full bg-green-500/20 text-green-400 text-[10px] font-black uppercase tracking-tighter border border-green-500/30">Tarif Garanti</span>
+                    <span className="px-3 py-1 rounded-full bg-blue-500 text-white text-[10px] font-black uppercase tracking-tighter shadow-lg shadow-blue-500/20">PREMIUM</span>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg text-sm">
-                  <div>
-                    <span className="text-gray-500 block mb-1">Transport</span>
-                    <span className="font-medium text-gray-900">
-                      {new Intl.NumberFormat(undefined, {
-                        style: "currency",
-                        currency: formData.budget_currency || "XOF",
-                        maximumFractionDigits: 0,
-                      }).format(quote.base_cost)}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-gray-500 block mb-1">Assurance</span>
-                    <span className="font-medium text-gray-900">
-                      {new Intl.NumberFormat(undefined, {
-                        style: "currency",
-                        currency: formData.budget_currency || "XOF",
-                        maximumFractionDigits: 0,
-                      }).format(quote.insurance_cost)}
-                    </span>
-                  </div>
-                  <div className="border-t border-gray-100 pt-2 mt-2">
-                    <span className="text-gray-500 block mb-1">
-                      Sous-total HT
-                    </span>
-                    <span className="font-medium text-gray-900">
-                      {new Intl.NumberFormat(undefined, {
-                        style: "currency",
-                        currency: formData.budget_currency || "XOF",
-                        maximumFractionDigits: 0,
-                      }).format(quote.base_cost + quote.insurance_cost)}
-                    </span>
-                  </div>
-                  {quote.tax_cost > 0 && (
-                    <div>
-                      <span className="text-gray-500 block mb-1">
-                        TVA (18%)
-                      </span>
-                      <span className="font-medium text-gray-900">
+                <div className="p-8">
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
+                    <div className="flex items-center gap-6">
+                      <div className="text-center p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Transit</p>
+                        <p className="text-xl font-black text-slate-900">{quote.transit_time}</p>
+                      </div>
+                      <div className="w-px h-12 bg-slate-100 hidden md:block"></div>
+                      <div className="text-center p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Mode</p>
+                        <div className="flex items-center justify-center gap-2 text-xl font-black text-slate-900">
+                          {formData.transport_mode === "sea" ? <Ship className="w-5 h-5 text-blue-500" /> : <Plane className="w-5 h-5 text-blue-500" />}
+                          <span className="capitalize">{t(`calculator.${formData.transport_mode}.label`)}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="text-right">
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Montant Total à Payer</p>
+                      <div className="text-4xl font-black text-slate-900">
                         {new Intl.NumberFormat(undefined, {
                           style: "currency",
                           currency: formData.budget_currency || "XOF",
                           maximumFractionDigits: 0,
-                        }).format(quote.tax_cost)}
-                      </span>
+                        }).format(quote.total_cost)}
+                      </div>
+                      <p className="text-[10px] font-medium text-green-600 mt-1 flex items-center justify-end gap-1">
+                        <Zap className="w-3 h-3 fill-current" /> Meilleur prix du marché détecté
+                      </p>
                     </div>
-                  )}
+                  </div>
+
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-5 bg-slate-50/50 rounded-2xl border border-slate-100">
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">Fret Base</span>
+                      <p className="font-bold text-slate-700">{new Intl.NumberFormat(undefined, { style: "currency", currency: formData.budget_currency || "XOF", maximumFractionDigits: 0 }).format(quote.base_cost)}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">Assurance</span>
+                      <p className="font-bold text-slate-700">{quote.insurance_cost > 0 ? new Intl.NumberFormat(undefined, { style: "currency", currency: formData.budget_currency || "XOF", maximumFractionDigits: 0 }).format(quote.insurance_cost) : "Incluse"}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">TVA & Taxes</span>
+                      <p className="font-bold text-slate-700">{new Intl.NumberFormat(undefined, { style: "currency", currency: formData.budget_currency || "XOF", maximumFractionDigits: 0 }).format(quote.tax_cost || 0)}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">Garantie Livraison</span>
+                      <p className="font-bold text-blue-600 flex items-center gap-1">
+                        <ShieldCheck className="w-3 h-3" /> 100% Protégé
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Trust Signals Section */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {[
+                { icon: Shield, title: "Paiement Sécurisé", desc: "Transactions cryptées SSL 256-bits", color: "blue" },
+                { icon: Zap, title: "Validation Express", desc: "Réservation confirmée en < 5min", color: "amber" },
+                { icon: Headphones, title: "Support Dédié", desc: "Conseillers logistiques 24/7", color: "purple" }
+              ].map((item, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 + (i * 0.1) }}
+                  className="p-5 bg-white rounded-2xl border border-slate-100 shadow-sm flex items-start gap-4"
+                >
+                  <div className={`w-10 h-10 rounded-xl bg-${item.color}-500/10 flex items-center justify-center flex-shrink-0`}>
+                    <item.icon className={`w-5 h-5 text-${item.color}-500`} />
+                  </div>
                   <div>
-                    <span className="text-gray-500 block mb-1">Mode</span>
-                    <span className="font-medium text-gray-900 capitalize flex items-center gap-1">
-                      {formData.transport_mode === "sea" ? (
-                        <Ship className="w-3 h-3" />
-                      ) : (
-                        <Plane className="w-3 h-3" />
-                      )}
-                      {t(`calculator.${formData.transport_mode}.label`)}
-                    </span>
+                    <h4 className="text-sm font-bold text-slate-900">{item.title}</h4>
+                    <p className="text-xs text-slate-500 mt-1">{item.desc}</p>
                   </div>
-                </div>
-              </div>
+                </motion.div>
+              ))}
             </div>
 
-            {/* Shipment Details Summary */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <Package className="w-5 h-5 text-gray-500" />
-                Détails de l'Expédition
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <span className="text-xs text-gray-500 uppercase tracking-wider font-medium">
-                    Itinéraire
-                  </span>
-                  <div className="flex items-center gap-2 mt-1 font-medium text-gray-900">
-                    {formData.origin_port}{" "}
-                    <ArrowLeft className="w-4 h-4 rotate-180 text-gray-400" />{" "}
-                    {formData.destination_port}
+            {/* Form & Details in Bento Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Shipment Details Summary */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden"
+              >
+                <div className="px-6 py-4 bg-slate-50 border-b border-slate-100 flex items-center gap-2">
+                  <Package className="w-4 h-4 text-slate-400" />
+                  <h3 className="text-sm font-bold text-slate-900 uppercase tracking-tight">Récapitulatif de l'Envoi</h3>
+                </div>
+                <div className="p-6 space-y-6">
+                  <div className="flex items-center justify-between p-4 bg-blue-50/50 rounded-2xl border border-blue-100/30">
+                    <div>
+                      <p className="text-[10px] font-bold text-blue-400 uppercase mb-1">Itinéraire</p>
+                      <div className="flex items-center gap-3 font-black text-slate-900">
+                        {formData.origin_port}
+                        <ArrowLeft className="w-4 h-4 rotate-180 text-blue-500" />
+                        {formData.destination_port}
+                      </div>
+                    </div>
+                    <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm">
+                      <Globe className="w-5 h-5 text-blue-500" />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 text-sm font-bold">
+                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                      <p className="text-[10px] text-slate-400 uppercase mb-1">Volume/Poids</p>
+                      <p className="text-slate-900">
+                        {formData.transport_mode === "sea"
+                          ? `${calculatedCBM.toFixed(2)} CBM`
+                          : `${formData.weight_kg} kg`}
+                      </p>
+                    </div>
+                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                      <p className="text-[10px] text-slate-400 uppercase mb-1">Marchandise</p>
+                      <p className="text-slate-900 truncate">{formData.cargo_type || "À préciser"}</p>
+                    </div>
                   </div>
                 </div>
-                <div>
-                  <span className="text-xs text-gray-500 uppercase tracking-wider font-medium">
-                    Dimensions
-                  </span>
-                  <div className="mt-1 font-medium text-gray-900">
-                    {formData.transport_mode === "sea"
-                      ? `${calculatedCBM.toFixed(2)} CBM`
-                      : `${formData.weight_kg} kg`}
-                  </div>
-                </div>
-              </div>
-            </div>
+              </motion.div>
 
-            {/* Missing Information Form */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <FileText className="w-5 h-5 text-gray-500" />
-                Compléter la Demande
-              </h3>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t("rfq.form.cargoType")} *
-                  </label>
-                  <input
-                    type="text"
-                    name="cargo_type"
-                    required
-                    value={formData.cargo_type}
-                    onChange={handleChange}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-                    placeholder="Ex: Electronics"
-                    aria-label="Type de marchandise"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t("rfq.form.cargoDescription")}
-                  </label>
-                  <textarea
-                    name="cargo_description"
-                    value={formData.cargo_description}
-                    onChange={handleChange}
-                    rows={3}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-                    placeholder="Description détaillée de la marchandise..."
-                    aria-label="Description de la marchandise"
-                  />
+              {/* Form Info */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="bg-white rounded-3xl shadow-sm border border-slate-100 p-8 space-y-6"
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-2 h-6 bg-blue-500 rounded-full"></div>
+                  <h3 className="text-xl font-bold text-slate-900">Compléter l'Envoi</h3>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Budget Cible
-                  </label>
-                  <div className="relative">
+                <div className="space-y-5">
+                  <div className="group">
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 group-focus-within:text-blue-500 transition-colors">
+                      {t("rfq.form.cargoType")} *
+                    </label>
                     <input
-                      type="number"
-                      name="budget_amount"
-                      value={formData.budget_amount || ""}
+                      type="text"
+                      name="cargo_type"
+                      required
+                      value={formData.cargo_type}
                       onChange={handleChange}
-                      className="block w-full pr-16 rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-                      placeholder="0.00"
-                      onWheel={(e) => e.currentTarget.blur()}
-                      aria-label="Montant du budget"
+                      className="block w-full px-4 py-3 bg-slate-50 border border-slate-100 text-slate-900 rounded-2xl focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all placeholder:text-slate-300 font-medium"
+                      placeholder="Ex: Électroménager, Textile..."
                     />
-                    <div className="absolute inset-y-0 right-0 flex items-center">
-                      <select
-                        name="budget_currency"
-                        value={formData.budget_currency}
-                        onChange={handleChange}
-                        className="h-full py-0 pl-2 pr-7 border-transparent bg-transparent text-gray-500 sm:text-sm rounded-md focus:ring-primary focus:border-primary"
-                        aria-label="Devise du budget"
-                      >
-                        <option>XOF</option>
-                        <option>EUR</option>
-                        <option>USD</option>
-                        <option>CNY</option>
-                      </select>
-                    </div>
                   </div>
-                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
                       Date de départ souhaitée
                     </label>
                     <input
@@ -660,122 +683,227 @@ export default function CreateRFQForm() {
                           : ""
                       }
                       onChange={handleChange}
-                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                      className="block w-full px-4 py-3 bg-slate-50 border border-slate-100 text-slate-900 rounded-2xl focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all font-medium"
                       aria-label="Date de départ souhaitée"
+                      title="Date de départ souhaitée"
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Quantité
-                    </label>
-                    <input
-                      type="number"
-                      name="quantity"
-                      min="1"
-                      value={formData.quantity}
-                      onChange={handleChange}
-                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-                      onWheel={(e) => e.currentTarget.blur()}
-                      aria-label="Quantité"
-                    />
+                </div>
+              </motion.div>
+            </div>
+
+            <div className="bg-blue-600 rounded-3xl p-8 text-white relative overflow-hidden shadow-2xl shadow-blue-500/30">
+              <div className="absolute top-0 right-0 -mt-8 -mr-8 w-32 h-32 bg-white/10 rounded-full blur-3xl"></div>
+              <div className="relative flex flex-col md:flex-row items-center gap-6">
+                <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center">
+                  <ShieldCheck className="w-8 h-8 text-white" />
+                </div>
+                <div className="flex-1 text-center md:text-left">
+                  <h4 className="text-xl font-black mb-1 leading-tight">Garantie NextMove Protection Plus</h4>
+                  <p className="text-blue-100 text-sm">Votre paiement est consigné sur un compte séquestre et ne sera libéré au prestataire qu'après confirmation de l'enlèvement de votre marchandise.</p>
+                </div>
+                <div className="flex -space-x-3">
+                  {[1, 2, 3, 4].map(i => (
+                    <div key={i} className="w-10 h-10 rounded-full border-2 border-blue-600 bg-blue-100 overflow-hidden shadow-lg">
+                      <img src={`https://i.pravatar.cc/100?u=user${i}`} alt="user" className="w-full h-full object-cover grayscale brightness-110" />
+                    </div>
+                  ))}
+                  <div className="w-10 h-10 rounded-full border-2 border-blue-600 bg-blue-400 flex items-center justify-center text-[10px] font-black shadow-lg">
+                    +2k
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-xl shadow-lg p-6 sticky top-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">
-                Confirmation
-              </h3>
-              <p className="text-sm text-gray-600 mb-6">
-                En confirmant, votre demande sera envoyée directement au
-                prestataire sélectionné pour validation finale.
-              </p>
+          <div className="lg:col-span-4">
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.5 }}
+              className="sticky top-10"
+            >
+              <div className="bg-slate-900 rounded-[2.5rem] p-4 shadow-2xl overflow-hidden relative border border-slate-800">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/10 rounded-full blur-[100px]"></div>
 
-              {/* Payment Method Selection */}
-              <div className="mb-6 space-y-3">
-                <label className="block text-sm font-bold text-gray-900 mb-2">
-                  Méthode de validation
-                </label>
-
-                {formData.is_retry && (
-                  <div className="p-3 bg-yellow-50 text-yellow-800 text-sm rounded-lg mb-3 border border-yellow-200">
-                    ⚠️ Suite à un refus précédent, le paiement en ligne est requis pour la validation automatique.
+                <div className="relative bg-white/5 backdrop-blur-md rounded-[2rem] p-8 border border-white/10 space-y-8">
+                  <div className="text-center">
+                    <h3 className="text-xl font-bold text-white mb-2">Confirmation</h3>
+                    <div className="h-1.5 w-12 bg-blue-500 rounded-full mx-auto"></div>
                   </div>
-                )}
 
-                <div className={`p-4 rounded-xl border-2 transition-all cursor-pointer ${formData.payment_method === 'on_delivery'
-                  ? 'border-blue-600 bg-blue-50'
-                  : formData.is_retry ? 'opacity-50 cursor-not-allowed border-gray-200 bg-gray-50' : 'border-gray-200 hover:border-blue-300'
-                  }`}
-                  onClick={() => !formData.is_retry && setFormData(prev => ({ ...prev, payment_method: 'on_delivery' }))}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${formData.payment_method === 'on_delivery' ? 'border-blue-600' : 'border-gray-300'
-                      }`}>
-                      {formData.payment_method === 'on_delivery' && <div className="w-2.5 h-2.5 rounded-full bg-blue-600" />}
+                  {/* Payment Methods - Simplified & Elegant */}
+                  <div className="space-y-4">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Choix de la validation</p>
+
+                    {[
+                      {
+                        id: 'on_delivery',
+                        title: 'Sur Facture',
+                        desc: 'Paiement direct au prestataire',
+                        icon: FileText,
+                        badge: null,
+                        disabled: formData.is_retry
+                      },
+                      {
+                        id: 'online',
+                        title: 'Paiement Sécurisé',
+                        desc: 'Validation 100% Automatique',
+                        icon: CreditCard,
+                        badge: 'Recommandé',
+                        disabled: false
+                      }
+                    ].map((method) => (
+                      <div
+                        key={method.id}
+                        onClick={() => !method.disabled && setFormData(prev => ({ ...prev, payment_method: method.id as "online" | "on_delivery" }))}
+                        className={`group relative p-5 rounded-2xl border-2 transition-all cursor-pointer overflow-hidden ${formData.payment_method === method.id
+                          ? 'border-blue-500 bg-blue-500/10'
+                          : method.disabled ? 'opacity-30 grayscale cursor-not-allowed border-transparent' : 'border-slate-800 hover:border-slate-700 bg-white/5'
+                          }`}
+                      >
+                        <div className="flex items-center gap-4 relative z-10">
+                          <div className={`p-3 rounded-xl ${formData.payment_method === method.id ? 'bg-blue-500 text-white' : 'bg-slate-800 text-slate-400 group-hover:text-white transition-colors'}`}>
+                            <method.icon className="w-5 h-5" />
+                          </div>
+                          <div className={`flex-1 min-w-0 ${method.badge ? 'pr-16' : ''}`}>
+                            <p className={`font-bold text-sm ${formData.payment_method === method.id ? 'text-white' : 'text-slate-300 transition-colors'}`}>{method.title}</p>
+                            <p className="text-[10px] text-slate-500 truncate">{method.desc}</p>
+                          </div>
+                          {method.badge && (
+                            <span className="absolute top-0 right-0 text-[7px] font-black px-2 py-1 rounded-bl-xl rounded-tr-lg bg-blue-600 text-white uppercase tracking-tighter shadow-lg">
+                              {method.badge}
+                            </span>
+                          )}
+                        </div>
+                        {formData.payment_method === method.id && (
+                          <motion.div layoutId="activePay" className="absolute inset-0 bg-blue-500/5 backdrop-blur-sm shadow-inner" />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="pt-4 space-y-4">
+                    <div className="flex items-center justify-between text-slate-400 text-xs px-2">
+                      <span>Protection Client</span>
+                      <CheckCircle className="w-3 h-3 text-green-500" />
                     </div>
-                    <div className="flex-1">
-                      <div className="font-bold text-gray-900">Paiement à la livraison</div>
-                      <div className="text-xs text-gray-500">Validation manuelle par le prestataire</div>
+                    <div className="flex items-center justify-between text-slate-400 text-xs px-2">
+                      <span>Paiement Sécurisé</span>
+                      <Shield className="w-3 h-3 text-blue-500" />
                     </div>
+                    <div className="h-px bg-slate-800"></div>
+                    <div className="flex items-center justify-between font-bold px-2">
+                      <span className="text-slate-200">Total Final</span>
+                      <span className="text-xl text-white">
+                        {new Intl.NumberFormat(undefined, {
+                          style: "currency",
+                          currency: formData.budget_currency || "XOF",
+                          maximumFractionDigits: 0,
+                        }).format(quote.total_cost)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {error && (
+                    <motion.div
+                      initial={{ scale: 0.9, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      className="p-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-2xl text-xs text-center font-bold"
+                    >
+                      {error}
+                    </motion.div>
+                  )}
+
+                  <div className="space-y-3 pt-4">
+                    <button
+                      type="button"
+                      onClick={(e) => handleSubmit(e, true)}
+                      disabled={loading}
+                      className="w-full relative group"
+                    >
+                      <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-blue-400 rounded-2xl blur opacity-40 group-hover:opacity-60 transition duration-300"></div>
+                      <div className="relative w-full py-5 bg-blue-600 text-white rounded-2xl font-black text-sm tracking-widest uppercase hover:bg-blue-500 transition-all flex items-center justify-center gap-3 overflow-hidden">
+                        {loading ? (
+                          <>
+                            Envoi en cours...
+                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                          </>
+                        ) : (
+                          <>
+                            Confirmer Ma Réservation
+                            <Send className="w-4 h-4" />
+                          </>
+                        )}
+                        {/* Shimmer Effect */}
+                        <div className="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={(e) => handleSubmit(e, false)}
+                      disabled={loading}
+                      className="w-full py-4 text-slate-400 text-xs font-bold uppercase tracking-widest hover:text-white transition-colors text-center"
+                    >
+                      Enregistrer le Brouillon
+                    </button>
                   </div>
                 </div>
 
-                <div className={`p-4 rounded-xl border-2 transition-all cursor-pointer ${formData.payment_method === 'online'
-                  ? 'border-blue-600 bg-blue-50'
-                  : 'border-gray-200 hover:border-blue-300'
-                  }`}
-                  onClick={() => setFormData(prev => ({ ...prev, payment_method: 'online' }))}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${formData.payment_method === 'online' ? 'border-blue-600' : 'border-gray-300'
-                      }`}>
-                      {formData.payment_method === 'online' && <div className="w-2.5 h-2.5 rounded-full bg-blue-600" />}
-                    </div>
-                    <div className="flex-1">
-                      <div className="font-bold text-gray-900">Paiement Sécurisé en Ligne</div>
-                      <div className="text-xs text-gray-500">Validation automatique & Garantie</div>
-                    </div>
-                    <span className="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-1 rounded-full uppercase">
-                      Recommandé
-                    </span>
+                {/* Secure Trust Logos */}
+                <div className="mt-8 flex items-center justify-center gap-6 opacity-30 grayscale hover:opacity-80 transition-all cursor-default">
+                  <div className="flex flex-col items-center">
+                    <CreditCard className="w-6 h-6 text-white mb-1" />
+                    <span className="text-[8px] text-white font-bold uppercase">SSL Secure</span>
+                  </div>
+                  <div className="w-px h-8 bg-slate-800"></div>
+                  <div className="flex flex-col items-center">
+                    <Check className="w-6 h-6 text-white mb-1" />
+                    <span className="text-[8px] text-white font-bold uppercase">Verified</span>
+                  </div>
+                  <div className="w-px h-8 bg-slate-800"></div>
+                  <div className="flex flex-col items-center">
+                    <ShieldCheck className="w-6 h-6 text-white mb-1" />
+                    <span className="text-[8px] text-white font-bold uppercase">PCI DSS</span>
                   </div>
                 </div>
               </div>
-
-              {error && (
-                <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm border border-red-200">
-                  {error}
-                </div>
-              )}
-
-              <button
-                type="button"
-                onClick={(e) => handleSubmit(e, true)}
-                disabled={loading}
-                className="w-full py-4 bg-primary text-white rounded-xl font-bold hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2 mb-3"
-              >
-                {loading ? (
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                ) : (
-                  <Check className="w-5 h-5" />
-                )}
-                Confirmer la Réservation
-              </button>
-              <button
-                type="button"
-                onClick={(e) => handleSubmit(e, false)}
-                disabled={loading}
-                className="w-full py-3 bg-white border border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-colors"
-              >
-                Enregistrer pour plus tard
-              </button>
-            </div>
+            </motion.div>
           </div>
         </div>
+
+        {showSuccessModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 text-center animate-in fade-in zoom-in duration-200">
+              <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <CheckCircle className="w-8 h-8" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                Réservation Confirmée !
+              </h3>
+              <p className="text-gray-600 mb-6">
+                Votre demande de réservation a été traitée avec succès. Le prestataire a été notifié.
+              </p>
+              <div className="flex flex-col gap-3">
+                <button
+                  type="button"
+                  onClick={() => navigate("/dashboard/client/rfq")}
+                  className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-colors"
+                >
+                  Voir mes réservations
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowSuccessModal(false)}
+                  className="w-full py-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-colors"
+                >
+                  Fermer
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </form>
     );
   }

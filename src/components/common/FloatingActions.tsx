@@ -41,8 +41,8 @@ export default function FloatingActions() {
                             className="flex items-center gap-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 px-4 py-3 rounded-2xl shadow-xl group transition-all"
                         >
                             <span className="text-sm font-bold text-slate-700 dark:text-slate-200">Assistant IA</span>
-                            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary/20">
-                                <Bot className="w-5 h-5" />
+                            <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center text-white shadow-lg shadow-black/20 border border-white/10 group-hover:border-sky-500/50 transition-colors">
+                                <Bot className="w-5 h-5 text-sky-400" />
                             </div>
                         </motion.button>
 
@@ -71,20 +71,20 @@ export default function FloatingActions() {
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => setIsOpen(!isOpen)}
-                    className="w-16 h-16 bg-primary text-white rounded-full shadow-2xl flex items-center justify-center relative group overflow-hidden"
+                    className="w-16 h-16 bg-slate-900 text-white rounded-full shadow-2xl flex items-center justify-center relative group overflow-hidden border border-white/10"
                 >
-                    <div className="absolute inset-0 bg-gradient-to-tr from-primary-700 to-primary opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="absolute inset-0 bg-gradient-to-tr from-slate-950 to-sky-900/20 opacity-0 group-hover:opacity-100 transition-opacity" />
                     {isOpen ? (
                         <X className="relative z-10 w-7 h-7" />
                     ) : (
                         <div className="relative z-10">
                             <MessageCircle className="w-8 h-8 group-hover:hidden" />
-                            <Zap className="w-8 h-8 hidden group-hover:block text-yellow-300 fill-current animate-pulse" />
+                            <Zap className="w-8 h-8 hidden group-hover:block text-sky-400 fill-current animate-pulse" />
                         </div>
                     )}
 
                     {/* Glow effect */}
-                    <div className="absolute inset-0 -z-10 bg-primary/40 blur-xl scale-110 opacity-50" />
+                    <div className="absolute inset-0 -z-10 bg-black/40 blur-xl scale-110 opacity-50" />
                 </motion.button>
             </div>
         </div>

@@ -1,5 +1,5 @@
 import { CertificateTemplate } from "../../components/academy/CertificateTemplate";
-import { FileText, ArrowLeft } from "lucide-react";
+import { FileText, ArrowLeft, Download } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export default function CEOCert() {
@@ -140,32 +140,77 @@ export default function CEOCert() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-10 gap-8 overflow-auto">
-            <div className="w-full max-w-5xl flex justify-between items-center text-white">
-                <button
-                    onClick={() => navigate('/dashboard')}
-                    className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
-                >
-                    <ArrowLeft className="w-5 h-5" /> Tableau de bord
-                </button>
-                <div className="flex gap-4">
+        <div className="min-h-screen bg-slate-950 text-slate-100 font-sans relative overflow-hidden flex flex-col items-center justify-center p-6 md:p-10 gap-8">
+            {/* Ambient Tactical Background */}
+            <div className="absolute inset-0 z-0 pointer-events-none">
+                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-sky-500/5 rounded-full blur-[120px] animate-pulse" />
+                <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-600/5 rounded-full blur-[120px]" />
+                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.03]" />
+            </div>
+
+            <div className="relative z-10 w-full max-w-5xl flex flex-col md:flex-row justify-between items-center gap-6">
+                <div className="flex flex-col gap-1">
+                    <button
+                        onClick={() => navigate('/dashboard')}
+                        className="flex items-center gap-2 text-slate-500 hover:text-sky-400 transition-all mb-2 group"
+                    >
+                        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em]">Tableau de Commandement</span>
+                    </button>
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 rounded-2xl bg-sky-500/10 border border-sky-500/20">
+                            <FileText className="w-6 h-6 text-sky-400" />
+                        </div>
+                        <div>
+                            <h1 className="text-xl md:text-2xl font-black bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent uppercase tracking-tight">Certification Ambassadeur</h1>
+                            <p className="text-[10px] text-slate-500 font-mono uppercase tracking-widest">Honorary_Status: Verified</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-4">
                     <button
                         onClick={generatePDF}
-                        className="px-8 py-3 bg-orange-500 text-white rounded-xl font-bold hover:bg-orange-600 transition-all shadow-xl shadow-orange-500/20 flex items-center gap-2 animate-pulse"
+                        className="px-10 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl shadow-orange-500/20 flex items-center gap-3 group"
                     >
-                        <FileText className="w-5 h-5" /> Télécharger (PDF)
+                        <Download className="w-5 h-5 group-hover:translate-y-0.5 transition-transform" />
+                        Exporter Archive (PDF)
+                        <div className="absolute inset-0 rounded-2xl border border-white/20 animate-pulse" />
                     </button>
                 </div>
             </div>
 
-            <div className="scale-[0.5] sm:scale-[0.7] md:scale-[0.8] lg:scale-100 origin-center shadow-2xl rounded-lg overflow-hidden border-4 border-slate-700">
-                <CertificateTemplate
-                    studentName="Cheikh Abdoul Khadre Djeylani DJITTE"
-                    courseName="Expert en Logistique Digitale & Stratégie Premium"
-                    certifiedAt={new Date().toISOString()}
-                    certificateId="CERT-CEO-NEXTMOVE-2025"
-                />
+            {/* Certificate Preview HUD */}
+            <div className="relative group">
+                {/* Glow behind the certificate */}
+                <div className="absolute -inset-4 bg-sky-500/10 rounded-3xl blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+
+                <div className="relative scale-[0.45] sm:scale-[0.6] md:scale-[0.75] lg:scale-90 xl:scale-100 origin-center shadow-[0_0_100px_rgba(0,0,0,0.5)] rounded-sm overflow-hidden border-2 border-slate-800/50 hover:border-sky-500/30 transition-all duration-700">
+                    <CertificateTemplate
+                        studentName="Cheikh Abdoul Khadre Djeylani DJITTE"
+                        courseName="Expert en Logistique Digitale & Stratégie Premium"
+                        certifiedAt={new Date().toISOString()}
+                        certificateId="CERT-CEO-NEXTMOVE-2025"
+                    />
+
+                    {/* Scanning Line Effect */}
+                    <div className="absolute top-0 left-0 w-full h-1 bg-sky-500/20 blur-sm animate-[scan_4s_linear_infinite] pointer-events-none" />
+                </div>
+
+                {/* Tactical Corner Overlays */}
+                <div className="absolute -top-2 -left-2 w-8 h-8 border-t-2 border-l-2 border-sky-500/40 rounded-tl-lg pointer-events-none" />
+                <div className="absolute -top-2 -right-2 w-8 h-8 border-t-2 border-r-2 border-sky-500/40 rounded-tr-lg pointer-events-none" />
+                <div className="absolute -bottom-2 -left-2 w-8 h-8 border-b-2 border-l-2 border-sky-500/40 rounded-bl-lg pointer-events-none" />
+                <div className="absolute -bottom-2 -right-2 w-8 h-8 border-b-2 border-r-2 border-sky-500/40 rounded-br-lg pointer-events-none" />
             </div>
+
+            <style dangerouslySetInnerHTML={{
+                __html: `
+                @keyframes scan {
+                    0% { top: 0; }
+                    100% { top: 100%; }
+                }
+            `}} />
         </div>
     );
 }

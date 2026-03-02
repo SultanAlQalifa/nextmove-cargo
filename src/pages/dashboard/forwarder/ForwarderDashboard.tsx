@@ -16,12 +16,12 @@ import {
   DollarSign,
   Download,
   Building2,
+  PieChart as PieChartIcon,
 } from "lucide-react";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useToast } from "../../../contexts/ToastContext";
 import { shipmentService, Shipment } from "../../../services/shipmentService";
 import { personnelService } from "../../../services/personnelService";
-import PageHeader from "../../../components/common/PageHeader";
 import LoadingSpinner from "../../../components/common/LoadingSpinner";
 import DashboardControls, {
   TimeRange,
@@ -41,7 +41,7 @@ import {
 } from "recharts";
 import { supabase } from "../../../lib/supabase";
 import { ChartGuard } from "../../../components/common/ChartGuard";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('fr-FR', {
@@ -231,25 +231,25 @@ export default function ForwarderDashboard() {
       setStats({
         users: {
           value: staff.length,
-          trend: `${staffGrowth >= 0 ? "+" : ""}${staffGrowth.toFixed(1)}%`,
+          trend: `${staffGrowth >= 0 ? "+" : ""}${staffGrowth.toFixed(1)}% `,
           trendUp: staffGrowth >= 0,
           label: "Personnel actif",
         },
         shipments: {
           value: activeShipments.length,
-          trend: `${shipmentGrowth >= 0 ? "+" : ""}${shipmentGrowth.toFixed(1)}%`,
+          trend: `${shipmentGrowth >= 0 ? "+" : ""}${shipmentGrowth.toFixed(1)}% `,
           trendUp: shipmentGrowth >= 0,
           label: "Expéditions actives",
         },
         revenue: {
           value: totalRevenue,
-          trend: `${revenueGrowth >= 0 ? "+" : ""}${revenueGrowth.toFixed(1)}%`,
+          trend: `${revenueGrowth >= 0 ? "+" : ""}${revenueGrowth.toFixed(1)}% `,
           trendUp: revenueGrowth >= 0,
           label: "Revenu estimé",
         },
         conversion: {
           value: Math.round(rateCurrent),
-          trend: `${conversionGrowth >= 0 ? "+" : ""}${conversionGrowth.toFixed(1)}%`,
+          trend: `${conversionGrowth >= 0 ? "+" : ""}${conversionGrowth.toFixed(1)}% `,
           trendUp: conversionGrowth >= 0,
           label: "Taux de complétion",
         },
@@ -302,7 +302,7 @@ export default function ForwarderDashboard() {
       const activity = (data || []).slice(0, 5).map((s: Shipment) => ({
         id: s.id,
         type: "shipment",
-        message: `Expédition ${s.tracking_number}: ${s.origin?.country} -> ${s.destination?.country}`,
+        message: `Expédition ${s.tracking_number}: ${s.origin?.country} -> ${s.destination?.country} `,
         time: s.created_at
           ? new Date(s.created_at).toLocaleDateString()
           : "-",
@@ -378,23 +378,15 @@ export default function ForwarderDashboard() {
         </div>
       ) : (
         <>
-          <PageHeader
-            title="Tableau de Bord"
-            subtitle="Vue d'ensemble de vos opérations et performances."
-            action={{
-              label: "Nouvelle Action",
-              onClick: () => { },
-              icon: undefined,
-            }}
-          >
+          <div className="flex justify-end mb-6">
             <button
               onClick={handleDownloadReport}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm"
             >
               <Download className="w-4 h-4" />
-              Rapport
+              Exporter le Rapport
             </button>
-          </PageHeader>
+          </div>
 
           {/* DEBUG BANNER FOR SUBSCRIPTION STATUS */}
           {profile?.role === "forwarder" &&
@@ -450,15 +442,18 @@ export default function ForwarderDashboard() {
           >
             <motion.div
               whileHover={{ y: -5 }}
-              className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-6 rounded-3xl shadow-lg border border-white/50 dark:border-white/5 transition-all group overflow-hidden relative"
+              className="bg-white dark:bg-slate-900 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-200 dark:border-white/5 p-8 rounded-3xl relative overflow-hidden group transition-all duration-300"
             >
-              <div className="absolute -right-6 -top-6 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition-colors"></div>
-              <div className="relative z-10 flex items-center justify-between mb-4">
-                <div className="p-3 bg-blue-50 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded-2xl shadow-inner group-hover:scale-110 transition-transform">
+              {/* Subtle Grid Pattern inside card */}
+              <div className="absolute inset-0 opacity-[0.015] dark:opacity-[0.03] bg-[radial-gradient(#000_1px,transparent_1px)] dark:bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none"></div>
+
+              <div className="absolute -right-10 -top-10 w-32 h-32 bg-slate-500/5 rounded-full blur-3xl group-hover:bg-slate-500/10 transition-colors"></div>
+              <div className="relative z-10 flex items-center justify-between mb-6">
+                <div className="p-4 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm group-hover:scale-110 transition-transform">
                   <Users className="w-6 h-6" />
                 </div>
                 <span
-                  className={`text-xs font-black px-3 py-1.5 rounded-full flex items-center gap-1 shadow-sm backdrop-blur-sm ${stats.users.trendUp ? "text-emerald-700 bg-emerald-100/80 dark:text-emerald-400 dark:bg-emerald-500/20" : "text-rose-700 bg-rose-100/80 dark:text-rose-400 dark:bg-rose-500/20"}`}
+                  className={`text-xs font-black px-3 py-1.5 rounded-full flex items-center gap-1 shadow-sm backdrop-blur-sm ${stats.users.trendUp ? "text-emerald-700 bg-emerald-100/80 dark:text-emerald-400 dark:bg-emerald-500/20" : "text-rose-700 bg-rose-100/80 dark:text-rose-400 dark:bg-rose-500/20"} `}
                 >
                   {stats.users.trendUp ? (
                     <ArrowUpRight className="w-3 h-3" />
@@ -478,15 +473,16 @@ export default function ForwarderDashboard() {
 
             <motion.div
               whileHover={{ y: -5 }}
-              className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-6 rounded-3xl shadow-lg border border-white/50 dark:border-white/5 transition-all group overflow-hidden relative"
+              className="bg-white dark:bg-slate-900 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-200 dark:border-white/5 p-8 rounded-3xl relative overflow-hidden group transition-all duration-300"
             >
-              <div className="absolute -right-6 -top-6 w-24 h-24 bg-indigo-500/10 rounded-full blur-2xl group-hover:bg-indigo-500/20 transition-colors"></div>
-              <div className="relative z-10 flex items-center justify-between mb-4">
-                <div className="p-3 bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded-2xl shadow-inner group-hover:scale-110 transition-transform">
+              <div className="absolute inset-0 opacity-[0.015] dark:opacity-[0.03] bg-[radial-gradient(#000_1px,transparent_1px)] dark:bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none"></div>
+              <div className="absolute -right-10 -top-10 w-32 h-32 bg-indigo-500/5 rounded-full blur-3xl group-hover:bg-indigo-500/10 transition-colors"></div>
+              <div className="relative z-10 flex items-center justify-between mb-6">
+                <div className="p-4 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm group-hover:scale-110 transition-transform">
                   <Package className="w-6 h-6" />
                 </div>
                 <span
-                  className={`text-xs font-black px-3 py-1.5 rounded-full flex items-center gap-1 shadow-sm backdrop-blur-sm ${stats.shipments.trendUp ? "text-emerald-700 bg-emerald-100/80 dark:text-emerald-400 dark:bg-emerald-500/20" : "text-rose-700 bg-rose-100/80 dark:text-rose-400 dark:bg-rose-500/20"}`}
+                  className={`text-xs font-black px-3 py-1.5 rounded-full flex items-center gap-1 shadow-sm backdrop-blur-sm ${stats.shipments.trendUp ? "text-emerald-700 bg-emerald-100/80 dark:text-emerald-400 dark:bg-emerald-500/20" : "text-rose-700 bg-rose-100/80 dark:text-rose-400 dark:bg-rose-500/20"} `}
                 >
                   {stats.shipments.trendUp ? (
                     <ArrowUpRight className="w-3 h-3" />
@@ -506,15 +502,16 @@ export default function ForwarderDashboard() {
 
             <motion.div
               whileHover={{ y: -5 }}
-              className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-6 rounded-3xl shadow-lg border border-white/50 dark:border-white/5 transition-all group overflow-hidden relative"
+              className="bg-white dark:bg-slate-900 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-200 dark:border-white/5 p-8 rounded-3xl relative overflow-hidden group transition-all duration-300"
             >
-              <div className="absolute -right-6 -top-6 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition-colors"></div>
-              <div className="relative z-10 flex items-center justify-between mb-4">
-                <div className="p-3 bg-emerald-50 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-2xl shadow-inner group-hover:scale-110 transition-transform">
+              <div className="absolute inset-0 opacity-[0.015] dark:opacity-[0.03] bg-[radial-gradient(#000_1px,transparent_1px)] dark:bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none"></div>
+              <div className="absolute -right-10 -top-10 w-32 h-32 bg-emerald-500/5 rounded-full blur-3xl group-hover:bg-emerald-500/10 transition-colors"></div>
+              <div className="relative z-10 flex items-center justify-between mb-6">
+                <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm group-hover:scale-110 transition-transform">
                   <DollarSign className="w-6 h-6" />
                 </div>
                 <span
-                  className={`text-xs font-black px-3 py-1.5 rounded-full flex items-center gap-1 shadow-sm backdrop-blur-sm ${stats.revenue.trendUp ? "text-emerald-700 bg-emerald-100/80 dark:text-emerald-400 dark:bg-emerald-500/20" : "text-rose-700 bg-rose-100/80 dark:text-rose-400 dark:bg-rose-500/20"}`}
+                  className={`text-xs font-black px-3 py-1.5 rounded-full flex items-center gap-1 shadow-sm backdrop-blur-sm ${stats.revenue.trendUp ? "text-emerald-700 bg-emerald-100/80 dark:text-emerald-400 dark:bg-emerald-500/20" : "text-rose-700 bg-rose-100/80 dark:text-rose-400 dark:bg-rose-500/20"} `}
                 >
                   {stats.revenue.trendUp ? (
                     <ArrowUpRight className="w-3 h-3" />
@@ -534,15 +531,16 @@ export default function ForwarderDashboard() {
 
             <motion.div
               whileHover={{ y: -5 }}
-              className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-6 rounded-3xl shadow-lg border border-white/50 dark:border-white/5 transition-all group overflow-hidden relative"
+              className="bg-white dark:bg-slate-900 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-200 dark:border-white/5 p-8 rounded-3xl relative overflow-hidden group transition-all duration-300"
             >
-              <div className="absolute -right-6 -top-6 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl group-hover:bg-amber-500/20 transition-colors"></div>
-              <div className="relative z-10 flex items-center justify-between mb-4">
-                <div className="p-3 bg-amber-50 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded-2xl shadow-inner group-hover:scale-110 transition-transform">
+              <div className="absolute inset-0 opacity-[0.015] dark:opacity-[0.03] bg-[radial-gradient(#000_1px,transparent_1px)] dark:bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none"></div>
+              <div className="absolute -right-10 -top-10 w-32 h-32 bg-amber-500/5 rounded-full blur-3xl group-hover:bg-amber-500/10 transition-colors"></div>
+              <div className="relative z-10 flex items-center justify-between mb-6">
+                <div className="p-4 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm group-hover:scale-110 transition-transform">
                   <Activity className="w-6 h-6" />
                 </div>
                 <span
-                  className={`text-xs font-black px-3 py-1.5 rounded-full flex items-center gap-1 shadow-sm backdrop-blur-sm ${stats.conversion.trendUp ? "text-emerald-700 bg-emerald-100/80 dark:text-emerald-400 dark:bg-emerald-500/20" : "text-rose-700 bg-rose-100/80 dark:text-rose-400 dark:bg-rose-500/20"}`}
+                  className={`text-xs font-black px-3 py-1.5 rounded-full flex items-center gap-1 shadow-sm backdrop-blur-sm ${stats.conversion.trendUp ? "text-emerald-700 bg-emerald-100/80 dark:text-emerald-400 dark:bg-emerald-500/20" : "text-rose-700 bg-rose-100/80 dark:text-rose-400 dark:bg-rose-500/20"} `}
                 >
                   {stats.conversion.trendUp ? (
                     <ArrowUpRight className="w-3 h-3" />
@@ -588,62 +586,70 @@ export default function ForwarderDashboard() {
               </div>
               <ChartGuard height={320}>
                 {revenueData.length > 0 && (
-                  <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0} debounce={1}>
-                    <AreaChart
-                      data={revenueData}
-                      margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-                    >
-                      <defs>
-                        <linearGradient
-                          id="colorRevenue"
-                          x1="0"
-                          y1="0"
-                          x2="0"
-                          y2="1"
-                        >
-                          <stop offset="5%" stopColor="#10B981" stopOpacity={0.2} />
-                          <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid
-                        strokeDasharray="3 3"
-                        vertical={false}
-                        stroke="rgba(255,255,255,0.1)"
-                        className="dark:stroke-slate-800 stroke-slate-200"
-                      />
-                      <XAxis
-                        dataKey="name"
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fill: "#9CA3AF", fontSize: 12, fontWeight: "bold" }}
-                        dy={10}
-                      />
-                      <YAxis
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fill: "#9CA3AF", fontSize: 12, fontWeight: "bold" }}
-                        tickFormatter={(value) => `${value / 1000}k`}
-                      />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: "rgba(255, 255, 255, 0.9)",
-                          backdropFilter: "blur(10px)",
-                          border: "1px solid rgba(255,255,255,0.2)",
-                          borderRadius: "16px",
-                          boxShadow: "0 20px 40px -15px rgba(0, 0, 0, 0.1)",
-                          fontWeight: "bold"
-                        }}
-                      />
-                      <Area
-                        type="monotone"
-                        dataKey="value"
-                        stroke="#10B981"
-                        strokeWidth={3}
-                        fillOpacity={1}
-                        fill="url(#colorRevenue)"
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
+                  <div className="w-full min-h-[320px]">
+                    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0} debounce={1}>
+                      <AreaChart
+                        data={revenueData}
+                        margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                      >
+                        <defs>
+                          <linearGradient
+                            id="colorRevenue"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#10B981"
+                              stopOpacity={0.3}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#10B981"
+                              stopOpacity={0}
+                            />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid
+                          strokeDasharray="3 3"
+                          vertical={false}
+                          stroke="#E2E8F0"
+                          opacity={0.5}
+                        />
+                        <XAxis
+                          dataKey="name"
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fill: "#94A3B8", fontSize: 12 }}
+                          dy={10}
+                        />
+                        <YAxis
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fill: "#94A3B8", fontSize: 12 }}
+                          tickFormatter={(value) => `${value / 1000}k`}
+                        />
+                        <Tooltip
+                          contentStyle={{
+                            borderRadius: "16px",
+                            border: "none",
+                            boxShadow: "0 20px 40px -15px rgba(0, 0, 0, 0.1)",
+                            fontWeight: "bold"
+                          }}
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="value"
+                          stroke="#10B981"
+                          strokeWidth={3}
+                          fillOpacity={1}
+                          fill="url(#colorRevenue)"
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
                 )}
               </ChartGuard>
             </div>
@@ -651,7 +657,7 @@ export default function ForwarderDashboard() {
             {/* Shipment Status Distribution */}
             <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-6 rounded-3xl shadow-lg border border-white/50 dark:border-white/5 relative overflow-hidden">
               <div className="absolute top-0 right-0 p-8 opacity-5">
-                <PieChart className="w-32 h-32" />
+                <PieChartIcon className="w-32 h-32" />
               </div>
               <div className="flex items-center justify-between mb-8 relative z-10">
                 <div>
@@ -663,34 +669,35 @@ export default function ForwarderDashboard() {
               </div>
               <ChartGuard height={256} className="relative z-10">
                 {shipmentStatusData.length > 0 && (
-                  <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0} debounce={1}>
-                    <PieChart>
-                      <Pie
-                        data={shipmentStatusData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={65}
-                        outerRadius={85}
-                        paddingAngle={6}
-                        dataKey="value"
-                        stroke="none"
-                      >
-                        {shipmentStatusData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: "rgba(255, 255, 255, 0.9)",
-                          backdropFilter: "blur(10px)",
-                          border: "1px solid rgba(255,255,255,0.2)",
-                          borderRadius: "16px",
-                          fontWeight: "bold"
-                        }}
-                      />
-                      <Legend verticalAlign="bottom" height={36} iconType="circle" />
-                    </PieChart>
-                  </ResponsiveContainer>
+                  <div className="w-full min-h-[256px]">
+                    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0} debounce={1}>
+                      <PieChart>
+                        <Pie
+                          data={shipmentStatusData}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={65}
+                          outerRadius={85}
+                          paddingAngle={6}
+                          dataKey="value"
+                          stroke="none"
+                        >
+                          {shipmentStatusData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          contentStyle={{
+                            borderRadius: "16px",
+                            border: "none",
+                            boxShadow: "0 20px 40px -15px rgba(0, 0, 0, 0.1)",
+                            fontWeight: "bold"
+                          }}
+                        />
+                        <Legend verticalAlign="bottom" height={36} iconType="circle" />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
                 )}
                 {/* Center Text */}
                 <div className="absolute top-[-20px] left-1/2 -translate-x-1/2 translate-y-24 text-center pointer-events-none drop-shadow-md">

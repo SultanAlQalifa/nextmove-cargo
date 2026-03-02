@@ -51,15 +51,21 @@ export async function createRFQ(data: CreateRFQData): Promise<RFQRequest> {
     }
   }
 
+  // Strip any accidental 'user_id' property from the payload to enforce 'client_id' usage
+  const payload: any = {
+    ...data,
+    client_id: user.id,
+    status: "draft",
+    quantity: data.quantity || 1,
+    budget_currency: data.budget_currency || "XOF",
+  };
+  if (payload.user_id) {
+    delete payload.user_id;
+  }
+
   const { data: rfq, error } = await supabase
     .from("rfq_requests")
-    .insert({
-      ...data,
-      client_id: user.id,
-      status: "draft",
-      quantity: data.quantity || 1,
-      budget_currency: data.budget_currency || "XOF",
-    })
+    .insert(payload)
     .select()
     .single();
 
@@ -118,11 +124,14 @@ export async function updateRFQ(
   id: string,
   data: Partial<CreateRFQData>,
 ): Promise<RFQRequest> {
+  const payload: any = { ...data };
+  if (payload.user_id) delete payload.user_id;
+
   const { data: rfq, error } = await supabase
     .from("rfq_requests")
-    .update(data)
+    .update(payload)
     .eq("id", id)
-    .eq("status", "draft")
+    .in("status", ["draft", "published"])
     .select()
     .single();
 
@@ -477,36 +486,24 @@ export async function getOffersForRFQ(
 }
 
 /**
- * Accept an offer (and reject all others for the same RFQ)
+ * Accept an offer (and reject all others for the same RFQ) via Backend RPC
  */
 export async function acceptOffer(offerId: string): Promise<RFQOffer> {
-  // Get the offer to find the RFQ ID
-  const { data: offer, error: offerError } = await supabase
+  const { data, error } = await supabase.rpc('accept_rfq_offer', {
+    p_offer_id: offerId,
+  });
+
+  if (error) throw error;
+
+  // Fetch and return the updated offer record
+  const { data: offer, error: fetchError } = await supabase
     .from("rfq_offers")
-    .select("rfq_id")
+    .select("*")
     .eq("id", offerId)
     .single();
 
-  if (offerError) throw offerError;
-
-  // Start a transaction-like operation
-  // 1. Accept the selected offer
-  const { data: acceptedOffer, error: acceptError } = await supabase
-    .from("rfq_offers")
-    .update({
-      status: "accepted",
-      accepted_at: new Date().toISOString(),
-    })
-    .eq("id", offerId)
-    .select()
-    .single();
-
-  if (acceptError) throw acceptError;
-
-  // 2. Trigger Automation (Reject others, Close RFQ)
-  await automationService.handleOfferAcceptance(offerId, offer.rfq_id);
-
-  return acceptedOffer;
+  if (fetchError) throw fetchError;
+  return offer as RFQOffer;
 }
 
 /**
@@ -593,6 +590,56 @@ export async function getAllOffers(
   return data || [];
 }
 
+// ═══ ANALYTICS ═══
+
+/**
+ * Fetch global route operations stats
+ */
+export async function getGlobalOperationsStats(): Promise<{
+  origin_port: string;
+  destination_port: string;
+  route_count: number;
+  total_weight: number;
+}[]> {
+  const { data, error } = await supabase.rpc("get_active_routes_stats");
+
+  if (error) {
+    console.error("Error fetching global ops stats:", error);
+    return [];
+  }
+  return data || [];
+}
+
+/**
+ * Fetch financial performance stats
+ */
+export async function getFinancialPerformance(): Promise<{
+  mois: string;
+  revenu: number;
+}[]> {
+  const { data, error } = await supabase.rpc("get_financial_performance");
+  if (error) {
+    console.error("Error fetching financial performance:", error);
+    return [];
+  }
+  return data || [];
+}
+
+/**
+ * Fetch logistics distribution stats
+ */
+export async function getLogisticsDistribution(): Promise<{
+  name: string;
+  value: number;
+}[]> {
+  const { data, error } = await supabase.rpc("get_logistics_distribution");
+  if (error) {
+    console.error("Error fetching logistics distribution:", error);
+    return [];
+  }
+  return data || [];
+}
+
 // Export all functions
 export const rfqService = {
   // Client
@@ -620,4 +667,9 @@ export const rfqService = {
   // Admin
   getAllRFQs,
   getAllOffers,
+
+  // Analytics
+  getGlobalOperationsStats,
+  getFinancialPerformance,
+  getLogisticsDistribution,
 };
