@@ -342,10 +342,14 @@ export const paymentService = {
         }),
       );
 
-      if (!data || !data.redirect_url) throw new Error("No redirect URL received from PayTech");
+      if (!data || (!data.redirect_url && !data.redirectUrl && !data.token)) {
+        throw new Error("No redirect URL received from PayTech");
+      }
+
+      const redirect_url = data.redirect_url || data.redirectUrl || (data.token ? `https://paytech.sn/payment/checkout/${data.token}` : "");
 
       return {
-        redirect_url: data.redirect_url,
+        redirect_url,
         transaction_id: client_reference,
       };
     } catch (error) {
