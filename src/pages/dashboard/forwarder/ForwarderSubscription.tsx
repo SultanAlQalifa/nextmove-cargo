@@ -249,7 +249,7 @@ export default function ForwarderSubscription() {
                         <Check className="w-3.5 h-3.5" />
                       </div>
                       <span className="leading-relaxed font-medium">
-                        {feature.name}
+                        {typeof feature === "string" ? feature : feature.name}
                       </span>
                     </li>
                   ))}
