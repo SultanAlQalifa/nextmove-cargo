@@ -30,6 +30,7 @@ interface PaymentModalProps {
   showCoupons?: boolean;
   showVAT?: boolean;
   returnUrl?: string;
+  mode?: 'subscription' | 'topup' | 'shipment';
 }
 
 type PaymentMethod = "wave" | "wallet" | "cash" | "paytech" | "cinetpay";
@@ -46,12 +47,15 @@ export default function PaymentModal({
   showCoupons = true,
   showVAT = true,
   returnUrl,
+  mode = 'subscription',
 }: PaymentModalProps) {
-  const { success: showSuccess } = useToast();
+  const { success: showSuccess, error: showError } = useToast();
   const navigate = useNavigate();
   const [step, setStep] = useState<
-    "method" | "processing" | "success" | "error"
+    "method" | "processing" | "success" | "error" | "error_timeout"
   >("method");
+  const [editableAmount, setEditableAmount] = useState(amount);
+  const [lastTxId, setLastTxId] = useState<string | null>(null);
   // ... (keeping state same)
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(
     null,
@@ -72,6 +76,7 @@ export default function PaymentModal({
   useEffect(() => {
     if (isOpen) {
       setStep("method");
+      setEditableAmount(amount);
       if (allowedMethods.length === 1) {
         setSelectedMethod(allowedMethods[0]);
       } else {
@@ -82,10 +87,11 @@ export default function PaymentModal({
       setCouponCode("");
       setAppliedCoupon(null);
       setCouponError("");
+      setLastTxId(null);
       fetchWalletBalance();
       fetchActiveGateways();
     }
-  }, [isOpen]); // Reduced dependencies to avoid re-runs if allowedMethods changes slightly
+  }, [isOpen, amount]);
 
   const fetchWalletBalance = async () => {
     const {
@@ -114,6 +120,9 @@ export default function PaymentModal({
   };
 
   const isMethodActive = (method: PaymentMethod) => {
+    // Cannot use wallet to top up wallet
+    if (mode === 'topup' && method === 'wallet') return false;
+
     // Wallet is always allowed if selected in allowedMethods and balance is fetched
     if (method === "wallet") return allowedMethods.includes("wallet");
     // Cash is a special case (offline)
@@ -124,21 +133,23 @@ export default function PaymentModal({
   };
 
   // ... (keeping calculations same)
+  const currentAmount = mode === 'topup' ? editableAmount : amount;
+
   const discountAmount = appliedCoupon
     ? appliedCoupon.discount_type === "percentage"
-      ? (amount * appliedCoupon.discount_value) / 100
+      ? (currentAmount * appliedCoupon.discount_value) / 100
       : appliedCoupon.discount_value
     : 0;
 
-  const finalDiscount = Math.min(discountAmount, amount);
-  const discountedAmount = Math.max(0, amount - finalDiscount);
+  const finalDiscount = Math.min(discountAmount, currentAmount);
+  const discountedAmount = Math.max(0, currentAmount - finalDiscount);
 
   const TRANSACTION_FEE_PERCENT = 0.01; // 1%
   const VAT_PERCENT = 0.18; // 18%
 
-  const fees = discountedAmount * TRANSACTION_FEE_PERCENT;
+  const fees = mode === 'topup' ? 0 : discountedAmount * TRANSACTION_FEE_PERCENT;
   const subtotal = discountedAmount + fees;
-  const vat = showVAT ? subtotal * VAT_PERCENT : 0;
+  const vat = (showVAT && mode !== 'topup') ? subtotal * VAT_PERCENT : 0;
   const totalAmount = Math.round(subtotal + vat);
 
   // ... (keeping handleApplyCoupon same)
@@ -170,8 +181,8 @@ export default function PaymentModal({
   const handlePayment = async () => {
     if (!selectedMethod) return;
 
-    if (selectedMethod === "wave" && !phoneNumber) {
-      setError("Veuillez entrer votre numéro de téléphone");
+    if ((selectedMethod === "wave" || selectedMethod === "cinetpay") && !phoneNumber) {
+      setError("Veuillez entrer votre numéro de téléphone pour le paiement");
       return;
     }
 
@@ -189,6 +200,8 @@ export default function PaymentModal({
         const { transaction_id, wave_launch_url } =
           await paymentService.initializeWavePayment(totalAmount, currency, waveReturnUrls);
 
+        setLastTxId(transaction_id);
+
         // 2. Redirect user to Wave to pay
         if (wave_launch_url) {
           // If we have a custom return URL (Support Campaign), we just redirect and rely on the page reload
@@ -196,29 +209,37 @@ export default function PaymentModal({
             window.location.href = wave_launch_url; // Use current tab to ensure we come back to the right place
             return;
           }
-          window.open(wave_launch_url, "_blank");
+          window.location.href = wave_launch_url;
         } else {
           throw new Error("Erreur: URL de paiement Wave manquante");
         }
 
         // 3. Verify Payment (Polling)
-        const verification =
-          await paymentService.verifyWavePayment(transaction_id);
+        try {
+          const verification =
+            await paymentService.verifyWavePayment(transaction_id);
 
-        if (verification.status === "succeeded") {
-          if (appliedCoupon) {
-            await couponService.updateCoupon(appliedCoupon.id, {
-              usage_count: appliedCoupon.usage_count + 1,
-            });
+          if (verification.status === "succeeded") {
+            if (appliedCoupon) {
+              await couponService.updateCoupon(appliedCoupon.id, {
+                usage_count: appliedCoupon.usage_count + 1,
+              });
+            }
+
+            setStep("success");
+            setTimeout(() => {
+              onSuccess(transaction_id);
+              onClose();
+            }, 2000);
+          } else {
+            throw new Error("Paiement non validé");
           }
-
-          setStep("success");
-          setTimeout(() => {
-            onSuccess(transaction_id);
-            onClose();
-          }, 2000);
-        } else {
-          throw new Error("Paiement non validé");
+        } catch (pollError: any) {
+          if (pollError.message?.includes("timeout")) {
+            setStep("error_timeout");
+          } else {
+            throw pollError;
+          }
         }
       } else if (selectedMethod === "wallet") {
         if (walletBalance < totalAmount) {
@@ -261,12 +282,17 @@ export default function PaymentModal({
           success: `${returnUrl}?status=success`
         } : undefined;
 
+        const formattedPhone = (phoneNumber.match(/^(77|78|76|70|75)/))
+          ? `+221${phoneNumber.replace(/\s/g, '')}`
+          : phoneNumber;
+
         const { redirect_url } = await paymentService.initializeCinetPayPayment(
           totalAmount,
           currency,
           {
             plan_name: planName, // Metadata
-            user_id: (await supabase.auth.getUser()).data.user?.id
+            user_id: (await supabase.auth.getUser()).data.user?.id,
+            phone: formattedPhone
           },
           cinetPayReturnUrls
         );
@@ -307,6 +333,25 @@ export default function PaymentModal({
         err.message ||
         err.error_description ||
         "Une erreur est survenue lors du paiement.",
+      );
+    }
+  };
+
+  const handleCheckStatus = async () => {
+    if (!lastTxId) return;
+    setStep("processing");
+    try {
+      await paymentService.verifyWavePayment(lastTxId);
+      setStep("success");
+      showSuccess("Paiement retrouvé et validé !");
+      setTimeout(() => {
+        onSuccess(lastTxId);
+        onClose();
+      }, 2000);
+    } catch (error) {
+      setStep("error_timeout");
+      showError(
+        "Paiement toujours en attente ou échoué. Veuillez réessayer dans quelques instants.",
       );
     }
   };
@@ -357,8 +402,12 @@ export default function PaymentModal({
         {/* Header */}
         <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50">
           <div>
-            <h3 className="font-bold text-gray-900">Paiement Sécurisé</h3>
-            <p className="text-xs text-gray-500">Paiement {planName}</p>
+            <h3 className="font-bold text-gray-900">
+              {mode === 'topup' ? 'Recharger mon compte' : 'Paiement Sécurisé'}
+            </h3>
+            <p className="text-xs text-gray-500">
+              {mode === 'topup' ? 'Alimenter votre portefeuille' : `Paiement ${planName}`}
+            </p>
           </div>
           <button
             onClick={onClose}
@@ -373,17 +422,39 @@ export default function PaymentModal({
         <div className="p-6 overflow-y-auto">
           {step === "method" && (
             <div className="space-y-6">
+              {/* TopUp Amount Input */}
+              {mode === 'topup' && (
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Montant du rechargement (XOF)
+                  </label>
+                  <div className="relative group">
+                    <Banknote className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-primary transition-colors" />
+                    <input
+                      type="number"
+                      value={editableAmount}
+                      onChange={(e) => setEditableAmount(Number(e.target.value))}
+                      placeholder="Ex: 5000"
+                      className="w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-slate-100 focus:border-primary/50 focus:ring-4 focus:ring-primary/5 outline-none text-2xl font-black text-slate-900 transition-all"
+                    />
+                  </div>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest pl-1">
+                    Minimum : 500 XOF
+                  </p>
+                </div>
+              )}
+
               {/* Amount Breakdown */}
               <div className="bg-gray-50 p-4 rounded-xl space-y-2">
                 <div className="flex justify-between text-sm text-gray-600">
-                  <span>Montant HT</span>
+                  <span>{mode === 'topup' ? 'Montant' : 'Montant HT'}</span>
                   <span>
-                    {amount.toLocaleString()} {currency}
+                    {currentAmount.toLocaleString()} {currency}
                   </span>
                 </div>
 
                 {/* Coupon Section */}
-                {showCoupons && (
+                {showCoupons && mode !== 'topup' && (
                   <div className="py-2 border-y border-gray-200 my-2">
                     {!appliedCoupon ? (
                       <div className="space-y-2">
@@ -435,13 +506,15 @@ export default function PaymentModal({
                   </div>
                 )}
 
-                <div className="flex justify-between text-sm text-gray-600">
-                  <span>Frais de transaction (1%)</span>
-                  <span>
-                    {fees.toLocaleString()} {currency}
-                  </span>
-                </div>
-                {showVAT && (
+                {mode !== 'topup' && (
+                  <div className="flex justify-between text-sm text-gray-600">
+                    <span>Frais de transaction (1%)</span>
+                    <span>
+                      {fees.toLocaleString()} {currency}
+                    </span>
+                  </div>
+                )}
+                {showVAT && mode !== 'topup' && (
                   <div className="flex justify-between text-sm text-gray-600">
                     <span>TVA (18%)</span>
                     <span>
@@ -621,10 +694,10 @@ export default function PaymentModal({
                 )}
               </div>
 
-              {selectedMethod === "wave" && (
+              {(selectedMethod === "wave" || selectedMethod === "cinetpay") && (
                 <div className="animate-in slide-in-from-top-2 duration-200">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Numéro de téléphone Wave
+                    Numéro de téléphone {selectedMethod === 'wave' ? 'Wave' : 'Mobile Money'}
                   </label>
                   <div className="relative">
                     <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -648,10 +721,10 @@ export default function PaymentModal({
 
               <button
                 onClick={selectedMethod === 'cash' ? handleCashPayment : handlePayment}
-                disabled={!selectedMethod}
-                className="w-full py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-primary/20"
+                disabled={!selectedMethod || (mode === 'topup' && editableAmount < 500)}
+                className="w-full py-4 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-primary/20"
               >
-                Payer {totalAmount.toLocaleString()} {currency}
+                {mode === 'topup' ? `Recharger ${totalAmount.toLocaleString()} ${currency}` : `Payer ${totalAmount.toLocaleString()} ${currency}`}
               </button>
             </div>
           )}
@@ -669,9 +742,37 @@ export default function PaymentModal({
                   Traitement en cours...
                 </h4>
                 <p className="text-gray-500 text-sm mt-1">
-                  Veuillez valider le paiement sur votre téléphone si
-                  nécessaire.
+                  Veuillez valider le paiement sur votre téléphone.
                 </p>
+              </div>
+            </div>
+          )}
+
+          {step === "error_timeout" && (
+            <div className="py-8 text-center">
+              <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Loader2 className="w-8 h-8 text-orange-600 animate-spin" />
+              </div>
+              <p className="text-gray-900 font-bold text-lg mb-2">
+                Vérification en cours...
+              </p>
+              <p className="text-gray-500 text-sm mb-6">
+                Le paiement met plus de temps que prévu. Vérifiez si vous avez
+                bien validé sur votre téléphone.
+              </p>
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={handleCheckStatus}
+                  className="w-full py-3 bg-[#1DA1F2] hover:bg-[#1a91da] text-white rounded-xl font-bold transition-all"
+                >
+                  Vérifier le statut manuellement
+                </button>
+                <button
+                  onClick={() => setStep("method")}
+                  className="text-gray-500 hover:text-gray-700 text-sm font-medium"
+                >
+                  Réessayer
+                </button>
               </div>
             </div>
           )}

@@ -371,21 +371,21 @@ export const paymentService = {
             customer_name: metadata.customer_name || user.user_metadata?.full_name || "Client",
             customer_surname: metadata.customer_surname || "",
             customer_email: user.email,
-            customer_phone_number: user.phone || "",
-            customer_address: "Dakar",
-            customer_city: "Dakar",
+            customer_phone_number: user.phone || metadata.phone || "+221770000000",
+            customer_address: metadata.customer_address || "Dakar",
+            customer_city: metadata.customer_city || "Dakar",
             customer_country: "SN",
-            notify_url: `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cinetpay-webhook`,
-            return_url: returnUrls?.success || `${window.location.origin}/dashboard/client/payments?status=success`,
+            notify_url: "https://nextmovecargo.com/api/cinetpay/webhook",
+            return_url: returnUrls?.success || "https://nextmovecargo.com/dashboard/forwarder/subscription",
             metadata: JSON.stringify(metadata),
           },
         }),
       );
 
-      if (!data || !data.payment_url) throw new Error("No redirect URL received from CinetPay");
+      if (!data || !data.data || !data.data.payment_url) throw new Error("No redirect URL received from CinetPay");
 
       return {
-        redirect_url: data.payment_url,
+        redirect_url: data.data.payment_url,
         transaction_id: client_reference,
       };
     } catch (error) {
@@ -687,6 +687,32 @@ export const paymentService = {
       };
     } catch (error) {
       console.error("Cash payment initiation failed:", error);
+      throw error;
+    }
+  },
+
+  cancelTransaction: async (transactionId: string): Promise<void> => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("Non authentifié");
+
+    try {
+      const { error } = await supabase
+        .from("transactions")
+        .update({ status: "cancelled" })
+        .eq("id", transactionId)
+        .eq("user_id", user.id)
+        .eq("status", "pending");
+
+      if (error) throw error;
+
+      await notificationService.sendNotification(
+        user.id,
+        "Transaction annulée",
+        "Votre transaction a été annulée avec succès.",
+        "info"
+      );
+    } catch (error) {
+      console.error("Error cancelling transaction:", error);
       throw error;
     }
   },

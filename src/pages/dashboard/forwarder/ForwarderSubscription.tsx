@@ -246,21 +246,8 @@ export default function ForwarderSubscription() {
                       <div className="mt-0.5 p-0.5 rounded-full bg-blue-50 text-blue-600 group-hover/feature:bg-blue-600 group-hover/feature:text-white transition-colors">
                         <Check className="w-3.5 h-3.5" />
                       </div>
-                      <span className="leading-relaxed">
-                        {feature.value ? (
-                          <>
-                            <span className="font-bold text-slate-900">
-                              {feature.value}
-                            </span>{" "}
-                            {feature.name.replace(
-                              String(feature.value),
-                              "",
-                            )}{" "}
-                            {/* Heuristic cleanup */}
-                          </>
-                        ) : (
-                          feature.name
-                        )}
+                      <span className="leading-relaxed font-medium">
+                        {feature.name}
                       </span>
                     </li>
                   ))}

@@ -3,12 +3,9 @@ import { useNavigate } from "react-router-dom";
 import PageHeader from "../../../components/common/PageHeader";
 import {
   CreditCard,
-  Download,
-  Filter,
   TrendingUp,
   DollarSign,
   Calendar,
-  RefreshCw,
 } from "lucide-react";
 import {
   paymentService,
@@ -350,14 +347,34 @@ export default function ClientPayments() {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right">
-                    {['pending', 'failed'].includes(txn.status) && (
-                      <button
-                        onClick={() => handlePay(txn)}
-                        className="text-xs font-bold text-blue-600 hover:text-blue-800 hover:underline"
-                      >
-                        Reprendre
-                      </button>
-                    )}
+                    <div className="flex items-center justify-end gap-3">
+                      {['pending', 'failed'].includes(txn.status) && (
+                        <button
+                          onClick={() => handlePay(txn)}
+                          className="text-xs font-bold text-blue-600 hover:text-blue-800 hover:underline"
+                        >
+                          Reprendre
+                        </button>
+                      )}
+                      {txn.status === "pending" && (
+                        <button
+                          onClick={async () => {
+                            if (window.confirm("Êtes-vous sûr de vouloir annuler cette transaction ?")) {
+                              try {
+                                await paymentService.cancelTransaction(txn.id);
+                                loadData();
+                                success("Transaction annulée");
+                              } catch (err: any) {
+                                console.error("Cancel error:", err);
+                              }
+                            }
+                          }}
+                          className="text-xs font-bold text-red-600 hover:text-red-800 hover:underline"
+                        >
+                          Annuler
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}

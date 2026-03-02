@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "../../../lib/supabase";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useDataSync } from "../../../contexts/DataSyncContext";
-import TopUpModal from "../../../components/dashboard/TopUpModal";
+import PaymentModal from "../../../components/payment/PaymentModal";
 
 import { Transaction } from "../../../types/transaction";
 
@@ -293,12 +293,17 @@ export default function ClientWallet() {
         </div>
       </motion.div>
 
-      <TopUpModal
+      <PaymentModal
         isOpen={isTopUpOpen}
         onClose={() => setIsTopUpOpen(false)}
         onSuccess={() => {
           fetchWalletData(); // Refresh balance
         }}
+        mode="topup"
+        planName="Rechargement Portefeuille"
+        amount={5000}
+        currency="XOF"
+        allowedMethods={["wave", "cinetpay", "paytech"]}
       />
     </div >
   );

@@ -264,3 +264,30 @@
   background-color: rgba(15, 23, 42, 0.4);
   border-color: rgba(255, 255, 255, 0.05);
 }
+
+/* Global Input Contrast Fix */
+input,
+textarea,
+select {
+  color: #1e293b !important;
+  background-color: #ffffff !important;
+}
+
+/* For dark mode */
+.dark input,
+.dark textarea,
+.dark select {
+  color: #f1f5f9 !important;
+  background-color: #1e293b !important;
+}
+
+/* Ensure placeholders are also visible */
+input::placeholder,
+textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #64748b !important;
+}

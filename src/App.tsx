@@ -1,5 +1,5 @@
 import { Suspense, lazy } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { CurrencyProvider } from "./contexts/CurrencyContext";
 import { FeatureFlagProvider } from "./contexts/FeatureFlagContext";
@@ -7,6 +7,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Layout from "./components/Layout";
 import DashboardLayout from "./components/layout/DashboardLayout";
 import ScrollToTop from "./components/ScrollToTop";
+import SubscriptionGuard from "./components/auth/SubscriptionGuard";
 
 
 // Lazy load pages
@@ -452,38 +453,70 @@ function App() {
                                           />
                                         }
                                       >
-                                        <Route
-                                          path="forwarder"
-                                          element={<ForwarderDashboard />}
-                                        />
-                                        <Route
-                                          path="forwarder/rfq"
-                                          element={<AvailableRFQs />}
-                                        />
-                                        <Route
-                                          path="forwarder/groupage"
-                                          element={<ForwarderGroupage />}
-                                        />
-                                        <Route
-                                          path="forwarder/rfq/available"
-                                          element={<AvailableRFQs />}
-                                        />
-                                        <Route
-                                          path="forwarder/rfq/:id/offer"
-                                          element={<CreateOfferForm />}
-                                        />
-                                        <Route
-                                          path="forwarder/offers"
-                                          element={<ForwarderOffers />}
-                                        />
-                                        <Route
-                                          path="forwarder/shipments"
-                                          element={<ForwarderShipments />}
-                                        />
-                                        <Route
-                                          path="forwarder/shipments/:id"
-                                          element={<ShipmentDetail />}
-                                        />
+                                        <Route element={<SubscriptionGuard><Outlet /></SubscriptionGuard>}>
+                                          <Route
+                                            path="forwarder"
+                                            element={<ForwarderDashboard />}
+                                          />
+                                          <Route
+                                            path="forwarder/rfq"
+                                            element={<AvailableRFQs />}
+                                          />
+                                          <Route
+                                            path="forwarder/groupage"
+                                            element={<ForwarderGroupage />}
+                                          />
+                                          <Route
+                                            path="forwarder/rfq/available"
+                                            element={<AvailableRFQs />}
+                                          />
+                                          <Route
+                                            path="forwarder/rfq/:id/offer"
+                                            element={<CreateOfferForm />}
+                                          />
+                                          <Route
+                                            path="forwarder/offers"
+                                            element={<ForwarderOffers />}
+                                          />
+                                          <Route
+                                            path="forwarder/shipments"
+                                            element={<ForwarderShipments />}
+                                          />
+                                          <Route
+                                            path="forwarder/shipments/:id"
+                                            element={<ShipmentDetail />}
+                                          />
+                                          <Route
+                                            path="forwarder/pod"
+                                            element={<ForwarderPOD />}
+                                          />
+                                          <Route
+                                            path="forwarder/personnel"
+                                            element={<ForwarderPersonnel />}
+                                          />
+                                          <Route
+                                            path="forwarder/rates"
+                                            element={<ForwarderRates />}
+                                          />
+                                          <Route
+                                            path="forwarder/clients"
+                                            element={<ForwarderClients />}
+                                          />
+                                          <Route
+                                            path="forwarder/payments"
+                                            element={<ForwarderPayments />}
+                                          />
+                                          <Route
+                                            path="forwarder/fund-calls"
+                                            element={<ForwarderFundCalls />}
+                                          />
+                                          <Route
+                                            path="forwarder/coupons"
+                                            element={<ForwarderCoupons />}
+                                          />
+                                        </Route>
+
+                                        {/* Always accessible forwarder routes */}
                                         <Route
                                           path="forwarder/documents"
                                           element={<DocumentCenter />}
@@ -493,36 +526,8 @@ function App() {
                                           element={<ForwarderMessages />}
                                         />
                                         <Route
-                                          path="forwarder/pod"
-                                          element={<ForwarderPOD />}
-                                        />
-                                        <Route
-                                          path="forwarder/personnel"
-                                          element={<ForwarderPersonnel />}
-                                        />
-                                        <Route
-                                          path="forwarder/rates"
-                                          element={<ForwarderRates />}
-                                        />
-                                        <Route
-                                          path="forwarder/clients"
-                                          element={<ForwarderClients />}
-                                        />
-                                        <Route
                                           path="forwarder/wallet"
                                           element={<ClientWallet />}
-                                        />
-                                        <Route
-                                          path="forwarder/payments"
-                                          element={<ForwarderPayments />}
-                                        />
-                                        <Route
-                                          path="forwarder/fund-calls"
-                                          element={<ForwarderFundCalls />}
-                                        />
-                                        <Route
-                                          path="forwarder/coupons"
-                                          element={<ForwarderCoupons />}
                                         />
                                         <Route
                                           path="forwarder/subscription"

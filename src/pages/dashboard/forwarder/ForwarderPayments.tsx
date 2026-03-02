@@ -151,6 +151,7 @@ export default function ForwarderPayments() {
         <div className="relative">
           <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
           <select
+            aria-label="Filtrer par statut"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             className="pl-9 pr-8 py-2 bg-gray-50 border border-transparent hover:bg-white hover:border-gray-200 rounded-xl text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all appearance-none cursor-pointer min-w-[140px]"
@@ -176,6 +177,7 @@ export default function ForwarderPayments() {
           {searchQuery && (
             <button
               onClick={() => setSearchQuery("")}
+              aria-label="Effacer la recherche"
               className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
             >
               <X className="w-3 h-3" />
@@ -241,13 +243,12 @@ export default function ForwarderPayments() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                                ${
-                                                  trx.status === "pending"
-                                                    ? "bg-yellow-100 text-yellow-800"
-                                                    : trx.status === "failed"
-                                                      ? "bg-red-100 text-red-800"
-                                                      : "bg-green-100 text-green-800"
-                                                }`}
+                                                ${trx.status === "pending"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : trx.status === "failed"
+                              ? "bg-red-100 text-red-800"
+                              : "bg-green-100 text-green-800"
+                          }`}
                       >
                         {trx.status}
                       </span>
@@ -261,6 +262,7 @@ export default function ForwarderPayments() {
                           onClick={() =>
                             setActiveMenu(activeMenu === trx.id ? null : trx.id)
                           }
+                          aria-label="Actions de la transaction"
                           className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-full transition-colors"
                         >
                           <MoreVertical className="w-5 h-5" />
@@ -285,6 +287,26 @@ export default function ForwarderPayments() {
                                 <Download className="w-4 h-4" /> Télécharger
                                 reçu
                               </button>
+                              {trx.status === "pending" && (
+                                <button
+                                  className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 font-medium border-t border-gray-50"
+                                  onClick={async () => {
+                                    if (window.confirm("Annuler cette transaction ?")) {
+                                      try {
+                                        await paymentService.cancelTransaction(trx.id);
+                                        fetchTransactions();
+                                        success("Transaction annulée");
+                                      } catch (err) {
+                                        console.error(err);
+                                      } finally {
+                                        setActiveMenu(null);
+                                      }
+                                    }
+                                  }}
+                                >
+                                  <X className="w-4 h-4" /> Annuler
+                                </button>
+                              )}
                             </div>
                           </>
                         )}
