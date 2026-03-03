@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import PWAInstallPrompt from "./common/PWAInstallPrompt";
-import InstallGuideModal from "./common/InstallGuideModal";
 import { createPortal } from "react-dom";
 import { Outlet, Link, useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -20,6 +19,7 @@ import {
 import SEOHead from "./seo/SEOHead";
 import NewsTicker from "./common/NewsTicker";
 import FloatingActions from "./common/FloatingActions";
+import Footer from "./layout/Footer";
 
 export default function Layout() {
   const { t } = useTranslation();
@@ -28,7 +28,6 @@ export default function Layout() {
   const { theme, toggleTheme } = useTheme();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [showInstallGuide, setShowInstallGuide] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -334,142 +333,7 @@ export default function Layout() {
         <Outlet />
       </main>
 
-      <footer className="bg-gray-900 text-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 mb-8">
-            <div className="lg:col-span-2">
-              <h3 className="text-2xl font-bold mb-4 flex items-center">
-                <span className="text-primary">NextMove</span>
-                <span className="text-secondary ml-1">Cargo</span>
-              </h3>
-              <p className="text-gray-300 mb-4">
-                {settings?.footer?.tagline ||
-                  "Simplifying logistics across Africa."}
-              </p>
-            </div>
-            <div>
-              <h4 className="font-bold mb-4">
-                {settings?.footer?.platform || "Platform"}
-              </h4>
-              <ul className="space-y-2 text-gray-300">
-                <li>
-                  <Link
-                    to="/calculator"
-                    className="hover:text-white transition-colors"
-                  >
-                    {t("calculator")}
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/login"
-                    className="hover:text-white transition-colors"
-                  >
-                    {t("login")}
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/register"
-                    className="hover:text-white transition-colors"
-                  >
-                    {t("getStarted")}
-                  </Link>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold mb-4">
-                {settings?.footer?.company || "Company"}
-              </h4>
-              <ul className="space-y-2 text-gray-300">
-                <li>
-                  <Link to="/about" className="hover:text-white transition-colors">
-                    À Propos
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/contact" className="hover:text-white transition-colors">
-                    Contact
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/privacy" className="hover:text-white transition-colors">
-                    Politique de Confidentialité
-                  </Link>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold mb-4">Apps Mobiles</h4>
-              <div className="flex flex-col gap-3">
-                <button
-                  onClick={() => setShowInstallGuide(true)}
-                  className="transition-transform hover:scale-105 active:scale-95 duration-200 text-left"
-                >
-                  <img
-                    src="/assets/app-store-badge-fr.svg"
-                    alt="Télécharger dans l'App Store"
-                    className="h-10 w-auto opacity-80 hover:opacity-100 transition-opacity"
-                  />
-                </button>
-                <a
-                  href="https://dkbnmnpxoesvkbnwuyle.supabase.co/storage/v1/object/public/apks/latest/nextmove-cargo.apk"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="transition-transform hover:scale-105 active:scale-95 duration-200"
-                >
-                  <img
-                    src="/assets/google-play-badge-fr.svg"
-                    alt="DISPONIBLE SUR Google Play"
-                    className="h-10 w-auto opacity-80 hover:opacity-100 transition-opacity"
-                  />
-                </a>
-              </div>
-            </div>
-          </div>
-          <div className="border-t border-gray-800 pt-8 text-center text-gray-300">
-            <p>
-              &copy; 2026 {settings?.platform_name || "NextMove Cargo"}.{" "}
-              {settings?.footer?.rights || "All rights reserved."}
-            </p>
-            <div className="mt-4 flex justify-center">
-              <MobileCountrySelector />
-            </div>
-            <div className="mt-4 flex flex-col items-center gap-2">
-              <span className="text-xs text-gray-500 font-mono">v0.1.0</span>
-              <button
-                onClick={() => {
-                  if ("serviceWorker" in navigator) {
-                    navigator.serviceWorker
-                      .getRegistrations()
-                      .then((registrations) => {
-                        for (let registration of registrations) {
-                          registration.unregister();
-                        }
-                      });
-                  }
-                  window.location.reload();
-                }}
-              >
-                Forcer la mise à jour
-              </button>
-
-              <button
-                onClick={() => setShowInstallGuide(true)}
-                className="text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 underline mt-1"
-              >
-                Comment installer l'app ?
-              </button>
-            </div>
-          </div>
-        </div>
-      </footer>
-
-      <InstallGuideModal
-        isOpen={showInstallGuide}
-        onClose={() => setShowInstallGuide(false)}
-      />
+      <Footer />
 
       <NewsTicker />
       <FloatingActions />
