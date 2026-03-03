@@ -33,6 +33,8 @@ serve(async (req) => {
         const { apikey, secret_key } = gateway.config;
         const env = gateway.is_test_mode ? "test" : "prod";
 
+        console.log(`Initialisation paiement PayTech - Mode: ${env}, Montant: ${amount} ${currency}`);
+
         const response = await fetch("https://paytech.sn/api/payment/request-payment", {
             method: "POST",
             headers: {
@@ -46,7 +48,7 @@ serve(async (req) => {
                 currency: currency || "XOF",
                 ref_command,
                 command_name: item_name,
-                env: "live", // Production mode
+                env, // Corrected: use "test" or "prod" from DB
                 success_url,
                 cancel_url,
                 // Add legacy/variant names to be safe
@@ -59,6 +61,7 @@ serve(async (req) => {
         });
 
         const result = await response.json();
+        console.log("Réponse brute PayTech API:", JSON.stringify(result));
 
         return new Response(JSON.stringify(result), {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
