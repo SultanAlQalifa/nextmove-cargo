@@ -6,7 +6,7 @@ const corsHeaders = {
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-serve(async (req) => {
+serve(async (req: Request) => {
     if (req.method === "OPTIONS") {
         return new Response("ok", { headers: corsHeaders });
     }
@@ -33,22 +33,20 @@ serve(async (req) => {
         const { apikey, secret_key } = gateway.config;
         const env = gateway.is_test_mode ? "test" : "prod";
 
-        console.log(`Initialisation paiement PayTech - Mode: ${env}, Montant: ${amount} ${currency}`);
-
-        const payload = {
+        const paytechPayload = {
             item_name,
             item_price: amount.toString(),
             currency: currency || "XOF",
             ref_command,
             command_name: item_name,
             env,
-            success_url,
-            cancel_url,
+            success_url: "https://nextmovecargo.com/dashboard/forwarder/wallet?payment=success",
+            cancel_url: "https://nextmovecargo.com/dashboard/forwarder/wallet?payment=cancel",
             ipn_url: `https://dkbnmnpxoesvkbnwuyle.supabase.co/functions/v1/paytech-webhook`,
             custom_field,
         };
 
-        console.log("Payload envoyé à PayTech:", JSON.stringify(payload));
+        console.log("PAYLOAD:", JSON.stringify(paytechPayload));
 
         const response = await fetch("https://paytech.sn/api/payment/request-payment", {
             method: "POST",
@@ -57,7 +55,7 @@ serve(async (req) => {
                 "API_KEY": apikey,
                 "API_SECRET": secret_key,
             },
-            body: JSON.stringify(payload),
+            body: JSON.stringify(paytechPayload),
         });
 
         const result = await response.json();
@@ -67,7 +65,7 @@ serve(async (req) => {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
             status: 200,
         });
-    } catch (error) {
+    } catch (error: any) {
         return new Response(JSON.stringify({ error: error.message }), {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
             status: 400,
