@@ -35,25 +35,29 @@ serve(async (req) => {
 
         console.log(`Initialisation paiement PayTech - Mode: ${env}, Montant: ${amount} ${currency}`);
 
+        const payload = {
+            item_name,
+            item_price: amount.toString(),
+            currency: currency || "XOF",
+            ref_command,
+            command_name: item_name,
+            env,
+            success_url,
+            cancel_url,
+            ipn_url: `https://dkbnmnpxoesvkbnwuyle.supabase.co/functions/v1/paytech-webhook`,
+            custom_field,
+        };
+
+        console.log("Payload envoyé à PayTech:", JSON.stringify(payload));
+
         const response = await fetch("https://paytech.sn/api/payment/request-payment", {
             method: "POST",
             headers: {
-                "Content-Type": "application/x-www-form-urlencoded",
+                "Content-Type": "application/json",
                 "API_KEY": apikey,
                 "API_SECRET": secret_key,
             },
-            body: new URLSearchParams({
-                item_name,
-                item_price: amount.toString(),
-                currency: currency || "XOF",
-                ref_command,
-                command_name: item_name,
-                env,
-                success_url,
-                cancel_url,
-                ipn_url: `https://dkbnmnpxoesvkbnwuyle.supabase.co/functions/v1/paytech-webhook`,
-                custom_field,
-            }).toString(),
+            body: JSON.stringify(payload),
         });
 
         const result = await response.json();
