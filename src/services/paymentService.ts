@@ -346,12 +346,14 @@ export const paymentService = {
       console.log("PayTech data:", JSON.stringify(response.data));
 
       const data = response.data;
+      const redirect_url = data?.redirect_url || data?.redirectUrl || (data?.token ? `https://paytech.sn/payment/checkout/${data.token}` : "");
 
-      if (!data || (!data.redirect_url && !data.redirectUrl && !data.token)) {
+      if (!redirect_url) {
         throw new Error("No redirect URL received from PayTech");
       }
 
-      const redirect_url = data.redirect_url || data.redirectUrl || (data.token ? `https://paytech.sn/payment/checkout/${data.token}` : "");
+      // Force redirect here for robustness
+      window.location.href = redirect_url;
 
       return {
         redirect_url,
