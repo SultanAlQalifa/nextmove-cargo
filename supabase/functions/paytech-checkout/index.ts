@@ -48,14 +48,10 @@ serve(async (req) => {
                 currency: currency || "XOF",
                 ref_command,
                 command_name: item_name,
-                env, // Corrected: use "test" or "prod" from DB
+                env,
                 success_url,
                 cancel_url,
-                // Add legacy/variant names to be safe
-                "success_redirect_url": success_url,
-                "cancel_redirect_url": cancel_url,
-                "successRedirectUrl": success_url,
-                ipn_url: `${Deno.env.get("SUPABASE_URL")}/functions/v1/paytech-webhook`,
+                ipn_url: `https://dkbnmnpxoesvkbnwuyle.supabase.co/functions/v1/paytech-webhook`,
                 custom_field,
             }).toString(),
         });
