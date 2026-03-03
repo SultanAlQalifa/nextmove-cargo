@@ -252,7 +252,7 @@ export default function AdminPersonnel() {
             {/* Ambient Background Glow */}
             <div className="absolute -inset-4 bg-gradient-to-tr from-primary/10 via-transparent to-indigo-500/5 blur-3xl opacity-50 -z-10 rounded-[3rem]"></div>
 
-            <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-3xl rounded-[2.5rem] shadow-2xl shadow-slate-200/50 dark:shadow-none border border-slate-200/50 dark:border-white/5 overflow-hidden">
+            <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-3xl rounded-[2.5rem] shadow-2xl shadow-slate-200/50 dark:shadow-none border border-slate-200/50 dark:border-white/5 overflow-x-auto overflow-hidden">
               <table className="min-w-full divide-y divide-slate-200/50 dark:divide-white/5 text-left">
                 <thead className="bg-slate-50/30 dark:bg-slate-800/20 backdrop-blur-md">
                   <tr>

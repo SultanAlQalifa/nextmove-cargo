@@ -308,14 +308,14 @@ export default function LoyaltyDashboard() {
                                     </code>
                                     <button
                                         onClick={copyCode}
-                                        className="p-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all shadow-lg active:scale-95"
+                                        className="p-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all shadow-lg active:scale-95 min-h-[44px]"
                                         aria-label="Copier le code"
                                     >
                                         {copied ? <Check size={20} /> : <Copy size={20} />}
                                     </button>
                                 </div>
 
-                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 sm:grid-cols-4 gap-3 mt-6">
                                     <a
                                         href={`https://wa.me/?text=${encodeURIComponent(`🚀 Tu veux économiser sur tes envois colis ? Rejoins NextMove Cargo avec mon code ${localCode || profile?.referral_code} et gagne des récompenses dès ton premier envoi ! \n\nInscris-toi ici : ${window.location.origin}/register?referral=${localCode || profile?.referral_code}`)}`}
                                         target="_blank"
@@ -354,7 +354,7 @@ export default function LoyaltyDashboard() {
 
                                     <button
                                         onClick={shareReferral}
-                                        className="flex flex-col items-center justify-center gap-2 p-4 bg-slate-100 text-slate-600 rounded-2xl hover:bg-slate-200 transition-all border border-slate-200 group"
+                                        className="flex flex-col items-center justify-center gap-2 p-4 bg-slate-100 text-slate-600 rounded-2xl hover:bg-slate-200 transition-all border border-slate-200 group min-h-[44px]"
                                     >
                                         <div className="w-10 h-10 bg-slate-600 text-white rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                                             <Share2 size={18} />
@@ -365,7 +365,7 @@ export default function LoyaltyDashboard() {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 md:grid-cols-3 gap-6">
                             {[
                                 { label: "Total Filleuls", value: referralStats.total || 0, color: "slate" },
                                 { label: "En Attente", value: referrals.filter(r => r.status === 'pending').length, color: "amber" },
@@ -523,7 +523,7 @@ export default function LoyaltyDashboard() {
                                     <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Valeur Crédit</span>
                                     <span className="text-2xl font-black text-blue-600 group-hover:scale-110 transition-transform">{(parseInt(convertAmount || "0") * pointValue).toLocaleString()} <span className="text-xs">FCFA</span></span>
                                 </div>
-                                <button disabled={loading} className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl transition-all shadow-xl shadow-blue-500/20 disabled:opacity-50 active:scale-95 uppercase tracking-widest text-xs">
+                                <button disabled={loading} className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl transition-all shadow-xl shadow-blue-500/20 disabled:opacity-50 active:scale-95 uppercase tracking-widest text-xs min-h-[44px]">
                                     {loading ? "Traitement..." : "Finaliser la conversion"}
                                 </button>
                             </form>
@@ -580,7 +580,7 @@ export default function LoyaltyDashboard() {
                                         required
                                     />
                                 </div>
-                                <button disabled={loading} className="w-full py-4 bg-slate-900 dark:bg-white dark:text-slate-900 text-white font-black rounded-2xl transition-all shadow-xl disabled:opacity-50 active:scale-95 uppercase tracking-widest text-xs">
+                                <button disabled={loading} className="w-full py-4 bg-slate-900 dark:bg-white dark:text-slate-900 text-white font-black rounded-2xl transition-all shadow-xl disabled:opacity-50 active:scale-95 uppercase tracking-widest text-xs min-h-[44px]">
                                     {loading ? "Envoi en cours..." : "Confirmer le transfert"}
                                 </button>
                             </form>

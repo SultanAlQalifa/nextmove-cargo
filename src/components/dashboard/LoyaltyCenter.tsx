@@ -29,7 +29,7 @@ export default function LoyaltyCenter({ points, tier, pointValue, onConvert, onT
             {/* Main Score Card */}
             <div className="lg:col-span-2 bg-slate-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden group shadow-2xl">
                 <div className="grain-overlay opacity-[0.05]" />
-                <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full -mr-20 -mt-20 blur-3xl group-hover:bg-blue-500/20 transition-colors duration-700"></div>
+                <div className="absolute top-0 right-0 w-full max-w-sm h-96 bg-blue-500/10 rounded-full -mr-20 -mt-20 blur-3xl group-hover:bg-blue-500/20 transition-colors duration-700"></div>
 
                 <div className="relative z-10 h-full flex flex-col justify-between">
                     <div className="flex justify-between items-start">
@@ -93,16 +93,16 @@ export default function LoyaltyCenter({ points, tier, pointValue, onConvert, onT
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4 mt-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
                         <button
                             onClick={onConvert}
-                            className="flex items-center justify-center gap-3 py-4 bg-white text-slate-900 rounded-2xl font-black text-sm hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl"
+                            className="flex items-center justify-center gap-3 py-4 bg-white text-slate-900 rounded-2xl font-black text-sm hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl min-h-[44px]"
                         >
                             <ArrowRightLeft size={18} /> Convertir
                         </button>
                         <button
                             onClick={onTransfer}
-                            className="flex items-center justify-center gap-3 py-4 bg-slate-800 text-white rounded-2xl font-black text-sm border border-white/10 hover:bg-slate-700 transition-all"
+                            className="flex items-center justify-center gap-3 py-4 bg-slate-800 text-white rounded-2xl font-black text-sm border border-white/10 hover:bg-slate-700 transition-all min-h-[44px]"
                         >
                             <Send size={18} /> Offrir
                         </button>
@@ -147,7 +147,7 @@ export default function LoyaltyCenter({ points, tier, pointValue, onConvert, onT
                     <Gift className="absolute -right-4 -bottom-4 w-24 h-24 text-white/10 rotate-12 group-hover:rotate-0 transition-transform duration-700" />
                     <h3 className="font-black text-lg mb-2">Parrainez & Gagnez</h3>
                     <p className="text-white/70 text-xs mb-4 leading-relaxed">Invitez vos partenaires et recevez 500 points bonus dès leur première expédition.</p>
-                    <button className="w-full py-3 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-xl text-xs font-black uppercase tracking-widest transition-all">
+                    <button className="w-full py-3 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-xl text-xs font-black uppercase tracking-widest transition-all min-h-[44px]">
                         Inviter maintenant
                     </button>
                 </div>

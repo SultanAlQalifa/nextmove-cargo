@@ -161,7 +161,7 @@ export default function DocumentCenter() {
           <input
             type="file"
             id="file-upload"
-            className="hidden"
+            className="hidden text-base"
             onChange={handleFileUpload}
             disabled={uploading}
           />

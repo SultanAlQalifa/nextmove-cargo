@@ -256,7 +256,7 @@ export default function CreateConsolidationModal({
           </h2>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+            className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 min-h-[44px]"
             aria-label="Fermer"
             title="Fermer"
           >
@@ -390,7 +390,7 @@ export default function CreateConsolidationModal({
                         ? "ex: Electronique vers Dakar"
                         : "ex: Groupage Mensuel Chine"
                     }
-                    className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 outline-none"
+                    className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 outline-none text-base"
                   />
                   {errors.title && (
                     <span className="text-red-500 text-xs">
@@ -399,7 +399,7 @@ export default function CreateConsolidationModal({
                   )}
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                       Port de Départ
@@ -429,7 +429,7 @@ export default function CreateConsolidationModal({
                             <button
                               key={loc.id}
                               type="button"
-                              className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-gray-700 text-sm text-slate-700 dark:text-slate-300"
+                              className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-gray-700 text-sm text-slate-700 dark:text-slate-300 min-h-[44px]"
                               onClick={() => {
                                 setValue("origin_port", loc.name);
                                 setOriginSearch(loc.name);
@@ -472,7 +472,7 @@ export default function CreateConsolidationModal({
                             <button
                               key={loc.id}
                               type="button"
-                              className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-gray-700 text-sm text-slate-700 dark:text-slate-300"
+                              className="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-gray-700 text-sm text-slate-700 dark:text-slate-300 min-h-[44px]"
                               onClick={() => {
                                 setValue("destination_port", loc.name);
                                 setDestSearch(loc.name);
@@ -492,7 +492,7 @@ export default function CreateConsolidationModal({
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                     Mode de Transport
                   </label>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <label
                       className={`cursor-pointer border rounded-xl p-4 flex items-center gap-3 transition-all ${transportMode === "sea" ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20" : "border-slate-200 dark:border-gray-700"}`}
                     >
@@ -500,7 +500,7 @@ export default function CreateConsolidationModal({
                         type="radio"
                         value="sea"
                         {...register("transport_mode", { required: true })}
-                        className="sr-only"
+                        className="sr-only text-base"
                       />
                       <Anchor
                         className={`h-5 w-5 ${transportMode === "sea" ? "text-blue-500" : "text-slate-400"}`}
@@ -522,7 +522,7 @@ export default function CreateConsolidationModal({
                         type="radio"
                         value="air"
                         {...register("transport_mode", { required: true })}
-                        className="sr-only"
+                        className="sr-only text-base"
                       />
                       <Plane
                         className={`h-5 w-5 ${transportMode === "air" ? "text-sky-500" : "text-slate-400"}`}
@@ -544,7 +544,7 @@ export default function CreateConsolidationModal({
           </div>
 
           {/* Capacity & Pricing */}
-          <div className="grid grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Package className="h-4 w-4" /> Capacité
@@ -620,7 +620,7 @@ export default function CreateConsolidationModal({
                   </label>
                   <select
                     {...register("currency")}
-                    className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 outline-none"
+                    className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 outline-none text-base"
                   >
                     <option value="XOF">XOF (FCFA)</option>
                     <option value="USD">USD</option>
@@ -693,7 +693,7 @@ export default function CreateConsolidationModal({
                       type="checkbox"
                       value={service.id}
                       {...register("services_requested")}
-                      className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mr-3"
+                      className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mr-3 text-base"
                     />
                     <div
                       className={`p-1.5 rounded-full mr-3 bg-${service.color}-100 text-${service.color}-600`}
@@ -719,7 +719,7 @@ export default function CreateConsolidationModal({
             <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <Calendar className="h-4 w-4" /> Schedule
             </h3>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {type !== "client_request" && (
                 <div>
                   <label className="block text-xs text-slate-500 mb-1">
@@ -728,7 +728,7 @@ export default function CreateConsolidationModal({
                   <input
                     type="date"
                     {...register("deadline_date")}
-                    className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 outline-none"
+                    className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 outline-none text-base"
                   />
                 </div>
               )}
@@ -741,7 +741,7 @@ export default function CreateConsolidationModal({
                 <input
                   type="date"
                   {...register("departure_date", { required: true })}
-                  className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 outline-none text-base"
                 />
               </div>
               <div>
@@ -753,7 +753,7 @@ export default function CreateConsolidationModal({
                 <input
                   type="date"
                   {...register("arrival_date")}
-                  className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 outline-none text-base"
                 />
               </div>
             </div>
@@ -775,14 +775,14 @@ export default function CreateConsolidationModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-2.5 rounded-xl border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-gray-800 transition-colors"
+              className="px-6 py-2.5 rounded-xl border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-gray-800 transition-colors min-h-[44px]"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-6 py-2.5 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-500 transition-colors shadow-lg shadow-blue-500/30 flex items-center"
+              className="px-6 py-2.5 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-500 transition-colors shadow-lg shadow-blue-500/30 flex items-center min-h-[44px]"
             >
               {loading && (
                 <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />

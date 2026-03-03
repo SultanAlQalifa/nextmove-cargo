@@ -250,7 +250,7 @@ export default function AdminLocations() {
       {/* Add Modal */}
       {isAddModalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl">
+          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-bold text-gray-900">
                 Ajouter une Destination
@@ -273,7 +273,7 @@ export default function AdminLocations() {
                   type="text"
                   required
                   placeholder="Ex: Japon"
-                  className="w-full rounded-xl border-gray-200 focus:border-primary focus:ring-primary p-2.5"
+                  className="w-full rounded-xl border-gray-200 focus:border-primary focus:ring-primary p-2.5 text-base"
                   value={newLocationName}
                   onChange={(e) => setNewLocationName(e.target.value)}
                 />
@@ -288,7 +288,7 @@ export default function AdminLocations() {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors"
+                  className="px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors min-h-[44px]"
                 >
                   Ajouter
                 </button>

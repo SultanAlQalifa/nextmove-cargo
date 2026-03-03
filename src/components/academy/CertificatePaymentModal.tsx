@@ -67,7 +67,7 @@ export default function CertificatePaymentModal({
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-2 hover:bg-gray-200 rounded-full transition-colors"
+                        className="p-2 hover:bg-gray-200 rounded-full transition-colors min-h-[44px]"
                         title="Fermer"
                         aria-label="Fermer la modale"
                     >

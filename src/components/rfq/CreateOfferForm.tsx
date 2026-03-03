@@ -256,7 +256,7 @@ export default function CreateOfferForm() {
                 value={formData.currency}
                 onChange={handleInputChange}
                 title="Devise"
-                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary text-base"
               >
                 <option value="XOF">XOF (CFA)</option>
                 <option value="EUR">EUR (€)</option>
@@ -358,7 +358,7 @@ export default function CreateOfferForm() {
                 value={formData.departure_date || ""}
                 onChange={handleInputChange}
                 title="Date de départ prévue"
-                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary text-base"
               />
             </div>
             <div>
@@ -371,7 +371,7 @@ export default function CreateOfferForm() {
                 value={formData.arrival_date || ""}
                 onChange={handleInputChange}
                 title="Date d'arrivée prévue"
-                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary text-base"
               />
             </div>
           </div>
@@ -417,7 +417,7 @@ export default function CreateOfferForm() {
           <button
             type="submit"
             disabled={submitting}
-            className="px-8 py-4 bg-primary text-white rounded-xl font-bold text-lg hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="px-8 py-4 bg-primary text-white rounded-xl font-bold text-lg hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 min-h-[44px]"
           >
             {submitting ? (
               <>

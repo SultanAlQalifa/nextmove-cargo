@@ -484,7 +484,7 @@ export default function AdminLoyalty() {
 
       <div className="mt-6">
         {activeTab === 'transactions' && (
-          <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-[2.5rem] border border-white/20 dark:border-white/10 shadow-xl overflow-hidden">
+          <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-[2.5rem] border border-white/20 dark:border-white/10 shadow-xl overflow-x-auto overflow-hidden">
             <table className="min-w-full divide-y divide-white/10">
               <thead className="bg-slate-50/50 dark:bg-slate-800/30">
                 <tr>
@@ -657,7 +657,7 @@ export default function AdminLoyalty() {
               <button
                 onClick={handleAdjustment}
                 disabled={!foundUser || loading || !adjustForm.amount || !adjustForm.reason}
-                className="w-full py-5 bg-gradient-to-r from-primary to-indigo-600 hover:scale-[1.02] active:scale-[0.98] text-white font-black uppercase tracking-[0.2em] rounded-[2rem] shadow-2xl shadow-primary/30 transition-all disabled:opacity-40 disabled:hover:scale-100 disabled:cursor-not-allowed group relative overflow-hidden"
+                className="w-full py-5 bg-gradient-to-r from-primary to-indigo-600 hover:scale-[1.02] active:scale-[0.98] text-white font-black uppercase tracking-[0.2em] rounded-[2rem] shadow-2xl shadow-primary/30 transition-all disabled:opacity-40 disabled:hover:scale-100 disabled:cursor-not-allowed group relative overflow-hidden min-h-[44px]"
               >
                 <div className="relative z-10 flex items-center justify-center gap-3">
                   {loading ? (

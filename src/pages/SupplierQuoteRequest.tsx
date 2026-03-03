@@ -97,7 +97,7 @@ export default function SupplierQuoteRequest() {
                 type="email"
                 required
                 {...register("supplier_email")}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary text-base"
                 placeholder="supplier@example.com"
               />
             </div>
@@ -109,7 +109,7 @@ export default function SupplierQuoteRequest() {
                 </label>
                 <select
                   {...register("origin_country")}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary text-base"
                 >
                   <option value="China">China</option>
                 </select>
@@ -120,7 +120,7 @@ export default function SupplierQuoteRequest() {
                 </label>
                 <select
                   {...register("destination_country")}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary text-base"
                 >
                   <option value="Senegal">Senegal</option>
                   <option value="Ivory Coast">Ivory Coast</option>
@@ -252,7 +252,7 @@ export default function SupplierQuoteRequest() {
                     type="number"
                     step="0.01"
                     {...register("volume_cbm")}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary text-base"
                   />
                 </div>
               ) : (
@@ -264,7 +264,7 @@ export default function SupplierQuoteRequest() {
                     type="number"
                     step="0.1"
                     {...register("weight_kg")}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary text-base"
                   />
                 </div>
               )}
@@ -274,7 +274,7 @@ export default function SupplierQuoteRequest() {
               <button
                 type="submit"
                 disabled={loading}
-                className="bg-primary text-white px-6 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50"
+                className="bg-primary text-white px-6 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50 min-h-[44px]"
               >
                 {loading ? "Submitting..." : "Submit Request"}
               </button>

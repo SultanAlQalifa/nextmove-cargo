@@ -173,10 +173,10 @@ const AdminCommunity = () => {
                 </div>
 
                 <div className="absolute top-6 right-8 z-10 flex gap-2">
-                    <button onClick={handleZoomIn} className="w-10 h-10 bg-slate-800 hover:bg-slate-700 text-white rounded-xl flex items-center justify-center border border-slate-700 transition shadow-lg">
+                    <button onClick={handleZoomIn} className="w-10 h-10 bg-slate-800 hover:bg-slate-700 text-white rounded-xl flex items-center justify-center border border-slate-700 transition shadow-lg min-h-[44px]">
                         +
                     </button>
-                    <button onClick={handleZoomOut} className="w-10 h-10 bg-slate-800 hover:bg-slate-700 text-white rounded-xl flex items-center justify-center border border-slate-700 transition shadow-lg">
+                    <button onClick={handleZoomOut} className="w-10 h-10 bg-slate-800 hover:bg-slate-700 text-white rounded-xl flex items-center justify-center border border-slate-700 transition shadow-lg min-h-[44px]">
                         -
                     </button>
                 </div>

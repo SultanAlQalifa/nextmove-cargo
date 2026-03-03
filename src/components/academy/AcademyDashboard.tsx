@@ -66,8 +66,8 @@ export default function AcademyDashboard() {
             <div className="absolute inset-0 pointer-events-none">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,#1e293b,transparent)] opacity-40" />
                 <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.03]" />
-                <div className="absolute top-1/4 -left-20 w-96 h-96 bg-orange-500/5 blur-[120px] rounded-full" />
-                <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-blue-500/5 blur-[120px] rounded-full" />
+                <div className="absolute top-1/4 -left-20 w-full max-w-sm h-96 bg-orange-500/5 blur-[120px] rounded-full" />
+                <div className="absolute bottom-1/4 -right-20 w-full max-w-sm h-96 bg-blue-500/5 blur-[120px] rounded-full" />
             </div>
 
             {/* Gladiator HUD 2.0 */}
@@ -130,7 +130,7 @@ export default function AcademyDashboard() {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4 w-full lg:w-auto">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full lg:w-auto">
                             <div className="px-8 py-5 bg-slate-950/50 backdrop-blur-xl rounded-3xl flex flex-col items-center border border-white/5 group hover:border-orange-500/30 transition-all duration-500 shadow-xl">
                                 <div className="p-2 bg-orange-500/10 rounded-xl mb-3 group-hover:scale-110 transition-transform">
                                     <Flame className="w-6 h-6 text-orange-500" />
@@ -287,7 +287,7 @@ export default function AcademyDashboard() {
                                     Optimisez le transport de 5 conteneurs depuis Ningbo vers le Port de Dakar avec un budget réduit de 15%.
                                 </p>
 
-                                <div className="grid grid-cols-2 gap-4 mb-8">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
                                     <div className="bg-slate-950/50 p-4 rounded-2xl border border-white/5 text-center">
                                         <div className="text-xl font-black text-amber-500">+120</div>
                                         <div className="text-[8px] uppercase font-black text-slate-600 tracking-widest mt-1">XP Bonus</div>
@@ -298,7 +298,7 @@ export default function AcademyDashboard() {
                                     </div>
                                 </div>
 
-                                <button className="w-full py-4 bg-orange-500 text-white rounded-2xl font-black uppercase tracking-[0.2em] text-xs hover:bg-orange-600 transition-all hover:shadow-[0_0_30px_rgba(249,115,22,0.4)] hover:scale-[1.02]">
+                                <button className="w-full py-4 bg-orange-500 text-white rounded-2xl font-black uppercase tracking-[0.2em] text-xs hover:bg-orange-600 transition-all hover:shadow-[0_0_30px_rgba(249,115,22,0.4)] hover:scale-[1.02] min-h-[44px]">
                                     Engager le Combat
                                 </button>
                             </div>

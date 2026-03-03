@@ -295,7 +295,7 @@ export default function ForwarderCoupons() {
                   placeholder="Réduction d'été"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Type
@@ -337,7 +337,7 @@ export default function ForwarderCoupons() {
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Limite d'usage
@@ -378,7 +378,7 @@ export default function ForwarderCoupons() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-colors"
+                  className="flex-1 py-2.5 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-colors min-h-[44px]"
                 >
                   {editingCoupon ? "Enregistrer" : "Créer"}
                 </button>

@@ -102,7 +102,7 @@ export default function ClientDetailsModal({
                     <button
                         onClick={onClose}
                         aria-label="Fermer"
-                        className="absolute top-4 right-4 p-2 bg-white/20 hover:bg-white/30 text-white rounded-full transition-colors z-10"
+                        className="absolute top-4 right-4 p-2 bg-white/20 hover:bg-white/30 text-white rounded-full transition-colors z-10 min-h-[44px]"
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -232,7 +232,7 @@ export default function ClientDetailsModal({
                 <div className="p-4 border-t border-gray-100 dark:border-slate-700 bg-gray-50 dark:bg-slate-800/50 flex justify-end">
                     <button
                         onClick={onClose}
-                        className="px-6 py-2 bg-white border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 font-medium transition-colors"
+                        className="px-6 py-2 bg-white border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 font-medium transition-colors min-h-[44px]"
                     >
                         Fermer
                     </button>

@@ -80,7 +80,7 @@ export default function DriverSupport() {
             <h3 className="font-bold text-gray-900">
               Vos demandes d'assistance
             </h3>
-            <button className="flex items-center gap-2 bg-primary text-white px-3 py-1.5 rounded-md text-sm hover:bg-blue-700">
+            <button className="flex items-center gap-2 bg-primary text-white px-3 py-1.5 rounded-md text-sm hover:bg-blue-700 min-h-[44px]">
               <Plus className="w-4 h-4" /> Nouveau Ticket
             </button>
           </div>

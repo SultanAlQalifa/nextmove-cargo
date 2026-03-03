@@ -132,7 +132,7 @@ export default function ForwarderDetailsModal({
             <button
               onClick={onClose}
               title="Fermer"
-              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors min-h-[44px]"
             >
               <X className="w-6 h-6" />
             </button>

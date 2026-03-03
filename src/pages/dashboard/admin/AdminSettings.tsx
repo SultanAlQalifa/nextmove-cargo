@@ -342,7 +342,7 @@ export default function AdminSettings() {
                       <Camera className="w-4 h-4" />
                       <input
                         type="file"
-                        className="hidden"
+                        className="hidden text-base"
                         accept="image/*"
                         aria-label="Changer l'avatar"
                         onChange={(e) =>
@@ -395,7 +395,7 @@ export default function AdminSettings() {
                         value={userProfile.email || ""}
                         disabled
                         aria-label="Email"
-                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-gray-500 cursor-not-allowed"
+                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-gray-500 cursor-not-allowed text-base"
                       />
                     </div>
                   </div>
@@ -923,7 +923,7 @@ export default function AdminSettings() {
                         </div>
                       </div>
                       {/* Hidden submit button to enable enter key */}
-                      <button type="submit" className="hidden" aria-label="Submit Password Change" />
+                      <button type="submit" className="hidden min-h-[44px]" aria-label="Submit Password Change" />
                     </form>
                   </div>
                 </div>

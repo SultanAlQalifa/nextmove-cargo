@@ -37,7 +37,7 @@ export default function About() {
 
       {/* Stats Section */}
       <div className="relative -mt-16 z-20 max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 bg-white dark:bg-gray-900 rounded-[2.5rem] p-8 md:p-12 shadow-2xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800 animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-300">
+        <div className="grid grid-cols-1 md:grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 bg-white dark:bg-gray-900 rounded-[2.5rem] p-8 md:p-12 shadow-2xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800 animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-300">
           <div className="text-center space-y-2">
             <div className="text-4xl lg:text-5xl font-bold text-blue-600 dark:text-blue-400">
               5+

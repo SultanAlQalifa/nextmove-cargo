@@ -648,7 +648,7 @@ export default function AddShipmentModal({
               <button
                 onClick={onClose}
                 aria-label="Fermer"
-                className="text-gray-400 hover:text-gray-500 p-2 rounded-full hover:bg-gray-100 transition-colors"
+                className="text-gray-400 hover:text-gray-500 p-2 rounded-full hover:bg-gray-100 transition-colors min-h-[44px]"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -904,7 +904,7 @@ export default function AddShipmentModal({
                             <input
                               type="radio"
                               name="transport_service_selection"
-                              className="sr-only"
+                              className="sr-only text-base"
                               checked={isSelected}
                               onChange={() => {
                                 const newMode = option.mode;
@@ -990,7 +990,7 @@ export default function AddShipmentModal({
                               type="text"
                               aria-label="Rechercher pays d'origine"
                               placeholder="Rechercher ou ajouter..."
-                              className="w-full pl-10 pr-4 py-2.5 rounded-xl border-gray-200 bg-white focus:border-primary focus:ring-primary text-sm transition-all shadow-sm"
+                              className="w-full pl-10 pr-4 py-2.5 rounded-xl border-gray-200 bg-white focus:border-primary focus:ring-primary text-base md:text-sm transition-all shadow-sm"
                               value={
                                 showOriginDropdown
                                   ? searchTermOrigin
@@ -1018,7 +1018,7 @@ export default function AddShipmentModal({
                                   <button
                                     key={loc.id}
                                     type="button"
-                                    className="w-full text-left px-4 py-2 hover:bg-gray-50 text-sm text-gray-700"
+                                    className="w-full text-left px-4 py-2 hover:bg-gray-50 text-sm text-gray-700 min-h-[44px]"
                                     onClick={() => {
                                       setFormData({
                                         ...formData,
@@ -1032,7 +1032,7 @@ export default function AddShipmentModal({
                                 ))}
                                 <button
                                   type="button"
-                                  className="w-full text-left px-4 py-2 hover:bg-blue-50 text-sm text-blue-600 font-medium border-t border-gray-100 flex items-center gap-2"
+                                  className="w-full text-left px-4 py-2 hover:bg-blue-50 text-sm text-blue-600 font-medium border-t border-gray-100 flex items-center gap-2 min-h-[44px]"
                                   onClick={() => {
                                     setLocationFieldToAdd("origin");
                                     setIsAddLocationModalOpen(true);
@@ -1058,7 +1058,7 @@ export default function AddShipmentModal({
                               type="text"
                               aria-label="Rechercher pays de destination"
                               placeholder="Rechercher ou ajouter..."
-                              className="w-full pl-10 pr-4 py-2.5 rounded-xl border-gray-200 bg-white focus:border-primary focus:ring-primary text-sm transition-all shadow-sm"
+                              className="w-full pl-10 pr-4 py-2.5 rounded-xl border-gray-200 bg-white focus:border-primary focus:ring-primary text-base md:text-sm transition-all shadow-sm"
                               value={
                                 showDestDropdown
                                   ? searchTermDest
@@ -1086,7 +1086,7 @@ export default function AddShipmentModal({
                                   <button
                                     key={loc.id}
                                     type="button"
-                                    className="w-full text-left px-4 py-2 hover:bg-gray-50 text-sm text-gray-700"
+                                    className="w-full text-left px-4 py-2 hover:bg-gray-50 text-sm text-gray-700 min-h-[44px]"
                                     onClick={() => {
                                       setFormData({
                                         ...formData,
@@ -1100,7 +1100,7 @@ export default function AddShipmentModal({
                                 ))}
                                 <button
                                   type="button"
-                                  className="w-full text-left px-4 py-2 hover:bg-blue-50 text-sm text-blue-600 font-medium border-t border-gray-100 flex items-center gap-2"
+                                  className="w-full text-left px-4 py-2 hover:bg-blue-50 text-sm text-blue-600 font-medium border-t border-gray-100 flex items-center gap-2 min-h-[44px]"
                                   onClick={() => {
                                     setLocationFieldToAdd("destination");
                                     setIsAddLocationModalOpen(true);
@@ -1159,7 +1159,7 @@ export default function AddShipmentModal({
                                   <button
                                     type="button"
                                     onClick={toggleAllTypes}
-                                    className="text-xs font-bold text-primary hover:text-blue-700 w-full text-left px-2 py-1"
+                                    className="text-xs font-bold text-primary hover:text-blue-700 w-full text-left px-2 py-1 min-h-[44px]"
                                   >
                                     {formData.cargo_types.length ===
                                       packageTypes.length
@@ -1187,7 +1187,7 @@ export default function AddShipmentModal({
                                       </div>
                                       <input
                                         type="checkbox"
-                                        className="hidden"
+                                        className="hidden text-base"
                                         checked={formData.cargo_types.includes(
                                           type.value,
                                         )}
@@ -1200,7 +1200,7 @@ export default function AddShipmentModal({
                                   ))}
                                   <button
                                     type="button"
-                                    className="w-full text-left px-2 py-2 hover:bg-blue-50 text-sm text-blue-600 font-medium border-t border-gray-100 flex items-center gap-2 rounded-lg"
+                                    className="w-full text-left px-2 py-2 hover:bg-blue-50 text-sm text-blue-600 font-medium border-t border-gray-100 flex items-center gap-2 rounded-lg min-h-[44px]"
                                     onClick={() => {
                                       setIsAddPackageTypeModalOpen(true);
                                       setIsTypeDropdownOpen(false);
@@ -1227,7 +1227,7 @@ export default function AddShipmentModal({
                               min="0.1"
                               step="0.1"
                               required
-                              className="w-full rounded-xl border-gray-200 bg-white focus:border-primary focus:ring-primary p-2.5 text-sm transition-all shadow-sm"
+                              className="w-full rounded-xl border-gray-200 bg-white focus:border-primary focus:ring-primary p-2.5 text-base md:text-sm transition-all shadow-sm"
                               value={formData.cargo_weight || ""}
                               onChange={(e) =>
                                 setFormData({
@@ -1254,7 +1254,7 @@ export default function AddShipmentModal({
                               min="0.1"
                               step="0.01"
                               required
-                              className="w-full rounded-xl border-gray-200 bg-white focus:border-primary focus:ring-primary p-2.5 text-sm transition-all shadow-sm"
+                              className="w-full rounded-xl border-gray-200 bg-white focus:border-primary focus:ring-primary p-2.5 text-base md:text-sm transition-all shadow-sm"
                               value={formData.cargo_volume || ""}
                               onChange={(e) =>
                                 setFormData({
@@ -1291,7 +1291,7 @@ export default function AddShipmentModal({
                         aria-label={`Prix par ${formData.transport_mode === "sea" ? "CBM" : "kg"} `}
                         min="0"
                         required
-                        className="w-full rounded-xl border-gray-200 bg-white focus:border-primary focus:ring-primary p-2.5 text-sm transition-all shadow-sm"
+                        className="w-full rounded-xl border-gray-200 bg-white focus:border-primary focus:ring-primary p-2.5 text-base md:text-sm transition-all shadow-sm"
                         value={formData.price}
                         onChange={(e) =>
                           setFormData({
@@ -1320,7 +1320,7 @@ export default function AddShipmentModal({
                       type="text"
                       readOnly
                       aria-label="Durée de transit"
-                      className="w-full rounded-xl border-gray-200 bg-gray-100 text-gray-500 cursor-not-allowed focus:border-gray-200 focus:ring-0 p-2.5 text-sm transition-all shadow-sm"
+                      className="w-full rounded-xl border-gray-200 bg-gray-100 text-gray-500 cursor-not-allowed focus:border-gray-200 focus:ring-0 p-2.5 text-base md:text-sm transition-all shadow-sm"
                       value={formData.transit_duration}
                     />
                   </div>
@@ -1332,7 +1332,7 @@ export default function AddShipmentModal({
                       type="date"
                       required
                       aria-label="Date de départ"
-                      className="w-full rounded-xl border-gray-200 bg-white focus:border-primary focus:ring-primary p-2.5 text-sm transition-all shadow-sm"
+                      className="w-full rounded-xl border-gray-200 bg-white focus:border-primary focus:ring-primary p-2.5 text-base md:text-sm transition-all shadow-sm"
                       value={formData.departure_date}
                       onChange={(e) =>
                         setFormData({
@@ -1350,7 +1350,7 @@ export default function AddShipmentModal({
                       type="date"
                       required
                       aria-label="Date d'arrivée estimée"
-                      className="w-full rounded-xl border-gray-200 bg-white focus:border-primary focus:ring-primary p-2.5 text-sm transition-all shadow-sm"
+                      className="w-full rounded-xl border-gray-200 bg-white focus:border-primary focus:ring-primary p-2.5 text-base md:text-sm transition-all shadow-sm"
                       value={formData.arrival_estimated_date}
                       onChange={(e) =>
                         setFormData({
@@ -1366,7 +1366,7 @@ export default function AddShipmentModal({
               <div className="flex gap-4 pt-4">
                 <button
                   type="button"
-                  className="flex-1 py-3 rounded-xl border border-gray-200 text-gray-700 font-bold hover:bg-gray-50 transition-colors"
+                  className="flex-1 py-3 rounded-xl border border-gray-200 text-gray-700 font-bold hover:bg-gray-50 transition-colors min-h-[44px]"
                   onClick={onClose}
                 >
                   Annuler
@@ -1374,7 +1374,7 @@ export default function AddShipmentModal({
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex-1 py-3 rounded-xl bg-primary text-white font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30 disabled:opacity-70 disabled:cursor-not-allowed"
+                  className="flex-1 py-3 rounded-xl bg-primary text-white font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30 disabled:opacity-70 disabled:cursor-not-allowed min-h-[44px]"
                 >
                   {loading ? "Création..." : "Créer l'expédition"}
                 </button>
@@ -1386,7 +1386,7 @@ export default function AddShipmentModal({
       {/* Add Location Modal */}
       {isAddLocationModalOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-xl">
+          <div className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-xl max-h-[90vh] overflow-y-auto">
             <h3 className="text-lg font-bold text-gray-900 mb-4">
               Ajouter une nouvelle destination
             </h3>
@@ -1400,7 +1400,7 @@ export default function AddShipmentModal({
                   aria-label="Nom du nouveau pays"
                   autoFocus
                   required
-                  className="w-full rounded-xl border-gray-200 focus:border-primary focus:ring-primary p-2.5"
+                  className="w-full rounded-xl border-gray-200 focus:border-primary focus:ring-primary p-2.5 text-base"
                   value={newLocationName}
                   onChange={(e) => setNewLocationName(e.target.value)}
                 />
@@ -1419,7 +1419,7 @@ export default function AddShipmentModal({
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors"
+                  className="px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors min-h-[44px]"
                 >
                   Ajouter
                 </button>
@@ -1431,7 +1431,7 @@ export default function AddShipmentModal({
       {/* Add Package Type Modal */}
       {isAddPackageTypeModalOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-xl">
+          <div className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-xl max-h-[90vh] overflow-y-auto">
             <h3 className="text-lg font-bold text-gray-900 mb-4">
               Ajouter un Type de Colis
             </h3>
@@ -1445,7 +1445,7 @@ export default function AddShipmentModal({
                   aria-label="Nom du nouveau type de colis"
                   autoFocus
                   required
-                  className="w-full rounded-xl border-gray-200 focus:border-primary focus:ring-primary p-2.5"
+                  className="w-full rounded-xl border-gray-200 focus:border-primary focus:ring-primary p-2.5 text-base"
                   value={newPackageTypeName}
                   onChange={(e) => setNewPackageTypeName(e.target.value)}
                 />
@@ -1463,7 +1463,7 @@ export default function AddShipmentModal({
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors"
+                  className="px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors min-h-[44px]"
                 >
                   Ajouter
                 </button>

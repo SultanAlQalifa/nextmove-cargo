@@ -68,7 +68,7 @@ export default function QRScannerModal({
           <button
             onClick={onClose}
             aria-label="Fermer le scanner"
-            className="p-2 hover:bg-slate-100 dark:hover:bg-gray-800 rounded-full transition-colors text-slate-500"
+            className="p-2 hover:bg-slate-100 dark:hover:bg-gray-800 rounded-full transition-colors text-slate-500 min-h-[44px]"
           >
             <X size={20} />
           </button>

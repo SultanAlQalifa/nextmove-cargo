@@ -218,7 +218,7 @@ export default function AIChatBubble({ externalOpen, onClose }: AIChatBubbleProp
                                             onChange={handleFileSelect}
                                             accept="image/*"
                                             title="Joindre un document"
-                                            className="hidden"
+                                            className="hidden text-base"
                                         />
                                         {isOCRActive && (
                                             <button
@@ -241,7 +241,7 @@ export default function AIChatBubble({ externalOpen, onClose }: AIChatBubbleProp
                                             type="submit"
                                             disabled={loading || (!input.trim() && !attachedImage)}
                                             title="Envoyer le message"
-                                            className="p-2.5 bg-primary text-white rounded-xl hover:bg-primary-600 transition-all shadow-lg shadow-primary/20 disabled:opacity-50 disabled:shadow-none"
+                                            className="p-2.5 bg-primary text-white rounded-xl hover:bg-primary-600 transition-all shadow-lg shadow-primary/20 disabled:opacity-50 disabled:shadow-none min-h-[44px]"
                                         >
                                             <Send className="w-5 h-5" />
                                         </button>

@@ -198,7 +198,7 @@ export default function AdminTestimonials() {
                         <input
                             type="text"
                             placeholder="Rechercher un témoignage..."
-                            className="w-full pl-10 pr-4 py-2 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-primary text-sm"
+                            className="w-full pl-10 pr-4 py-2 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-primary text-base md:text-sm"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
@@ -325,7 +325,7 @@ export default function AdminTestimonials() {
                                     <input
                                         required
                                         type="text"
-                                        className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border-none rounded-xl focus:ring-2 focus:ring-primary"
+                                        className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border-none rounded-xl focus:ring-2 focus:ring-primary text-base"
                                         placeholder="Ex: Jean Dupont"
                                         value={formData.name}
                                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -337,7 +337,7 @@ export default function AdminTestimonials() {
                                     </label>
                                     <input
                                         type="text"
-                                        className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border-none rounded-xl focus:ring-2 focus:ring-primary"
+                                        className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border-none rounded-xl focus:ring-2 focus:ring-primary text-base"
                                         placeholder="Ex: Importateur Textile"
                                         value={formData.role}
                                         onChange={(e) => setFormData({ ...formData, role: e.target.value })}
@@ -366,7 +366,7 @@ export default function AdminTestimonials() {
                                     </label>
                                     <select
                                         id="testimonial-rating"
-                                        className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border-none rounded-xl focus:ring-2 focus:ring-primary"
+                                        className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border-none rounded-xl focus:ring-2 focus:ring-primary text-base"
                                         value={formData.rating}
                                         title="Sélectionner une note"
                                         onChange={(e) =>
@@ -387,7 +387,7 @@ export default function AdminTestimonials() {
                                     <input
                                         id="testimonial-order"
                                         type="number"
-                                        className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border-none rounded-xl focus:ring-2 focus:ring-primary"
+                                        className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border-none rounded-xl focus:ring-2 focus:ring-primary text-base"
                                         value={formData.display_order}
                                         aria-label="Ordre d'affichage"
                                         placeholder="0"
@@ -404,7 +404,7 @@ export default function AdminTestimonials() {
                                         <label className="flex items-center gap-2 cursor-pointer">
                                             <input
                                                 type="checkbox"
-                                                className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary"
+                                                className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary text-base"
                                                 checked={formData.is_active}
                                                 onChange={(e) =>
                                                     setFormData({ ...formData, is_active: e.target.checked })
@@ -427,7 +427,7 @@ export default function AdminTestimonials() {
                                 <button
                                     type="submit"
                                     disabled={isSubmitting}
-                                    className="px-8 py-2.5 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition shadow-lg shadow-primary/20 disabled:opacity-50"
+                                    className="px-8 py-2.5 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition shadow-lg shadow-primary/20 disabled:opacity-50 min-h-[44px]"
                                 >
                                     {isSubmitting
                                         ? "Enregistrement..."

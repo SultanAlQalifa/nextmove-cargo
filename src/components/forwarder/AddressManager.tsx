@@ -202,7 +202,7 @@ export default function AddressManager() {
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Type d'adresse</label>
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <button
                                         type="button"
                                         onClick={() => setFormData({ ...formData, type: 'collection' })}
@@ -224,20 +224,20 @@ export default function AddressManager() {
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Pays</label>
-                                    <input required type="text" placeholder="Chine" className="w-full px-4 py-2 border rounded-xl" value={formData.country || ''} onChange={e => setFormData({ ...formData, country: e.target.value })} />
+                                    <input required type="text" placeholder="Chine" className="w-full px-4 py-2 border rounded-xl text-base" value={formData.country || ''} onChange={e => setFormData({ ...formData, country: e.target.value })} />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Ville</label>
-                                    <input required type="text" placeholder="Guangzhou" className="w-full px-4 py-2 border rounded-xl" value={formData.city || ''} onChange={e => setFormData({ ...formData, city: e.target.value })} />
+                                    <input required type="text" placeholder="Guangzhou" className="w-full px-4 py-2 border rounded-xl text-base" value={formData.city || ''} onChange={e => setFormData({ ...formData, city: e.target.value })} />
                                 </div>
                             </div>
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Nom du lieu</label>
-                                <input required type="text" placeholder="Ex: Entrepôt Baiyun District" className="w-full px-4 py-2 border rounded-xl" value={formData.name || ''} onChange={e => setFormData({ ...formData, name: e.target.value })} />
+                                <input required type="text" placeholder="Ex: Entrepôt Baiyun District" className="w-full px-4 py-2 border rounded-xl text-base" value={formData.name || ''} onChange={e => setFormData({ ...formData, name: e.target.value })} />
                             </div>
 
                             <div>
@@ -245,14 +245,14 @@ export default function AddressManager() {
                                 <textarea required rows={3} placeholder="Rue, Bâtiment, Etage..." className="w-full px-4 py-2 border rounded-xl" value={formData.address_line1 || ''} onChange={e => setFormData({ ...formData, address_line1: e.target.value })} />
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Contact (Nom)</label>
-                                    <input type="text" placeholder="Mr. Woo" className="w-full px-4 py-2 border rounded-xl" value={formData.contact_name || ''} onChange={e => setFormData({ ...formData, contact_name: e.target.value })} />
+                                    <input type="text" placeholder="Mr. Woo" className="w-full px-4 py-2 border rounded-xl text-base" value={formData.contact_name || ''} onChange={e => setFormData({ ...formData, contact_name: e.target.value })} />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
-                                    <input type="text" placeholder="+86 123..." className="w-full px-4 py-2 border rounded-xl" value={formData.contact_phone || ''} onChange={e => setFormData({ ...formData, contact_phone: e.target.value })} />
+                                    <input type="text" placeholder="+86 123..." className="w-full px-4 py-2 border rounded-xl text-base" value={formData.contact_phone || ''} onChange={e => setFormData({ ...formData, contact_phone: e.target.value })} />
                                 </div>
                             </div>
 
@@ -262,7 +262,7 @@ export default function AddressManager() {
                             </div>
 
                             <div className="pt-4">
-                                <button type="submit" className="w-full py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary/90 transition-colors">
+                                <button type="submit" className="w-full py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary/90 transition-colors min-h-[44px]">
                                     {editingAddress ? "Enregistrer les modifications" : "Ajouter cette adresse"}
                                 </button>
                             </div>

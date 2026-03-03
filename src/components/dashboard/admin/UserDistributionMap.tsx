@@ -121,7 +121,7 @@ export const UserDistributionMap: React.FC<UserDistributionMapProps> = ({
               onClick={handleZoomIn}
               title="Zoom In"
               aria-label="Zoom In"
-              className="p-2 bg-white dark:bg-slate-800 rounded-lg shadow-lg hover:bg-slate-50 transition-colors border border-slate-100 dark:border-slate-700 text-slate-600 dark:text-slate-300"
+              className="p-2 bg-white dark:bg-slate-800 rounded-lg shadow-lg hover:bg-slate-50 transition-colors border border-slate-100 dark:border-slate-700 text-slate-600 dark:text-slate-300 min-h-[44px]"
             >
               <ZoomIn className="w-4 h-4" />
             </button>
@@ -129,7 +129,7 @@ export const UserDistributionMap: React.FC<UserDistributionMapProps> = ({
               onClick={handleZoomOut}
               title="Zoom Out"
               aria-label="Zoom Out"
-              className="p-2 bg-white dark:bg-slate-800 rounded-lg shadow-lg hover:bg-slate-50 transition-colors border border-slate-100 dark:border-slate-700 text-slate-600 dark:text-slate-300"
+              className="p-2 bg-white dark:bg-slate-800 rounded-lg shadow-lg hover:bg-slate-50 transition-colors border border-slate-100 dark:border-slate-700 text-slate-600 dark:text-slate-300 min-h-[44px]"
             >
               <ZoomOut className="w-4 h-4" />
             </button>

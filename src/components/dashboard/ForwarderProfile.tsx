@@ -63,7 +63,7 @@ export default function ForwarderProfile() {
             type="text"
             disabled
             value={profile?.company_name || ""}
-            className="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm"
+            className="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm text-base"
           />
           <p className="text-xs text-gray-500 mt-1">
             Managed in account settings
@@ -103,7 +103,7 @@ export default function ForwarderProfile() {
           </button>
           <button
             type="submit"
-            className="bg-primary text-white px-4 py-2 rounded-md hover:bg-blue-700"
+            className="bg-primary text-white px-4 py-2 rounded-md hover:bg-blue-700 min-h-[44px]"
           >
             Save Profile
           </button>

@@ -64,7 +64,7 @@ export default function AddStaffModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-xl animate-scale-in">
+      <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-xl animate-scale-in max-h-[90vh] overflow-y-auto">
         <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
           <h3 className="font-bold text-gray-900">
             {isEditMode ? "Modifier le membre" : "Ajouter un membre"}
@@ -72,7 +72,7 @@ export default function AddStaffModal({
           <button
             onClick={onClose}
             aria-label="Fermer la modale"
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-gray-400 hover:text-gray-600 transition-colors min-h-[44px]"
           >
             <X className="w-5 h-5" />
           </button>
@@ -125,7 +125,7 @@ export default function AddStaffModal({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label
                 htmlFor="staff_role"
@@ -182,14 +182,14 @@ export default function AddStaffModal({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-xl hover:bg-gray-200 transition-colors"
+              className="flex-1 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-xl hover:bg-gray-200 transition-colors min-h-[44px]"
             >
               Annuler
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 py-2.5 bg-primary text-white font-medium rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              className="flex-1 py-2.5 bg-primary text-white font-medium rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 min-h-[44px]"
             >
               {loading ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />

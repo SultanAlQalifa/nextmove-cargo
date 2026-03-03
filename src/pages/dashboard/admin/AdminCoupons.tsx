@@ -219,7 +219,7 @@ export default function AdminCoupons() {
                           <PlayCircle className="w-4 h-4" />
                         )}
                       </button>
-                      <button className="text-gray-400 hover:text-red-600 transition-colors p-1 hover:bg-red-50 rounded-lg">
+                      <button className="text-gray-400 hover:text-red-600 transition-colors p-1 hover:bg-red-50 rounded-lg min-h-[44px]">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -269,7 +269,7 @@ export default function AdminCoupons() {
                   placeholder="Réduction d'été"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Type
@@ -307,7 +307,7 @@ export default function AdminCoupons() {
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Limite d'usage
@@ -346,7 +346,7 @@ export default function AdminCoupons() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-colors"
+                  className="flex-1 py-2.5 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-colors min-h-[44px]"
                 >
                   Créer
                 </button>

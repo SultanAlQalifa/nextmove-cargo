@@ -111,7 +111,7 @@ export default function BulkUploadModal({
               </h3>
               <button
                 onClick={onClose}
-                className="text-gray-400 hover:text-gray-500"
+                className="text-gray-400 hover:text-gray-500 min-h-[44px]"
                 aria-label="Fermer"
               >
                 <X className="w-6 h-6" />
@@ -150,7 +150,7 @@ export default function BulkUploadModal({
                   type="file"
                   accept=".xlsx, .xls"
                   onChange={handleFileChange}
-                  className="hidden"
+                  className="hidden text-base"
                   id="file-upload"
                 />
                 <label
@@ -172,7 +172,7 @@ export default function BulkUploadModal({
               <div className="flex justify-between items-center text-sm">
                 <button
                   onClick={handleDownloadTemplate}
-                  className="text-primary hover:text-blue-700 font-medium"
+                  className="text-primary hover:text-blue-700 font-medium min-h-[44px]"
                 >
                   Télécharger le modèle Excel
                 </button>
@@ -188,13 +188,13 @@ export default function BulkUploadModal({
                   type="button"
                   onClick={handleUpload}
                   disabled={loading || !file}
-                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:col-start-2 sm:text-sm disabled:opacity-50"
+                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:col-start-2 sm:text-sm disabled:opacity-50 min-h-[44px]"
                 >
                   {loading ? "Importation..." : "Importer"}
                 </button>
                 <button
                   type="button"
-                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:mt-0 sm:col-start-1 sm:text-sm"
+                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:mt-0 sm:col-start-1 sm:text-sm min-h-[44px]"
                   onClick={onClose}
                 >
                   Annuler

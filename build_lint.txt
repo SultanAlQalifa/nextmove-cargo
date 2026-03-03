@@ -1,0 +1,7 @@
+
+> nextmove-cargo@0.1.0 lint
+> eslint .
+
+(node:82070) ESLintIgnoreWarning: The ".eslintignore" file is no longer supported. Switch to using the "ignores" property in "eslint.config.js": https://eslint.org/docs/latest/use/configure/migration-guide#ignoring-files
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:82070) ESLintEnvWarning: /* eslint-env */ comments are no longer recognized when linting with flat config and will be reported as errors as of v10.0.0. Replace them with /* global */ comments or define globals in your config file. See https://eslint.org/docs/latest/use/configure/migration-guide#eslint-env-configuration-comments for details. Found in /Users/cheikhabdoulkhadredjeylanidjitte/nextmove-cargo/scripts/check_queue.js at line 1.

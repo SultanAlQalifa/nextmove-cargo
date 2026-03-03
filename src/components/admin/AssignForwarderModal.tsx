@@ -101,7 +101,7 @@ export default function AssignForwarderModal({
                             <button
                                 onClick={onClose}
                                 title="Fermer"
-                                className="text-gray-400 hover:text-gray-500 transition-colors"
+                                className="text-gray-400 hover:text-gray-500 transition-colors min-h-[44px]"
                             >
                                 <X className="h-5 w-5" />
                             </button>
@@ -119,14 +119,14 @@ export default function AssignForwarderModal({
                             <button
                                 type="button"
                                 title="Rechercher"
-                                className="absolute left-3 top-1/2 -translate-y-1/2"
+                                className="absolute left-3 top-1/2 -translate-y-1/2 min-h-[44px]"
                             >
                                 <Search className="h-4 w-4 text-gray-400" />
                             </button>
                             <input
                                 type="text"
                                 placeholder="Rechercher un prestataire..."
-                                className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                                className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-base md:text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
@@ -191,7 +191,7 @@ export default function AssignForwarderModal({
                         <button
                             onClick={onClose}
                             disabled={submitting}
-                            className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                            className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm min-h-[44px]"
                         >
                             Annuler
                         </button>

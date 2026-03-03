@@ -114,13 +114,13 @@ export default function NotificationBell() {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-3 w-80 sm:w-96 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-gray-100 dark:border-slate-700 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
+        <div className="absolute right-0 mt-3 w-80 sm:w-full max-w-sm bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-gray-100 dark:border-slate-700 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
           <div className="p-4 border-b border-gray-50 dark:border-slate-700 flex items-center justify-between bg-gray-50/50 dark:bg-slate-800/50 backdrop-blur-sm">
             <h3 className="font-bold text-gray-900 dark:text-white">Notifications</h3>
             {unreadCount > 0 && (
               <button
                 onClick={handleMarkAllAsRead}
-                className="text-xs font-medium text-primary hover:text-primary/80 flex items-center gap-1 px-2 py-1 hover:bg-white rounded-lg transition-colors"
+                className="text-xs font-medium text-primary hover:text-primary/80 flex items-center gap-1 px-2 py-1 hover:bg-white rounded-lg transition-colors min-h-[44px]"
               >
                 <Check className="w-3 h-3" />
                 Tout marquer lu

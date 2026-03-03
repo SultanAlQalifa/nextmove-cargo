@@ -28,10 +28,10 @@ export default function NewsletterModal({ onClose }: NewsletterModalProps) {
 
     return (
         <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl animate-in fade-in zoom-in duration-200 overflow-hidden relative">
+            <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl animate-in fade-in zoom-in duration-200 overflow-hidden relative max-h-[90vh] overflow-y-auto">
                 <button
                     onClick={onClose}
-                    className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full transition-colors z-10"
+                    className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full transition-colors z-10 min-h-[44px]"
                     title="Fermer"
                 >
                     <X className="w-5 h-5 text-gray-500" />
@@ -48,7 +48,7 @@ export default function NewsletterModal({ onClose }: NewsletterModalProps) {
                         </p>
                         <button
                             onClick={onClose}
-                            className="px-6 py-2 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 transition-colors"
+                            className="px-6 py-2 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 transition-colors min-h-[44px]"
                         >
                             Fermer
                         </button>
@@ -81,7 +81,7 @@ export default function NewsletterModal({ onClose }: NewsletterModalProps) {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="w-full py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20 disabled:opacity-70"
+                                className="w-full py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20 disabled:opacity-70 min-h-[44px]"
                             >
                                 {loading ? "Inscription..." : "S'abonner Maintenant"}
                             </button>

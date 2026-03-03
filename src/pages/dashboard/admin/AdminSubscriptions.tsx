@@ -566,7 +566,7 @@ export default function AdminSubscriptions() {
                   </div>
                 </div>
 
-                <div className="p-4 bg-gray-50 border-t border-gray-100 grid grid-cols-2 gap-3">
+                <div className="p-4 bg-gray-50 border-t border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-3">
                   <button
                     onClick={() => openEditModal(plan)}
                     className="flex items-center justify-center gap-2 py-2 px-4 bg-white border border-gray-200 text-gray-700 font-medium rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all text-sm"

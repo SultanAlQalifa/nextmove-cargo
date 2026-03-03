@@ -98,7 +98,7 @@ export default function AddClientModal({
               <button
                 onClick={onClose}
                 aria-label="Fermer"
-                className="text-gray-400 hover:text-gray-500 p-2 rounded-full hover:bg-gray-100 transition-colors"
+                className="text-gray-400 hover:text-gray-500 p-2 rounded-full hover:bg-gray-100 transition-colors min-h-[44px]"
               >
                 <X className="w-6 h-6" />
               </button>

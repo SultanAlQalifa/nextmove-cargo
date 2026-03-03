@@ -636,7 +636,7 @@ export default function AdminAcademy() {
                                         placeholder="Ex: Maîtrisez l'importation de A à Z..."
                                     />
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Catégorie</label>
                                         <select
@@ -720,7 +720,7 @@ export default function AdminAcademy() {
                                                 title="Upload cover image"
                                                 type="file"
                                                 id="cover-upload"
-                                                className="hidden"
+                                                className="hidden text-base"
                                                 accept="image/*"
                                                 onChange={(e) => {
                                                     if (e.target.files && e.target.files.length > 0) {
@@ -917,7 +917,7 @@ export default function AdminAcademy() {
                                             title="Upload lesson content"
                                             type="file"
                                             id="lesson-upload"
-                                            className="hidden"
+                                            className="hidden text-base"
                                             multiple
                                             onChange={(e) => {
                                                 if (e.target.files && e.target.files.length > 0) {
@@ -1015,7 +1015,7 @@ export default function AdminAcademy() {
                                             type="button"
                                             onClick={handleSmartSave}
                                             disabled={saving}
-                                            className="flex-[2] py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-black text-lg hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl flex items-center justify-center gap-3 disabled:opacity-50"
+                                            className="flex-[2] py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-black text-lg hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl flex items-center justify-center gap-3 disabled:opacity-50 min-h-[44px]"
                                         >
                                             {saving ? (
                                                 <>
@@ -1097,7 +1097,7 @@ export default function AdminAcademy() {
                 </div>
                 <button
                     onClick={handleInitCreateCourse}
-                    className="flex items-center gap-2 px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold hover:shadow-lg transition-all active:scale-95"
+                    className="flex items-center gap-2 px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold hover:shadow-lg transition-all active:scale-95 min-h-[44px]"
                 >
                     <Plus className="w-5 h-5" /> Nouveau Cours
                 </button>
@@ -1193,7 +1193,7 @@ export default function AdminAcademy() {
                         <input
                             type="text"
                             placeholder="Rechercher..."
-                            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm font-medium focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all"
+                            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-base md:text-sm font-medium focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all"
                             title="Rechercher dans l'académie"
                             aria-label="Rechercher des cours ou des étudiants"
                         />
@@ -1248,7 +1248,7 @@ export default function AdminAcademy() {
                                                     </button>
                                                     <button
                                                         onClick={handleBulkDelete}
-                                                        className="p-1.5 text-slate-500 hover:text-red-600 transition-colors"
+                                                        className="p-1.5 text-slate-500 hover:text-red-600 transition-colors min-h-[44px]"
                                                         title="Supprimer la sélection"
                                                     >
                                                         <Trash className="w-4 h-4" />
@@ -1378,7 +1378,7 @@ export default function AdminAcademy() {
                                         <p className="text-slate-500 max-w-sm mx-auto mb-6">Commencez par créer votre premier cours pour partager votre expertise avec le monde.</p>
                                         <button
                                             onClick={handleInitCreateCourse}
-                                            className="px-6 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold hover:shadow-lg hover:shadow-orange-500/20 active:scale-95 transition-all"
+                                            className="px-6 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold hover:shadow-lg hover:shadow-orange-500/20 active:scale-95 transition-all min-h-[44px]"
                                         >
                                             Créer un cours maintenant
                                         </button>
@@ -1684,7 +1684,7 @@ export default function AdminAcademy() {
                                         <button
                                             onClick={handleSaveEmailSettings}
                                             disabled={isLoadingSettings}
-                                            className="px-8 py-4 bg-indigo-600 text-white rounded-2xl font-black text-sm shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition-all flex items-center gap-2 disabled:opacity-50"
+                                            className="px-8 py-4 bg-indigo-600 text-white rounded-2xl font-black text-sm shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition-all flex items-center gap-2 disabled:opacity-50 min-h-[44px]"
                                         >
                                             <Save className="w-4 h-4" /> {isLoadingSettings ? "Enregistrement..." : "Enregistrer les réglages"}
                                         </button>
@@ -1843,7 +1843,7 @@ export default function AdminAcademy() {
                             </div>
 
                             <div className="flex-1 overflow-y-auto p-8 space-y-8">
-                                <div className="grid grid-cols-2 gap-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
                                         <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Score de réussite (%)</label>
                                         <input
@@ -1932,7 +1932,7 @@ export default function AdminAcademy() {
 
                                     <button
                                         onClick={handleAddQuizQuestion}
-                                        className="w-full py-4 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-3xl text-sm font-bold text-slate-400 hover:border-orange-500 hover:text-orange-500 transition-all flex items-center justify-center gap-2"
+                                        className="w-full py-4 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-3xl text-sm font-bold text-slate-400 hover:border-orange-500 hover:text-orange-500 transition-all flex items-center justify-center gap-2 min-h-[44px]"
                                     >
                                         <Plus className="w-4 h-4" /> Ajouter une question
                                     </button>
@@ -1949,7 +1949,7 @@ export default function AdminAcademy() {
                                 <button
                                     onClick={handleSaveQuiz}
                                     disabled={isLoadingQuiz}
-                                    className="flex-1 py-4 bg-orange-600 text-white font-black rounded-2xl shadow-lg shadow-orange-600/20 disabled:opacity-50"
+                                    className="flex-1 py-4 bg-orange-600 text-white font-black rounded-2xl shadow-lg shadow-orange-600/20 disabled:opacity-50 min-h-[44px]"
                                 >
                                     {isLoadingQuiz ? "Enregistrement..." : "Enregistrer le Quizz"}
                                 </button>
@@ -1998,7 +1998,7 @@ export default function AdminAcademy() {
                                     </button>
                                     <button
                                         onClick={handleReplySubmit}
-                                        className="flex-1 py-3 bg-indigo-600 text-white font-bold rounded-xl text-sm shadow-lg shadow-indigo-600/20"
+                                        className="flex-1 py-3 bg-indigo-600 text-white font-bold rounded-xl text-sm shadow-lg shadow-indigo-600/20 min-h-[44px]"
                                     >
                                         Envoyer la réponse
                                     </button>

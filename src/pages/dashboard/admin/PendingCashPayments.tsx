@@ -103,7 +103,7 @@ export default function PendingCashPayments() {
                 </h1>
                 <button
                     onClick={loadPendingCashPayments}
-                    className="px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 text-sm font-medium"
+                    className="px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 text-sm font-medium min-h-[44px]"
                 >
                     Actualiser
                 </button>
@@ -122,7 +122,7 @@ export default function PendingCashPayments() {
                     <p className="text-gray-500">Aucun paiement en attente de validation.</p>
                 </div>
             ) : (
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto overflow-hidden">
                     <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
                             <tr>

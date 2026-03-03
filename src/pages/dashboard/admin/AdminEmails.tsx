@@ -354,7 +354,7 @@ export default function AdminEmails() {
 
           <button
             onClick={loadHistory}
-            className="p-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors text-gray-500"
+            className="p-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors text-gray-500 min-h-[44px]"
             title="Actualiser"
           >
             <RefreshCcw
@@ -437,7 +437,7 @@ export default function AdminEmails() {
                   Ajouter un fichier
                   <input
                     type="file"
-                    className="hidden"
+                    className="hidden text-base"
                     onChange={handleFileUpload}
                     disabled={uploading}
                   />
@@ -508,7 +508,7 @@ export default function AdminEmails() {
               <button
                 type="submit"
                 disabled={sending || !subject || !messageBody}
-                className="px-8 py-2.5 bg-primary text-white font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-primary/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                className="px-8 py-2.5 bg-primary text-white font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-primary/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 min-h-[44px]"
               >
                 {sending ? (
                   <>

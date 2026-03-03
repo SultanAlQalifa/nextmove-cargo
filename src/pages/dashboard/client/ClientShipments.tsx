@@ -116,7 +116,7 @@ export default function ClientShipments() {
           <button
             onClick={loadShipments}
             title="Actualiser les expéditions"
-            className="p-2 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-xl transition-colors"
+            className="p-2 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-xl transition-colors min-h-[44px]"
           >
             <RefreshCw className={`w-5 h-5 ${loading ? "animate-spin" : ""}`} />
           </button>

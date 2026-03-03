@@ -44,7 +44,7 @@ export default function FeatureForwarderModal({
           </h3>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-500 transition-colors"
+            className="text-gray-400 hover:text-gray-500 transition-colors min-h-[44px]"
           >
             <X className="w-5 h-5" />
           </button>
@@ -61,7 +61,7 @@ export default function FeatureForwarderModal({
               <Calendar className="w-4 h-4 text-gray-400" />
               Durée
             </label>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               {["7d", "30d", "90d"].map((d) => (
                 <button
                   key={d}
@@ -100,7 +100,7 @@ export default function FeatureForwarderModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors min-h-[44px]"
             >
               Annuler
             </button>

@@ -567,11 +567,11 @@ export default function TrackingPage() {
                     </p>
 
                     <div className="flex flex-col sm:flex-row items-center gap-4 pt-4">
-                      <button className="flex items-center gap-3 px-6 py-3.5 bg-white text-slate-900 rounded-2xl font-bold hover:bg-slate-100 transition-colors">
+                      <button className="flex items-center gap-3 px-6 py-3.5 bg-white text-slate-900 rounded-2xl font-bold hover:bg-slate-100 transition-colors min-h-[44px]">
                         <img src="/assets/app-store-badge-fr.svg" alt="App Store" className="h-6 w-auto" />
                         <span className="sr-only">App Store</span>
                       </button>
-                      <button className="flex items-center gap-3 px-6 py-3.5 bg-white/10 text-white rounded-2xl font-bold border border-white/20 hover:bg-white/20 transition-colors backdrop-blur-sm">
+                      <button className="flex items-center gap-3 px-6 py-3.5 bg-white/10 text-white rounded-2xl font-bold border border-white/20 hover:bg-white/20 transition-colors backdrop-blur-sm min-h-[44px]">
                         <img src="/assets/google-play-badge.svg" alt="Google Play" className="h-6 w-auto" />
                         <span className="sr-only">Google Play</span>
                       </button>
@@ -711,7 +711,7 @@ export default function TrackingPage() {
                     <h2 className="text-4xl md:text-5xl font-black leading-tight">Vous expédiez du volume ?</h2>
                     <p className="text-xl text-slate-300 font-medium">Rejoignez le programme Business et bénéficiez de tarifs préférentiels, d'un Account Manager dédié et de délais de paiement.</p>
                   </div>
-                  <button className="flex-shrink-0 px-8 py-5 bg-white text-orange-600 rounded-2xl font-black text-lg hover:bg-orange-50 transition-colors shadow-2xl shadow-white/10">
+                  <button className="flex-shrink-0 px-8 py-5 bg-white text-orange-600 rounded-2xl font-black text-lg hover:bg-orange-50 transition-colors shadow-2xl shadow-white/10 min-h-[44px]">
                     Ouvrir un Compte Pro
                   </button>
                 </div>
@@ -736,7 +736,7 @@ export default function TrackingPage() {
 
               <div className="bg-orange-600 rounded-[3rem] p-12 sm:p-16 text-white text-center">
                 <h2 className="text-4xl font-black mb-10">NextMove en chiffres</h2>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 md:grid-cols-4 gap-8">
                   {[
                     { v: "150K+", l: "Expéditions", i: Package },
                     { v: "85+", l: "Pays", i: Globe },

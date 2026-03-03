@@ -449,7 +449,7 @@ export default function ChatWidget() {
                       id="chat-file-upload"
                       type="file"
                       accept="image/*"
-                      className="hidden"
+                      className="hidden text-base"
                       ref={fileInputRef}
                       onChange={handleFileSelect}
                     />
@@ -479,7 +479,7 @@ export default function ChatWidget() {
                     <button
                       type="submit"
                       disabled={!replyContent.trim() && !selectedImage}
-                      className="p-2 bg-primary text-white rounded-xl hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="p-2 bg-primary text-white rounded-xl hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors min-h-[44px]"
                       aria-label="Envoyer"
                       title="Envoyer"
                     >
@@ -509,7 +509,7 @@ export default function ChatWidget() {
                       <form onSubmit={handleSendMessage} className="p-3 bg-white border-t border-gray-100 flex gap-2">
                         <button
                           type="button"
-                          className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-colors"
+                          className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-colors min-h-[44px]"
                           title="Dictée Vocale (Indisponible)"
                         >
                           <Mic className="w-5 h-5 opacity-50 cursor-not-allowed" /> {/* Voice disabled for human chat for now */}
@@ -524,7 +524,7 @@ export default function ChatWidget() {
                         <button
                           type="submit"
                           disabled={!replyContent.trim()}
-                          className="p-2 bg-primary text-white rounded-xl hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          className="p-2 bg-primary text-white rounded-xl hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors min-h-[44px]"
                           aria-label="Envoyer"
                           title="Envoyer"
                         >
@@ -543,7 +543,7 @@ export default function ChatWidget() {
                           <div className="p-3 border-b border-gray-100">
                             <div className="relative">
                               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-                              <input type="text" placeholder="Rechercher..." className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-transparent rounded-xl text-base md:text-sm focus:bg-white focus:border-primary/20 focus:outline-none transition-all" />
+                              <input type="text" placeholder="Rechercher..." className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-transparent rounded-xl text-base md:text-base md:text-sm focus:bg-white focus:border-primary/20 focus:outline-none transition-all" />
                             </div>
                           </div>
                           <div className="flex-1 overflow-y-auto">

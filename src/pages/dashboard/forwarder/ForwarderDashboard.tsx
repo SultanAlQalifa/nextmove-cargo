@@ -381,7 +381,7 @@ export default function ForwarderDashboard() {
           <div className="flex justify-end mb-6">
             <button
               onClick={handleDownloadReport}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm min-h-[44px]"
             >
               <Download className="w-4 h-4" />
               Exporter le Rapport
@@ -578,7 +578,7 @@ export default function ForwarderDashboard() {
                   </p>
                 </div>
                 <button
-                  className="p-2.5 bg-slate-100/80 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-xl transition-colors backdrop-blur-md"
+                  className="p-2.5 bg-slate-100/80 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-xl transition-colors backdrop-blur-md min-h-[44px]"
                   aria-label="Plus d'options"
                 >
                   <MoreVertical className="w-5 h-5 text-slate-500 dark:text-slate-400" />
@@ -762,7 +762,7 @@ export default function ForwarderDashboard() {
                       </div>
                       <div className="text-right pl-4">
                         <button
-                          className="p-3 bg-slate-50 dark:bg-slate-900 text-slate-400 hover:text-blue-600 rounded-xl opacity-0 group-hover:opacity-100 transition-all shadow-sm border border-slate-200/50 dark:border-white/5"
+                          className="p-3 bg-slate-50 dark:bg-slate-900 text-slate-400 hover:text-blue-600 rounded-xl opacity-0 group-hover:opacity-100 transition-all shadow-sm border border-slate-200/50 dark:border-white/5 min-h-[44px]"
                           aria-label="Voir détail"
                         >
                           <ArrowUpRight className="w-4 h-4" />
@@ -785,7 +785,7 @@ export default function ForwarderDashboard() {
               <h3 className="text-xl font-black mb-8 relative z-10 tracking-tight text-white shadow-sm">
                 Actions Rapides
               </h3>
-              <div className="grid grid-cols-2 gap-3 relative z-10">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 relative z-10">
                 {[
                   {
                     icon: Package,

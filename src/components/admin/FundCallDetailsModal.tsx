@@ -69,7 +69,7 @@ export default function FundCallDetailsModal({
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors min-h-[44px]"
             title="Fermer"
           >
             <X className="w-5 h-5 text-gray-500" />

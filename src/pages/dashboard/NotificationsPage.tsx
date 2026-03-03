@@ -69,7 +69,7 @@ export default function NotificationsPage() {
           {notifications.length > 0 && (
             <button
               onClick={markAllAsRead}
-              className="text-sm text-primary hover:text-primary/80 font-medium flex items-center gap-2 px-3 py-1.5 hover:bg-primary/5 rounded-lg transition-colors"
+              className="text-sm text-primary hover:text-primary/80 font-medium flex items-center gap-2 px-3 py-1.5 hover:bg-primary/5 rounded-lg transition-colors min-h-[44px]"
             >
               <Check className="w-4 h-4" /> Tout marquer comme lu
             </button>

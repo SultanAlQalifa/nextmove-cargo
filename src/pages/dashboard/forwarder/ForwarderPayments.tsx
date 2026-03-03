@@ -275,13 +275,13 @@ export default function ForwarderPayments() {
                             ></div>
                             <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 z-20 py-1 animate-in fade-in zoom-in duration-200">
                               <button
-                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 min-h-[44px]"
                                 onClick={() => setActiveMenu(null)}
                               >
                                 <FileText className="w-4 h-4" /> Voir détails
                               </button>
                               <button
-                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 min-h-[44px]"
                                 onClick={() => setActiveMenu(null)}
                               >
                                 <Download className="w-4 h-4" /> Télécharger
@@ -289,7 +289,7 @@ export default function ForwarderPayments() {
                               </button>
                               {trx.status === "pending" && (
                                 <button
-                                  className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 font-medium border-t border-gray-50"
+                                  className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 font-medium border-t border-gray-50 min-h-[44px]"
                                   onClick={async () => {
                                     if (window.confirm("Annuler cette transaction ?")) {
                                       try {

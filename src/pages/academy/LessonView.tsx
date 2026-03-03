@@ -456,7 +456,7 @@ export default function LessonView() {
                         {isCourseCompleted && (
                             <button
                                 onClick={handleGetCertificate}
-                                className="px-4 py-2 rounded-lg bg-gradient-to-r from-amber-500 to-orange-600 text-white font-bold text-xs shadow-lg shadow-amber-500/20 hover:scale-105 transition-all flex items-center gap-2"
+                                className="px-4 py-2 rounded-lg bg-gradient-to-r from-amber-500 to-orange-600 text-white font-bold text-xs shadow-lg shadow-amber-500/20 hover:scale-105 transition-all flex items-center gap-2 min-h-[44px]"
                             >
                                 <Trophy className="w-4 h-4" /> Certificat
                             </button>
@@ -612,7 +612,7 @@ export default function LessonView() {
                                                         <button
                                                             onClick={handleSubmitQuiz}
                                                             disabled={submittingQuiz || Object.keys(quizAnswers).length < lessonQuiz.academy_quiz_questions.length}
-                                                            className="ml-auto px-8 py-3 bg-white text-slate-950 rounded-xl font-bold text-sm hover:scale-105 active:scale-95 transition-all disabled:opacity-30"
+                                                            className="ml-auto px-8 py-3 bg-white text-slate-950 rounded-xl font-bold text-sm hover:scale-105 active:scale-95 transition-all disabled:opacity-30 min-h-[44px]"
                                                         >
                                                             {submittingQuiz ? "Analyse..." : "Soumettre le Skill Test"}
                                                         </button>
@@ -638,7 +638,7 @@ export default function LessonView() {
                                                 <div className="flex justify-end gap-3 mt-4">
                                                     <button
                                                         onClick={handleAddComment}
-                                                        className="px-6 py-2 bg-sky-600 text-white rounded-lg font-bold text-xs hover:bg-sky-500 transition-colors"
+                                                        className="px-6 py-2 bg-sky-600 text-white rounded-lg font-bold text-xs hover:bg-sky-500 transition-colors min-h-[44px]"
                                                     >
                                                         Poster le Brief
                                                     </button>
@@ -754,7 +754,7 @@ export default function LessonView() {
                     onClick={handlePrevious}
                     disabled={currentIndex === 0}
                     aria-label="Leçon précédente"
-                    className="p-3 rounded-xl hover:bg-slate-800 text-slate-400 transition-all disabled:opacity-20"
+                    className="p-3 rounded-xl hover:bg-slate-800 text-slate-400 transition-all disabled:opacity-20 min-h-[44px]"
                 >
                     <ArrowLeft className="w-5 h-5" />
                 </button>
@@ -768,7 +768,7 @@ export default function LessonView() {
                     onClick={handleNext}
                     disabled={currentIndex === lessons.length - 1}
                     aria-label="Leçon suivante"
-                    className="p-3 rounded-xl bg-sky-500 text-white hover:bg-sky-400 shadow-lg shadow-sky-500/20 transition-all disabled:opacity-20 translate-x-1"
+                    className="p-3 rounded-xl bg-sky-500 text-white hover:bg-sky-400 shadow-lg shadow-sky-500/20 transition-all disabled:opacity-20 translate-x-1 min-h-[44px]"
                 >
                     <ArrowRight className="w-5 h-5" />
                 </button>
@@ -802,7 +802,7 @@ export default function LessonView() {
                             <Trophy className="w-8 h-8 text-amber-500" /> VOTRE ACCRÉDITATION ELITE
                         </h2>
                         <div className="flex gap-4">
-                            <button onClick={generatePDF} className="px-6 py-3 bg-sky-600 text-white rounded-xl font-bold hover:bg-sky-500 transition-all flex items-center gap-2">
+                            <button onClick={generatePDF} className="px-6 py-3 bg-sky-600 text-white rounded-xl font-bold hover:bg-sky-500 transition-all flex items-center gap-2 min-h-[44px]">
                                 <FileText className="w-5 h-5" /> PDF
                             </button>
                             <button

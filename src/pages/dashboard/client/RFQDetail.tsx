@@ -298,7 +298,7 @@ export default function RFQDetail() {
               </button>
               <button
                 onClick={confirmDelete}
-                className="px-4 py-2 text-sm font-bold text-red-600 bg-red-50/50 border border-red-100 rounded-xl hover:bg-red-50 hover:border-red-200 transition-all flex items-center gap-2"
+                className="px-4 py-2 text-sm font-bold text-red-600 bg-red-50/50 border border-red-100 rounded-xl hover:bg-red-50 hover:border-red-200 transition-all flex items-center gap-2 min-h-[44px]"
               >
                 <Archive className="w-4 h-4" />
                 Supprimer
@@ -310,7 +310,7 @@ export default function RFQDetail() {
             !rfq.offers.some((o) => o.status === "accepted") && (
               <button
                 onClick={confirmCancel}
-                className="px-4 py-2 text-sm font-bold text-amber-600 bg-amber-50/50 border border-amber-100 rounded-xl hover:bg-amber-50 hover:border-amber-200 transition-all flex items-center gap-2"
+                className="px-4 py-2 text-sm font-bold text-amber-600 bg-amber-50/50 border border-amber-100 rounded-xl hover:bg-amber-50 hover:border-amber-200 transition-all flex items-center gap-2 min-h-[44px]"
               >
                 <AlertCircle className="w-4 h-4" />
                 Annuler la demande
@@ -320,7 +320,7 @@ export default function RFQDetail() {
           {rfq.status === "cancelled" && (
             <button
               onClick={confirmDelete}
-              className="px-4 py-2 text-sm font-bold text-red-600 bg-red-50/50 border border-red-100 rounded-xl hover:bg-red-50 hover:border-red-200 transition-all flex items-center gap-2"
+              className="px-4 py-2 text-sm font-bold text-red-600 bg-red-50/50 border border-red-100 rounded-xl hover:bg-red-50 hover:border-red-200 transition-all flex items-center gap-2 min-h-[44px]"
             >
               <Archive className="w-4 h-4" />
               Supprimer

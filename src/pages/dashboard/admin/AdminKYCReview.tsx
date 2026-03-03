@@ -233,7 +233,7 @@ export default function AdminKYCReview() {
                                         <h4 className="flex items-center gap-2 text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">
                                             <FileText className="w-4 h-4" /> Informations Déclatées
                                         </h4>
-                                        <div className="bg-slate-50 dark:bg-gray-800/50 rounded-3xl p-6 grid grid-cols-2 gap-y-4 border border-slate-100 dark:border-gray-800">
+                                        <div className="bg-slate-50 dark:bg-gray-800/50 rounded-3xl p-6 grid grid-cols-1 md:grid-cols-2 gap-y-4 border border-slate-100 dark:border-gray-800">
                                             <div>
                                                 <p className="text-xs text-slate-500 mb-1">Prénom & Nom</p>
                                                 <p className="font-bold text-slate-900 dark:text-white uppercase">{selectedSubmission.submitted_data?.first_name} {selectedSubmission.submitted_data?.last_name}</p>

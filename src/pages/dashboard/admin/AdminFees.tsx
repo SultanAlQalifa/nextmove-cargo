@@ -320,7 +320,7 @@ export default function AdminFees() {
               </h2>
               <button
                 onClick={handleCloseModal}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="text-gray-400 hover:text-gray-600 transition-colors min-h-[44px]"
                 aria-label="Fermer"
                 title="Fermer"
               >
@@ -345,7 +345,7 @@ export default function AdminFees() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Cible
@@ -402,7 +402,7 @@ export default function AdminFees() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Type de Valeur
@@ -459,7 +459,7 @@ export default function AdminFees() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-gray-500 mb-1">
                     Min (Optionnel)
@@ -529,7 +529,7 @@ export default function AdminFees() {
                 </div>
 
                 {(formData.isRecurring || formData.category === "penalty") && (
-                  <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2">
                     <div>
                       <label className="block text-xs font-medium text-gray-500 mb-1">
                         {formData.category === "penalty"
@@ -610,13 +610,13 @@ export default function AdminFees() {
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-xl transition-colors"
+                  className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-xl transition-colors min-h-[44px]"
                 >
                   Annuler
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary/90 rounded-xl shadow-lg shadow-primary/30 transition-all flex items-center gap-2"
+                  className="px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary/90 rounded-xl shadow-lg shadow-primary/30 transition-all flex items-center gap-2 min-h-[44px]"
                 >
                   <Save className="w-4 h-4" />
                   Enregistrer

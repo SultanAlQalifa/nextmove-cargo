@@ -46,7 +46,7 @@ export default function FundCallApprovalModal({ isOpen, onClose, fundCall, reque
             {isHighValue ? <AlertTriangle className="w-5 h-5 text-amber-600" /> : <CheckCircle className={`w-5 h-5 ${isWithdrawal ? "text-purple-600" : "text-green-600"}`} />}
             {isHighValue ? "Approbation Haute Valeur" : isWithdrawal ? "Valider le Décaissement" : "Approuver le Financement"}
           </h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors" title="Fermer">
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors min-h-[44px]" title="Fermer">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -146,7 +146,7 @@ export default function FundCallApprovalModal({ isOpen, onClose, fundCall, reque
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2.5 text-gray-600 font-medium hover:bg-gray-50 rounded-xl transition-colors"
+              className="flex-1 py-2.5 text-gray-600 font-medium hover:bg-gray-50 rounded-xl transition-colors min-h-[44px]"
             >
               Annuler
             </button>

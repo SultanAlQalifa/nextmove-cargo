@@ -62,7 +62,7 @@ export default function SupportTicketDetail({
         <div className="flex items-center gap-4">
           <button
             onClick={onBack}
-            className="text-gray-500 hover:text-gray-700"
+            className="text-gray-500 hover:text-gray-700 min-h-[44px]"
           >
             <ArrowLeft size={20} />
           </button>
@@ -127,7 +127,7 @@ export default function SupportTicketDetail({
         <button
           type="submit"
           disabled={!newMessage.trim()}
-          className="bg-primary text-white p-2 rounded-md hover:bg-blue-700 disabled:opacity-50"
+          className="bg-primary text-white p-2 rounded-md hover:bg-blue-700 disabled:opacity-50 min-h-[44px]"
         >
           <Send size={20} />
         </button>

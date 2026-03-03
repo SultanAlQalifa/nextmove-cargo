@@ -624,7 +624,7 @@ export default function ForwarderRates() {
                           </span>
                         </div>
                       </div>
-                      <div className="grid grid-cols-2 gap-3 mb-3">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                         <div className="col-span-2">
                           <label className="text-xs text-gray-400">
                             Prix (FCFA)
@@ -714,7 +714,7 @@ export default function ForwarderRates() {
                           </span>
                         </div>
                       </div>
-                      <div className="grid grid-cols-2 gap-3 mb-3">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                         <div className="col-span-2">
                           <label className="text-xs text-gray-400">
                             Prix (FCFA)
@@ -818,7 +818,7 @@ export default function ForwarderRates() {
                           </span>
                         </div>
                       </div>
-                      <div className="grid grid-cols-2 gap-3 mb-3">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                         <div className="col-span-2">
                           <label className="text-xs text-gray-400">
                             Prix (FCFA)
@@ -908,7 +908,7 @@ export default function ForwarderRates() {
                           </span>
                         </div>
                       </div>
-                      <div className="grid grid-cols-2 gap-3 mb-3">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                         <div className="col-span-2">
                           <label className="text-xs text-gray-400">
                             Prix (FCFA)
@@ -983,7 +983,7 @@ export default function ForwarderRates() {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="px-6 py-2 bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors font-medium shadow-lg shadow-primary/20 flex items-center gap-2"
+                  className="px-6 py-2 bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors font-medium shadow-lg shadow-primary/20 flex items-center gap-2 min-h-[44px]"
                 >
                   {saving ? (
                     <>Entregistrement...</>

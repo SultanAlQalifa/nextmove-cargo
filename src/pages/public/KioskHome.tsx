@@ -140,7 +140,7 @@ export default function KioskHome() {
                                     <button
                                         disabled={loading}
                                         type="submit"
-                                        className="absolute right-3 top-3 bottom-3 px-6 bg-blue-600 rounded-xl font-bold text-white hover:bg-blue-500 transition-all flex items-center gap-2"
+                                        className="absolute right-3 top-3 bottom-3 px-6 bg-blue-600 rounded-xl font-bold text-white hover:bg-blue-500 transition-all flex items-center gap-2 min-h-[44px]"
                                     >
                                         {loading ? "..." : <ArrowRight className="w-6 h-6" />}
                                     </button>
@@ -148,7 +148,7 @@ export default function KioskHome() {
 
                                 <button
                                     type="button"
-                                    className="w-full py-4 border-2 border-dashed border-white/20 rounded-2xl font-bold text-white/50 flex items-center justify-center gap-3 hover:border-white/40 hover:text-white transition-all"
+                                    className="w-full py-4 border-2 border-dashed border-white/20 rounded-2xl font-bold text-white/50 flex items-center justify-center gap-3 hover:border-white/40 hover:text-white transition-all min-h-[44px]"
                                 >
                                     <Scan className="w-5 h-5" />
                                     Scanner mon Reçu

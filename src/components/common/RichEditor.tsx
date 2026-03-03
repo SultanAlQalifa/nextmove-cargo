@@ -106,7 +106,7 @@ export default function RichEditor({
             className="flex-1 px-3 py-1 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
             autoFocus
           />
-          <button onClick={handleInputSubmit} className="px-3 py-1 text-xs font-bold text-white bg-primary rounded-lg hover:bg-primary/90">
+          <button onClick={handleInputSubmit} className="px-3 py-1 text-xs font-bold text-white bg-primary rounded-lg hover:bg-primary/90 min-h-[44px]">
             OK
           </button>
           <button onClick={() => setInputMode(null)} className="px-3 py-1 text-xs font-medium text-gray-600 bg-gray-200 rounded-lg hover:bg-gray-300">

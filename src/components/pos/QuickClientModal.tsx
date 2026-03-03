@@ -47,7 +47,7 @@ export default function QuickClientModal({ isOpen, onClose, onSuccess }: QuickCl
                     </div>
                     <button
                         onClick={onClose}
-                        className="text-white/80 hover:text-white p-1 hover:bg-white/10 rounded-full transition-colors"
+                        className="text-white/80 hover:text-white p-1 hover:bg-white/10 rounded-full transition-colors min-h-[44px]"
                         title="Fermer"
                     >
                         <X className="w-6 h-6" />
@@ -114,7 +114,7 @@ export default function QuickClientModal({ isOpen, onClose, onSuccess }: QuickCl
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-lg shadow-blue-500/30 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
+                        className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-lg shadow-blue-500/30 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2 min-h-[44px]"
                     >
                         {loading ? (
                             <Loader2 className="w-5 h-5 animate-spin" />

@@ -84,7 +84,7 @@ export default function BlogPost() {
                             </div>
                         </div>
                         <button
-                            className="p-2 text-slate-400 hover:text-primary transition-colors"
+                            className="p-2 text-slate-400 hover:text-primary transition-colors min-h-[44px]"
                             title="Partager cet article"
                         >
                             <Share2 className="w-5 h-5" />

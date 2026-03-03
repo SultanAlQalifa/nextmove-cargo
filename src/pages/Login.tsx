@@ -201,7 +201,7 @@ export default function Login() {
                 <button
                   type="submit"
                   disabled={resetLoading}
-                  className="w-full py-3.5 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-500 transition-all duration-200 shadow-lg shadow-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-0.5"
+                  className="w-full py-3.5 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-500 transition-all duration-200 shadow-lg shadow-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-0.5 min-h-[44px]"
                 >
                   {resetLoading ? t("auth.sending") : t("auth.sendLink")}
                 </button>
@@ -290,7 +290,7 @@ export default function Login() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mx-auto w-full max-w-sm lg:w-96"
+            className="mx-auto w-full max-w-sm lg:w-full max-w-sm"
           >
             <div className="lg:hidden mb-10 text-center">
               <span className="text-3xl font-black text-blue-600 tracking-tighter">
@@ -340,7 +340,7 @@ export default function Login() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2 bg-slate-200/50 dark:bg-slate-800/50 p-1.5 rounded-2xl relative">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 bg-slate-200/50 dark:bg-slate-800/50 p-1.5 rounded-2xl relative">
                     <motion.div
                       layoutId="authToggle"
                       className="absolute inset-1.5 w-[calc(50%-6px)] bg-white dark:bg-slate-700 rounded-xl shadow-lg border border-slate-100 dark:border-slate-600"
@@ -453,7 +453,7 @@ export default function Login() {
                               {resendTimer > 0 ? (
                                 <span className="text-[11px] font-bold text-slate-400">{resendTimer}S RESTANTES</span>
                               ) : (
-                                <button type="button" onClick={sendOtp} className="text-[11px] font-bold text-blue-600 hover:underline tracking-wider">RENVOYER LE CODE</button>
+                                <button type="button" onClick={sendOtp} className="text-[11px] font-bold text-blue-600 hover:underline tracking-wider min-h-[44px]">RENVOYER LE CODE</button>
                               )}
                             </div>
                           </div>
@@ -474,7 +474,7 @@ export default function Login() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full flex justify-center items-center py-4 px-4 border border-transparent rounded-[1.25rem] shadow-xl shadow-blue-500/20 text-sm font-black text-white bg-blue-600 hover:bg-blue-500 focus:outline-none transition-all duration-300 group"
+                    className="w-full flex justify-center items-center py-4 px-4 border border-transparent rounded-[1.25rem] shadow-xl shadow-blue-500/20 text-sm font-black text-white bg-blue-600 hover:bg-blue-500 focus:outline-none transition-all duration-300 group min-h-[44px]"
                   >
                     {loading ? (
                       <Loader2 className="animate-spin h-5 w-5" />

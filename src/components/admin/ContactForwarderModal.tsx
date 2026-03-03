@@ -35,7 +35,7 @@ export default function ContactForwarderModal({
           <button
             onClick={onClose}
             title="Fermer"
-            className="text-gray-400 hover:text-gray-500 transition-colors"
+            className="text-gray-400 hover:text-gray-500 transition-colors min-h-[44px]"
           >
             <X className="w-5 h-5" />
           </button>

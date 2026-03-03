@@ -156,7 +156,7 @@ export default function ConsolidationList({
               <input
                 type="text"
                 placeholder="Ex: Shanghai"
-                className="w-full pl-9 pr-4 py-2 rounded-lg border border-slate-200 dark:border-gray-600 bg-slate-50 dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full pl-9 pr-4 py-2 rounded-lg border border-slate-200 dark:border-gray-600 bg-slate-50 dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 outline-none text-base"
                 value={filters.origin_port || ""}
                 onChange={(e) =>
                   setFilters({ ...filters, origin_port: e.target.value })
@@ -173,7 +173,7 @@ export default function ConsolidationList({
               <input
                 type="text"
                 placeholder="Ex: Dakar"
-                className="w-full pl-9 pr-4 py-2 rounded-lg border border-slate-200 dark:border-gray-600 bg-slate-50 dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full pl-9 pr-4 py-2 rounded-lg border border-slate-200 dark:border-gray-600 bg-slate-50 dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 outline-none text-base"
                 value={filters.destination_port || ""}
                 onChange={(e) =>
                   setFilters({ ...filters, destination_port: e.target.value })
@@ -184,7 +184,7 @@ export default function ConsolidationList({
           <div className="w-full sm:w-auto">
             <select
               title="Status"
-              className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-gray-600 bg-slate-50 dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-gray-600 bg-slate-50 dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 outline-none text-base"
               value={filters.status || "all"}
               onChange={(e) =>
                 setFilters({
@@ -207,7 +207,7 @@ export default function ConsolidationList({
           <div className="w-full sm:w-auto">
             <select
               title={t("calculator.transportMode")}
-              className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-gray-600 bg-slate-50 dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-gray-600 bg-slate-50 dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 outline-none text-base"
               value={filters.transport_mode || ""}
               onChange={(e) =>
                 setFilters({

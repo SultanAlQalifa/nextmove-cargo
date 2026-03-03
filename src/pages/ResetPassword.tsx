@@ -82,8 +82,8 @@ export default function ResetPassword() {
     <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-gray-950 px-4 relative overflow-hidden font-sans">
       {/* Background Decor */}
       <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.03] pointer-events-none" />
-      <div className="absolute -top-24 -right-24 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
-      <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
+      <div className="absolute -top-24 -right-24 w-full max-w-sm h-96 bg-blue-500/10 rounded-full blur-3xl" />
+      <div className="absolute -bottom-24 -left-24 w-full max-w-sm h-96 bg-blue-500/10 rounded-full blur-3xl" />
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -178,7 +178,7 @@ export default function ResetPassword() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full flex justify-center items-center py-5 px-4 border border-transparent rounded-2xl shadow-xl shadow-blue-600/20 text-sm font-black text-white bg-blue-600 hover:bg-blue-500 transition-all duration-300 group disabled:opacity-50"
+                  className="w-full flex justify-center items-center py-5 px-4 border border-transparent rounded-2xl shadow-xl shadow-blue-600/20 text-sm font-black text-white bg-blue-600 hover:bg-blue-500 transition-all duration-300 group disabled:opacity-50 min-h-[44px]"
                 >
                   {loading ? (
                     <Loader2 className="w-5 h-5 animate-spin" />

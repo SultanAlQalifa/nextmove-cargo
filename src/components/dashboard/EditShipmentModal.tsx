@@ -102,7 +102,7 @@ export default function EditShipmentModal({
           </h2>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors min-h-[44px]"
             aria-label="Fermer"
             title="Fermer"
           >
@@ -218,7 +218,7 @@ export default function EditShipmentModal({
             <h3 className="text-sm font-semibold text-gray-900 border-b pb-2">
               Détails Colis
             </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 md:grid-cols-4 gap-4">
               {shipment?.transport_mode === "air" && (
                 <div className="space-y-1">
                   <label className="text-xs font-medium text-gray-500">
@@ -228,7 +228,7 @@ export default function EditShipmentModal({
                     type="number"
                     value={formData.cargo_weight}
                     disabled
-                    className="w-full px-3 py-2 bg-gray-100 text-gray-500 rounded-lg border border-gray-200 text-sm cursor-not-allowed"
+                    className="w-full px-3 py-2 bg-gray-100 text-gray-500 rounded-lg border border-gray-200 text-base md:text-sm cursor-not-allowed"
                     aria-label="Poids maximum (Lecture seule)"
                     title="Cette limite est définie par l'administrateur"
                   />
@@ -244,7 +244,7 @@ export default function EditShipmentModal({
                     type="number"
                     value={formData.cargo_volume}
                     disabled
-                    className="w-full px-3 py-2 bg-gray-100 text-gray-500 rounded-lg border border-gray-200 text-sm cursor-not-allowed"
+                    className="w-full px-3 py-2 bg-gray-100 text-gray-500 rounded-lg border border-gray-200 text-base md:text-sm cursor-not-allowed"
                     aria-label="Volume maximum (Lecture seule)"
                     title="Cette limite est définie par l'administrateur"
                   />
@@ -315,7 +315,7 @@ export default function EditShipmentModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-2.5 text-gray-600 font-medium hover:bg-gray-50 rounded-xl transition-colors"
+              className="px-6 py-2.5 text-gray-600 font-medium hover:bg-gray-50 rounded-xl transition-colors min-h-[44px]"
               aria-label="Annuler les modifications"
               title="Annuler les modifications"
             >

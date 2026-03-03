@@ -215,14 +215,14 @@ export default function ShipmentInvoiceModal({
                 <div className="flex flex-col gap-3 w-64 mx-auto">
                   <button
                     onClick={handleDownload}
-                    className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors font-medium flex items-center justify-center gap-2"
+                    className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors font-medium flex items-center justify-center gap-2 min-h-[44px]"
                   >
                     <Download className="w-4 h-4" />
                     Télécharger le reçu
                   </button>
                   <button
                     onClick={onClose}
-                    className="w-full px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors font-medium"
+                    className="w-full px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors font-medium min-h-[44px]"
                   >
                     Fermer
                   </button>
@@ -252,21 +252,21 @@ export default function ShipmentInvoiceModal({
             <div className="w-px h-6 bg-gray-200 mx-1"></div>
             <button
               onClick={handlePrint}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-500"
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-500 min-h-[44px]"
               title="Imprimer"
             >
               <Printer className="w-5 h-5" />
             </button>
             <button
               onClick={handleDownload}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-500"
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-500 min-h-[44px]"
               title="Télécharger"
             >
               <Download className="w-5 h-5" />
             </button>
             <button
               onClick={handleShare}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-500"
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-500 min-h-[44px]"
               title="Partager"
             >
               <Share2 className="w-5 h-5" />
@@ -276,7 +276,7 @@ export default function ShipmentInvoiceModal({
               onClick={onClose}
               aria-label="Fermer"
               title="Fermer"
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors min-h-[44px]"
             >
               <X className="w-5 h-5 text-gray-500" />
             </button>
@@ -419,8 +419,8 @@ export default function ShipmentInvoiceModal({
               </div>
 
               {/* Items Table */}
-              <div className="rounded-2xl border border-gray-200 overflow-hidden mb-8">
-                <table className="w-full">
+              <div className="rounded-2xl border border-gray-200 overflow-x-auto overflow-y-hidden mb-8">
+                <table className="w-full min-w-[500px]">
                   <thead>
                     <tr className="bg-gray-50 border-b border-gray-200">
                       <th className="text-left py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">
@@ -521,7 +521,7 @@ export default function ShipmentInvoiceModal({
           </p>
           <button
             onClick={handlePay}
-            className="px-8 py-3 bg-primary text-white rounded-xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 flex items-center gap-2 font-bold hover:scale-105 active:scale-95"
+            className="px-8 py-3 bg-primary text-white rounded-xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 flex items-center gap-2 font-bold hover:scale-105 active:scale-95 min-h-[44px]"
           >
             <CreditCard className="w-5 h-5" />
             Payer {formatCurrency(calculatedTotal)}

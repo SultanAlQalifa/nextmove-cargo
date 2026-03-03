@@ -107,7 +107,7 @@ export default function ClientWallet() {
         {/* Holographic Background */}
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-900 via-slate-900 to-black z-0"></div>
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay z-0"></div>
-        <div className="absolute -top-24 -right-24 w-96 h-96 bg-primary/30 rounded-full blur-3xl group-hover:bg-primary/40 transition-colors z-0 duration-700"></div>
+        <div className="absolute -top-24 -right-24 w-full max-w-sm h-96 bg-primary/30 rounded-full blur-3xl group-hover:bg-primary/40 transition-colors z-0 duration-700"></div>
         <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-blue-500/20 rounded-full blur-3xl z-0"></div>
 
         <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
@@ -167,7 +167,7 @@ export default function ClientWallet() {
           </h3>
           <button
             onClick={fetchWalletData}
-            className="p-2 hover:bg-white dark:hover:bg-slate-700 rounded-xl transition-all shadow-sm border border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800"
+            className="p-2 hover:bg-white dark:hover:bg-slate-700 rounded-xl transition-all shadow-sm border border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800 min-h-[44px]"
             title="Actualiser"
           >
             <RefreshCw

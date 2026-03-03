@@ -331,7 +331,7 @@ export default function AdminWallet() {
                         <form onSubmit={handleAdjustment} className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Type d'opération</label>
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <button
                                         type="button"
                                         onClick={() => setAdjustmentType("deposit")}
@@ -398,7 +398,7 @@ export default function AdminWallet() {
                                 <button
                                     type="submit"
                                     disabled={processing}
-                                    className="flex-1 px-4 py-3 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                    className="flex-1 px-4 py-3 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 min-h-[44px]"
                                 >
                                     {processing ? "Traitement..." : "Confirmer"}
                                 </button>

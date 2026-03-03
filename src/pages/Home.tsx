@@ -341,7 +341,7 @@ export default function Home() {
                       NMC-882910
                     </span>
                   </div>
-                  <button className="text-blue-400 text-sm font-bold hover:text-blue-300 transition-colors flex items-center gap-1">
+                  <button className="text-blue-400 text-sm font-bold hover:text-blue-300 transition-colors flex items-center gap-1 min-h-[44px]">
                     Voir détails <ChevronRight size={16} />
                   </button>
                 </div>
@@ -357,15 +357,15 @@ export default function Home() {
       <div className="bg-white dark:bg-gray-950 py-24 border-b border-gray-100 dark:border-white/5 relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03] dark:opacity-[0.05]"></div>
         {/* Soft Radiances */}
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-[100px] pointer-events-none"></div>
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-primary/5 rounded-full blur-[100px] pointer-events-none"></div>
+        <div className="absolute top-0 left-1/4 w-full max-w-sm h-96 bg-blue-500/5 rounded-full blur-[100px] pointer-events-none"></div>
+        <div className="absolute bottom-0 right-1/4 w-full max-w-sm h-96 bg-primary/5 rounded-full blur-[100px] pointer-events-none"></div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="grid grid-cols-2 md:grid-cols-4 gap-12 text-center"
+            className="grid grid-cols-1 md:grid-cols-2 md:grid-cols-4 gap-12 text-center"
           >
             {[
               { label: branding.stats.shipments, value: "10k+", icon: Package },
@@ -649,7 +649,7 @@ export default function Home() {
                 Notre infrastructure ne se limite pas aux ports. Nous créons des ponts numériques sécurisés entre les plus grands centres de production mondiaux et vos marchés locaux.
               </p>
 
-              <div className="grid grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div>
                   <div className="text-3xl font-black text-white mb-2">24/7</div>
                   <div className="text-sm text-slate-500 uppercase tracking-widest font-bold">Surveillance Live</div>
@@ -809,7 +809,7 @@ export default function Home() {
                     </div>
                   </div>
 
-                  <button className="w-full py-6 bg-[#1DA1F2] text-white rounded-3xl font-bold text-xl shadow-xl shadow-[#1DA1F2]/20 hover:shadow-[#1DA1F2]/40 transition-all hover:-translate-y-1">
+                  <button className="w-full py-6 bg-[#1DA1F2] text-white rounded-3xl font-bold text-xl shadow-xl shadow-[#1DA1F2]/20 hover:shadow-[#1DA1F2]/40 transition-all hover:-translate-y-1 min-h-[44px]">
                     Confirmer le paiement
                   </button>
                 </div>

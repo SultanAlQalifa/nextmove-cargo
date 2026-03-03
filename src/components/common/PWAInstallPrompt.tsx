@@ -89,7 +89,7 @@ export default function PWAInstallPrompt() {
               </button>
               <button
                 onClick={handleInstallClick}
-                className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-5 py-2.5 rounded-xl text-xs font-black shadow-xl hover:scale-105 active:scale-95 transition-all"
+                className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-5 py-2.5 rounded-xl text-xs font-black shadow-xl hover:scale-105 active:scale-95 transition-all min-h-[44px]"
               >
                 Installer
               </button>

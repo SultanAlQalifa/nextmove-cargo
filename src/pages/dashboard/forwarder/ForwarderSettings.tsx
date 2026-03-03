@@ -397,7 +397,7 @@ export default function ForwarderSettings() {
                       <Camera className="w-4 h-4" />
                       <input
                         type="file"
-                        className="hidden"
+                        className="hidden text-base"
                         accept="image/*"
                         onChange={(e) =>
                           e.target.files?.[0] &&
@@ -486,7 +486,7 @@ export default function ForwarderSettings() {
                         type="email"
                         value={userProfile.email || ""}
                         disabled
-                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-gray-500 cursor-not-allowed"
+                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-gray-500 cursor-not-allowed text-base"
                         aria-label="Email"
                       />
                     </div>
@@ -859,7 +859,7 @@ export default function ForwarderSettings() {
                                 <span>{url ? "Remplacer" : "Importer"}</span>
                                 <input
                                   type="file"
-                                  className="hidden"
+                                  className="hidden text-base"
                                   accept=".pdf,.jpg,.jpeg,.png"
                                   onChange={(e) =>
                                     e.target.files?.[0] &&
@@ -923,10 +923,10 @@ export default function ForwarderSettings() {
                       </button>
                     ) : (
                       <div className="flex flex-col items-end gap-2">
-                        <button className="text-sm text-gray-300 hover:text-white underline decoration-white/30">
+                        <button className="text-sm text-gray-300 hover:text-white underline decoration-white/30 min-h-[44px]">
                           Gérer la facturation
                         </button>
-                        <button className="text-sm text-red-400 hover:text-red-300">
+                        <button className="text-sm text-red-400 hover:text-red-300 min-h-[44px]">
                           Annuler l'abonnement
                         </button>
                       </div>

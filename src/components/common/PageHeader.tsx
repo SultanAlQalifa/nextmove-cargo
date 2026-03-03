@@ -39,7 +39,7 @@ export default function PageHeader({
             key={index}
             onClick={secAction.onClick}
             disabled={secAction.disabled}
-            className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-200 border border-slate-200 dark:border-white/10 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-200 border border-slate-200 dark:border-white/10 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]"
           >
             {secAction.icon && <secAction.icon className="w-5 h-5" />}
             <span className="font-medium">{secAction.label}</span>
@@ -49,7 +49,7 @@ export default function PageHeader({
           <button
             onClick={action.onClick}
             disabled={action.disabled}
-            className="flex items-center gap-2 px-4 py-2.5 bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors shadow-lg shadow-primary/30 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-4 py-2.5 bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors shadow-lg shadow-primary/30 disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]"
           >
             {action.icon && <action.icon className="w-5 h-5" />}
             <span className="font-medium">{action.label}</span>

@@ -333,7 +333,7 @@ export default function ClientShipmentDetail() {
                 <div className="flex gap-3">
                     <button
                         onClick={handleDownloadInvoice}
-                        className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-colors shadow-sm"
+                        className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-colors shadow-sm min-h-[44px]"
                     >
                         <FileText className="w-4 h-4" />
                         Facture
@@ -461,7 +461,7 @@ export default function ClientShipmentDetail() {
                             </div>
                             Détails de la Cargaison
                         </h3>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 md:grid-cols-4 gap-4">
                             <div className="p-5 bg-white/60 dark:bg-slate-800/40 backdrop-blur-md rounded-[1.5rem] border border-white/50 dark:border-white/5 transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-orange-500/10 hover:border-orange-200 dark:hover:border-orange-800 group relative overflow-hidden">
                                 <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-orange-100 to-transparent dark:from-orange-900/40 rounded-bl-[2rem] opacity-0 group-hover:opacity-100 transition-opacity"></div>
                                 <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2 relative z-10">Poids</div>

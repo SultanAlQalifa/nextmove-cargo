@@ -115,7 +115,7 @@ export default function WalletManagementModal({ user, onClose }: WalletManagemen
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-xl transition-colors shadow-sm"
+                        className="p-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-xl transition-colors shadow-sm min-h-[44px]"
                         aria-label="Fermer"
                         title="Fermer"
                     >
@@ -148,7 +148,7 @@ export default function WalletManagementModal({ user, onClose }: WalletManagemen
                             </div>
                             <button
                                 onClick={fetchWalletData}
-                                className="p-3 bg-white/10 hover:bg-white/20 rounded-2xl backdrop-blur-md shadow-lg transition-all border border-white/5 group"
+                                className="p-3 bg-white/10 hover:bg-white/20 rounded-2xl backdrop-blur-md shadow-lg transition-all border border-white/5 group min-h-[44px]"
                                 title="Actualiser"
                             >
                                 <RefreshCw className={`w-5 h-5 text-white ${loading ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'}`} />

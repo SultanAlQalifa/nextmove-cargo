@@ -59,7 +59,7 @@ export const CertificateTemplate = forwardRef<HTMLDivElement, CertificateTemplat
                     </div>
 
                     {/* Details Grid (Seals / Signatures) */}
-                    <div className="grid grid-cols-2 gap-40 items-end w-full max-w-xl mb-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-40 items-end w-full max-w-xl mb-6">
                         <div className="text-center">
                             <div className="mb-2 flex flex-col items-center">
                                 <div className="w-24 h-24 relative mb-1">

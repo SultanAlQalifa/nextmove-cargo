@@ -780,7 +780,7 @@ export default function DashboardLayout() {
       <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[100] animate-in fade-in slide-in-from-top-8 duration-1000 hidden md:block">
         <button
           onClick={openCommandPalette}
-          className="group relative flex items-center gap-3 px-4 py-2 bg-white/70 dark:bg-slate-900/70 backdrop-blur-3xl border border-primary/20 hover:border-primary/40 rounded-full shadow-[0_10px_30px_rgba(0,0,0,0.1)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.2)] hover:shadow-primary/10 transition-all duration-500 hover:scale-105 active:scale-95 group"
+          className="group relative flex items-center gap-3 px-4 py-2 bg-white/70 dark:bg-slate-900/70 backdrop-blur-3xl border border-primary/20 hover:border-primary/40 rounded-full shadow-[0_10px_30px_rgba(0,0,0,0.1)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.2)] hover:shadow-primary/10 transition-all duration-500 hover:scale-105 active:scale-95 group min-h-[44px]"
         >
           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-md group-hover:rotate-12 transition-transform duration-500">
             <Search className="w-4 h-4 text-white" />
@@ -1260,7 +1260,7 @@ export default function DashboardLayout() {
 
                         <button
                           onClick={handleLogout}
-                          className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-2xl transition-colors group"
+                          className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-2xl transition-colors group min-h-[44px]"
                         >
                           <div className="p-2 bg-red-50 dark:bg-red-900/20 rounded-xl group-hover:bg-red-100 group-hover:shadow-sm transition-all text-red-500">
                             <LogOut className="w-4 h-4" />

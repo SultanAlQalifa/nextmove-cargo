@@ -167,10 +167,10 @@ export default function ForwarderConsolidations() {
                 </div>
 
                 <div className="flex gap-2">
-                  <button className="flex-1 py-2 px-4 bg-gray-50 text-gray-700 rounded-lg font-medium hover:bg-gray-100 transition-colors text-sm">
+                  <button className="flex-1 py-2 px-4 bg-gray-50 text-gray-700 rounded-lg font-medium hover:bg-gray-100 transition-colors text-sm min-h-[44px]">
                     Modifier
                   </button>
-                  <button className="flex-1 py-2 px-4 bg-blue-50 text-blue-700 rounded-lg font-medium hover:bg-blue-100 transition-colors text-sm">
+                  <button className="flex-1 py-2 px-4 bg-blue-50 text-blue-700 rounded-lg font-medium hover:bg-blue-100 transition-colors text-sm min-h-[44px]">
                     Voir Détails
                   </button>
                 </div>

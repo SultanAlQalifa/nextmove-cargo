@@ -48,13 +48,13 @@ export default function RefundRequestModal({ isOpen, onClose, payment, onConfirm
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onMouseEnter={handleInit}>
-            <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl animate-in fade-in zoom-in duration-200 overflow-hidden">
+            <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl animate-in fade-in zoom-in duration-200 overflow-hidden max-h-[90vh] overflow-y-auto">
                 <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
                     <h3 className="font-bold text-gray-900 flex items-center gap-2">
                         <RefreshCcw className="w-5 h-5 text-gray-500" />
                         Rembourser un Paiement
                     </h3>
-                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors" title="Fermer">
+                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors min-h-[44px]" title="Fermer">
                         <X className="w-5 h-5" />
                     </button>
                 </div>
@@ -117,14 +117,14 @@ export default function RefundRequestModal({ isOpen, onClose, payment, onConfirm
                         <button
                             type="button"
                             onClick={onClose}
-                            className="flex-1 py-2.5 text-gray-600 font-medium hover:bg-gray-50 rounded-xl transition-colors"
+                            className="flex-1 py-2.5 text-gray-600 font-medium hover:bg-gray-50 rounded-xl transition-colors min-h-[44px]"
                         >
                             Annuler
                         </button>
                         <button
                             type="submit"
                             disabled={loading}
-                            className="flex-1 py-2.5 bg-gray-900 text-white font-bold rounded-xl hover:bg-gray-800 shadow-lg transition-all flex items-center justify-center gap-2"
+                            className="flex-1 py-2.5 bg-gray-900 text-white font-bold rounded-xl hover:bg-gray-800 shadow-lg transition-all flex items-center justify-center gap-2 min-h-[44px]"
                         >
                             {loading ? "Traitement..." : "Confirmer Remboursement"}
                         </button>

@@ -273,7 +273,7 @@ export default function AdminGroupage() {
       </div>
 
       {/* List Table */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto overflow-hidden">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
@@ -396,7 +396,7 @@ export default function AdminGroupage() {
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
                       title="Actions"
-                      className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-full"
+                      className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-full min-h-[44px]"
                     >
                       <MoreVertical className="w-5 h-5" />
                     </button>

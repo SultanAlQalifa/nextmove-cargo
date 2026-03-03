@@ -153,7 +153,7 @@ export default function AdminFAQ() {
                         <input
                             type="text"
                             placeholder="Rechercher dans la FAQ..."
-                            className="w-full pl-10 pr-4 py-2 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-primary text-sm"
+                            className="w-full pl-10 pr-4 py-2 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-primary text-base md:text-sm"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
@@ -241,7 +241,7 @@ export default function AdminFAQ() {
                                     </label>
                                     <select
                                         id="faq-category"
-                                        className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border-none rounded-xl focus:ring-2 focus:ring-primary"
+                                        className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border-none rounded-xl focus:ring-2 focus:ring-primary text-base"
                                         value={formData.category}
                                         title="Sélectionner une catégorie"
                                         onChange={(e) => setFormData({ ...formData, category: e.target.value })}
@@ -260,7 +260,7 @@ export default function AdminFAQ() {
                                     <input
                                         id="faq-order"
                                         type="number"
-                                        className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border-none rounded-xl focus:ring-2 focus:ring-primary"
+                                        className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border-none rounded-xl focus:ring-2 focus:ring-primary text-base"
                                         value={formData.display_order}
                                         aria-label="Ordre d'affichage"
                                         placeholder="0"
@@ -278,7 +278,7 @@ export default function AdminFAQ() {
                                 <input
                                     required
                                     type="text"
-                                    className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border-none rounded-xl focus:ring-2 focus:ring-primary"
+                                    className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border-none rounded-xl focus:ring-2 focus:ring-primary text-base"
                                     placeholder="Ex: Quels sont les délais de livraison ?"
                                     value={formData.question}
                                     onChange={(e) => setFormData({ ...formData, question: e.target.value })}
@@ -303,7 +303,7 @@ export default function AdminFAQ() {
                                 <label className="flex items-center gap-2 cursor-pointer">
                                     <input
                                         type="checkbox"
-                                        className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary"
+                                        className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary text-base"
                                         checked={formData.is_active}
                                         onChange={(e) =>
                                             setFormData({ ...formData, is_active: e.target.checked })
@@ -326,7 +326,7 @@ export default function AdminFAQ() {
                                 <button
                                     type="submit"
                                     disabled={isSubmitting}
-                                    className="px-8 py-2.5 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition shadow-lg shadow-primary/20 disabled:opacity-50"
+                                    className="px-8 py-2.5 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition shadow-lg shadow-primary/20 disabled:opacity-50 min-h-[44px]"
                                 >
                                     {isSubmitting ? "Enregistrement..." : editingFaq ? "Mettre à jour" : "Ajouter à la FAQ"}
                                 </button>

@@ -411,7 +411,7 @@ export default function PaymentModal({
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-200 rounded-full transition-colors"
+            className="p-2 hover:bg-gray-200 rounded-full transition-colors min-h-[44px]"
             aria-label="Fermer"
           >
             <X className="w-5 h-5 text-gray-500" />
@@ -471,7 +471,7 @@ export default function PaymentModal({
                           <button
                             onClick={handleApplyCoupon}
                             disabled={!couponCode || verifyingCoupon}
-                            className="px-3 py-2 bg-gray-900 text-white text-xs font-bold rounded-lg hover:bg-gray-800 disabled:opacity-50"
+                            className="px-3 py-2 bg-gray-900 text-white text-xs font-bold rounded-lg hover:bg-gray-800 disabled:opacity-50 min-h-[44px]"
                           >
                             {verifyingCoupon ? (
                               <Loader2 className="w-4 h-4 animate-spin" />
@@ -722,7 +722,7 @@ export default function PaymentModal({
               <button
                 onClick={selectedMethod === 'cash' ? handleCashPayment : handlePayment}
                 disabled={!selectedMethod || (mode === 'topup' && editableAmount < 500)}
-                className="w-full py-4 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-primary/20"
+                className="w-full py-4 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-primary/20 min-h-[44px]"
               >
                 {mode === 'topup' ? `Recharger ${totalAmount.toLocaleString()} ${currency}` : `Payer ${totalAmount.toLocaleString()} ${currency}`}
               </button>
@@ -763,7 +763,7 @@ export default function PaymentModal({
               <div className="flex flex-col gap-3">
                 <button
                   onClick={handleCheckStatus}
-                  className="w-full py-3 bg-[#1DA1F2] hover:bg-[#1a91da] text-white rounded-xl font-bold transition-all"
+                  className="w-full py-3 bg-[#1DA1F2] hover:bg-[#1a91da] text-white rounded-xl font-bold transition-all min-h-[44px]"
                 >
                   Vérifier le statut manuellement
                 </button>

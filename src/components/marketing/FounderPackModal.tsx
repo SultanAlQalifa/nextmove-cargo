@@ -74,7 +74,7 @@ export default function FounderPackModal() {
                         <button
                             onClick={handleDismiss}
                             aria-label="Fermer"
-                            className="absolute top-3 right-3 p-2 bg-white/50 dark:bg-black/20 hover:bg-white/80 rounded-full transition-colors z-10"
+                            className="absolute top-3 right-3 p-2 bg-white/50 dark:bg-black/20 hover:bg-white/80 rounded-full transition-colors z-10 min-h-[44px]"
                         >
                             <X className="w-5 h-5 text-slate-500" />
                         </button>
@@ -126,7 +126,7 @@ export default function FounderPackModal() {
 
                             <button
                                 onClick={handleCTA}
-                                className="group relative w-full inline-flex items-center justify-center gap-2 px-6 py-3 md:px-8 md:py-4 bg-gradient-to-r from-slate-900 to-slate-800 dark:from-white dark:to-slate-200 text-white dark:text-slate-900 rounded-xl font-bold text-base md:text-lg shadow-xl shadow-slate-900/10 hover:shadow-2xl hover:scale-[1.02] transition-all duration-300"
+                                className="group relative w-full inline-flex items-center justify-center gap-2 px-6 py-3 md:px-8 md:py-4 bg-gradient-to-r from-slate-900 to-slate-800 dark:from-white dark:to-slate-200 text-white dark:text-slate-900 rounded-xl font-bold text-base md:text-lg shadow-xl shadow-slate-900/10 hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 min-h-[44px]"
                             >
                                 <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-amber-400 group-hover:animate-pulse" />
                                 <span>Profiter de l'offre maintenant</span>

@@ -113,7 +113,7 @@ export default function AdminSecurity() {
           </div>
           <button
             onClick={fetchLogs}
-            className="p-2 bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors"
+            className="p-2 bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors min-h-[44px]"
             title="Rafraîchir"
             aria-label="Rafraîchir les logs"
           >
@@ -230,7 +230,7 @@ export default function AdminSecurity() {
 
             <div className="p-6 overflow-y-auto bg-gray-50/50">
               <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="bg-white p-3 rounded-xl border border-gray-100">
                     <span className="text-xs text-gray-400 uppercase font-semibold">Action</span>
                     <p className="font-medium text-gray-900">{detailsModal.log.action}</p>

@@ -67,7 +67,7 @@ export default function ChatWindow({
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: 50, scale: 0.95 }}
         transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
-        className="fixed bottom-6 right-6 w-80 sm:w-96 glass-card-premium bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl rounded-[2rem] border-white/20 dark:border-white/10 shadow-2xl flex flex-col h-[500px] max-h-[80vh] z-50 overflow-hidden"
+        className="fixed bottom-6 right-6 w-80 sm:w-full max-w-sm glass-card-premium bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl rounded-[2rem] border-white/20 dark:border-white/10 shadow-2xl flex flex-col h-[500px] max-h-[80vh] z-50 overflow-hidden"
       >
         <div className="grain-overlay opacity-[0.03]" />
 
@@ -149,7 +149,7 @@ export default function ChatWindow({
             type="submit"
             title="Envoyer"
             disabled={!newMessage.trim()}
-            className="w-10 h-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-105 active:scale-95 shadow-sm shadow-blue-500/30"
+            className="w-10 h-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-105 active:scale-95 shadow-sm shadow-blue-500/30 min-h-[44px]"
           >
             <Send size={18} className="ml-1" />
           </button>

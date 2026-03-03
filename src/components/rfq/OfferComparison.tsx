@@ -182,7 +182,7 @@ export default function OfferComparison({
               <div className="p-8 flex-1 flex flex-col gap-8 relative z-10">
 
                 {/* Key Stats Grid */}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="bg-blue-500/5 dark:bg-blue-500/10 p-4 rounded-3xl border border-blue-500/10 flex flex-col items-center justify-center text-center group-hover:bg-blue-500/10 transition-colors">
                     <div className="text-blue-600 dark:text-blue-400 mb-2 p-2 bg-white dark:bg-slate-800 rounded-xl shadow-sm"><Clock className="w-5 h-5" /></div>
                     <span className="text-xl font-black text-slate-900 dark:text-white leading-none tracking-tighter">{offer.estimated_transit_days}j</span>

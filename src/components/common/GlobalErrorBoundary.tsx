@@ -70,7 +70,7 @@ class GlobalErrorBoundary extends Component<Props, State> {
                             <div className="space-y-3">
                                 <button
                                     onClick={this.handleReload}
-                                    className="w-full py-3 px-4 bg-gray-900 hover:bg-black text-white rounded-xl font-bold transition-all shadow-lg shadow-gray-200 flex items-center justify-center gap-2 group"
+                                    className="w-full py-3 px-4 bg-gray-900 hover:bg-black text-white rounded-xl font-bold transition-all shadow-lg shadow-gray-200 flex items-center justify-center gap-2 group min-h-[44px]"
                                 >
                                     <RefreshCw className="w-5 h-5 group-hover:rotate-180 transition-transform duration-500" />
                                     Recharger la page
@@ -78,7 +78,7 @@ class GlobalErrorBoundary extends Component<Props, State> {
 
                                 <button
                                     onClick={this.handleGoHome}
-                                    className="w-full py-3 px-4 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 rounded-xl font-medium transition-all flex items-center justify-center gap-2"
+                                    className="w-full py-3 px-4 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 rounded-xl font-medium transition-all flex items-center justify-center gap-2 min-h-[44px]"
                                 >
                                     <Home className="w-5 h-5" />
                                     Retour à l'accueil

@@ -546,7 +546,7 @@ export default function CreateRFQForm() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-5 bg-slate-50/50 rounded-2xl border border-slate-100">
+                  <div className="grid grid-cols-1 md:grid-cols-2 md:grid-cols-4 gap-4 p-5 bg-slate-50/50 rounded-2xl border border-slate-100">
                     <div className="space-y-1">
                       <span className="text-[10px] font-bold text-slate-400 uppercase">Fret Base</span>
                       <p className="font-bold text-slate-700">{new Intl.NumberFormat(undefined, { style: "currency", currency: formData.budget_currency || "XOF", maximumFractionDigits: 0 }).format(quote.base_cost)}</p>
@@ -623,7 +623,7 @@ export default function CreateRFQForm() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 text-sm font-bold">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm font-bold">
                     <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
                       <p className="text-[10px] text-slate-400 uppercase mb-1">Volume/Poids</p>
                       <p className="text-slate-900">
@@ -663,7 +663,7 @@ export default function CreateRFQForm() {
                       required
                       value={formData.cargo_type}
                       onChange={handleChange}
-                      className="block w-full px-4 py-3 bg-slate-50 border border-slate-100 text-slate-900 rounded-2xl focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all placeholder:text-slate-300 font-medium"
+                      className="block w-full px-4 py-3 bg-slate-50 border border-slate-100 text-slate-900 rounded-2xl focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all placeholder:text-slate-300 font-medium text-base"
                       placeholder="Ex: Électroménager, Textile..."
                     />
                   </div>
@@ -683,7 +683,7 @@ export default function CreateRFQForm() {
                           : ""
                       }
                       onChange={handleChange}
-                      className="block w-full px-4 py-3 bg-slate-50 border border-slate-100 text-slate-900 rounded-2xl focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all font-medium"
+                      className="block w-full px-4 py-3 bg-slate-50 border border-slate-100 text-slate-900 rounded-2xl focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all font-medium text-base"
                       aria-label="Date de départ souhaitée"
                       title="Date de départ souhaitée"
                     />
@@ -981,7 +981,7 @@ export default function CreateRFQForm() {
                           <button
                             key={loc.id}
                             type="button"
-                            className="w-full text-left px-4 py-2 hover:bg-gray-50 text-sm text-gray-700"
+                            className="w-full text-left px-4 py-2 hover:bg-gray-50 text-sm text-gray-700 min-h-[44px]"
                             onClick={() => {
                               setFormData((prev) => ({
                                 ...prev,
@@ -1034,7 +1034,7 @@ export default function CreateRFQForm() {
                           <button
                             key={loc.id}
                             type="button"
-                            className="w-full text-left px-4 py-2 hover:bg-gray-50 text-sm text-gray-700"
+                            className="w-full text-left px-4 py-2 hover:bg-gray-50 text-sm text-gray-700 min-h-[44px]"
                             onClick={() => {
                               setFormData((prev) => ({
                                 ...prev,
@@ -1116,7 +1116,7 @@ export default function CreateRFQForm() {
                       <input
                         type="radio"
                         name="rfq_transport_selection"
-                        className="sr-only"
+                        className="sr-only text-base"
                         checked={isSelected}
                         onChange={() => {
                           setFormData((prev) => ({
@@ -1178,7 +1178,7 @@ export default function CreateRFQForm() {
                     required
                     value={formData.cargo_type}
                     onChange={handleChange}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary text-base"
                     aria-label="Type de marchandise"
                   >
                     <option value="">Sélectionner un type...</option>
@@ -1199,7 +1199,7 @@ export default function CreateRFQForm() {
                     min="1"
                     value={formData.quantity}
                     onChange={handleChange}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary text-base"
                     aria-label="Quantité"
                   />
                 </div>
@@ -1234,7 +1234,7 @@ export default function CreateRFQForm() {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       {t("calculator.dimensions")}
                     </label>
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                       <div>
                         <label className="block text-xs text-gray-600 mb-1">
                           {t("calculator.length")}
@@ -1303,7 +1303,7 @@ export default function CreateRFQForm() {
                     value={formData.weight_kg || ""}
                     onChange={handleChange}
                     placeholder="e.g. 50"
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary text-base"
                     aria-label="Poids en kg"
                   />
                 </div>
@@ -1462,7 +1462,7 @@ export default function CreateRFQForm() {
                       name="budget_amount"
                       value={formData.budget_amount || ""}
                       onChange={handleChange}
-                      className="block w-full pr-16 rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                      className="block w-full pr-16 rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary text-base"
                       placeholder="0.00"
                       aria-label="Montant du budget"
                     />
@@ -1471,7 +1471,7 @@ export default function CreateRFQForm() {
                         name="budget_currency"
                         value={formData.budget_currency}
                         onChange={handleChange}
-                        className="h-full py-0 pl-2 pr-7 border-transparent bg-transparent text-gray-500 sm:text-sm rounded-md focus:ring-primary focus:border-primary"
+                        className="h-full py-0 pl-2 pr-7 border-transparent bg-transparent text-gray-500 sm:text-base md:text-sm rounded-md focus:ring-primary focus:border-primary"
                         aria-label="Devise du budget"
                       >
                         <option>XOF</option>
@@ -1497,7 +1497,7 @@ export default function CreateRFQForm() {
                         : ""
                     }
                     onChange={handleChange}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary text-base"
                     aria-label="Date de départ souhaitée"
                   />
                 </div>

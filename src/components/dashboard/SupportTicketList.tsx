@@ -86,7 +86,7 @@ export default function SupportTicketList() {
               <input
                 type="text"
                 required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm p-2 border"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-base md:text-sm p-2 border"
                 value={newTicket.subject}
                 onChange={(e) =>
                   setNewTicket({ ...newTicket, subject: e.target.value })
@@ -98,7 +98,7 @@ export default function SupportTicketList() {
                 Priority
               </label>
               <select
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm p-2 border"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-base md:text-sm p-2 border"
                 value={newTicket.priority}
                 onChange={(e) =>
                   setNewTicket({ ...newTicket, priority: e.target.value })
@@ -119,7 +119,7 @@ export default function SupportTicketList() {
               </button>
               <button
                 type="submit"
-                className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
+                className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 min-h-[44px]"
               >
                 Submit Ticket
               </button>

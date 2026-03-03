@@ -59,7 +59,7 @@ export default function ShipmentDetailsModal({
 
   return (
     <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl animate-in fade-in zoom-in duration-200 overflow-hidden">
+      <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl animate-in fade-in zoom-in duration-200 overflow-hidden max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b border-gray-100 bg-gray-50/50">
           <div className="flex items-center gap-3">
@@ -82,7 +82,7 @@ export default function ShipmentDetailsModal({
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors min-h-[44px]"
             >
               <X className="w-5 h-5 text-gray-500" />
             </button>
@@ -139,7 +139,7 @@ export default function ShipmentDetailsModal({
           </div>
 
           {/* Details Grid */}
-          <div className="grid grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <div className="flex items-start gap-3">
                 <User className="w-5 h-5 text-gray-400 mt-0.5" />
@@ -180,13 +180,13 @@ export default function ShipmentDetailsModal({
         <div className="p-6 border-t border-gray-100 flex justify-end gap-3 bg-gray-50/50">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-xl transition-colors font-medium"
+            className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-xl transition-colors font-medium min-h-[44px]"
           >
             Fermer
           </button>
           <button
             onClick={onTrack}
-            className="px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors font-medium shadow-lg shadow-primary/20"
+            className="px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors font-medium shadow-lg shadow-primary/20 min-h-[44px]"
           >
             Suivre le colis
           </button>

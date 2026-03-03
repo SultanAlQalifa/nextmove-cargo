@@ -186,7 +186,7 @@ export default function Chatbot() {
                                                             {msg.action.label} <ChevronRight className="w-3 h-3" />
                                                         </a>
                                                     ) : (
-                                                        <button onClick={msg.action.onClick} className="flex items-center gap-2 text-xs font-semibold hover:underline">
+                                                        <button onClick={msg.action.onClick} className="flex items-center gap-2 text-xs font-semibold hover:underline min-h-[44px]">
                                                             {msg.action.label} <ChevronRight className="w-3 h-3" />
                                                         </button>
                                                     )}
@@ -233,7 +233,7 @@ export default function Chatbot() {
                                     <input
                                         type="text"
                                         placeholder="Écrivez votre message..."
-                                        className="flex-1 px-4 py-2.5 bg-gray-100 border-0 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all placeholder:text-gray-400"
+                                        className="flex-1 px-4 py-2.5 bg-gray-100 border-0 rounded-xl text-base md:text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all placeholder:text-gray-400"
                                         value={inputValue}
                                         onChange={(e) => setInputValue(e.target.value)}
                                     />
@@ -241,7 +241,7 @@ export default function Chatbot() {
                                         type="submit"
                                         aria-label="Envoyer le message"
                                         disabled={!inputValue.trim()}
-                                        className="p-2.5 bg-primary text-white rounded-xl hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg shadow-primary/20"
+                                        className="p-2.5 bg-primary text-white rounded-xl hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg shadow-primary/20 min-h-[44px]"
                                     >
                                         <Send className="w-4 h-4" />
                                     </button>

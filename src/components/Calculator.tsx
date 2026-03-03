@@ -508,7 +508,7 @@ export default function Calculator() {
                       type="button"
                       onClick={handleSourcingAnalysis}
                       disabled={isAnalyzing || !sourcingUrl}
-                      className="px-10 py-5 bg-blue-600 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-xl shadow-blue-500/20 flex items-center justify-center gap-3 relative overflow-hidden group/btn"
+                      className="px-10 py-5 bg-blue-600 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-xl shadow-blue-500/20 flex items-center justify-center gap-3 relative overflow-hidden group/btn min-h-[44px]"
                     >
                       <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover/btn:animate-shimmer" />
                       {isAnalyzing ? (
@@ -632,7 +632,7 @@ export default function Calculator() {
                               <button
                                 key={loc.id}
                                 type="button"
-                                className="w-full text-left px-5 py-4 hover:bg-orange-500/10 rounded-2xl text-slate-700 dark:text-slate-200 font-bold transition-colors flex items-center gap-3 group/item"
+                                className="w-full text-left px-5 py-4 hover:bg-orange-500/10 rounded-2xl text-slate-700 dark:text-slate-200 font-bold transition-colors flex items-center gap-3 group/item min-h-[44px]"
                                 onClick={() => {
                                   setValue("origin", loc.name);
                                   setOriginSearch(loc.name);
@@ -689,7 +689,7 @@ export default function Calculator() {
                               <button
                                 key={loc.id}
                                 type="button"
-                                className="w-full text-left px-5 py-4 hover:bg-slate-500/10 rounded-2xl text-slate-700 dark:text-slate-200 font-bold transition-colors flex items-center gap-3 group/item"
+                                className="w-full text-left px-5 py-4 hover:bg-slate-500/10 rounded-2xl text-slate-700 dark:text-slate-200 font-bold transition-colors flex items-center gap-3 group/item min-h-[44px]"
                                 onClick={() => {
                                   setValue("destination", loc.name);
                                   setDestSearch(loc.name);
@@ -1059,7 +1059,7 @@ export default function Calculator() {
                                       type="number"
                                       {...register("cargoValue")}
                                       placeholder="0.00"
-                                      className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-white/5 rounded-2xl px-8 py-6 font-black text-3xl text-slate-900 dark:text-white focus:border-orange-500 transition-all shadow-inner"
+                                      className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-white/5 rounded-2xl px-8 py-6 font-black text-3xl text-slate-900 dark:text-white focus:border-orange-500 transition-all shadow-inner text-base"
                                     />
                                     <div className="absolute right-8 top-1/2 -translate-y-1/2 font-black text-xl text-orange-600 group-focus-within/val:animate-pulse uppercase">
                                       {currency}
@@ -1068,7 +1068,7 @@ export default function Calculator() {
                                 </div>
                                 <div className="flex flex-col gap-2">
                                   <div className="group relative border-2 border-dashed border-slate-200 dark:border-white/10 rounded-2xl p-5 text-center hover:border-orange-500 transition-all bg-slate-50 dark:bg-slate-800/30 cursor-pointer min-w-[200px]">
-                                    <input type="file" className="absolute inset-0 opacity-0 cursor-pointer z-10" accept="image/*" title="Justificatif de valeur" />
+                                    <input type="file" className="absolute inset-0 opacity-0 cursor-pointer z-10 text-base" accept="image/*" title="Justificatif de valeur" />
                                     <div className="flex flex-col items-center gap-2">
                                       <Camera className="w-5 h-5 text-slate-400 group-hover:text-orange-500 transition-colors" />
                                       <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Justificatif</span>
@@ -1165,7 +1165,7 @@ export default function Calculator() {
                   <button
                     onClick={handleCalculate}
                     disabled={loading}
-                    className="group px-10 py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-black uppercase tracking-widest text-sm shadow-2xl hover:scale-105 active:scale-95 transition-all flex items-center gap-3 relative overflow-hidden"
+                    className="group px-10 py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-black uppercase tracking-widest text-sm shadow-2xl hover:scale-105 active:scale-95 transition-all flex items-center gap-3 relative overflow-hidden min-h-[44px]"
                   >
                     <div className="absolute inset-0 bg-gradient-to-r from-orange-600 to-orange-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                     <span className="relative z-10">{loading ? "Calcul..." : "Découvrir mes tarifs"}</span>

@@ -57,7 +57,7 @@ export default function EcommerceAcademy() {
                             </Link>
                         </div>
 
-                        <div className="grid grid-cols-3 gap-6 pt-10 opacity-60">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-10 opacity-60">
                             {[
                                 { icon: ShoppingBag, label: "Sourcing" },
                                 { icon: Truck, label: "Logistique" },

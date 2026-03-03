@@ -281,7 +281,7 @@ export default function ClientPayments() {
           <h2 className="text-lg font-bold text-gray-900">
             Historique des Transactions
           </h2>
-          <button className="text-sm text-primary font-medium hover:underline">
+          <button className="text-sm text-primary font-medium hover:underline min-h-[44px]">
             Voir tout
           </button>
         </div>

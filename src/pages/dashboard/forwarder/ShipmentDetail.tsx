@@ -320,7 +320,7 @@ export default function ShipmentDetail() {
               </motion.button>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 md:grid-cols-4 gap-6">
               {shipment.transport_mode === "air" && (
                 <div className="p-5 bg-white/60 dark:bg-slate-800/40 backdrop-blur-md rounded-[1.5rem] border border-white/50 dark:border-white/5 transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/10 hover:border-blue-200 dark:hover:border-blue-800 group relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-blue-100 to-transparent dark:from-blue-900/40 rounded-bl-[2rem] opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -534,7 +534,7 @@ export default function ShipmentDetail() {
               <label className="cursor-pointer flex items-center gap-2 px-3 py-1.5 text-[10px] font-black uppercase text-blue-600 bg-blue-50 hover:bg-blue-600 hover:text-white dark:bg-blue-900/20 dark:hover:bg-blue-600 rounded-xl transition-all border border-blue-100 dark:border-blue-800/50 shadow-sm">
                 <Plus className="w-3 h-3" />
                 Ajouter
-                <input type="file" className="hidden" onChange={handleFileUpload} disabled={isUploading} />
+                <input type="file" className="hidden text-base" onChange={handleFileUpload} disabled={isUploading} />
               </label>
             </div>
 

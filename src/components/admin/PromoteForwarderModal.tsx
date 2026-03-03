@@ -46,7 +46,7 @@ export default function PromoteForwarderModal({
           <button
             onClick={onClose}
             title="Fermer"
-            className="text-gray-400 hover:text-gray-500 transition-colors"
+            className="text-gray-400 hover:text-gray-500 transition-colors min-h-[44px]"
           >
             <X className="w-5 h-5" />
           </button>
@@ -108,7 +108,7 @@ export default function PromoteForwarderModal({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
                 <DollarSign className="w-4 h-4 text-gray-400" />
@@ -148,14 +148,14 @@ export default function PromoteForwarderModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors min-h-[44px]"
             >
               Annuler
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-lg shadow-sm shadow-purple-600/20 transition-all disabled:opacity-50"
+              className="px-4 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-lg shadow-sm shadow-purple-600/20 transition-all disabled:opacity-50 min-h-[44px]"
             >
               {loading ? "Activation..." : "Lancer la promotion"}
             </button>

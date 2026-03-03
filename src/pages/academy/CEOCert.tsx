@@ -171,7 +171,7 @@ export default function CEOCert() {
                 <div className="flex items-center gap-4">
                     <button
                         onClick={generatePDF}
-                        className="px-10 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl shadow-orange-500/20 flex items-center gap-3 group"
+                        className="px-10 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl shadow-orange-500/20 flex items-center gap-3 group min-h-[44px]"
                     >
                         <Download className="w-5 h-5 group-hover:translate-y-0.5 transition-transform" />
                         Exporter Archive (PDF)

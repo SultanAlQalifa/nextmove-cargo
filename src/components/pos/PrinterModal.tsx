@@ -86,7 +86,7 @@ export default function PrinterModal({ isOpen, onClose }: PrinterModalProps) {
                     <button
                         onClick={onClose}
                         title="Fermer"
-                        className="text-white/80 hover:text-white p-1 hover:bg-white/10 rounded-full transition-colors"
+                        className="text-white/80 hover:text-white p-1 hover:bg-white/10 rounded-full transition-colors min-h-[44px]"
                     >
                         <X className="w-6 h-6" />
                     </button>
@@ -105,7 +105,7 @@ export default function PrinterModal({ isOpen, onClose }: PrinterModalProps) {
                             <button
                                 onClick={handleDisconnect}
                                 title="Déconnecter l'imprimante"
-                                className="flex items-center justify-center gap-2 mx-auto text-red-600 font-bold hover:bg-red-50 p-2 rounded-lg transition-colors"
+                                className="flex items-center justify-center gap-2 mx-auto text-red-600 font-bold hover:bg-red-50 p-2 rounded-lg transition-colors min-h-[44px]"
                             >
                                 <Unlink className="w-4 h-4" />
                                 Déconnecter
@@ -122,7 +122,7 @@ export default function PrinterModal({ isOpen, onClose }: PrinterModalProps) {
                                 onClick={handleScan}
                                 disabled={scanning}
                                 title="Lancer la recherche"
-                                className="px-6 py-3 bg-blue-600 text-white font-bold rounded-xl flex items-center gap-2 mx-auto hover:bg-blue-500 transition-all disabled:opacity-50"
+                                className="px-6 py-3 bg-blue-600 text-white font-bold rounded-xl flex items-center gap-2 mx-auto hover:bg-blue-500 transition-all disabled:opacity-50 min-h-[44px]"
                             >
                                 {scanning ? <RefreshCw className="w-5 h-5 animate-spin" /> : <RefreshCw className="w-5 h-5" />}
                                 Lancer la recherche

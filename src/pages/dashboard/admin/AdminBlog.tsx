@@ -169,7 +169,7 @@ export default function AdminBlog() {
                         <input
                             type="text"
                             placeholder="Rechercher un article..."
-                            className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-900 border-none rounded-xl focus:ring-2 focus:ring-primary transition-all"
+                            className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-900 border-none rounded-xl focus:ring-2 focus:ring-primary transition-all text-base"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
@@ -302,7 +302,7 @@ export default function AdminBlog() {
                                                 id="blog-title"
                                                 type="text"
                                                 required
-                                                className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border-none rounded-xl focus:ring-2 focus:ring-primary"
+                                                className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border-none rounded-xl focus:ring-2 focus:ring-primary text-base"
                                                 placeholder="Titre de l'article"
                                                 value={formData.title}
                                                 onChange={(e) => {
@@ -326,7 +326,7 @@ export default function AdminBlog() {
                                                 id="blog-slug"
                                                 type="text"
                                                 required
-                                                className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border-none rounded-xl focus:ring-2 focus:ring-primary"
+                                                className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border-none rounded-xl focus:ring-2 focus:ring-primary text-base"
                                                 placeholder="URL (slug)"
                                                 value={formData.slug}
                                                 onChange={(e) =>
@@ -341,7 +341,7 @@ export default function AdminBlog() {
                                             </label>
                                             <select
                                                 id="blog-category"
-                                                className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border-none rounded-xl focus:ring-2 focus:ring-primary"
+                                                className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border-none rounded-xl focus:ring-2 focus:ring-primary text-base"
                                                 value={formData.category}
                                                 title="Sélectionner une catégorie"
                                                 onChange={(e) =>
@@ -384,7 +384,7 @@ export default function AdminBlog() {
                                                 <input
                                                     id="featured_image"
                                                     type="file"
-                                                    className="absolute inset-0 opacity-0 cursor-pointer"
+                                                    className="absolute inset-0 opacity-0 cursor-pointer text-base"
                                                     accept="image/*"
                                                     title="Télécharger une image à la une"
                                                     onChange={(e) => {
@@ -441,7 +441,7 @@ export default function AdminBlog() {
                                     <button
                                         type="submit"
                                         disabled={isSubmitting}
-                                        className="flex items-center gap-2 px-8 py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary/90 transition-all disabled:opacity-50"
+                                        className="flex items-center gap-2 px-8 py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary/90 transition-all disabled:opacity-50 min-h-[44px]"
                                     >
                                         {isSubmitting ? (
                                             <>

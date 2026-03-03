@@ -99,7 +99,7 @@ export default function AvailableRFQs() {
         animate={{ opacity: 1, y: 0 }}
         className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-4 rounded-3xl shadow-lg border border-white/50 dark:border-white/5 flex flex-col md:flex-row gap-4 items-center justify-between"
       >
-        <form onSubmit={handleSearch} className="relative w-full md:w-96">
+        <form onSubmit={handleSearch} className="relative w-full md:w-full max-w-sm">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 pointer-events-none" />
           <input
             type="text"
@@ -224,7 +224,7 @@ export default function AvailableRFQs() {
                   </div>
 
                   {/* Cargo Details */}
-                  <div className="flex-1 grid grid-cols-2 gap-4 lg:border-l lg:border-r border-slate-100 dark:border-white/5 lg:px-6 w-full lg:w-auto">
+                  <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 lg:border-l lg:border-r border-slate-100 dark:border-white/5 lg:px-6 w-full lg:w-auto">
                     <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50">
                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">
                         Marchandise

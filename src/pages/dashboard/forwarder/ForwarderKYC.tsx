@@ -196,7 +196,7 @@ export default function ForwarderKYC() {
                       <label className="cursor-pointer">
                         <input
                           type="file"
-                          className="hidden"
+                          className="hidden text-base"
                           accept=".pdf,.jpg,.jpeg,.png"
                           onChange={(e) =>
                             e.target.files?.[0] &&

@@ -108,7 +108,7 @@ export default function Layout() {
             <nav className="flex items-center gap-2 sm:gap-4 relative z-10">
               <button
                 onClick={toggleTheme}
-                className="p-2.5 rounded-xl hover:bg-white/50 hover:shadow-sm transition-all duration-300 text-gray-600 dark:text-gray-300 hover:text-primary"
+                className="p-2.5 rounded-xl hover:bg-white/50 hover:shadow-sm transition-all duration-300 text-gray-600 dark:text-gray-300 hover:text-primary min-h-[44px]"
                 aria-label="Toggle Theme"
               >
                 {theme === "light" ? (
@@ -215,7 +215,7 @@ export default function Layout() {
 
                           <button
                             onClick={handleLogout}
-                            className="flex items-center gap-3 px-3 py-2.5 w-full text-sm font-medium text-red-600 hover:bg-red-50 rounded-xl transition-all text-left mt-1 group/item"
+                            className="flex items-center gap-3 px-3 py-2.5 w-full text-sm font-medium text-red-600 hover:bg-red-50 rounded-xl transition-all text-left mt-1 group/item min-h-[44px]"
                           >
                             <div className="p-2 bg-red-50 rounded-lg text-red-500 group-hover/item:bg-red-100 transition-colors">
                               <LogOut className="w-4 h-4" />

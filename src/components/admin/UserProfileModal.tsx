@@ -69,12 +69,12 @@ export default function UserProfileModal({
 
   return (
     <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl animate-in fade-in zoom-in duration-200 overflow-hidden">
+      <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl animate-in fade-in zoom-in duration-200 overflow-hidden max-h-[90vh] overflow-y-auto">
         {/* Header with Cover */}
         <div className="relative h-32 bg-gradient-to-r from-primary to-blue-600">
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 p-2 bg-white/20 hover:bg-white/30 text-white rounded-full transition-colors backdrop-blur-sm"
+            className="absolute top-4 right-4 p-2 bg-white/20 hover:bg-white/30 text-white rounded-full transition-colors backdrop-blur-sm min-h-[44px]"
             title="Fermer"
           >
             <X className="w-5 h-5" />
@@ -104,7 +104,7 @@ export default function UserProfileModal({
                 )}
                 <input
                   type="file"
-                  className="hidden"
+                  className="hidden text-base"
                   accept="image/*"
                   onChange={(e) =>
                     e.target.files?.[0] && handleFileUpload(e.target.files[0])
@@ -211,7 +211,7 @@ export default function UserProfileModal({
           <div className="mt-8 pt-6 border-t border-gray-100 flex justify-end gap-3">
             <button
               onClick={onClose}
-              className="px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-xl transition-colors font-medium"
+              className="px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-xl transition-colors font-medium min-h-[44px]"
               title="Fermer"
             >
               Fermer
@@ -224,7 +224,7 @@ export default function UserProfileModal({
             </button>
             <button
               onClick={onEdit}
-              className="px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors font-medium shadow-lg shadow-primary/20"
+              className="px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors font-medium shadow-lg shadow-primary/20 min-h-[44px]"
             >
               Modifier le profil
             </button>

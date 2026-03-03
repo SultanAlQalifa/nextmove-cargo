@@ -82,7 +82,7 @@ const ZiarraPoster = () => {
                     </div>
 
                     {/* Details Grid */}
-                    <div className="grid grid-cols-2 gap-4 mb-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
                         <div className="bg-[#006633]/5 p-5 rounded-3xl border border-[#006633]/10 text-center">
                             <Clock className="text-[#006633] mx-auto mb-2" size={26} />
                             <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-1">Horaires</p>

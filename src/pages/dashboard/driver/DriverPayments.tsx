@@ -75,7 +75,7 @@ export default function DriverPayments() {
       <div className="bg-white shadow-sm rounded-xl border border-gray-200 overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
           <h3 className="font-bold text-gray-900">Historique des Virements</h3>
-          <button className="text-sm text-primary hover:underline flex items-center gap-1">
+          <button className="text-sm text-primary hover:underline flex items-center gap-1 min-h-[44px]">
             <Download className="w-4 h-4" /> Exporter CSV
           </button>
         </div>
@@ -121,7 +121,7 @@ export default function DriverPayments() {
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button className="text-primary hover:text-blue-900">
+                  <button className="text-primary hover:text-blue-900 min-h-[44px]">
                     Reçu
                   </button>
                 </td>

@@ -353,7 +353,7 @@ export default function ForwarderShipments() {
         </div>
         <button
           onClick={loadShipments}
-          className="p-3 bg-slate-100/80 dark:bg-slate-800 text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-2xl transition-all shadow-sm"
+          className="p-3 bg-slate-100/80 dark:bg-slate-800 text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-2xl transition-all shadow-sm min-h-[44px]"
           aria-label="Rafraîchir"
           title="Rafraîchir"
         >

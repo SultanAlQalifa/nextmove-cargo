@@ -346,7 +346,7 @@ export default function Register() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mx-auto w-full max-w-sm lg:w-96"
+            className="mx-auto w-full max-w-sm lg:w-full max-w-sm"
           >
             <div className="text-center lg:text-left mb-8">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-black mb-4 uppercase tracking-tighter">
@@ -395,7 +395,7 @@ export default function Register() {
                 </div>
 
                 {phoneAuthEnabled && (
-                  <div className="grid grid-cols-2 gap-2 bg-slate-200/50 dark:bg-slate-800/50 p-1.5 rounded-2xl relative">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 bg-slate-200/50 dark:bg-slate-800/50 p-1.5 rounded-2xl relative">
                     <motion.div
                       layoutId="regToggle"
                       className="absolute inset-1.5 w-[calc(50%-6px)] bg-white dark:bg-slate-700 rounded-xl shadow-lg"
@@ -465,7 +465,7 @@ export default function Register() {
                               {resendTimer > 0 ? (
                                 <span className="text-[11px] font-bold text-slate-400 uppercase">{resendTimer}S Restantes</span>
                               ) : (
-                                <button type="button" onClick={sendOtp} className="text-[11px] font-bold text-blue-600 hover:underline tracking-widest uppercase">Renvoyer le code</button>
+                                <button type="button" onClick={sendOtp} className="text-[11px] font-bold text-blue-600 hover:underline tracking-widest uppercase min-h-[44px]">Renvoyer le code</button>
                               )}
                             </div>
                           </div>
@@ -496,7 +496,7 @@ export default function Register() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full flex justify-center items-center py-5 px-4 border border-transparent rounded-[1.25rem] shadow-xl shadow-blue-600/20 text-sm font-black text-white bg-blue-600 hover:bg-blue-500 transition-all duration-300 group"
+                  className="w-full flex justify-center items-center py-5 px-4 border border-transparent rounded-[1.25rem] shadow-xl shadow-blue-600/20 text-sm font-black text-white bg-blue-600 hover:bg-blue-500 transition-all duration-300 group min-h-[44px]"
                 >
                   {loading ? (
                     <Loader2 className="animate-spin h-5 w-5" />

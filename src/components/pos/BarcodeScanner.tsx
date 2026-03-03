@@ -40,7 +40,7 @@ export default function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps)
                     <button
                         title="Fermer le scanner"
                         onClick={onClose}
-                        className="p-2 bg-white rounded-xl text-slate-400 hover:text-red-500 shadow-sm transition-all"
+                        className="p-2 bg-white rounded-xl text-slate-400 hover:text-red-500 shadow-sm transition-all min-h-[44px]"
                     >
                         <X className="w-6 h-6" />
                     </button>

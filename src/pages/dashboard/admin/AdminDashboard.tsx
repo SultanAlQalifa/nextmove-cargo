@@ -201,7 +201,7 @@ export const AdminDashboard = () => {
           <p className="text-slate-500 font-medium">Analyse et pilotage stratégique NextMove</p>
         </div>
         <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 px-6 py-3 bg-primary text-white font-black rounded-2xl shadow-lg shadow-primary/20 hover:scale-105 transition-all outline-none">
+          <button className="flex items-center gap-2 px-6 py-3 bg-primary text-white font-black rounded-2xl shadow-lg shadow-primary/20 hover:scale-105 transition-all outline-none min-h-[44px]">
             <Download className="w-5 h-5" />
             Rapport 2026
           </button>
@@ -254,7 +254,7 @@ export const AdminDashboard = () => {
               <p className="text-sm font-bold text-blue-900">{stats.shipments.value} flux actifs</p>
             </div>
           </div>
-          <button className="p-2 hover:bg-blue-100 rounded-lg transition-colors" title="Détails">
+          <button className="p-2 hover:bg-blue-100 rounded-lg transition-colors min-h-[44px]" title="Détails">
             <ArrowRight className="w-4 h-4 text-blue-600" />
           </button>
         </div>

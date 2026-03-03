@@ -396,7 +396,7 @@ export default function AdminShipments() {
       </div>
 
       {/* Shipment List Table */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto overflow-hidden">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
@@ -609,7 +609,7 @@ export default function AdminShipments() {
               </button>
               <button
                 onClick={handleStatusUpdate}
-                className="px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary/90 rounded-lg shadow-sm shadow-primary/20 transition-all"
+                className="px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary/90 rounded-lg shadow-sm shadow-primary/20 transition-all min-h-[44px]"
               >
                 Mettre à jour
               </button>

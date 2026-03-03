@@ -82,7 +82,7 @@ export default function KYCVerificationModal({ isOpen, onClose, onSuccess }: KYC
                     <button
                         onClick={onClose}
                         aria-label="Fermer la modal"
-                        className="absolute right-4 top-4 p-2 hover:bg-white/20 rounded-full transition-colors"
+                        className="absolute right-4 top-4 p-2 hover:bg-white/20 rounded-full transition-colors min-h-[44px]"
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -121,7 +121,7 @@ export default function KYCVerificationModal({ isOpen, onClose, onSuccess }: KYC
                                         <User className="w-4 h-4" />
                                         Informations Personnelles
                                     </div>
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
                                             <label htmlFor="first_name" className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Prénom</label>
                                             <input
@@ -252,7 +252,7 @@ export default function KYCVerificationModal({ isOpen, onClose, onSuccess }: KYC
                                     </div>
 
                                     {files.length > 0 && (
-                                        <div className="grid grid-cols-2 gap-3">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                             {files.map((file, i) => (
                                                 <div key={i} className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl relative group">
                                                     <span className="text-xs font-bold text-blue-800 dark:text-blue-300 truncate pr-4">
@@ -288,7 +288,7 @@ export default function KYCVerificationModal({ isOpen, onClose, onSuccess }: KYC
                                         <button
                                             disabled={loading || files.length === 0}
                                             onClick={handleSubmit}
-                                            className="flex-[2] bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2 transition-all"
+                                            className="flex-[2] bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2 transition-all min-h-[44px]"
                                         >
                                             {loading ? "Soumission..." : "Finaliser la vérification"}
                                             {!loading && <CheckCircle className="w-5 h-5" />}

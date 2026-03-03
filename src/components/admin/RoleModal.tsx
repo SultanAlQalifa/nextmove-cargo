@@ -179,7 +179,7 @@ export default function RoleModal({
           <button
             onClick={onClose}
             aria-label="Close modal"
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors min-h-[44px]"
           >
             <X className="w-5 h-5 text-gray-500" />
           </button>
@@ -215,7 +215,7 @@ export default function RoleModal({
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Famille de rôle (Modèle)
               </label>
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 sm:grid-cols-5 gap-2">
                 {(Object.keys(ROLE_FAMILIES) as RoleFamilyType[])
                   .filter((f) => f !== "custom")
                   .map((family) => (
@@ -348,7 +348,7 @@ export default function RoleModal({
                               <button
                                 type="button"
                                 onClick={toggleCategory}
-                                className="text-xs font-medium text-primary hover:text-primary-dark transition-colors"
+                                className="text-xs font-medium text-primary hover:text-primary-dark transition-colors min-h-[44px]"
                               >
                                 {allSelected
                                   ? "Tout désélectionner"
@@ -400,7 +400,7 @@ export default function RoleModal({
                                 <input
                                   type="checkbox"
                                   disabled={isReadOnly}
-                                  className="hidden"
+                                  className="hidden text-base"
                                   checked={
                                     formData.permissions.includes(perm.id) ||
                                     formData.permissions.includes("all")
@@ -430,7 +430,7 @@ export default function RoleModal({
           <button
             type="button"
             onClick={onClose}
-            className="px-6 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
+            className="px-6 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors min-h-[44px]"
           >
             Annuler
           </button>
@@ -438,7 +438,7 @@ export default function RoleModal({
             type="submit"
             form="role-form"
             disabled={saving || isReadOnly}
-            className="px-6 py-2.5 text-sm font-medium text-white bg-primary rounded-xl hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm shadow-primary/30 transition-all"
+            className="px-6 py-2.5 text-sm font-medium text-white bg-primary rounded-xl hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm shadow-primary/30 transition-all min-h-[44px]"
           >
             {saving ? (
               <>

@@ -77,14 +77,14 @@ export default function CreateTicketModal({
 
     return (
         <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl animate-in fade-in zoom-in duration-200">
+            <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto">
                 <div className="flex justify-between items-center p-6 border-b border-gray-100">
                     <h2 className="text-xl font-bold text-gray-900">
                         Nouveau Ticket
                     </h2>
                     <button
                         onClick={onClose}
-                        className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                        className="p-2 hover:bg-gray-100 rounded-full transition-colors min-h-[44px]"
                         title="Fermer"
                         aria-label="Fermer"
                     >
@@ -214,7 +214,7 @@ export default function CreateTicketModal({
                             </div>
                         </div>
 
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
                                         Catégorie
@@ -281,7 +281,7 @@ export default function CreateTicketModal({
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="w-full py-2.5 bg-primary text-white rounded-xl font-medium hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20 disabled:opacity-50"
+                                className="w-full py-2.5 bg-primary text-white rounded-xl font-medium hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20 disabled:opacity-50 min-h-[44px]"
                             >
                                 {loading ? "Création..." : mode === 'client' ? "Créer pour le Client" : "Créer Ticket Interne"}
                             </button>

@@ -383,7 +383,7 @@ export default function DriverDashboard() {
                     <input
                       type="text"
                       required
-                      className="w-full rounded-xl border-gray-200 bg-gray-50 focus:bg-white focus:border-primary focus:ring-primary py-3 px-4 transition-all"
+                      className="w-full rounded-xl border-gray-200 bg-gray-50 focus:bg-white focus:border-primary focus:ring-primary py-3 px-4 transition-all text-base"
                       placeholder="Qui reçoit le colis ?"
                       value={podForm.recipient_name}
                       onChange={(e) =>
@@ -420,7 +420,7 @@ export default function DriverDashboard() {
                       id="photo-upload"
                       accept="image/*"
                       {...({ capture: "environment" } as any)}
-                      className="hidden"
+                      className="hidden text-base"
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) setPodForm({ ...podForm, photo: file });
@@ -467,7 +467,7 @@ export default function DriverDashboard() {
                     <button
                       type="submit"
                       disabled={submitting}
-                      className="flex-1 flex justify-center items-center gap-2 py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-primary/30 text-sm font-bold text-white bg-primary hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex-1 flex justify-center items-center gap-2 py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-primary/30 text-sm font-bold text-white bg-primary hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]"
                     >
                       {submitting ? (
                         <>
@@ -516,7 +516,7 @@ export default function DriverDashboard() {
               {!searchQuery && (
                 <button
                   onClick={simulateMission}
-                  className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 shadow-sm text-sm font-medium rounded-xl text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+                  className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 shadow-sm text-sm font-medium rounded-xl text-gray-700 bg-white hover:bg-gray-50 transition-colors min-h-[44px]"
                 >
                   <Plus className="w-4 h-4" />
                   Générer une mission de test

@@ -247,7 +247,7 @@ export default function ClientSettings() {
                       <Camera className="w-4 h-4" />
                       <input
                         type="file"
-                        className="hidden"
+                        className="hidden text-base"
                         accept="image/*"
                         title="Upload photo de profil"
                         onChange={(e) =>
@@ -354,7 +354,7 @@ export default function ClientSettings() {
                         type="email"
                         value={userProfile.email || ""}
                         disabled
-                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-gray-500 cursor-not-allowed"
+                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-gray-500 cursor-not-allowed text-base"
                       />
                     </div>
                   </div>

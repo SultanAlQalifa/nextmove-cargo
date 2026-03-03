@@ -96,7 +96,7 @@ export default function JoinConsolidationModal({
                     </h2>
                     <button
                         onClick={onClose}
-                        className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                        className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 min-h-[44px]"
                         aria-label="Fermer"
                     >
                         <X className="h-6 w-6" />
@@ -116,7 +116,7 @@ export default function JoinConsolidationModal({
                     </div>
 
                     <div className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                                     Poids (kg) <span className="text-red-500">*</span>
@@ -126,7 +126,7 @@ export default function JoinConsolidationModal({
                                         type="number"
                                         step="0.1"
                                         {...register("weight_kg", { required: "Requis" })}
-                                        className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800 outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800 outline-none focus:ring-2 focus:ring-blue-500 text-base"
                                         placeholder="0.0"
                                     />
                                     <Scale className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -143,7 +143,7 @@ export default function JoinConsolidationModal({
                                         type="number"
                                         step="0.01"
                                         {...register("volume_cbm", { required: "Requis" })}
-                                        className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800 outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800 outline-none focus:ring-2 focus:ring-blue-500 text-base"
                                         placeholder="0.00"
                                     />
                                     {/* Using Cube explicitly imported from lucide-react if available or Package as fallback if Cube is not valid, but Cube should be valid. If uncertain, verify Lucide icons. Cube is standard. */}
@@ -162,7 +162,7 @@ export default function JoinConsolidationModal({
                                 <input
                                     type="text"
                                     {...register("goods_nature", { required: "Requis" })}
-                                    className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800 outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800 outline-none focus:ring-2 focus:ring-blue-500 text-base"
                                     placeholder="ex: Vêtements, Electronique..."
                                 />
                                 <Package className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -177,7 +177,7 @@ export default function JoinConsolidationModal({
                                 <input
                                     type="number"
                                     {...register("cargo_value")}
-                                    className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800 outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800 outline-none focus:ring-2 focus:ring-blue-500 text-base"
                                     placeholder="0.00"
                                 />
                                 <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -210,14 +210,14 @@ export default function JoinConsolidationModal({
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-6 py-2.5 rounded-xl border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-gray-800 transition-colors"
+                            className="px-6 py-2.5 rounded-xl border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-gray-800 transition-colors min-h-[44px]"
                         >
                             Annuler
                         </button>
                         <button
                             type="submit"
                             disabled={loading}
-                            className="px-6 py-2.5 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-500 transition-colors shadow-lg shadow-blue-500/30 flex items-center"
+                            className="px-6 py-2.5 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-500 transition-colors shadow-lg shadow-blue-500/30 flex items-center min-h-[44px]"
                         >
                             {loading && <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />}
                             Confirmer la réservation

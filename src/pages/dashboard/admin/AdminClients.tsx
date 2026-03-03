@@ -146,7 +146,7 @@ export default function AdminClients() {
                       {new Date(c.created_at).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
+                      <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors min-h-[44px]">
                         <MoreVertical className="w-5 h-5" />
                       </button>
                     </td>

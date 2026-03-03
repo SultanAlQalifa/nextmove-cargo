@@ -107,7 +107,7 @@ export default function RateManager() {
               </label>
               <select
                 {...register("mode")}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary text-base"
               >
                 <option value="sea">Sea Freight</option>
                 <option value="air">Air Freight</option>
@@ -119,7 +119,7 @@ export default function RateManager() {
               </label>
               <select
                 {...register("type")}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary text-base"
               >
                 <option value="standard">Standard</option>
                 <option value="express">Express</option>
@@ -175,7 +175,7 @@ export default function RateManager() {
               </label>
               <select
                 {...register("currency")}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary text-base"
               >
                 <option value="XOF">XOF</option>
                 <option value="EUR">EUR</option>
@@ -212,7 +212,7 @@ export default function RateManager() {
           <div className="mt-4 flex justify-end">
             <button
               type="submit"
-              className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
+              className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 min-h-[44px]"
             >
               {editingId ? "Update Rate" : "Save Rate"}
             </button>

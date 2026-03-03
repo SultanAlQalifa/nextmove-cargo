@@ -49,7 +49,7 @@ export default function SavedQuoteModal({
                     <button
                         onClick={onClose}
                         aria-label="Fermer"
-                        className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                        className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors min-h-[44px]"
                     >
                         <X size={20} className="text-gray-500" />
                     </button>
@@ -67,7 +67,7 @@ export default function SavedQuoteModal({
                             </p>
                             <button
                                 onClick={onClose}
-                                className="mt-6 px-6 py-2.5 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-orange-500/30"
+                                className="mt-6 px-6 py-2.5 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-orange-500/30 min-h-[44px]"
                             >
                                 Parfait, merci !
                             </button>
@@ -141,7 +141,7 @@ export default function SavedQuoteModal({
                                 <button
                                     type="submit"
                                     disabled={loading || !email}
-                                    className="w-full py-3 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow-lg shadow-orange-500/20 hover:shadow-orange-500/40 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
+                                    className="w-full py-3 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow-lg shadow-orange-500/20 hover:shadow-orange-500/40 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 min-h-[44px]"
 
                                 >
                                     {loading ? (

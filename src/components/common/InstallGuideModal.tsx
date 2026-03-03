@@ -29,7 +29,7 @@ export default function InstallGuideModal({
           <button
             onClick={onClose}
             aria-label="Close guide"
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors min-h-[44px]"
           >
             <X className="w-5 h-5 text-gray-500" />
           </button>
@@ -146,7 +146,7 @@ export default function InstallGuideModal({
         <div className="p-4 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-100 dark:border-gray-700 text-center">
           <button
             onClick={onClose}
-            className="text-primary font-semibold text-sm hover:underline"
+            className="text-primary font-semibold text-sm hover:underline min-h-[44px]"
           >
             J'ai compris
           </button>

@@ -55,7 +55,7 @@ export default function NotificationCenter() {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
                         transition={{ duration: 0.2, ease: "easeOut" }}
-                        className="absolute right-0 mt-3 w-80 sm:w-96 glass-card-premium bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl rounded-3xl shadow-2xl ring-1 ring-slate-900/5 dark:ring-white/10 z-50 overflow-hidden transform-gpu"
+                        className="absolute right-0 mt-3 w-80 sm:w-full max-w-sm glass-card-premium bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl rounded-3xl shadow-2xl ring-1 ring-slate-900/5 dark:ring-white/10 z-50 overflow-hidden transform-gpu"
                     >
                         <div className="grain-overlay opacity-[0.03]" />
                         <div className="p-4 border-b border-slate-100 dark:border-white/5 flex items-center justify-between relative z-10">

@@ -237,7 +237,7 @@ export const AdminWorldMap = () => {
                 )}
             </div>
 
-            <div className="mt-6 grid grid-cols-3 gap-3 relative z-10 glass-panel bg-slate-900/60 p-4 rounded-2xl border border-slate-700/50 backdrop-blur-md">
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-3 relative z-10 glass-panel bg-slate-900/60 p-4 rounded-2xl border border-slate-700/50 backdrop-blur-md">
                 <div>
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1">
                         <MapPin className="w-3 h-3" /> Hub Principal

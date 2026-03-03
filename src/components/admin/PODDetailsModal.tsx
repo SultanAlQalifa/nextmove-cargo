@@ -81,7 +81,7 @@ export default function PODDetailsModal({
             <button
               onClick={onClose}
               title="Fermer"
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors min-h-[44px]"
             >
               <X className="w-5 h-5 text-gray-500" />
             </button>

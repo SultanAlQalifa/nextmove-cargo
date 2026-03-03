@@ -502,7 +502,7 @@ export default function SupportCampaign() {
 
                         </form>
                     </div>
-                    <div className="mt-8 grid grid-cols-2 gap-4">
+                    <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="p-4 bg-white/50 rounded-2xl border border-slate-100 text-center">
                             <Shield className="w-5 h-5 text-blue-600 mx-auto mb-2" />
                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sécure</p>

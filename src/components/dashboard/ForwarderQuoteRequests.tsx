@@ -124,7 +124,7 @@ export default function ForwarderQuoteRequests() {
                       step="0.01"
                       required
                       {...register("amount")}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary text-base"
                     />
                   </div>
                   <div>
@@ -133,7 +133,7 @@ export default function ForwarderQuoteRequests() {
                     </label>
                     <select
                       {...register("currency")}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary text-base"
                     >
                       <option value="XOF">XOF</option>
                       <option value="EUR">EUR</option>
@@ -147,7 +147,7 @@ export default function ForwarderQuoteRequests() {
                     <input
                       type="date"
                       {...register("valid_until")}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary text-base"
                     />
                   </div>
                   <div className="flex gap-2">
@@ -160,7 +160,7 @@ export default function ForwarderQuoteRequests() {
                     </button>
                     <button
                       type="submit"
-                      className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
+                      className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 min-h-[44px]"
                     >
                       Submit
                     </button>

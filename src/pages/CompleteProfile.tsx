@@ -293,13 +293,13 @@ export default function CompleteProfile() {
                                                 <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
                                                     <User className="h-4 w-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
                                                 </div>
-                                                <input type="text" {...register("firstName")} className="block w-full pl-12 pr-5 py-4.5 border-2 border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-[1.25rem] text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-8 focus:ring-blue-500/5 transition-all font-medium shadow-xl shadow-slate-200/20" placeholder="Jean" />
+                                                <input type="text" {...register("firstName")} className="block w-full pl-12 pr-5 py-4.5 border-2 border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-[1.25rem] text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-8 focus:ring-blue-500/5 transition-all font-medium shadow-xl shadow-slate-200/20 text-base" placeholder="Jean" />
                                                 {errors.firstName && (<p className="mt-2 text-[10px] text-red-500 font-black uppercase tracking-tighter">{errors.firstName.message as any}</p>)}
                                             </div>
                                         </div>
                                         <div className="space-y-3">
                                             <label className="block text-xs font-black text-slate-700 dark:text-slate-300 ml-1 uppercase tracking-widest">Nom</label>
-                                            <input type="text" {...register("lastName")} className="block w-full px-5 py-4.5 border-2 border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-[1.25rem] text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-8 focus:ring-blue-500/5 transition-all font-medium shadow-xl shadow-slate-200/20" placeholder="Dupont" />
+                                            <input type="text" {...register("lastName")} className="block w-full px-5 py-4.5 border-2 border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-[1.25rem] text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-8 focus:ring-blue-500/5 transition-all font-medium shadow-xl shadow-slate-200/20 text-base" placeholder="Dupont" />
                                             {errors.lastName && (<p className="mt-2 text-[10px] text-red-500 font-black uppercase tracking-tighter">{errors.lastName.message as any}</p>)}
                                         </div>
                                     </div>
@@ -352,7 +352,7 @@ export default function CompleteProfile() {
                                         <button
                                             type="button"
                                             onClick={prevStep}
-                                            className="px-8 py-5 rounded-[1.5rem] border-2 border-slate-100 dark:border-slate-800 text-slate-400 font-black uppercase text-xs hover:bg-slate-50 dark:hover:bg-slate-900 transition-all"
+                                            className="px-8 py-5 rounded-[1.5rem] border-2 border-slate-100 dark:border-slate-800 text-slate-400 font-black uppercase text-xs hover:bg-slate-50 dark:hover:bg-slate-900 transition-all min-h-[44px]"
                                         >
                                             Retour
                                         </button>
@@ -362,7 +362,7 @@ export default function CompleteProfile() {
                                         <button
                                             type="button"
                                             onClick={nextStep}
-                                            className="flex-1 flex justify-center items-center py-5 px-8 bg-blue-600 text-white rounded-[1.5rem] shadow-2xl shadow-blue-600/30 hover:bg-blue-500 transition-all font-black text-xs uppercase tracking-widest group"
+                                            className="flex-1 flex justify-center items-center py-5 px-8 bg-blue-600 text-white rounded-[1.5rem] shadow-2xl shadow-blue-600/30 hover:bg-blue-500 transition-all font-black text-xs uppercase tracking-widest group min-h-[44px]"
                                         >
                                             Continuer
                                             <ArrowRight className="ml-3 w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -371,7 +371,7 @@ export default function CompleteProfile() {
                                         <button
                                             type="submit"
                                             disabled={loading}
-                                            className="flex-1 flex justify-center items-center py-5 px-8 bg-blue-600 text-white rounded-[1.5rem] shadow-2xl shadow-blue-600/30 hover:bg-blue-500 transition-all font-black text-xs uppercase tracking-widest group disabled:opacity-50"
+                                            className="flex-1 flex justify-center items-center py-5 px-8 bg-blue-600 text-white rounded-[1.5rem] shadow-2xl shadow-blue-600/30 hover:bg-blue-500 transition-all font-black text-xs uppercase tracking-widest group disabled:opacity-50 min-h-[44px]"
                                         >
                                             {loading ? <Loader2 className="animate-spin h-5 w-5" /> : (
                                                 <>

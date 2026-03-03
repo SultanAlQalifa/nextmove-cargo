@@ -262,7 +262,7 @@ export default function POSDashboard() {
                         </div>
                         <button
                             onClick={handleOpenSession}
-                            className="w-full py-5 bg-blue-600 text-white rounded-2xl font-black text-xl hover:bg-blue-500 transition-all shadow-xl shadow-blue-500/20"
+                            className="w-full py-5 bg-blue-600 text-white rounded-2xl font-black text-xl hover:bg-blue-500 transition-all shadow-xl shadow-blue-500/20 min-h-[44px]"
                         >Démarrer la Session</button>
                     </div>
                 </div>
@@ -298,7 +298,7 @@ export default function POSDashboard() {
 
                         <button
                             onClick={handleCreateShipment}
-                            className="w-full py-5 bg-blue-600 text-white rounded-2xl font-black text-lg hover:bg-blue-500 transition-all flex items-center justify-center gap-3"
+                            className="w-full py-5 bg-blue-600 text-white rounded-2xl font-black text-lg hover:bg-blue-500 transition-all flex items-center justify-center gap-3 min-h-[44px]"
                             title="Confirmer la réception du paiement"
                         >
                             <Smartphone className="w-6 h-6" />
@@ -332,7 +332,7 @@ export default function POSDashboard() {
                     <button
                         title="Fermer la session"
                         onClick={handleCloseSession}
-                        className="p-3 bg-red-50 text-red-600 rounded-2xl hover:bg-red-100 transition-colors"
+                        className="p-3 bg-red-50 text-red-600 rounded-2xl hover:bg-red-100 transition-colors min-h-[44px]"
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -411,7 +411,7 @@ export default function POSDashboard() {
                             <h3 className="font-bold text-slate-900 text-lg">Transport</h3>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                             <button
                                 onClick={() => setFormData({ ...formData, transportMode: 'sea' })}
                                 className={`p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${formData.transportMode === 'sea' ? 'border-blue-600 bg-blue-50 text-blue-600' : 'border-slate-100 text-slate-400'}`}
@@ -486,7 +486,7 @@ export default function POSDashboard() {
 
                             <div>
                                 <label className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3 block">Nombre de Colis</label>
-                                <div className="grid grid-cols-4 gap-3">
+                                <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                                     {[1, 2, 5, 10].map(n => (
                                         <button
                                             key={n}
@@ -532,7 +532,7 @@ export default function POSDashboard() {
 
                             <div className="h-px bg-slate-800 my-4" />
 
-                            <div className="grid grid-cols-2 gap-2">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                                 <button
                                     onClick={() => setPaymentMethod('cash')}
                                     className={`flex items-center justify-center gap-2 py-3 rounded-2xl border-2 transition-all ${paymentMethod === 'cash' ? 'border-white bg-white text-slate-900' : 'border-slate-800 text-slate-500'}`}
@@ -561,7 +561,7 @@ export default function POSDashboard() {
                             <button
                                 disabled={loading || !selectedClient}
                                 onClick={handleCreateShipment}
-                                className="w-full py-6 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-800 disabled:text-slate-600 rounded-3xl font-black text-xl shadow-xl shadow-blue-500/20 active:scale-95 transition-all flex items-center justify-center gap-3"
+                                className="w-full py-6 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-800 disabled:text-slate-600 rounded-3xl font-black text-xl shadow-xl shadow-blue-500/20 active:scale-95 transition-all flex items-center justify-center gap-3 min-h-[44px]"
                             >
                                 {loading ? (
                                     <span className="animate-pulse">Traitement...</span>

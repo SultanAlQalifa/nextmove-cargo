@@ -207,7 +207,7 @@ export default function ForwarderKYC() {
                         {uploading === doc.label ? "Envoi..." : "Importer"}
                         <input
                           type="file"
-                          className="hidden"
+                          className="hidden text-base"
                           accept=".pdf,.jpg,.jpeg,.png"
                           onChange={(e) => {
                             if (e.target.files?.[0]) {

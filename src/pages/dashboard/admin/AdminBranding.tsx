@@ -190,7 +190,7 @@ export default function AdminBranding() {
         <button
           onClick={handleReset}
           disabled={saving || loading}
-          className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors"
+          className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors min-h-[44px]"
         >
           <RotateCcw className="w-5 h-5" />
           <span className="font-medium">Réinitialiser par défaut</span>
@@ -277,7 +277,7 @@ export default function AdminBranding() {
                           <input
                             type="file"
                             id="invoice-logo-upload"
-                            className="hidden"
+                            className="hidden text-base"
                             accept="image/*"
                             onChange={(e) =>
                               e.target.files?.[0] &&
@@ -421,7 +421,7 @@ export default function AdminBranding() {
                             />
                           </div>
 
-                          <div className="grid grid-cols-2 gap-6">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-3">
                               <label htmlFor="logo-upload" className="text-xs font-bold text-gray-400 uppercase tracking-wider">Logo Principal</label>
                               <div className="relative group aspect-video bg-gray-50 dark:bg-gray-800 rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-700 overflow-hidden flex items-center justify-center transition-all hover:border-primary">
@@ -437,7 +437,7 @@ export default function AdminBranding() {
                                   id="logo-upload"
                                   title="Upload Logo Principal"
                                   type="file"
-                                  className="absolute inset-0 opacity-0 cursor-pointer"
+                                  className="absolute inset-0 opacity-0 cursor-pointer text-base"
                                   accept="image/*"
                                   onChange={(e) => e.target.files?.[0] && handleFileUpload("logo_url", e.target.files[0])}
                                 />
@@ -455,7 +455,7 @@ export default function AdminBranding() {
                                   id="favicon-upload"
                                   title="Upload Favicon"
                                   type="file"
-                                  className="absolute inset-0 opacity-0 cursor-pointer"
+                                  className="absolute inset-0 opacity-0 cursor-pointer text-base"
                                   accept="image/x-icon,image/png"
                                   onChange={(e) => e.target.files?.[0] && handleFileUpload("favicon_url", e.target.files[0])}
                                 />
@@ -563,7 +563,7 @@ export default function AdminBranding() {
                                 </div>
                               </div>
 
-                              <div className="grid grid-cols-2 gap-4">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {[1, 2, 3, 4].map(i => (
                                   <div key={i} className="aspect-square rounded-[2rem] bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm flex items-center justify-center p-4">
                                     <div className="w-full h-full rounded-2xl bg-gray-50 dark:bg-gray-700 flex items-center justify-center">
@@ -666,7 +666,7 @@ export default function AdminBranding() {
                         className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all h-24 resize-none"
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label
                           htmlFor="hero_cta1"
@@ -711,7 +711,7 @@ export default function AdminBranding() {
                   <h3 className="text-lg font-bold text-gray-900 mb-6">
                     Statistiques
                   </h3>
-                  <div className="grid grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label
                         htmlFor="stats_shipments"
@@ -1530,7 +1530,7 @@ export default function AdminBranding() {
                                 type="file"
                                 id="og-image-upload"
                                 title="Upload Image de partage SEO"
-                                className="absolute inset-0 opacity-0 cursor-pointer"
+                                className="absolute inset-0 opacity-0 cursor-pointer text-base"
                                 accept="image/*"
                                 onChange={(e) =>
                                   e.target.files?.[0] &&
@@ -1615,7 +1615,7 @@ export default function AdminBranding() {
                           <input
                             type="file"
                             id="pwa-icon-upload"
-                            className="hidden"
+                            className="hidden text-base"
                             accept="image/png,image/jpeg"
                             onChange={(e) =>
                               e.target.files?.[0] &&
