@@ -328,19 +328,24 @@ export const paymentService = {
     const client_reference = `PAYTECH-${Date.now()}`;
 
     try {
-      const data = await fetchWithRetry<{ redirect_url: string }>(() =>
-        supabase.functions.invoke("paytech-checkout", {
-          body: {
-            amount,
-            currency,
-            ref_command: client_reference,
-            item_name: metadata.item_name || "Commande NextMove",
-            custom_field: JSON.stringify({ user_id: user.id, ...metadata }),
-            success_url: returnUrls?.success || `${window.location.origin}/dashboard/client/payments?status=success`,
-            cancel_url: returnUrls?.cancel || `${window.location.origin}/dashboard/client/payments?status=cancel`,
-          },
-        }),
-      );
+      const payload = {
+        amount,
+        currency,
+        ref_command: client_reference,
+        item_name: metadata.item_name || "Commande NextMove",
+        custom_field: JSON.stringify({ user_id: user.id, ...metadata }),
+        success_url: returnUrls?.success || `${window.location.origin}/dashboard/client/payments?status=success`,
+        cancel_url: returnUrls?.cancel || `${window.location.origin}/dashboard/client/payments?status=cancel`,
+      };
+
+      const response = await supabase.functions.invoke("paytech-checkout", {
+        body: payload,
+      });
+
+      console.log("PayTech RAW response:", JSON.stringify(response));
+      console.log("PayTech data:", JSON.stringify(response.data));
+
+      const data = response.data;
 
       if (!data || (!data.redirect_url && !data.redirectUrl && !data.token)) {
         throw new Error("No redirect URL received from PayTech");
