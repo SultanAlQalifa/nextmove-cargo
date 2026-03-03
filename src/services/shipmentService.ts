@@ -54,7 +54,9 @@ export interface Shipment {
   | "customs"
   | "delivered"
   | "cancelled"
-  | "completed";
+  | "completed"
+  | "pending_confirmation"
+  | "disputed";
   carrier: {
     name: string;
     logo?: string;

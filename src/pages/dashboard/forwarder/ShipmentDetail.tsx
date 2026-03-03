@@ -20,6 +20,7 @@ import { useCurrency } from "../../../contexts/CurrencyContext";
 import EditShipmentModal from "../../../components/dashboard/EditShipmentModal";
 import AddShipmentModal from "../../../components/dashboard/AddShipmentModal";
 import ConfirmationModal from "../../../components/common/ConfirmationModal";
+import PODUploadModal from "./PODUploadModal";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function ShipmentDetail() {
@@ -40,6 +41,7 @@ export default function ShipmentDetail() {
 
   // Status State
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
+  const [isPODModalOpen, setIsPODModalOpen] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -584,11 +586,18 @@ export default function ShipmentDetail() {
                   { value: 'picked_up', label: 'Ramassé' },
                   { value: 'in_transit', label: 'En Transit' },
                   { value: 'customs', label: 'En Douane' },
-                  { value: 'delivered', label: 'Livré' }
+                  { value: 'delivered', label: 'Livré (Requiert POD)' }
                 ].map((opt) => (
                   <button
                     key={opt.value}
-                    onClick={() => handleStatusUpdate(opt.value)}
+                    onClick={() => {
+                      if (opt.value === 'delivered') {
+                        setIsStatusModalOpen(false);
+                        setIsPODModalOpen(true);
+                      } else {
+                        handleStatusUpdate(opt.value);
+                      }
+                    }}
                     className={`p-3 rounded-xl text-left font-medium transition-colors ${shipment.status === opt.value
                       ? 'bg-blue-50 text-blue-700 border border-blue-200'
                       : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
@@ -632,6 +641,13 @@ export default function ShipmentDetail() {
         onConfirm={handleDelete}
         title="Supprimer l'expédition"
         message="Êtes-vous sûr de vouloir supprimer cette expédition ? Cette action est irréversible."
+      />
+
+      <PODUploadModal
+        isOpen={isPODModalOpen}
+        onClose={() => setIsPODModalOpen(false)}
+        shipmentId={shipment.id}
+        onSuccess={() => loadShipment(shipment.id)}
       />
     </motion.div>
   );

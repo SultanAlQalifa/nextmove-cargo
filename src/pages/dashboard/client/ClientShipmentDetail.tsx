@@ -88,6 +88,7 @@ export default function ClientShipmentDetail() {
     const [shipment, setShipment] = useState<Shipment | null>(null);
     const [loading, setLoading] = useState(true);
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+    const [isDisputeModalOpen, setIsDisputeModalOpen] = useState(false);
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
     const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
     const [hasReviewed, setHasReviewed] = useState(false);
@@ -124,9 +125,8 @@ export default function ClientShipmentDetail() {
     const handleConfirmDelivery = async () => {
         if (!shipment) return;
         try {
-            // In a real app, this would update status to 'completed' or trigger a feedback form
             await shipmentService.updateShipment(shipment.id, { status: "completed" });
-            success("Réception confirmée ! Merci.");
+            success("Réception confirmée ! Les fonds vont être libérés au prestataire.");
             setIsConfirmModalOpen(false);
             loadShipment(shipment.id);
             // Prompt for review
@@ -134,6 +134,19 @@ export default function ClientShipmentDetail() {
         } catch (e) {
             console.error("Confirmation failed:", e);
             error("Erreur lors de la confirmation");
+        }
+    };
+
+    const handleDispute = async () => {
+        if (!shipment) return;
+        try {
+            await shipmentService.updateShipment(shipment.id, { status: "disputed" as any });
+            success("Litige ouvert. Les fonds sont bloqués et notre équipe vous contactera.");
+            setIsDisputeModalOpen(false);
+            loadShipment(shipment.id);
+        } catch (e) {
+            console.error("Dispute failed:", e);
+            error("Erreur lors de l'ouverture du litige");
         }
     };
 
@@ -152,8 +165,10 @@ export default function ClientShipmentDetail() {
             case "delivered":
             case "completed": return "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 glow-emerald-sm";
             case "cancelled": return "bg-rose-500/10 text-rose-600 border-rose-500/20";
+            case "disputed": return "bg-rose-500/10 text-rose-600 border-rose-500/20 glow-rose-sm";
             case "pending": return "bg-orange-500/10 text-orange-600 border-orange-500/20 glow-orange-sm";
             case "pending_payment": return "bg-amber-500/10 text-amber-600 border-amber-500/20 glow-amber-sm";
+            case "pending_confirmation": return "bg-purple-500/10 text-purple-600 border-purple-500/20 glow-purple-sm";
             case "picked_up":
             case "in_transit":
             case "customs": return "bg-orange-500/10 text-orange-600 border-orange-500/20 glow-orange-sm";
@@ -169,7 +184,9 @@ export default function ClientShipmentDetail() {
             {status === 'in_transit' && 'En Transit'}
             {status === 'customs' && 'Douane'}
             {status === 'delivered' && 'Livré'}
+            {status === 'pending_confirmation' && 'Confirmation Requise'}
             {status === 'completed' && 'Terminé'}
+            {status === 'disputed' && 'Litige'}
             {status === 'cancelled' && 'Annulé'}
         </span>
     );
@@ -352,14 +369,22 @@ export default function ClientShipmentDetail() {
                                 Payer maintenant
                             </button>
                         )}
-                    {shipment.status === 'delivered' && (
-                        <button
-                            onClick={() => setIsConfirmModalOpen(true)}
-                            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white font-medium rounded-xl hover:bg-green-700 transition-colors shadow-sm"
-                        >
-                            <ShieldCheck className="w-4 h-4" />
-                            Confirmer la Réception
-                        </button>
+                    {(shipment.status === 'delivered' || shipment.status === 'pending_confirmation') && (
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => setIsDisputeModalOpen(true)}
+                                className="flex items-center gap-2 px-4 py-2 bg-rose-50 text-rose-600 font-medium rounded-xl hover:bg-rose-100 transition-colors shadow-sm"
+                            >
+                                Disputer
+                            </button>
+                            <button
+                                onClick={() => setIsConfirmModalOpen(true)}
+                                className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white font-medium rounded-xl hover:bg-emerald-700 transition-colors shadow-sm animate-pulse"
+                            >
+                                <ShieldCheck className="w-4 h-4" />
+                                Confirmer la Réception
+                            </button>
+                        </div>
                     )}
 
                     {shipment.status === 'completed' && !hasReviewed && (
@@ -573,7 +598,15 @@ export default function ClientShipmentDetail() {
                 onClose={() => setIsConfirmModalOpen(false)}
                 onConfirm={handleConfirmDelivery}
                 title="Confirmer la réception"
-                message="Avez-vous bien reçu la marchandise en bon état ? Cette action clôturera l'expédition."
+                message="Avez-vous bien reçu la marchandise en bon état ? Cette action libérera les fonds au prestataire de façon irréversible."
+            />
+
+            <ConfirmationModal
+                isOpen={isDisputeModalOpen}
+                onClose={() => setIsDisputeModalOpen(false)}
+                onConfirm={handleDispute}
+                title="Ouvrir un litige"
+                message="Êtes-vous sûr de vouloir ouvrir un litige ? Les fonds resteront bloqués et l'équipe NextMove interviendra."
             />
 
             {shipment && (
