@@ -247,6 +247,9 @@ const AdminSavedQuotes = lazy(
 const AdminKYCReview = lazy(
   () => import("./pages/dashboard/admin/AdminKYCReview"),
 );
+const AdminForwarderKYC = lazy(
+  () => import("./pages/dashboard/admin/AdminForwarderKYC"),
+);
 const AdminAcademy = lazy(
   () => import("./pages/dashboard/admin/AdminAcademy"),
 );
@@ -718,6 +721,10 @@ function App() {
                                         <Route
                                           path="admin/kyc"
                                           element={<AdminKYCReview />}
+                                        />
+                                        <Route
+                                          path="admin/forwarder-kyc"
+                                          element={<AdminForwarderKYC />}
                                         />
                                         <Route
                                           path="admin/academy"

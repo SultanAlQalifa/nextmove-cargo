@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "../../contexts/AuthContext";
 import { useToast } from "../../contexts/ToastContext";
 import { rfqService } from "../../services/rfqService";
 import { forwarderRateService, ForwarderRate } from "../../services/forwarderRateService";
@@ -21,6 +22,7 @@ export default function CreateOfferForm() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { profile } = useAuth();
   const { success, error: toastError } = useToast();
   const [rfq, setRfq] = useState<RFQRequest | null>(null);
   const [loading, setLoading] = useState(true);
@@ -196,6 +198,36 @@ export default function CreateOfferForm() {
   }
 
   if (!rfq) return null;
+
+  if (profile?.kyc_status !== 'verified') {
+    return (
+      <div className="max-w-4xl mx-auto py-12 text-center">
+        <div className="bg-orange-50 dark:bg-orange-900/20 p-8 rounded-3xl border border-orange-200 dark:border-orange-800 flex flex-col items-center">
+          <div className="w-20 h-20 bg-orange-100 dark:bg-orange-800 rounded-full flex items-center justify-center mb-6">
+            <Shield className="w-10 h-10 text-orange-600 dark:text-orange-400" />
+          </div>
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2 tracking-tight">Vérification Requise</h2>
+          <p className="text-slate-600 dark:text-slate-400 mb-8 max-w-lg mx-auto text-lg leading-relaxed">
+            Pour garantir la sécurité de notre réseau, vous devez vérifier votre identité légale (documents KYC) avant de pouvoir soumettre des offres sur les appels d'offres réels.
+          </p>
+          <div className="flex gap-4 w-full justify-center">
+            <button
+              onClick={() => navigate("/dashboard/forwarder/rfq/available")}
+              className="px-6 py-3.5 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-2xl font-bold shadow-sm hover:bg-slate-50 transition-colors"
+            >
+              Retour aux demandes
+            </button>
+            <button
+              onClick={() => navigate("/dashboard/forwarder/kyc")}
+              className="inline-flex items-center gap-2 px-8 py-3.5 bg-orange-600 text-white rounded-2xl font-black uppercase tracking-widest text-sm hover:bg-orange-500 transition-all shadow-xl shadow-orange-500/20 hover:shadow-orange-500/30 hover:-translate-y-0.5"
+            >
+              <FileText className="w-5 h-5" /> Soumettre mes documents
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto pb-12">

@@ -576,8 +576,13 @@ export default function DashboardLayout() {
               icon: HelpCircle,
             },
             {
-              name: "Revue KYC",
+              name: "Revue KYC (Clients)",
               path: "/dashboard/admin/kyc",
+              icon: ShieldCheck,
+            },
+            {
+              name: "KYC Prestataires",
+              path: "/dashboard/admin/forwarder-kyc",
               icon: ShieldCheck,
             },
           ],
