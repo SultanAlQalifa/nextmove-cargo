@@ -13,16 +13,19 @@ import {
     CreditCard,
     Zap,
     Anchor,
-    MapPin as MapPinIcon
+    MapPin as MapPinIcon,
+    Box
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { shipmentService, Shipment } from "../../../services/shipmentService";
 import { useToast } from "../../../contexts/ToastContext";
 import { useCurrency } from "../../../contexts/CurrencyContext";
 import ConfirmationModal from "../../../components/common/ConfirmationModal";
-import { invoiceService } from "../../../services/invoiceService";
+import { generateInvoicePDF } from "../../../utils/invoiceGenerator";
 import PaymentModal from "../../../components/payment/PaymentModal";
 import { addressService, ForwarderAddress } from "../../../services/addressService";
+import { useAuth } from "../../../contexts/AuthContext";
+import { documentService } from "../../../services/documentService";
 import ReviewModal from "../../../components/shipments/ReviewModal";
 import { reviewService } from "../../../services/reviewService";
 import TrackingMap from "../../../components/shipment/TrackingMap";
@@ -84,6 +87,7 @@ export default function ClientShipmentDetail() {
     const navigate = useNavigate();
     const { error, success } = useToast();
     const { formatPrice } = useCurrency();
+    const { user } = useAuth();
 
     const [shipment, setShipment] = useState<Shipment | null>(null);
     const [loading, setLoading] = useState(true);
@@ -268,42 +272,48 @@ export default function ClientShipmentDetail() {
         try {
             const createdAt = new Date(shipment.created_at || new Date());
             const dueDate = new Date(createdAt);
-            dueDate.setDate(dueDate.getDate() + 3); // Payment usually due shortly after creation, not 15 days arbitrarily from now
+            dueDate.setDate(dueDate.getDate() + 3);
 
-            const invoiceData = {
-                invoiceNumber: shipment.tracking_number,
-                date: createdAt.toLocaleDateString('fr-FR'),
-                dueDate: dueDate.toLocaleDateString('fr-FR'),
-                status: (shipment.status === 'completed' || shipment.payment?.some(p => p.status === 'completed')) ? 'paid' : 'pending',
-                sender: {
-                    name: shipment.forwarder?.company_name || shipment.carrier.name,
-                    address: [shipment.origin.country, shipment.origin.port],
-                    email: shipment.forwarder?.email || "contact@forwarder.com",
-                    currency: shipment.currency || "XOF",
-                    phone: shipment.forwarder?.phone || "Non renseigné"
-                },
+            const blob = generateInvoicePDF({
+                invoiceNumber: `INV-${shipment.tracking_number}`,
+                date: createdAt,
+                dueDate: dueDate,
+                status: (shipment.status === 'completed' || shipment.payment?.some(p => p.status === 'completed')) ? 'PAID' : 'UNPAID',
                 client: {
-                    name: profile?.company_name || profile?.full_name || "Client",
-                    address: [profile?.country || shipment.destination.country, shipment.destination.port],
+                    name: shipment.client?.full_name || "Client",
+                    address: `${shipment.destination.port}, ${shipment.destination.country}`,
+                    email: shipment.client?.email || "",
+                    phone: shipment.client?.phone || ""
+                },
+                shipment: {
+                    trackingNumber: shipment.tracking_number,
+                    origin: `${shipment.origin.port}, ${shipment.origin.country}`,
+                    destination: `${shipment.destination.port}, ${shipment.destination.country}`,
+                    weight: `${shipment.cargo.weight} kg`,
+                    packages: shipment.cargo.packages
                 },
                 items: [
                     {
                         description: `Transport ${shipment.transport_mode === 'air' ? 'Aérien' : 'Maritime'} - ${shipment.origin.port} vers ${shipment.destination.port}`,
-                        quantity: 1,
-                        price: shipment.price,
-                        total: shipment.price
+                        amount: shipment.price
                     }
                 ],
-                subtotal: shipment.price,
-                tax: 0, // In this system tax is already inside the RFQ quote or considered 0
                 total: shipment.price,
-                currency: shipment.currency || "XOF",
-                notes: `Ref Colis: ${shipment.tracking_number}`
-            };
+                currency: shipment.currency || "XOF"
+            }, true);
 
-            // @ts-ignore
-            await invoiceService.generateInvoice(invoiceData);
-            success("Facture téléchargée !");
+            // Upload to Document Center if user is logged in
+            if (blob && user?.id) {
+                const file = new File([blob], `Facture_INV-${shipment.tracking_number}.pdf`, { type: 'application/pdf' });
+                // We use a simple try-catch here so download succeeds even if upload fails
+                try {
+                    await documentService.uploadDocument(user.id, file, 'invoice', shipment.id);
+                } catch (uploadError) {
+                    console.error("Failed to save invoice to document center:", uploadError);
+                }
+            }
+
+            success("Facture téléchargée et sauvegardée !");
         } catch (e) {
             console.error("Invoice generation failed:", e);
             error("Erreur lors de la génération de la facture");

@@ -39,12 +39,12 @@ CREATE TABLE IF NOT EXISTS fund_calls (
 CREATE INDEX IF NOT EXISTS idx_fund_calls_requester ON fund_calls(requester_id);
 ALTER TABLE fund_calls ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can view own fund calls" ON fund_calls FOR
-SELECT USING (auth.uid() = requester_id);
+SELECT USING ((select auth.uid()) = requester_id);
 CREATE POLICY "Admins can view all fund calls" ON fund_calls FOR ALL USING (
     EXISTS (
         SELECT 1
         FROM profiles
-        WHERE id = auth.uid()
+        WHERE id = (select auth.uid())
             AND role IN ('admin', 'super-admin')
     )
 );
@@ -72,8 +72,8 @@ SELECT USING (
             FROM shipments s
             WHERE s.id = pods.shipment_id
                 AND (
-                    s.client_id = auth.uid()
-                    OR s.forwarder_id = auth.uid()
+                    s.client_id = (select auth.uid())
+                    OR s.forwarder_id = (select auth.uid())
                 )
         )
     );
@@ -83,14 +83,14 @@ INSERT WITH CHECK (
             SELECT 1
             FROM shipments s
             WHERE s.id = shipment_id
-                AND s.forwarder_id = auth.uid()
+                AND s.forwarder_id = (select auth.uid())
         )
     );
 CREATE POLICY "Admins can manage PODs" ON pods FOR ALL USING (
     EXISTS (
         SELECT 1
         FROM profiles
-        WHERE id = auth.uid()
+        WHERE id = (select auth.uid())
             AND role IN ('admin', 'super-admin')
     )
 );
@@ -119,7 +119,7 @@ CREATE POLICY "Admins can manage fees" ON fee_configs FOR ALL USING (
     EXISTS (
         SELECT 1
         FROM profiles
-        WHERE id = auth.uid()
+        WHERE id = (select auth.uid())
             AND role IN ('admin', 'super-admin')
     )
 );
@@ -138,7 +138,7 @@ CREATE POLICY "Admins can manage settings" ON system_settings FOR ALL USING (
     EXISTS (
         SELECT 1
         FROM profiles
-        WHERE id = auth.uid()
+        WHERE id = (select auth.uid())
             AND role IN ('admin', 'super-admin')
     )
 );
@@ -179,7 +179,7 @@ CREATE POLICY "Admins can manage gateways" ON payment_gateways FOR ALL USING (
     EXISTS (
         SELECT 1
         FROM profiles
-        WHERE id = auth.uid()
+        WHERE id = (select auth.uid())
             AND role IN ('admin', 'super-admin')
     )
 );
@@ -203,7 +203,7 @@ CREATE POLICY "Admins can manage plans" ON subscription_plans FOR ALL USING (
     EXISTS (
         SELECT 1
         FROM profiles
-        WHERE id = auth.uid()
+        WHERE id = (select auth.uid())
             AND role IN ('admin', 'super-admin')
     )
 );
@@ -222,12 +222,12 @@ CREATE TABLE IF NOT EXISTS user_subscriptions (
 CREATE INDEX IF NOT EXISTS idx_user_subscriptions_user ON user_subscriptions(user_id);
 ALTER TABLE user_subscriptions ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can view own subscription" ON user_subscriptions FOR
-SELECT USING (auth.uid() = user_id);
+SELECT USING ((select auth.uid()) = user_id);
 CREATE POLICY "Admins can manage subscriptions" ON user_subscriptions FOR ALL USING (
     EXISTS (
         SELECT 1
         FROM profiles
-        WHERE id = auth.uid()
+        WHERE id = (select auth.uid())
             AND role IN ('admin', 'super-admin')
     )
 );
@@ -246,7 +246,7 @@ CREATE POLICY "Admins can manage roles" ON staff_roles FOR ALL USING (
     EXISTS (
         SELECT 1
         FROM profiles
-        WHERE id = auth.uid()
+        WHERE id = (select auth.uid())
             AND role IN ('admin', 'super-admin')
     )
 );
@@ -294,15 +294,15 @@ CREATE INDEX IF NOT EXISTS idx_tickets_user ON tickets(user_id);
 CREATE INDEX IF NOT EXISTS idx_tickets_assigned ON tickets(assigned_to);
 ALTER TABLE tickets ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can view own tickets" ON tickets FOR
-SELECT USING (auth.uid() = user_id);
+SELECT USING ((select auth.uid()) = user_id);
 CREATE POLICY "Users can create tickets" ON tickets FOR
-INSERT WITH CHECK (auth.uid() = user_id);
+INSERT WITH CHECK ((select auth.uid()) = user_id);
 CREATE POLICY "Staff can view all tickets" ON tickets FOR
 SELECT USING (
         EXISTS (
             SELECT 1
             FROM profiles
-            WHERE id = auth.uid()
+            WHERE id = (select auth.uid())
                 AND role IN ('admin', 'super-admin', 'support')
         )
     );
@@ -311,7 +311,7 @@ UPDATE USING (
         EXISTS (
             SELECT 1
             FROM profiles
-            WHERE id = auth.uid()
+            WHERE id = (select auth.uid())
                 AND role IN ('admin', 'super-admin', 'support')
         )
     );
@@ -331,7 +331,7 @@ SELECT USING (
             SELECT 1
             FROM tickets
             WHERE id = ticket_messages.ticket_id
-                AND user_id = auth.uid()
+                AND user_id = (select auth.uid())
         )
     );
 CREATE POLICY "Staff can view all messages" ON ticket_messages FOR
@@ -339,7 +339,7 @@ SELECT USING (
         EXISTS (
             SELECT 1
             FROM profiles
-            WHERE id = auth.uid()
+            WHERE id = (select auth.uid())
                 AND role IN ('admin', 'super-admin', 'support')
         )
     );
@@ -350,14 +350,14 @@ INSERT WITH CHECK (
                 SELECT 1
                 FROM tickets
                 WHERE id = ticket_id
-                    AND user_id = auth.uid()
+                    AND user_id = (select auth.uid())
             )
         )
         OR (
             EXISTS (
                 SELECT 1
                 FROM profiles
-                WHERE id = auth.uid()
+                WHERE id = (select auth.uid())
                     AND role IN ('admin', 'super-admin', 'support')
             )
         )

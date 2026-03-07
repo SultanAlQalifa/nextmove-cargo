@@ -9,7 +9,7 @@
 CREATE OR REPLACE FUNCTION public.is_admin() RETURNS boolean AS $$ BEGIN RETURN EXISTS (
         SELECT 1
         FROM public.profiles
-        WHERE profiles.id = auth.uid()
+        WHERE profiles.id = (select auth.uid())
             AND profiles.role IN ('admin'::user_role, 'super-admin'::user_role)
     );
 END;

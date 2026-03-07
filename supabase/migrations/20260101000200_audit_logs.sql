@@ -25,7 +25,7 @@ SELECT USING (
         EXISTS (
             SELECT 1
             FROM profiles
-            WHERE id = auth.uid()
+            WHERE id = (select auth.uid())
                 AND role IN ('admin', 'super-admin')
         )
     );
@@ -35,7 +35,7 @@ DECLARE v_old_data JSONB;
 v_new_data JSONB;
 v_changed_by UUID;
 BEGIN -- Determine User
-v_changed_by := auth.uid();
+v_changed_by := (select auth.uid());
 -- Capture Data
 IF (TG_OP = 'UPDATE') THEN v_old_data := to_jsonb(OLD);
 v_new_data := to_jsonb(NEW);

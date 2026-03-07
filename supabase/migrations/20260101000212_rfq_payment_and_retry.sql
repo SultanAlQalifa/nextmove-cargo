@@ -18,7 +18,7 @@ SELECT USING (
             SELECT 1
             FROM rfq_requests as child
             WHERE child.parent_rfq_id = rfq_requests.id
-                AND child.client_id = auth.uid()
+                AND child.client_id = (select auth.uid())
         )
     );
 -- Comment

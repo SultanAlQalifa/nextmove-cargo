@@ -2,7 +2,7 @@
 -- We are modifying the protection trigger to allow updates if they come from a function (trigger depth > 0)
 -- or if the user is an admin calling properly.
 CREATE OR REPLACE FUNCTION public.protect_loyalty_columns() RETURNS TRIGGER AS $$ BEGIN -- Allow service_role (Edge Functions) and Admins to bypass
-    IF (auth.role() = 'service_role')
+    IF ((select auth.role()) = 'service_role')
     OR (is_admin()) THEN RETURN NEW;
 END IF;
 -- Allow updates if they are triggered by a SECURITY DEFINER function

@@ -200,5 +200,64 @@ export const automationService = {
         } catch (e) {
             logger.error("[Automation] Error checking stale RFQs:", e);
         }
+    },
+
+    /**
+     * Sends daily mission reminders to testers who haven't been active today.
+     */
+    sendTesterReminders: async (): Promise<void> => {
+        try {
+            const today = new Date().toISOString().split('T')[0];
+
+            // 1. Get all testers
+            const { data: testers } = await supabase
+                .from('profiles')
+                .select('id, email, full_name')
+                .eq('is_tester', true);
+
+            if (!testers || testers.length === 0) return;
+
+            // 2. Identify testers who haven't completed a mission today
+            const emailsToQueue = [];
+            for (const tester of testers) {
+                // Optimization: In a real system we'd use a single join or complex query
+                const { data: recentActivity } = await supabase
+                    .from('tester_activity')
+                    .select('id')
+                    .eq('user_id', tester.id)
+                    .gte('completed_at', today);
+
+                if (!recentActivity || recentActivity.length === 0) {
+                    const subject = "🎯 Mission du jour - NextMove Cargo";
+                    const body = `
+                        <div style="font-family: sans-serif; padding: 20px;">
+                            <h2 style="color: #2563eb;">Bonjour ${tester.full_name || 'Testeur'} !</h2>
+                            <p>Votre mission du jour vous attend dans votre Centre de Test.</p>
+                            <p>Complétez-la pour gagner des <strong>points de fidélité</strong> convertibles en argent réel sur votre portefeuille.</p>
+                            <div style="margin-top: 20px;">
+                                <a href="${window.location.origin}/dashboard/tester/dashboard" 
+                                   style="background-color: #fbbf24; color: black; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                                   Accéder au Centre de Test
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                    emailsToQueue.push({
+                        recipient_emails: [tester.email],
+                        subject,
+                        body,
+                        status: 'pending',
+                        sender_id: null
+                    });
+                }
+            }
+
+            if (emailsToQueue.length > 0) {
+                await supabase.from('email_queue').insert(emailsToQueue);
+                logger.info(`[Automation] ${emailsToQueue.length} tester reminders queued.`);
+            }
+        } catch (e) {
+            logger.error("[Automation] Error sending tester reminders:", e);
+        }
     }
 };

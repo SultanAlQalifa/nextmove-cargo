@@ -23,7 +23,7 @@ v_wallet_id UUID;
 v_amount NUMERIC;
 v_rate NUMERIC := 10.0;
 -- 10 XOF per point
-BEGIN v_user_id := auth.uid();
+BEGIN v_user_id := (select auth.uid());
 -- Check if user has enough points
 SELECT loyalty_points INTO v_current_points
 FROM public.profiles

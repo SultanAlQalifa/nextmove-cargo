@@ -23,18 +23,18 @@ END $$;
 -- 1. Policy for SELECT (View own coupons)
 DROP POLICY IF EXISTS "Forwarders can view own coupons" ON coupons;
 CREATE POLICY "Forwarders can view own coupons" ON coupons FOR
-SELECT USING (created_by = auth.uid());
+SELECT USING (created_by = (select auth.uid()));
 -- 2. Policy for INSERT (Create own coupons)
 DROP POLICY IF EXISTS "Forwarders can create coupons" ON coupons;
 CREATE POLICY "Forwarders can create coupons" ON coupons FOR
 INSERT WITH CHECK (
-        created_by = auth.uid()
+        created_by = (select auth.uid())
         AND scope = 'forwarder' -- Enforce scope
     );
 -- 3. Policy for UPDATE (Update own coupons)
 DROP POLICY IF EXISTS "Forwarders can update own coupons" ON coupons;
 CREATE POLICY "Forwarders can update own coupons" ON coupons FOR
-UPDATE USING (created_by = auth.uid());
+UPDATE USING (created_by = (select auth.uid()));
 -- 4. Policy for DELETE (Delete own coupons)
 DROP POLICY IF EXISTS "Forwarders can delete own coupons" ON coupons;
-CREATE POLICY "Forwarders can delete own coupons" ON coupons FOR DELETE USING (created_by = auth.uid());
+CREATE POLICY "Forwarders can delete own coupons" ON coupons FOR DELETE USING (created_by = (select auth.uid()));

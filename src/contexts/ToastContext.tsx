@@ -19,16 +19,17 @@ interface ToastContextType {
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
-  const [toasts, setToasts] = useState<ToastData[]>([]);
+  const [activeToast, setActiveToast] = useState<ToastData | null>(null);
 
-  const removeToast = useCallback((id: string) => {
-    setToasts((prev) => prev.filter((t) => t.id !== id));
+  const removeToast = useCallback(() => {
+    setActiveToast(null);
   }, []);
 
   const showToast = useCallback(
-    (type: ToastType, message: string, duration = 5000) => {
+    (type: ToastType, message: string, duration = 6000) => {
       const id = Math.random().toString(36).substring(2, 9);
-      setToasts((prev) => [...prev, { id, type, message, duration }]);
+      // Replace any existing toast with the new one
+      setActiveToast({ id, type, message, duration });
     },
     [],
   );
@@ -57,19 +58,16 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastContext.Provider value={{ showToast, success, error, info, warning }}>
       {children}
-      <div className="fixed top-4 right-4 z-[100] flex flex-col gap-2 pointer-events-none">
-        {toasts.map((toast) => (
-          <div key={toast.id} className="pointer-events-auto">
-            <Toast
-              id={toast.id}
-              type={toast.type}
-              message={toast.message}
-              duration={toast.duration}
-              onClose={removeToast}
-            />
-          </div>
-        ))}
-      </div>
+      {activeToast && (
+        <Toast
+          key={activeToast.id}
+          id={activeToast.id}
+          type={activeToast.type}
+          message={activeToast.message}
+          duration={activeToast.duration}
+          onClose={() => removeToast()}
+        />
+      )}
     </ToastContext.Provider>
   );
 }
@@ -81,3 +79,4 @@ export function useToast() {
   }
   return context;
 }
+

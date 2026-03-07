@@ -18,7 +18,7 @@ CREATE POLICY "Admins can manage feature flags" ON public.feature_flags FOR ALL 
     EXISTS (
         SELECT 1
         FROM public.profiles
-        WHERE profiles.id = auth.uid()
+        WHERE profiles.id = (select auth.uid())
             AND profiles.role IN ('admin', 'super-admin')
     )
 );

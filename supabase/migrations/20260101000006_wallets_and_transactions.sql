@@ -42,20 +42,20 @@ ALTER TABLE public.transactions ENABLE ROW LEVEL SECURITY;
 -- Drop existing policies to avoid conflicts on re-run
 DROP POLICY IF EXISTS "Users can view their own wallet" ON public.wallets;
 CREATE POLICY "Users can view their own wallet" ON public.wallets FOR
-SELECT USING (auth.uid() = user_id);
+SELECT USING ((select auth.uid()) = user_id);
 DROP POLICY IF EXISTS "Users can view their own transactions" ON public.transactions;
 CREATE POLICY "Users can view their own transactions" ON public.transactions FOR
 SELECT USING (
         wallet_id IN (
             SELECT id
             FROM public.wallets
-            WHERE user_id = auth.uid()
+            WHERE user_id = (select auth.uid())
         )
     );
 DROP POLICY IF EXISTS "Admins can view all wallets" ON public.wallets;
 CREATE POLICY "Admins can view all wallets" ON public.wallets FOR
 SELECT USING (
-        auth.uid() IN (
+        (select auth.uid()) IN (
             SELECT id
             FROM public.profiles
             WHERE role IN ('admin', 'super-admin')
@@ -64,7 +64,7 @@ SELECT USING (
 DROP POLICY IF EXISTS "Admins can update wallets" ON public.wallets;
 CREATE POLICY "Admins can update wallets" ON public.wallets FOR
 UPDATE USING (
-        auth.uid() IN (
+        (select auth.uid()) IN (
             SELECT id
             FROM public.profiles
             WHERE role IN ('admin', 'super-admin')
@@ -73,7 +73,7 @@ UPDATE USING (
 DROP POLICY IF EXISTS "Admins can view all transactions" ON public.transactions;
 CREATE POLICY "Admins can view all transactions" ON public.transactions FOR
 SELECT USING (
-        auth.uid() IN (
+        (select auth.uid()) IN (
             SELECT id
             FROM public.profiles
             WHERE role IN ('admin', 'super-admin')
@@ -82,7 +82,7 @@ SELECT USING (
 DROP POLICY IF EXISTS "Admins can insert transactions" ON public.transactions;
 CREATE POLICY "Admins can insert transactions" ON public.transactions FOR
 INSERT WITH CHECK (
-        auth.uid() IN (
+        (select auth.uid()) IN (
             SELECT id
             FROM public.profiles
             WHERE role IN ('admin', 'super-admin')
@@ -214,7 +214,7 @@ v_new_balance numeric;
 BEGIN IF NOT EXISTS (
     SELECT 1
     FROM public.profiles
-    WHERE id = auth.uid()
+    WHERE id = (select auth.uid())
         AND role IN ('admin', 'super-admin')
 ) THEN RAISE EXCEPTION 'Unauthorized';
 END IF;

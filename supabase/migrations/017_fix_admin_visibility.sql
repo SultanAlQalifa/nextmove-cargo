@@ -8,7 +8,7 @@ SELECT USING (
         EXISTS (
             SELECT 1
             FROM profiles
-            WHERE id = auth.uid()
+            WHERE id = (select auth.uid())
                 AND role IN ('admin', 'super-admin')
         )
     );
@@ -20,7 +20,7 @@ SELECT USING (
         EXISTS (
             SELECT 1
             FROM profiles
-            WHERE id = auth.uid()
+            WHERE id = (select auth.uid())
                 AND role IN ('admin', 'super-admin')
         )
     );
@@ -32,7 +32,7 @@ SELECT USING (
         EXISTS (
             SELECT 1
             FROM profiles
-            WHERE id = auth.uid()
+            WHERE id = (select auth.uid())
                 AND role IN ('admin', 'super-admin')
         )
     );
@@ -44,7 +44,7 @@ SELECT USING (
         EXISTS (
             SELECT 1
             FROM profiles
-            WHERE id = auth.uid()
+            WHERE id = (select auth.uid())
                 AND role IN ('admin', 'super-admin')
         )
     );

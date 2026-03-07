@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-    Crown, Star, Gift, TrendingUp, History, X, Send,
+    Star, Gift, TrendingUp, History, X, Send,
     ArrowUpRight, ArrowDownLeft, Users, Copy, Share2, Check, Linkedin, ArrowRightLeft
 } from "lucide-react";
 import PageHeader from "../../../components/common/PageHeader";
@@ -257,7 +257,7 @@ export default function LoyaltyDashboard() {
                                         <card.icon className={`w-7 h-7 text-${card.color}-500`} />
                                     </div>
                                     <h3 className="font-black text-xl mb-3 text-slate-800 dark:text-white uppercase tracking-tight">{card.title}</h3>
-                                    <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">
+                                    <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
                                         {card.content}
                                     </p>
                                 </motion.div>
@@ -298,7 +298,7 @@ export default function LoyaltyDashboard() {
                                     <Users size={32} />
                                 </div>
                                 <h3 className="text-3xl font-black text-slate-900 dark:text-white mb-3 uppercase tracking-tight">Étendez votre réseau</h3>
-                                <p className="text-slate-500 dark:text-slate-400 mb-10 text-sm leading-relaxed">
+                                <p className="text-slate-600 dark:text-slate-400 mb-10 text-sm leading-relaxed">
                                     Partagez l'excellence NextMove. Vous gagnez <span className="text-blue-600 font-black">500 points</span> dès qu'un proche valide son premier colis.
                                 </p>
 

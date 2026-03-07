@@ -489,7 +489,7 @@ export async function getOffersForRFQ(
  * Accept an offer (and reject all others for the same RFQ) via Backend RPC
  */
 export async function acceptOffer(offerId: string): Promise<RFQOffer> {
-  const { data, error } = await supabase.rpc('accept_rfq_offer', {
+  const { error } = await supabase.rpc('accept_rfq_offer', {
     p_offer_id: offerId,
   });
 
@@ -503,6 +503,34 @@ export async function acceptOffer(offerId: string): Promise<RFQOffer> {
     .single();
 
   if (fetchError) throw fetchError;
+
+  // Auto-generate route & rate for the forwarder (silent, non-blocking)
+  try {
+    const { data: rfq } = await supabase
+      .from("rfq_requests")
+      .select("origin_port, destination_port, transport_mode, service_type")
+      .eq("id", offer.rfq_id)
+      .single();
+
+    if (rfq && offer) {
+      const { autoGenerateRouteAndRate } = await import("./routeAutoGenerator");
+      autoGenerateRouteAndRate({
+        forwarderId: offer.forwarder_id,
+        originPort: rfq.origin_port,
+        destinationPort: rfq.destination_port,
+        transportMode: rfq.transport_mode,
+        serviceType: rfq.service_type,
+        price: offer.base_price,
+        totalPrice: offer.total_price,
+        insurancePrice: offer.insurance_price,
+        estimatedTransitDays: offer.estimated_transit_days,
+        currency: offer.currency,
+      });
+    }
+  } catch (autoGenError) {
+    console.error("[RFQ] Auto route/rate generation failed (non-critical):", autoGenError);
+  }
+
   return offer as RFQOffer;
 }
 

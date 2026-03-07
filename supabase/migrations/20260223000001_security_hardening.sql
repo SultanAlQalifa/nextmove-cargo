@@ -6,13 +6,13 @@ ALTER TABLE public.transactions ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Users can view own payments" ON public.payments;
 CREATE POLICY "Users can view own payments" ON public.payments FOR
 SELECT TO authenticated USING (
-        auth.uid() = user_id
+        (select auth.uid()) = user_id
         OR public.is_admin()
     );
 DROP POLICY IF EXISTS "Users can view own transactions" ON public.transactions;
 CREATE POLICY "Users can view own transactions" ON public.transactions FOR
 SELECT TO authenticated USING (
-        auth.uid() = user_id
+        (select auth.uid()) = user_id
         OR public.is_admin()
     );
 -- 2. EMAIL QUEUE (Privacy)

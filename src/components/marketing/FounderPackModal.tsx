@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import { X, Award, Check, Sparkles, ArrowRight } from 'lucide-react';
+import { X, Award, Sparkles, ArrowRight } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 
 export default function FounderPackModal() {
@@ -18,7 +18,7 @@ export default function FounderPackModal() {
 
         try {
             // Fetch settings from singleton table
-            const { data, error } = await supabase
+            const { data } = await supabase
                 .from('platform_settings')
                 .select('*')
                 .order('created_at', { ascending: false }) // Fallback if single_row constraint failed or to get latest
@@ -65,76 +65,70 @@ export default function FounderPackModal() {
                         initial={{ scale: 0.9, opacity: 0, y: 20 }}
                         animate={{ scale: 1, opacity: 1, y: 0 }}
                         exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                        className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl shadow-2xl overflow-hidden border border-amber-500/20"
+                        className="relative w-full max-w-lg quantum-card rounded-[3rem] shadow-2xl overflow-hidden border border-white/5"
                     >
-                        {/* Glossy Header Effect - Reduced height */}
-                        <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-br from-amber-400 via-amber-500 to-orange-600 opacity-10" />
-                        <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-amber-300 via-yellow-400 to-orange-500" />
+                        {/* Abstract Glows */}
+                        <div className="absolute -top-20 -right-20 w-64 h-64 bg-indigo-500/10 blur-[100px]" />
+                        <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-cyan-500/10 blur-[100px]" />
 
                         <button
                             onClick={handleDismiss}
                             aria-label="Fermer"
-                            className="absolute top-3 right-3 p-2 bg-white/50 dark:bg-black/20 hover:bg-white/80 rounded-full transition-colors z-10 min-h-[44px]"
+                            className="absolute top-6 right-6 p-2 bg-white/5 hover:bg-white/10 rounded-full transition-colors z-10"
                         >
-                            <X className="w-5 h-5 text-slate-500" />
+                            <X className="w-5 h-5 text-white/50" />
                         </button>
 
-                        <div className="relative p-5 md:p-8 text-center space-y-4 md:space-y-6">
-
-                            <div className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 mb-2 ring-8 ring-amber-50 dark:ring-amber-900/10">
-                                <Award className="w-8 h-8 md:w-10 md:h-10 text-amber-600 dark:text-amber-400" />
+                        <div className="relative p-12 text-center space-y-8">
+                            <div className="inline-flex items-center justify-center w-24 h-24 rounded-3xl quantum-card mb-4 group overflow-hidden">
+                                <div className="absolute inset-0 bg-gradient-to-br from-amber-500/20 to-orange-500/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                <Award className="w-10 h-10 text-amber-500 animate-pulse" />
                             </div>
 
-                            <div className="space-y-2">
-                                <h2 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white">
-                                    {settings.founder_offer_title || "Devenez Membre Fondateur"}
+                            <div className="space-y-4">
+                                <h2 className="text-4xl font-black text-quantum-gradient tracking-tighter leading-none">
+                                    {settings.founder_offer_title || "Founder Ascension"}
                                 </h2>
-                                <p className="text-sm md:text-base text-slate-600 dark:text-slate-300 max-w-sm mx-auto">
-                                    {settings.founder_offer_description || "Soutenez le développement de NextMove Cargo et bénéficiez d'avantages exclusifs à vie."}
+                                <p className="text-lg text-slate-500 font-light max-w-xs mx-auto uppercase tracking-tighter">
+                                    {settings.founder_offer_description || "Secure your legacy in the African digital frontier."}
                                 </p>
                             </div>
 
-                            <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-4 md:p-6 border border-amber-100 dark:border-amber-800/50">
-                                <div className="flex items-baseline justify-center gap-1 mb-3 md:mb-4">
-                                    <span className="text-3xl md:text-4xl font-bold text-amber-600 dark:text-amber-400">
-                                        {(settings.founder_offer_price || 5000).toLocaleString()} FCFA
+                            <div className="quantum-card rounded-3xl p-8 border border-white/5 bg-white/5 relative group overflow-hidden">
+                                <div className="absolute top-0 right-0 p-4">
+                                    <Sparkles className="w-5 h-5 text-amber-500/30" />
+                                </div>
+                                <div className="flex items-baseline justify-center gap-2 mb-8">
+                                    <span className="text-5xl font-black text-white tracking-tighter">
+                                        {(settings.founder_offer_price || 5000).toLocaleString()}
                                     </span>
-                                    <span className="text-xs md:text-sm text-amber-600/60 dark:text-amber-400/60 font-medium">/ unique</span>
+                                    <span className="text-sm font-black text-indigo-400 uppercase tracking-widest">FCFA</span>
                                 </div>
 
-                                <ul className="space-y-2 md:space-y-3 text-left max-w-xs mx-auto">
-                                    <li className="flex items-center gap-2 md:gap-3 text-sm text-slate-700 dark:text-slate-200">
-                                        <div className="p-1 rounded-full bg-amber-200 dark:bg-amber-800 text-amber-700 dark:text-amber-300">
-                                            <Check className="w-3 h-3" />
+                                <div className="space-y-4 text-left">
+                                    {[
+                                        "Founder Badge & Verified Identity",
+                                        "Early-Access Intelligence Access",
+                                        "Tactical Support Unit (VIP)"
+                                    ].map((benefit, i) => (
+                                        <div key={i} className="flex items-center gap-4 text-sm font-black uppercase tracking-tighter text-slate-400">
+                                            <div className="w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.5)]" />
+                                            {benefit}
                                         </div>
-                                        <span>Badge "Membre Fondateur" sur votre profil</span>
-                                    </li>
-                                    <li className="flex items-center gap-2 md:gap-3 text-sm text-slate-700 dark:text-slate-200">
-                                        <div className="p-1 rounded-full bg-amber-200 dark:bg-amber-800 text-amber-700 dark:text-amber-300">
-                                            <Check className="w-3 h-3" />
-                                        </div>
-                                        <span>Accès prioritaire aux nouvelles fonctionnalités</span>
-                                    </li>
-                                    <li className="flex items-center gap-2 md:gap-3 text-sm text-slate-700 dark:text-slate-200">
-                                        <div className="p-1 rounded-full bg-amber-200 dark:bg-amber-800 text-amber-700 dark:text-amber-300">
-                                            <Check className="w-3 h-3" />
-                                        </div>
-                                        <span>Support client dédié VIP</span>
-                                    </li>
-                                </ul>
+                                    ))}
+                                </div>
                             </div>
 
                             <button
                                 onClick={handleCTA}
-                                className="group relative w-full inline-flex items-center justify-center gap-2 px-6 py-3 md:px-8 md:py-4 bg-gradient-to-r from-slate-900 to-slate-800 dark:from-white dark:to-slate-200 text-white dark:text-slate-900 rounded-xl font-bold text-base md:text-lg shadow-xl shadow-slate-900/10 hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 min-h-[44px]"
+                                className="w-full py-6 bg-indigo-600 text-white text-lg font-black rounded-2xl shadow-2xl shadow-indigo-500/20 hover:bg-indigo-500 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3"
                             >
-                                <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-amber-400 group-hover:animate-pulse" />
-                                <span>Profiter de l'offre maintenant</span>
-                                <ArrowRight className="w-4 h-4 md:w-5 md:h-5 opacity-50 group-hover:translate-x-1 transition-transform" />
+                                Deploy Founder Access
+                                <ArrowRight className="w-5 h-5" />
                             </button>
 
-                            <p className="text-[10px] md:text-xs text-slate-400 dark:text-slate-500">
-                                Offre limitée aux 100 premiers membres. Paiement sécurisé par Wave/OM.
+                            <p className="text-[10px] text-slate-600 font-black uppercase tracking-[0.2em]">
+                                Strategic Limit: 100 Modules Remaining
                             </p>
                         </div>
                     </motion.div>

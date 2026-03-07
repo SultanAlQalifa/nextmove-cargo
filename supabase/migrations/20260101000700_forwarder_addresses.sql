@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS forwarder_addresses (
 ALTER TABLE forwarder_addresses ENABLE ROW LEVEL SECURITY;
 -- Policies
 -- 1. Forwarders can CRUD their own addresses
-CREATE POLICY "Forwarders can manage their own addresses" ON forwarder_addresses FOR ALL TO authenticated USING (auth.uid() = forwarder_id) WITH CHECK (auth.uid() = forwarder_id);
+CREATE POLICY "Forwarders can manage their own addresses" ON forwarder_addresses FOR ALL TO authenticated USING ((select auth.uid()) = forwarder_id) WITH CHECK ((select auth.uid()) = forwarder_id);
 -- 2. Everyone (authenticated) can view addresses (needed for Clients to see them)
 -- Or restricted to clients who have a shipment with this forwarder?
 -- For simplicity and better UX (browsing forwarder capabilities), let's make it visible to authenticated users.

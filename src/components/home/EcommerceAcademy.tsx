@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { ShoppingBag, Globe, ArrowRight, BookOpen, Truck } from "lucide-react";
+import { ShoppingBag, ArrowRight, BookOpen, Shield, FileText, CreditCard } from "lucide-react";
 
 export default function EcommerceAcademy() {
     const platforms = [
@@ -13,10 +13,10 @@ export default function EcommerceAcademy() {
     ];
 
     return (
-        <div className="py-32 bg-slate-50 dark:bg-slate-950 relative overflow-hidden border-t border-slate-200 dark:border-white/5">
+        <div className="py-32 bg-white dark:bg-transparent relative overflow-hidden font-sans">
             {/* Ultra-Soft Ambient Glows */}
-            <div className="absolute top-1/2 left-0 w-[600px] h-[600px] bg-orange-500/10 rounded-full blur-[140px] -translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
-            <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-red-600/10 rounded-full blur-[140px] translate-x-1/3 translate-y-1/3 pointer-events-none"></div>
+            <div className="absolute top-1/2 left-0 w-[600px] h-[600px] bg-indigo-500/10 rounded-full blur-[140px] -translate-x-1/2 -translate-y-1/2 pointer-events-none animate-mesh"></div>
+            <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-cyan-600/10 rounded-full blur-[140px] translate-x-1/3 translate-y-1/3 pointer-events-none animate-mesh"></div>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                 <div className="grid lg:grid-cols-2 gap-24 items-center">
@@ -28,15 +28,13 @@ export default function EcommerceAcademy() {
                         viewport={{ once: true }}
                         className="space-y-10 text-center lg:text-left"
                     >
-                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-[10px] font-black uppercase tracking-[0.3em] border border-orange-200 dark:border-orange-500/20">
-                            <BookOpen className="w-4 h-4" /> NextMove Academy
+                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-[10px] font-black uppercase tracking-[0.3em]">
+                            <BookOpen className="w-4 h-4" /> Formation Certifiante
                         </div>
 
-                        <h2 className="text-5xl lg:text-7xl font-black text-slate-900 dark:text-white leading-tight tracking-tighter">
-                            Devenez un Pro de <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 via-red-500 to-orange-600">
-                                l'Import Vendeur
-                            </span>
+                        <h2 className="text-5xl lg:text-[7rem] font-black text-slate-900 dark:text-white leading-[0.85] tracking-tighter">
+                            Maîtrisez le <br />
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-cyan-500 dark:from-indigo-400 dark:to-cyan-400">Commerce Global.</span>
                         </h2>
 
                         <p className="text-xl text-slate-500 dark:text-slate-400 font-light leading-relaxed max-w-2xl mx-auto lg:mx-0">
@@ -44,30 +42,33 @@ export default function EcommerceAcademy() {
                             <span className="font-bold text-slate-800 dark:text-slate-200"> Alibaba, 1688, Shein</span> et lancez un business e-commerce rentable en Afrique grâce à notre formation certifiante.
                         </p>
 
-                        <div className="flex flex-col sm:flex-row gap-6 justify-center lg:justify-start pt-4">
+                        <div className="flex flex-col sm:flex-row gap-5 justify-center lg:justify-start pt-4">
                             <Link
                                 to="/academy"
-                                className="group relative inline-flex items-center justify-center px-10 py-5 text-lg font-black rounded-2xl text-white overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-2xl shadow-orange-500/20"
+                                className="px-10 py-5 bg-indigo-600 text-white text-lg font-black rounded-2xl shadow-2xl shadow-indigo-500/20 hover:bg-indigo-500 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3"
                             >
-                                <div className="absolute inset-0 bg-gradient-to-r from-orange-600 to-red-600 transition-transform duration-500 group-hover:scale-110" />
-                                <span className="relative z-10 flex items-center gap-3">
-                                    Rejoindre l'Académie
-                                    <ArrowRight className="w-6 h-6 group-hover:translate-x-1.5 transition-transform" />
-                                </span>
+                                Rejoindre l'Académie
+                                <ArrowRight className="w-6 h-6" />
                             </Link>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-10 opacity-60">
+                        <div className="grid grid-cols-2 md:grid-cols-2 gap-6 pt-10">
                             {[
-                                { icon: ShoppingBag, label: "Sourcing" },
-                                { icon: Truck, label: "Logistique" },
-                                { icon: Globe, label: "Ventes" }
+                                { icon: ShoppingBag, label: "Import/Export", desc: "Sourcing & Négociation" },
+                                { icon: Shield, label: "Douanes", desc: "Procédures & Réglementation" },
+                                { icon: FileText, label: "Incoterms", desc: "Responsabilités & Risques" },
+                                { icon: CreditCard, label: "Finance", desc: "Paiements & Transferts" }
                             ].map((item, i) => (
-                                <div key={i} className="flex flex-col items-center lg:items-start gap-2">
-                                    <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/20 text-orange-600">
-                                        <item.icon className="w-5 h-5" />
+                                <div key={i} className="flex flex-col gap-3 group">
+                                    <div className="flex items-center gap-4">
+                                        <div className="p-3 rounded-xl bg-orange-100 dark:bg-orange-900/20 text-orange-600 transition-colors group-hover:bg-orange-500 group-hover:text-white">
+                                            <item.icon className="w-5 h-5" />
+                                        </div>
+                                        <span className="text-sm font-black uppercase tracking-widest text-slate-900 dark:text-white">{item.label}</span>
                                     </div>
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">{item.label}</span>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 ml-[52px]">
+                                        {item.desc}
+                                    </p>
                                 </div>
                             ))}
                         </div>
@@ -83,20 +84,19 @@ export default function EcommerceAcademy() {
                     >
                         {/* Center Hub */}
                         <div
-                            className="relative z-20 w-40 h-40 rounded-full glass-card-premium flex items-center justify-center border-4 border-white/50 dark:border-white/5 shadow-2xl"
+                            className="relative z-20 w-48 h-48 rounded-full bg-white dark:bg-slate-900/80 border-4 border-slate-100 dark:border-white/5 shadow-2xl flex items-center justify-center"
                         >
                             <motion.div
-                                className="relative z-10 p-3 bg-white dark:bg-slate-900 rounded-3xl shadow-xl"
-                                animate={{ y: [-8, 8, -8], rotate: [-2, 2, -2] }}
-                                transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
+                                className="relative z-10 p-5 bg-slate-900/50 backdrop-blur-3xl rounded-3xl shadow-xl"
+                                animate={{ y: [-10, 10, -10], rotate: [-2, 2, -2] }}
+                                transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
                             >
-                                <img src="/assets/icons/icon-192.webp" alt="NextMove Cargo" className="w-20 h-20 object-contain" />
+                                <img src="/assets/icons/icon-192.webp" alt="NMC Hub" className="w-24 h-24 object-contain" />
                             </motion.div>
 
                             {/* Orbit Rings */}
-                            <div className="absolute inset-0 -m-16 border border-orange-500/20 rounded-full animate-[spin_12s_linear_infinite]" />
-                            <div className="absolute inset-0 -m-32 border border-orange-500/10 rounded-full animate-[spin_18s_linear_infinite_reverse]" />
-                            <div className="absolute inset-0 -m-48 border border-orange-500/5 rounded-full animate-[spin_24s_linear_infinite]" />
+                            <div className="absolute inset-0 -m-16 border border-indigo-500/20 rounded-full animate-[spin_15s_linear_infinite]" />
+                            <div className="absolute inset-0 -m-32 border border-cyan-500/10 rounded-full animate-[spin_25s_linear_infinite_reverse]" />
                         </div>
 
                         {/* Floating Platform Bubbles */}

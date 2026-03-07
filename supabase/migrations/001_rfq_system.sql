@@ -173,19 +173,19 @@ ALTER TABLE rfq_offers ENABLE ROW LEVEL SECURITY;
 -- ═══ RFQ REQUESTS POLICIES ═══
 -- Clients peuvent voir leurs propres demandes
 CREATE POLICY "Clients can view own RFQs" ON rfq_requests FOR
-SELECT USING (auth.uid() = client_id);
+SELECT USING ((select auth.uid()) = client_id);
 -- Clients peuvent créer des demandes
 CREATE POLICY "Clients can create RFQs" ON rfq_requests FOR
-INSERT WITH CHECK (auth.uid() = client_id);
+INSERT WITH CHECK ((select auth.uid()) = client_id);
 -- Clients peuvent modifier leurs demandes (si status = draft)
 CREATE POLICY "Clients can update own draft RFQs" ON rfq_requests FOR
 UPDATE USING (
-        auth.uid() = client_id
+        (select auth.uid()) = client_id
         AND status = 'draft'
-    ) WITH CHECK (auth.uid() = client_id);
+    ) WITH CHECK ((select auth.uid()) = client_id);
 -- Clients peuvent supprimer leurs brouillons
 CREATE POLICY "Clients can delete own draft RFQs" ON rfq_requests FOR DELETE USING (
-    auth.uid() = client_id
+    (select auth.uid()) = client_id
     AND status = 'draft'
 );
 -- Transitaires peuvent voir les demandes publiées (générales ou ciblées vers eux)
@@ -194,12 +194,12 @@ SELECT USING (
         status IN ('published', 'offers_received')
         AND (
             specific_forwarder_id IS NULL
-            OR specific_forwarder_id = auth.uid()
+            OR specific_forwarder_id = (select auth.uid())
         )
         AND EXISTS (
             SELECT 1
             FROM profiles
-            WHERE id = auth.uid()
+            WHERE id = (select auth.uid())
                 AND role = 'forwarder'
         )
     );
@@ -209,7 +209,7 @@ SELECT USING (
         EXISTS (
             SELECT 1
             FROM profiles
-            WHERE id = auth.uid()
+            WHERE id = (select auth.uid())
                 AND role IN ('admin', 'super-admin')
         )
     );
@@ -219,7 +219,7 @@ UPDATE USING (
         EXISTS (
             SELECT 1
             FROM profiles
-            WHERE id = auth.uid()
+            WHERE id = (select auth.uid())
                 AND role IN ('admin', 'super-admin')
         )
     );
@@ -227,11 +227,11 @@ UPDATE USING (
 -- Transitaires peuvent voir leurs propres offres
 CREATE POLICY "Forwarders can view own offers" ON rfq_offers FOR
 SELECT USING (
-        auth.uid() = forwarder_id
+        (select auth.uid()) = forwarder_id
         AND EXISTS (
             SELECT 1
             FROM profiles
-            WHERE id = auth.uid()
+            WHERE id = (select auth.uid())
                 AND role = 'forwarder'
         )
     );
@@ -242,17 +242,17 @@ SELECT USING (
             SELECT 1
             FROM rfq_requests
             WHERE id = rfq_id
-                AND client_id = auth.uid()
+                AND client_id = (select auth.uid())
         )
     );
 -- Transitaires peuvent créer des offres
 CREATE POLICY "Forwarders can create offers" ON rfq_offers FOR
 INSERT WITH CHECK (
-        auth.uid() = forwarder_id
+        (select auth.uid()) = forwarder_id
         AND EXISTS (
             SELECT 1
             FROM profiles
-            WHERE id = auth.uid()
+            WHERE id = (select auth.uid())
                 AND role = 'forwarder'
         )
         AND EXISTS (
@@ -265,12 +265,12 @@ INSERT WITH CHECK (
 -- Transitaires peuvent modifier leurs offres (si status = pending)
 CREATE POLICY "Forwarders can update own pending offers" ON rfq_offers FOR
 UPDATE USING (
-        auth.uid() = forwarder_id
+        (select auth.uid()) = forwarder_id
         AND status = 'pending'
-    ) WITH CHECK (auth.uid() = forwarder_id);
+    ) WITH CHECK ((select auth.uid()) = forwarder_id);
 -- Transitaires peuvent supprimer leurs offres (si status = pending)
 CREATE POLICY "Forwarders can delete own pending offers" ON rfq_offers FOR DELETE USING (
-    auth.uid() = forwarder_id
+    (select auth.uid()) = forwarder_id
     AND status = 'pending'
 );
 -- Clients peuvent mettre à jour le statut des offres (accepter/rejeter)
@@ -280,14 +280,14 @@ UPDATE USING (
             SELECT 1
             FROM rfq_requests
             WHERE id = rfq_id
-                AND client_id = auth.uid()
+                AND client_id = (select auth.uid())
         )
     ) WITH CHECK (
         EXISTS (
             SELECT 1
             FROM rfq_requests
             WHERE id = rfq_id
-                AND client_id = auth.uid()
+                AND client_id = (select auth.uid())
         )
     );
 -- Admins peuvent tout voir et modifier
@@ -296,7 +296,7 @@ SELECT USING (
         EXISTS (
             SELECT 1
             FROM profiles
-            WHERE id = auth.uid()
+            WHERE id = (select auth.uid())
                 AND role IN ('admin', 'super-admin')
         )
     );
@@ -305,7 +305,7 @@ UPDATE USING (
         EXISTS (
             SELECT 1
             FROM profiles
-            WHERE id = auth.uid()
+            WHERE id = (select auth.uid())
                 AND role IN ('admin', 'super-admin')
         )
     );

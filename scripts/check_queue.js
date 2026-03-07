@@ -1,4 +1,4 @@
-/* eslint-env node */
+/* global process */
 import { createClient } from '@supabase/supabase-js';
 
 // Hardcoded for debugging since dotenv is not working/installed in this context
@@ -13,7 +13,7 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 
 if (!supabaseUrl || !supabaseKey) {
     console.error('Missing Supabase credentials');
-    process.exit(1); // eslint-disable-line no-undef
+    process.exit(1);
 }
 
 const supabase = createClient(supabaseUrl, supabaseKey);

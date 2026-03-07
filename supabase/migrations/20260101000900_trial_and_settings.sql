@@ -18,7 +18,7 @@ UPDATE USING (
         EXISTS (
             SELECT 1
             FROM public.profiles
-            WHERE profiles.id = auth.uid()
+            WHERE profiles.id = (select auth.uid())
                 AND profiles.role = 'super-admin'
         )
     );

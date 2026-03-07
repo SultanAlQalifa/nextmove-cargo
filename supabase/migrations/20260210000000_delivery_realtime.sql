@@ -22,7 +22,7 @@ INSERT TO authenticated WITH CHECK (
             SELECT 1
             FROM public.shipments s
             WHERE s.id = shipment_id
-                AND s.driver_id = auth.uid()
+                AND s.driver_id = (select auth.uid())
         )
     );
 -- Clients, Forwarders and Admins can view updates
@@ -33,13 +33,13 @@ SELECT TO authenticated USING (
             FROM public.shipments s
             WHERE s.id = shipment_id
                 AND (
-                    s.client_id = auth.uid()
-                    OR s.forwarder_id = auth.uid()
-                    OR s.driver_id = auth.uid()
+                    s.client_id = (select auth.uid())
+                    OR s.forwarder_id = (select auth.uid())
+                    OR s.driver_id = (select auth.uid())
                     OR EXISTS (
                         SELECT 1
                         FROM public.profiles p
-                        WHERE p.id = auth.uid()
+                        WHERE p.id = (select auth.uid())
                             AND p.role = 'admin'
                     )
                 )

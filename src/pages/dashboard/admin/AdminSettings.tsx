@@ -22,6 +22,7 @@ import {
   Eye,
   EyeOff,
   Flag,
+  Wallet,
 } from "lucide-react";
 import { useFeatureFlags } from "../../../contexts/FeatureFlagContext";
 import {
@@ -41,7 +42,8 @@ type SettingsTab =
   | "email"
   | "integrations"
   | "marketing"
-  | "features";
+  | "features"
+  | "wallet";
 
 export default function AdminSettings() {
   const {
@@ -262,6 +264,7 @@ export default function AdminSettings() {
     { id: "email", label: "Configuration Email", icon: Mail },
     { id: "integrations", label: "Intégrations API", icon: Bot },
     { id: "marketing", label: "Marketing & Offres", icon: Gift },
+    { id: "wallet", label: "Portefeuille", icon: Wallet },
     { id: "security", label: "Sécurité", icon: Lock },
     { id: "features", label: "Fonctionnalités & Beta", icon: Flag },
     { id: "maintenance", label: "Maintenance", icon: Settings },
@@ -690,6 +693,84 @@ export default function AdminSettings() {
                           <Plus className="w-4 h-4" />
                           Ajouter un message
                         </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "wallet" && localSettings.wallet && (
+              <div className="space-y-6">
+                <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <Wallet className="w-5 h-5 text-primary" />
+                  Limites du Portefeuille Administrateur
+                </h3>
+                <div className="bg-slate-50 rounded-xl p-6 border border-slate-100">
+                  <p className="text-sm text-gray-500 mb-6">
+                    Définissez les montants minimum et maximum autorisés pour les rechargements et débits manuels effectués par les administrateurs.
+                  </p>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {/* Dépôts */}
+                    <div className="space-y-4">
+                      <h4 className="font-bold text-gray-900 border-b pb-2">Rechargements (Crédits)</h4>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700">Montant Minimum (FCFA)</label>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold">₣</span>
+                          <input
+                            type="number"
+                            aria-label="Montant minimum de dépôt"
+                            value={localSettings.wallet.admin_min_deposit}
+                            onChange={(e) => updateSetting("wallet", "admin_min_deposit", parseInt(e.target.value) || 0)}
+                            className="w-full pl-8 pr-4 py-2 rounded-lg border border-gray-200 focus:border-primary outline-none"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700">Montant Maximum (FCFA)</label>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold">₣</span>
+                          <input
+                            type="number"
+                            aria-label="Montant maximum de dépôt"
+                            value={localSettings.wallet.admin_max_deposit}
+                            onChange={(e) => updateSetting("wallet", "admin_max_deposit", parseInt(e.target.value) || 0)}
+                            className="w-full pl-8 pr-4 py-2 rounded-lg border border-gray-200 focus:border-primary outline-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Retraits */}
+                    <div className="space-y-4">
+                      <h4 className="font-bold text-gray-900 border-b pb-2">Retraits (Débits)</h4>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700">Montant Minimum (FCFA)</label>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold">₣</span>
+                          <input
+                            type="number"
+                            aria-label="Montant minimum de retrait"
+                            value={localSettings.wallet.admin_min_withdrawal}
+                            onChange={(e) => updateSetting("wallet", "admin_min_withdrawal", parseInt(e.target.value) || 0)}
+                            className="w-full pl-8 pr-4 py-2 rounded-lg border border-gray-200 focus:border-red-500 outline-none"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700">Montant Maximum (FCFA)</label>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold">₣</span>
+                          <input
+                            type="number"
+                            aria-label="Montant maximum de retrait"
+                            value={localSettings.wallet.admin_max_withdrawal}
+                            onChange={(e) => updateSetting("wallet", "admin_max_withdrawal", parseInt(e.target.value) || 0)}
+                            className="w-full pl-8 pr-4 py-2 rounded-lg border border-gray-200 focus:border-red-500 outline-none"
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>

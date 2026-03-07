@@ -38,9 +38,9 @@ CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON public.notifications(
 -- RLS
 ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can view their own notifications" ON public.notifications FOR
-SELECT USING (auth.uid() = user_id);
+SELECT USING ((select auth.uid()) = user_id);
 CREATE POLICY "Users can update their own notifications (read status)" ON public.notifications FOR
-UPDATE USING (auth.uid() = user_id);
+UPDATE USING ((select auth.uid()) = user_id);
 -- System (service role) can insert/manage all.
 -- 2. Notification Preferences Table
 CREATE TABLE IF NOT EXISTS public.notification_preferences (
@@ -55,9 +55,9 @@ CREATE TABLE IF NOT EXISTS public.notification_preferences (
 );
 ALTER TABLE public.notification_preferences ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can view their own preferences" ON public.notification_preferences FOR
-SELECT USING (auth.uid() = user_id);
+SELECT USING ((select auth.uid()) = user_id);
 CREATE POLICY "Users can update their own preferences" ON public.notification_preferences FOR
-UPDATE USING (auth.uid() = user_id);
+UPDATE USING ((select auth.uid()) = user_id);
 -- 3. Trigger to Auto-Create Preferences on User Creation (Optional, handled by app logic or demand)
 -- For now, we assume defaults are TRUE if no row exists.
 -- 4. Helper Function to Send Notification (Used by other Triggers)

@@ -166,7 +166,7 @@ CREATE OR REPLACE FUNCTION public.check_wallet_update_permission() RETURNS TRIGG
 SET search_path = public,
     pg_temp AS $$ BEGIN -- Only allow update if it's coming from an internal system call (SECURITY DEFINER)
     -- or if the user is an admin making a manual adjustment.
-    IF current_setting('role') != 'service_role'
+    IF (select current_setting('role')) != 'service_role'
     AND NOT public.is_admin() THEN -- Allow ONLY if we can prove it's an authorized internal function.
     -- Since we use SECURITY DEFINER for system functions, they run as the owner (usually postgres).
     IF session_user = 'postgres' THEN RETURN NEW;
@@ -216,9 +216,9 @@ END IF;
 IF v_offer.status != 'pending' THEN RAISE EXCEPTION 'Offer is not in pending status';
 END IF;
 -- 2. Verify Authorization (caller must be the RFQ client)
-IF v_offer.client_id != auth.uid() THEN -- Allow if caller is service_role (handled by SECURITY DEFINER if called from backend)
--- But for RPC called from frontend, we check auth.uid()
-IF auth.role() != 'service_role' THEN RAISE EXCEPTION 'Not authorized to accept this offer';
+IF v_offer.client_id != (select auth.uid()) THEN -- Allow if caller is service_role (handled by SECURITY DEFINER if called from backend)
+-- But for RPC called from frontend, we check (select auth.uid())
+IF (select auth.role()) != 'service_role' THEN RAISE EXCEPTION 'Not authorized to accept this offer';
 END IF;
 END IF;
 -- 3. Calculate Discount from Subscription

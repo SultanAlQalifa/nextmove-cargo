@@ -81,13 +81,13 @@ ALTER TABLE consolidations ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Anyone can view open consolidations" ON consolidations FOR
 SELECT USING (status IN ('open', 'closing_soon', 'full'));
 -- Les créateurs peuvent tout faire sur leurs consolidations
-CREATE POLICY "Initiators can manage own consolidations" ON consolidations FOR ALL USING (auth.uid() = initiator_id) WITH CHECK (auth.uid() = initiator_id);
+CREATE POLICY "Initiators can manage own consolidations" ON consolidations FOR ALL USING ((select auth.uid()) = initiator_id) WITH CHECK ((select auth.uid()) = initiator_id);
 -- Admins peuvent tout faire
 CREATE POLICY "Admins can manage all consolidations" ON consolidations FOR ALL USING (
     EXISTS (
         SELECT 1
         FROM profiles
-        WHERE id = auth.uid()
+        WHERE id = (select auth.uid())
             AND role IN ('admin', 'super-admin')
     )
 );

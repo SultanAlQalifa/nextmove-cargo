@@ -59,6 +59,7 @@ import {
   Plus,
   ArrowUpRight,
   CircleDollarSign,
+  Receipt,
   FileStack,
   Landmark,
   Settings2,
@@ -73,7 +74,9 @@ import {
   UserPlus,
   Briefcase,
   Users,
-  Activity
+  Activity,
+  Network,
+  FlaskConical
 } from "lucide-react";
 import NewsTicker from "../common/NewsTicker";
 import { supabase } from "../../lib/supabase";
@@ -97,6 +100,7 @@ import { useChat } from "../../contexts/ChatContext";
 import CalculatorModal from "../dashboard/CalculatorModal";
 import { CustomToast, showNotification } from "../common/NotificationToast";
 import DashboardBanner from "../common/DashboardBanner";
+import TesterMissionCard from "../dashboard/TesterMissionCard";
 
 interface NavItem {
   name: string;
@@ -540,6 +544,11 @@ export default function DashboardLayout() {
               icon: User,
             },
             {
+              name: "Analyse Business",
+              path: "/dashboard/admin/analytics",
+              icon: Activity,
+            },
+            {
               name: "Communauté",
               path: "/dashboard/admin/community",
               icon: Users,
@@ -585,6 +594,11 @@ export default function DashboardLayout() {
               path: "/dashboard/admin/forwarder-kyc",
               icon: ShieldCheck,
             },
+            {
+              name: "Arborescence Services",
+              path: "/dashboard/admin/tree",
+              icon: Network,
+            },
           ],
         },
         {
@@ -606,6 +620,11 @@ export default function DashboardLayout() {
               icon: Wallet,
             },
             {
+              name: "Opérations de Caisse",
+              path: "/dashboard/admin/cash-approvals",
+              icon: Banknote,
+            },
+            {
               name: "Validation Cash",
               path: "/dashboard/admin/cash-payments",
               icon: Banknote,
@@ -619,6 +638,11 @@ export default function DashboardLayout() {
               name: t("dashboard.menu.subscriptions"),
               path: "/dashboard/admin/subscriptions",
               icon: CreditCard,
+            },
+            {
+              name: "Gestion des Dépenses",
+              path: "/dashboard/admin/expenses",
+              icon: Receipt,
             },
             {
               name: t("dashboard.menu.coupons"),
@@ -760,7 +784,21 @@ export default function DashboardLayout() {
       ];
     }
 
-    return [];
+
+    if (profile?.is_tester) {
+      sections.push({
+        title: "Test & Feedback 🧪",
+        items: [
+          {
+            name: "Centre de Test",
+            path: "/dashboard/tester/dashboard",
+            icon: FlaskConical,
+          },
+        ],
+      });
+    }
+
+    return sections;
   };
 
   const navSections = getNavSections();
@@ -782,26 +820,28 @@ export default function DashboardLayout() {
       <CommandPalette />
 
       {/* Prominent Floating Search Trigger (v2026) - Repositioned to prevent header overlap */}
-      <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[100] animate-in fade-in slide-in-from-top-8 duration-1000 hidden md:block">
-        <button
-          onClick={openCommandPalette}
-          className="group relative flex items-center gap-3 px-4 py-2 bg-white/70 dark:bg-slate-900/70 backdrop-blur-3xl border border-primary/20 hover:border-primary/40 rounded-full shadow-[0_10px_30px_rgba(0,0,0,0.1)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.2)] hover:shadow-primary/10 transition-all duration-500 hover:scale-105 active:scale-95 group min-h-[44px]"
-        >
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-md group-hover:rotate-12 transition-transform duration-500">
-            <Search className="w-4 h-4 text-white" />
-          </div>
-
-          <div className="flex items-center gap-3 pr-2">
-            <span className="text-sm font-bold text-slate-800 dark:text-white">
-              Rechercher
-            </span>
-            <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-slate-100 dark:bg-white/10 border border-slate-200 dark:border-white/10 text-[10px] font-black text-slate-400">
-              <span>⌘</span>
-              <span>K</span>
+      {!location.pathname.includes('/pos') && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[100] animate-in fade-in slide-in-from-top-8 duration-1000 hidden md:block">
+          <button
+            onClick={openCommandPalette}
+            className="group relative flex items-center gap-3 px-4 py-2 bg-white/70 dark:bg-slate-900/70 backdrop-blur-3xl border border-primary/20 hover:border-primary/40 rounded-full shadow-[0_10px_30px_rgba(0,0,0,0.1)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.2)] hover:shadow-primary/10 transition-all duration-500 hover:scale-105 active:scale-95 group min-h-[44px]"
+          >
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-md group-hover:rotate-12 transition-transform duration-500">
+              <Search className="w-4 h-4 text-white" />
             </div>
-          </div>
-        </button>
-      </div>
+
+            <div className="flex items-center gap-3 pr-2">
+              <span className="text-sm font-bold text-slate-800 dark:text-white">
+                Rechercher
+              </span>
+              <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-slate-100 dark:bg-white/10 border border-slate-200 dark:border-white/10 text-[10px] font-black text-slate-400">
+                <span>⌘</span>
+                <span>K</span>
+              </div>
+            </div>
+          </button>
+        </div>
+      )}
       <CalculatorModal />
       <KYCVerificationModal
         isOpen={kycModalOpen}
@@ -826,10 +866,10 @@ export default function DashboardLayout() {
       {/* Sidebar - Premium Glass Design */}
       <aside
         className={`
-                fixed inset-y-0 left-0 z-50 bg-white/80 dark:bg-dark-card/90 backdrop-blur-xl border-r border-gray-100/50 dark:border-white/5 shadow-xl lg:shadow-none transform transition-all duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0
+                fixed inset-y-0 left-0 z-[10000] bg-white/80 dark:bg-dark-card/90 backdrop-blur-xl border-r border-gray-100/50 dark:border-white/5 shadow-xl lg:shadow-none transform transition-all duration-300 ease-in-out lg:translate-x-0 lg:relative lg:inset-0
                 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
                 ${isCollapsed ? "w-20" : "w-72"}
-                flex flex-col flex-shrink-0 relative overflow-hidden
+                flex flex-col flex-shrink-0 relative overflow-visible
             `}
       >
         <div className="grain-overlay" />
@@ -883,7 +923,7 @@ export default function DashboardLayout() {
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
             aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-            className="hidden lg:flex absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full items-center justify-center text-gray-400 hover:text-primary hover:border-primary shadow-sm transition-all z-50"
+            className="hidden lg:flex absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full items-center justify-center text-gray-400 hover:text-primary hover:border-primary shadow-sm transition-all z-[10001]"
           >
             {isCollapsed ? (
               <ChevronRight className="w-3 h-3" />
@@ -1035,7 +1075,7 @@ export default function DashboardLayout() {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent pointer-events-none" />
 
         {/* Top Navbar - Ultra-Premium Floating Glass Design (v4) */}
-        <div className="px-4 md:px-6 pt-4 pb-2 pt-safe animate-in slide-in-from-top-4 duration-700 fade-in z-40">
+        <div className="px-4 md:px-6 pt-4 pb-2 pt-safe animate-in slide-in-from-top-4 duration-700 fade-in z-[9980] relative">
           <header className="bg-white/70 dark:bg-dark-card/70 backdrop-blur-2xl border border-white/20 dark:border-white/10 shadow-sm rounded-3xl h-16 flex items-center justify-between px-4 md:px-6 transition-all duration-500 hover:bg-white/80 dark:hover:bg-dark-card/80 hover:shadow-md hover:border-white/40 group/navbar relative pointer-events-auto">
             {/* Subtle Gradient Overlay */}
             <div className="absolute inset-0 bg-gradient-to-r from-white/40 via-transparent to-white/40 dark:from-white/5 dark:to-white/5 pointer-events-none rounded-3xl" />
@@ -1044,7 +1084,7 @@ export default function DashboardLayout() {
               <button
                 onClick={() => setSidebarOpen(true)}
                 aria-label="Open sidebar"
-                className="lg:hidden p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-500 hover:bg-white/60 hover:text-[#0A192F] rounded-2xl transition-all duration-300 hover:shadow-sm"
+                className="lg:hidden p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-500 hover:bg-white/60 hover:text-[#0A192F] rounded-2xl transition-all duration-300 hover:shadow-sm relative z-[10001]"
               >
                 <Menu className="w-6 h-6" />
               </button>
@@ -1282,9 +1322,9 @@ export default function DashboardLayout() {
         </div>
 
         {/* Page Content */}
-        <main className={`flex-1 overflow-x-hidden overflow-y-auto w-full max-w-full custom-scrollbar relative z-0 ${isChatOpen ? 'pb-32' : 'pb-12'}`}>
+        <main className={`flex-1 overflow-x-hidden overflow-y-auto w-full max-w-full custom-scrollbar relative z-0 ${isChatOpen ? 'pb-32' : 'pb-12'} ${location.pathname.includes('/pos') ? 'bg-slate-50/90 dark:bg-slate-900/90' : ''}`}>
           <div className="grain-overlay opacity-[0.02]" />
-          <div className="container mx-auto px-6 py-8">
+          <div className={location.pathname.includes('/pos') ? "h-full p-2 lg:p-4" : "container mx-auto px-6 py-8"}>
             {/* Premium Dashboard Banner Implementation */}
             {(() => {
               const currentPath = location.pathname;
@@ -1643,7 +1683,7 @@ export default function DashboardLayout() {
               const matchedKey = configsKeys.find(key => currentPath.startsWith(key));
               const config = bannerConfigs[matchedKey || '/dashboard/client'];
 
-              return config ? (
+              return config && !currentPath.includes('/pos') ? (
                 <DashboardBanner
                   title={config.title}
                   description={config.description}
@@ -1666,7 +1706,12 @@ export default function DashboardLayout() {
         {/* Unified Floating Action System - Replaces multiple individual buttons */}
         {!isMessagesPage && <FloatingActions />}
 
-        <NewsTicker />
+
+        {profile?.is_tester && (
+          <div className="fixed bottom-6 right-6 z-50 w-80 pointer-events-auto">
+            <TesterMissionCard />
+          </div>
+        )}
       </div >
     </div >
   );

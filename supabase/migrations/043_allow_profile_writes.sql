@@ -10,10 +10,10 @@ DROP POLICY IF EXISTS "Admins can update all profiles" ON profiles;
 DROP POLICY IF EXISTS "Admins can delete all profiles" ON profiles;
 -- 2. Allow INSERT (Crucial for Registration)
 CREATE POLICY "Users can insert own profile" ON profiles FOR
-INSERT WITH CHECK (auth.uid() = id);
+INSERT WITH CHECK ((select auth.uid()) = id);
 -- 3. Allow UPDATE (Crucial for Profile Management)
 CREATE POLICY "Users can update own profile" ON profiles FOR
-UPDATE USING (auth.uid() = id);
+UPDATE USING ((select auth.uid()) = id);
 -- 4. Admins Policies
 CREATE POLICY "Admins can update all profiles" ON profiles FOR
 UPDATE USING (is_admin());

@@ -81,7 +81,7 @@ export default function PrinterModal({ isOpen, onClose }: PrinterModalProps) {
                 <div className="bg-slate-900 p-6 flex justify-between items-center text-white">
                     <div className="flex items-center gap-3">
                         <Printer className="w-6 h-6" />
-                        <h3 className="text-xl font-bold">Imprimantes Thermiques</h3>
+                        <h3 className="text-xl font-bold">Périphériques (Imprimantes & Balances)</h3>
                     </div>
                     <button
                         onClick={onClose}
@@ -102,14 +102,31 @@ export default function PrinterModal({ isOpen, onClose }: PrinterModalProps) {
                                 <h4 className="font-bold text-slate-900 dark:text-white">Imprimante Connectée</h4>
                                 <p className="text-sm text-slate-500 truncate">{activeAddress}</p>
                             </div>
-                            <button
-                                onClick={handleDisconnect}
-                                title="Déconnecter l'imprimante"
-                                className="flex items-center justify-center gap-2 mx-auto text-red-600 font-bold hover:bg-red-50 p-2 rounded-lg transition-colors min-h-[44px]"
-                            >
-                                <Unlink className="w-4 h-4" />
-                                Déconnecter
-                            </button>
+                            <div className="flex items-center justify-center gap-4 mt-6">
+                                <button
+                                    onClick={async () => {
+                                        try {
+                                            await printService.printTest();
+                                            showSuccess("Test envoyé à l'imprimante");
+                                        } catch (e) {
+                                            showError("Erreur d'impression");
+                                        }
+                                    }}
+                                    title="Tester l'imprimante"
+                                    className="flex items-center justify-center gap-2 text-blue-600 font-bold hover:bg-blue-50 px-4 py-2 rounded-xl transition-colors min-h-[44px] shadow-sm bg-white"
+                                >
+                                    <Printer className="w-4 h-4" />
+                                    Test d'impression
+                                </button>
+                                <button
+                                    onClick={handleDisconnect}
+                                    title="Déconnecter l'imprimante"
+                                    className="flex items-center justify-center gap-2 text-red-600 font-bold hover:bg-red-50 px-4 py-2 rounded-xl transition-colors min-h-[44px] shadow-sm bg-white"
+                                >
+                                    <Unlink className="w-4 h-4" />
+                                    Déconnecter
+                                </button>
+                            </div>
                         </div>
                     ) : (
                         <div className="bg-slate-50 dark:bg-slate-800/50 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl p-10 text-center space-y-4">
@@ -157,10 +174,22 @@ export default function PrinterModal({ isOpen, onClose }: PrinterModalProps) {
                         </div>
                     )}
 
+                    {/* Printer Info */}
                     <div className="bg-amber-50 dark:bg-amber-900/10 border-l-4 border-amber-500 p-4 rounded-r-xl flex gap-3">
                         <AlertCircle className="w-5 h-5 text-amber-600 shrink-0" />
                         <p className="text-xs text-amber-800 dark:text-amber-400 leading-relaxed font-medium">
-                            Note : Assurez-vous que l'imprimante est allumée et non connectée à un autre appareil. Supporte les modèles ESC/POS de 58mm ou 80mm.
+                            Note Imprimante : Assurez-vous qu'elle est allumée et non connectée à un autre appareil. Supporte les modèles ESC/POS 58mm ou 80mm.
+                        </p>
+                    </div>
+
+                    {/* Scale Info */}
+                    <div className="bg-sky-50 dark:bg-sky-900/10 border-l-4 border-sky-500 p-4 rounded-r-xl space-y-2">
+                        <div className="flex items-center gap-3">
+                            <AlertCircle className="w-5 h-5 text-sky-600 shrink-0" />
+                            <h4 className="text-sm font-bold text-sky-900 dark:text-sky-100">Configuration de la Balance</h4>
+                        </div>
+                        <p className="text-xs text-sky-800 dark:text-sky-300 leading-relaxed font-medium pl-8">
+                            Pour utiliser une balance électronique, connectez-la en USB ou Bluetooth en mode <strong>Émulation Clavier (Keyboard Wedge)</strong>. Placez le curseur dans le champ "Poids total (KG)" ou "Dimensions", et la balance y inscrira automatiquement la valeur lue.
                         </p>
                     </div>
                 </div>

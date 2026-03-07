@@ -53,12 +53,12 @@ DO $$ BEGIN -- Policy for SELECT
 DROP POLICY IF EXISTS "view_tickets_policy" ON public.tickets;
 CREATE POLICY "view_tickets_policy" ON public.tickets FOR
 SELECT USING (
-        user_id = auth.uid()
-        OR assigned_to = auth.uid()
+        user_id = (select auth.uid())
+        OR assigned_to = (select auth.uid())
         OR EXISTS (
             SELECT 1
             FROM public.profiles
-            WHERE id = auth.uid()
+            WHERE id = (select auth.uid())
                 AND (
                     role::TEXT = 'admin'
                     OR role::TEXT = 'super-admin'
@@ -68,17 +68,17 @@ SELECT USING (
 -- Policy for INSERT
 DROP POLICY IF EXISTS "create_tickets_policy" ON public.tickets;
 CREATE POLICY "create_tickets_policy" ON public.tickets FOR
-INSERT WITH CHECK (auth.uid() = user_id);
+INSERT WITH CHECK ((select auth.uid()) = user_id);
 -- Policy for UPDATE
 DROP POLICY IF EXISTS "update_tickets_policy" ON public.tickets;
 CREATE POLICY "update_tickets_policy" ON public.tickets FOR
 UPDATE USING (
-        user_id = auth.uid()
-        OR assigned_to = auth.uid()
+        user_id = (select auth.uid())
+        OR assigned_to = (select auth.uid())
         OR EXISTS (
             SELECT 1
             FROM public.profiles
-            WHERE id = auth.uid()
+            WHERE id = (select auth.uid())
                 AND (
                     role::TEXT = 'admin'
                     OR role::TEXT = 'super-admin'

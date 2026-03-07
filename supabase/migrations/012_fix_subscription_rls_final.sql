@@ -10,19 +10,19 @@ DROP POLICY IF EXISTS "Admins can manage subscriptions" ON user_subscriptions;
 -- 3. Recreate Policies
 -- Allow users to VIEW their own subscription
 CREATE POLICY "Users can view own subscription" ON user_subscriptions FOR
-SELECT USING (auth.uid() = user_id);
+SELECT USING ((select auth.uid()) = user_id);
 -- Allow users to INSERT their own subscription
 CREATE POLICY "Users can create own subscription" ON user_subscriptions FOR
-INSERT WITH CHECK (auth.uid() = user_id);
+INSERT WITH CHECK ((select auth.uid()) = user_id);
 -- Allow users to UPDATE their own subscription (e.g. for cancellation)
 CREATE POLICY "Users can update own subscription" ON user_subscriptions FOR
-UPDATE USING (auth.uid() = user_id);
+UPDATE USING ((select auth.uid()) = user_id);
 -- Allow Admins to do EVERYTHING
 CREATE POLICY "Admins can manage subscriptions" ON user_subscriptions FOR ALL USING (
     EXISTS (
         SELECT 1
         FROM profiles
-        WHERE id = auth.uid()
+        WHERE id = (select auth.uid())
             AND role IN ('admin', 'super-admin')
     )
 );

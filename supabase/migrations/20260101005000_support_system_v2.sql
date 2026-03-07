@@ -29,7 +29,7 @@ NEW.user_plan := user_subscription_tier;
 -- Pro ('pro') -> High (24h)
 -- Starter ('starter') -> Medium (48h)
 -- If the user tried to set priority, strictly override it based on plan 
--- UNLESS the inserter is an admin (we check by seeing if user_id != auth.uid() usually, 
+-- UNLESS the inserter is an admin (we check by seeing if user_id != (select auth.uid()) usually, 
 -- but for simplicity we enforce business rules: Plan dictates Base Priority).
 -- Actually, let's allow admins to override if they are the ones inserting (rare for tickets table, usually updates).
 -- This trigger is BEFORE INSERT, so usually initiated by Client.

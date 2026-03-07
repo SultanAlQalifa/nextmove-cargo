@@ -27,7 +27,7 @@ INSERT TO authenticated WITH CHECK (
         AND (
             SELECT role
             FROM profiles
-            WHERE id = auth.uid()
+            WHERE id = (select auth.uid())
         ) IN ('admin', 'super-admin')
     );
 END IF;

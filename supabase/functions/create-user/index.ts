@@ -247,37 +247,45 @@ serve(async (req: Request) => {
         }
 
         // 5. Send Welcome Email via Queue
-        // process-email-queue will wrap this content in the main template
-        const welcomeSubject = "Bienvenue sur NextMove Cargo - Vos identifiants";
-        const welcomeBody = `
-                <p>Bonjour <strong>${fullName}</strong>,</p>
-                <p>Votre compte a été créé avec succès sur la plateforme NextMove Cargo.</p>
-                <p>Voici vos identifiants de connexion :</p>
-                <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                    <p style="margin: 5px 0;"><strong>Email :</strong> ${email}</p>
-                    <p style="margin: 5px 0;"><strong>Mot de passe temporaire :</strong> ${password}</p>
-                </div>
-                <p>Nous vous recommandons de changer votre mot de passe dès votre première connexion.</p>
-                <p>
-                    <a href="${Deno.env.get('PUBLIC_SITE_URL') || 'https://nextmovecargo.com'}/auth" 
-                       style="background-color: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; display: inline-block; margin-top: 10px;">
-                        Se connecter
-                    </a>
-                </p>
-            `;
+        const isGuest = email.endsWith('@guest.nextmovecargo.com') || metadata?.is_guest;
+        let emailError = null;
+        let emailRecord = null;
 
-        const { data: emailRecord, error: emailError } = await supabaseAdmin
-            .from('email_queue')
-            .insert({
-                sender_id: user.id, // The admin/forwarder who created this user
-                recipient_group: 'specific',
-                recipient_emails: [email],
-                subject: welcomeSubject,
-                body: welcomeBody,
-                status: 'pending' // Ready to be picked up by process-email-queue
-            })
-            .select()
-            .single();
+        if (!isGuest) {
+            const welcomeSubject = "Bienvenue sur NextMove Cargo - Vos identifiants";
+            const welcomeBody = `
+                    <p>Bonjour <strong>${fullName}</strong>,</p>
+                    <p>Votre compte a été créé avec succès sur la plateforme NextMove Cargo.</p>
+                    <p>Voici vos identifiants de connexion :</p>
+                    <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                        <p style="margin: 5px 0;"><strong>Email :</strong> ${email}</p>
+                        <p style="margin: 5px 0;"><strong>Mot de passe temporaire :</strong> ${password}</p>
+                    </div>
+                    <p>Nous vous recommandons de changer votre mot de passe dès votre première connexion.</p>
+                    <p>
+                        <a href="${Deno.env.get('PUBLIC_SITE_URL') || 'https://nextmovecargo.com'}/auth" 
+                           style="background-color: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; display: inline-block; margin-top: 10px;">
+                            Se connecter
+                        </a>
+                    </p>
+                `;
+
+            const { data: qRecord, error: qError } = await supabaseAdmin
+                .from('email_queue')
+                .insert({
+                    sender_id: user.id,
+                    recipient_group: 'specific',
+                    recipient_emails: [email],
+                    subject: welcomeSubject,
+                    body: welcomeBody,
+                    status: 'pending'
+                })
+                .select()
+                .single();
+
+            emailError = qError;
+            emailRecord = qRecord;
+        }
 
         if (emailError) {
             console.error('Error queuing welcome email:', emailError);

@@ -77,6 +77,12 @@ export interface SystemSettings {
     news_ticker_enabled: boolean;
     news_ticker_messages: string[];
   };
+  wallet: {
+    admin_min_deposit: number;
+    admin_max_deposit: number;
+    admin_min_withdrawal: number;
+    admin_max_withdrawal: number;
+  };
 }
 
 const DEFAULT_SETTINGS: SystemSettings = {
@@ -165,6 +171,12 @@ Objectif : Inciter à la demande de cotation.`,
       "Nouveaux partenaires certifiés disponibles !",
       "Service client disponible 24/7 pour vos besoins urgents."
     ],
+  },
+  wallet: {
+    admin_min_deposit: 1000,
+    admin_max_deposit: 5000000,
+    admin_min_withdrawal: 1000,
+    admin_max_withdrawal: 5000000,
   },
 };
 

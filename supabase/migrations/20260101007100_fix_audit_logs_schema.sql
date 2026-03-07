@@ -94,7 +94,7 @@ VALUES (
         TG_TABLE_NAME,
         v_record_id,
         TG_OP,
-        auth.uid(),
+        (select auth.uid()),
         v_old_data - 'password' - 'encrypted_password',
         v_new_data - 'password' - 'encrypted_password',
         NOW(),

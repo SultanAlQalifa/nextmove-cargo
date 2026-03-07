@@ -5,8 +5,8 @@
 DROP POLICY IF EXISTS "Users can create own subscription" ON user_subscriptions;
 -- Create new policy allowing INSERT
 CREATE POLICY "Users can create own subscription" ON user_subscriptions FOR
-INSERT WITH CHECK (auth.uid() = user_id);
+INSERT WITH CHECK ((select auth.uid()) = user_id);
 -- Also ensure they can update their own subscription (e.g. cancel)
 DROP POLICY IF EXISTS "Users can update own subscription" ON user_subscriptions;
 CREATE POLICY "Users can update own subscription" ON user_subscriptions FOR
-UPDATE USING (auth.uid() = user_id);
+UPDATE USING ((select auth.uid()) = user_id);

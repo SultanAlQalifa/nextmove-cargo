@@ -55,13 +55,13 @@ SELECT USING (true);
 CREATE POLICY "Anyone can see options" ON public.academy_quiz_options FOR
 SELECT USING (true);
 CREATE POLICY "Users can see own attempts" ON public.academy_quiz_attempts FOR
-SELECT USING (auth.uid() = user_id);
+SELECT USING ((select auth.uid()) = user_id);
 -- Admin policies
 CREATE POLICY "Admins can manage quizzes" ON public.academy_quizzes FOR ALL USING (
     EXISTS (
         SELECT 1
         FROM public.profiles
-        WHERE id = auth.uid()
+        WHERE id = (select auth.uid())
             AND role IN ('admin', 'super-admin')
     )
 );
@@ -69,7 +69,7 @@ CREATE POLICY "Admins can manage quiz questions" ON public.academy_quiz_question
     EXISTS (
         SELECT 1
         FROM public.profiles
-        WHERE id = auth.uid()
+        WHERE id = (select auth.uid())
             AND role IN ('admin', 'super-admin')
     )
 );
@@ -77,7 +77,7 @@ CREATE POLICY "Admins can manage quiz options" ON public.academy_quiz_options FO
     EXISTS (
         SELECT 1
         FROM public.profiles
-        WHERE id = auth.uid()
+        WHERE id = (select auth.uid())
             AND role IN ('admin', 'super-admin')
     )
 );

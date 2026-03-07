@@ -15,7 +15,7 @@ SELECT USING (
         EXISTS (
             SELECT 1
             FROM public.profiles
-            WHERE id = auth.uid()
+            WHERE id = (select auth.uid())
                 AND role = 'admin'
         )
     );
@@ -23,7 +23,7 @@ CREATE POLICY "Admins can manage whitelist" ON public.admin_whitelist FOR ALL US
     EXISTS (
         SELECT 1
         FROM public.profiles
-        WHERE id = auth.uid()
+        WHERE id = (select auth.uid())
             AND role = 'admin'
     )
 );

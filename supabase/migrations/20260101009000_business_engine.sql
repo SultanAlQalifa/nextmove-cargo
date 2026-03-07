@@ -137,14 +137,14 @@ ALTER TABLE public.invoices ENABLE ROW LEVEL SECURITY;
 -- Users view own
 DROP POLICY IF EXISTS "Users can view own invoices" ON public.invoices;
 CREATE POLICY "Users can view own invoices" ON public.invoices FOR
-SELECT USING (auth.uid() = user_id);
+SELECT USING ((select auth.uid()) = user_id);
 -- Admins manage all
 DROP POLICY IF EXISTS "Admins can manage invoices" ON public.invoices;
 CREATE POLICY "Admins can manage invoices" ON public.invoices FOR ALL USING (
     EXISTS (
         SELECT 1
         FROM public.profiles
-        WHERE id = auth.uid()
+        WHERE id = (select auth.uid())
             AND role IN ('admin', 'super-admin')
     )
 );

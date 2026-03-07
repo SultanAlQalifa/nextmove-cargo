@@ -43,6 +43,7 @@ export default {
             animation: {
                 swing: 'swing 1s ease-in-out infinite',
                 blob: 'blob 7s infinite',
+                shimmer: 'shimmer 2s linear infinite',
             },
         },
     },

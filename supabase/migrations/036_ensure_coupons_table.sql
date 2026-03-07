@@ -55,16 +55,16 @@ CREATE POLICY "Admins can manage coupons" ON coupons FOR ALL USING (
     EXISTS (
         SELECT 1
         FROM profiles
-        WHERE id = auth.uid()
+        WHERE id = (select auth.uid())
             AND role IN ('admin', 'super-admin')
     )
 );
 DROP POLICY IF EXISTS "Users can view own coupon usage" ON coupon_usages;
 CREATE POLICY "Users can view own coupon usage" ON coupon_usages FOR
-SELECT USING (auth.uid() = user_id);
+SELECT USING ((select auth.uid()) = user_id);
 DROP POLICY IF EXISTS "Users can insert own coupon usage" ON coupon_usages;
 CREATE POLICY "Users can insert own coupon usage" ON coupon_usages FOR
-INSERT WITH CHECK (auth.uid() = user_id);
+INSERT WITH CHECK ((select auth.uid()) = user_id);
 -- Create or replace function for usage increment
 CREATE OR REPLACE FUNCTION increment_coupon_usage() RETURNS TRIGGER AS $$ BEGIN
 UPDATE coupons

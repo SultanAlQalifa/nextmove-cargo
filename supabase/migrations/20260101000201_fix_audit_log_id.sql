@@ -32,9 +32,9 @@ VALUES (
         TG_OP,
         v_old_data,
         v_new_data,
-        -- Check if auth.uid() is available (it might not be in some contexts)
+        -- Check if (select auth.uid()) is available (it might not be in some contexts)
         -- but for our app usage it normally is.
-        auth.uid()
+        (select auth.uid())
     );
 RETURN NULL;
 END;

@@ -51,15 +51,15 @@ CREATE INDEX IF NOT EXISTS idx_profiles_role_status ON profiles(role, account_st
 ALTER TABLE forwarder_documents ENABLE ROW LEVEL SECURITY;
 -- Forwarders can view and upload their own documents
 CREATE POLICY "Forwarders can view own documents" ON forwarder_documents FOR
-SELECT USING (auth.uid() = forwarder_id);
+SELECT USING ((select auth.uid()) = forwarder_id);
 CREATE POLICY "Forwarders can upload own documents" ON forwarder_documents FOR
-INSERT WITH CHECK (auth.uid() = forwarder_id);
+INSERT WITH CHECK ((select auth.uid()) = forwarder_id);
 -- Admins can view and manage all documents
 CREATE POLICY "Admins can view all documents" ON forwarder_documents FOR ALL USING (
     EXISTS (
         SELECT 1
         FROM profiles
-        WHERE id = auth.uid()
+        WHERE id = (select auth.uid())
             AND role IN ('admin', 'super-admin')
     )
 );

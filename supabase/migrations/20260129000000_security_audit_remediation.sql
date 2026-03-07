@@ -18,13 +18,13 @@ END $$;
 ALTER TABLE public.user_subscriptions ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Users can view own subscriptions" ON public.user_subscriptions;
 CREATE POLICY "Users can view own subscriptions" ON public.user_subscriptions FOR
-SELECT TO authenticated USING (auth.uid() = user_id);
+SELECT TO authenticated USING ((select auth.uid()) = user_id);
 DROP POLICY IF EXISTS "Admins can manage all subscriptions" ON public.user_subscriptions;
 CREATE POLICY "Admins can manage all subscriptions" ON public.user_subscriptions FOR ALL TO authenticated USING (
     EXISTS (
         SELECT 1
         FROM public.profiles
-        WHERE profiles.id = auth.uid()
+        WHERE profiles.id = (select auth.uid())
             AND profiles.role IN ('admin'::user_role, 'super-admin'::user_role)
     )
 );
@@ -37,7 +37,7 @@ SELECT TO authenticated USING (
         EXISTS (
             SELECT 1
             FROM public.profiles
-            WHERE profiles.id = auth.uid()
+            WHERE profiles.id = (select auth.uid())
                 AND profiles.role IN ('admin'::user_role, 'super-admin'::user_role)
         )
     );
@@ -46,7 +46,7 @@ SELECT TO authenticated USING (
 DROP POLICY IF EXISTS "Authenticated users can view all profiles" ON public.profiles;
 DROP POLICY IF EXISTS "Users can view their own profile" ON public.profiles;
 CREATE POLICY "Users can view their own profile" ON public.profiles FOR
-SELECT TO authenticated USING (auth.uid() = id);
+SELECT TO authenticated USING ((select auth.uid()) = id);
 DROP POLICY IF EXISTS "Public can view active forwarders" ON public.profiles;
 CREATE POLICY "Public can view active forwarders" ON public.profiles FOR
 SELECT TO public USING (
@@ -59,7 +59,7 @@ SELECT TO authenticated USING (
         EXISTS (
             SELECT 1
             FROM public.profiles
-            WHERE profiles.id = auth.uid()
+            WHERE profiles.id = (select auth.uid())
                 AND profiles.role IN ('admin'::user_role, 'super-admin'::user_role)
         )
     );
@@ -67,7 +67,7 @@ SELECT TO authenticated USING (
 -- ───────────────────────────────────────────────────────────────
 DROP POLICY IF EXISTS "Users can view own wallet" ON public.wallets;
 CREATE POLICY "Users can view own wallet" ON public.wallets FOR
-SELECT TO authenticated USING (auth.uid() = user_id);
+SELECT TO authenticated USING ((select auth.uid()) = user_id);
 DROP POLICY IF EXISTS "Users can view own transactions" ON public.transactions;
 CREATE POLICY "Users can view own transactions" ON public.transactions FOR
 SELECT TO authenticated USING (
@@ -75,7 +75,7 @@ SELECT TO authenticated USING (
             SELECT 1
             FROM public.wallets
             WHERE wallets.id = transactions.wallet_id
-                AND wallets.user_id = auth.uid()
+                AND wallets.user_id = (select auth.uid())
         )
     );
 DROP POLICY IF EXISTS "Admins can view all wallets" ON public.wallets;
@@ -84,7 +84,7 @@ SELECT TO authenticated USING (
         EXISTS (
             SELECT 1
             FROM public.profiles
-            WHERE profiles.id = auth.uid()
+            WHERE profiles.id = (select auth.uid())
                 AND profiles.role IN ('admin'::user_role, 'super-admin'::user_role)
         )
     );
@@ -94,7 +94,7 @@ SELECT TO authenticated USING (
         EXISTS (
             SELECT 1
             FROM public.profiles
-            WHERE profiles.id = auth.uid()
+            WHERE profiles.id = (select auth.uid())
                 AND profiles.role IN ('admin'::user_role, 'super-admin'::user_role)
         )
     );
@@ -107,7 +107,7 @@ SELECT TO authenticated USING (
         EXISTS (
             SELECT 1
             FROM public.profiles
-            WHERE profiles.id = auth.uid()
+            WHERE profiles.id = (select auth.uid())
                 AND profiles.role IN ('admin'::user_role, 'super-admin'::user_role)
         )
     );
@@ -122,7 +122,7 @@ CREATE POLICY "Admins can manage all settings" ON public.system_settings FOR ALL
     EXISTS (
         SELECT 1
         FROM public.profiles
-        WHERE profiles.id = auth.uid()
+        WHERE profiles.id = (select auth.uid())
             AND profiles.role IN ('admin'::user_role, 'super-admin'::user_role)
     )
 );

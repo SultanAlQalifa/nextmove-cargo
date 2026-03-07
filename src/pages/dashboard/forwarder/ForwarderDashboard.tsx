@@ -17,11 +17,17 @@ import {
   Download,
   Building2,
   PieChart as PieChartIcon,
+  CreditCard,
+  Calendar,
+  RefreshCw,
+  AlertCircle,
 } from "lucide-react";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useToast } from "../../../contexts/ToastContext";
 import { shipmentService, Shipment } from "../../../services/shipmentService";
 import { personnelService } from "../../../services/personnelService";
+import { subscriptionService } from "../../../services/subscriptionService";
+import { UserSubscription } from "../../../types/subscription";
 import LoadingSpinner from "../../../components/common/LoadingSpinner";
 import DashboardControls, {
   TimeRange,
@@ -56,6 +62,16 @@ export default function ForwarderDashboard() {
   const { user, profile, loading: authLoading } = useAuth();
   const [timeRange, setTimeRange] = useState<TimeRange>("30d");
   const [loading, setLoading] = useState(true);
+  const [subscription, setSubscription] = useState<UserSubscription | null>(null);
+
+  // Fetch subscription info
+  useEffect(() => {
+    if (user) {
+      subscriptionService.getUserSubscription(user.id).then(sub => {
+        setSubscription(sub);
+      }).catch(() => { });
+    }
+  }, [user]);
 
 
   // Self-Repair: Ensure profile exists in DB
@@ -388,44 +404,140 @@ export default function ForwarderDashboard() {
             </button>
           </div>
 
-          {/* DEBUG BANNER FOR SUBSCRIPTION STATUS */}
-          {profile?.role === "forwarder" &&
-            profile?.subscription_status !== "active" && (
-              <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 mb-6 flex items-center justify-between animate-in slide-in-from-top-2">
+          {/* Subscription Info Card */}
+          {subscription && subscription.plan && (() => {
+            const isExpiredByDate = new Date(subscription.end_date) < new Date();
+            const effectiveStatus = isExpiredByDate ? 'expired' : subscription.status;
+            const statusMap: Record<string, { label: string; color: string }> = {
+              active: { label: 'Actif', color: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800' },
+              past_due: { label: 'Paiement en retard', color: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800' },
+              cancelled: { label: 'Annulé', color: 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800' },
+              expired: { label: 'Expiré', color: 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700' },
+            };
+            const badge = statusMap[effectiveStatus] || statusMap.expired;
+            const fmtDate = (d: string) => new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+
+            return (
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-6 mb-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
+                      <CreditCard className="w-6 h-6 text-primary" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-3">
+                        <h3 className="text-lg font-black text-slate-900 dark:text-white">
+                          Plan {subscription.plan.name}
+                        </h3>
+                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${badge.color}`}>
+                          {badge.label}
+                        </span>
+                      </div>
+                      <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+                        {new Intl.NumberFormat('fr-XO').format(subscription.plan.price)} {subscription.plan.currency} / {subscription.plan.billing_cycle === 'monthly' ? 'mois' : 'an'}
+                      </p>
+                    </div>
+                  </div>
+                  <Link
+                    to="/dashboard/forwarder/subscription"
+                    className="px-4 py-2 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary/90 transition-colors shadow-sm"
+                  >
+                    Gérer
+                  </Link>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6 pt-6 border-t border-slate-100 dark:border-slate-800">
+                  <div className="flex items-center gap-3">
+                    <Calendar className="w-4 h-4 text-slate-400" />
+                    <div>
+                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Début</div>
+                      <div className="text-sm font-bold text-slate-700 dark:text-slate-200">
+                        {fmtDate(subscription.start_date)}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Calendar className="w-4 h-4 text-slate-400" />
+                    <div>
+                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                        {isExpiredByDate ? 'Expiré le' : 'Prochaine échéance'}
+                      </div>
+                      <div className={`text-sm font-bold ${isExpiredByDate ? 'text-red-600 dark:text-red-400' : 'text-slate-700 dark:text-slate-200'}`}>
+                        {fmtDate(subscription.end_date)}
+                        {isExpiredByDate && (
+                          <span className="ml-2 text-xs text-red-500 font-bold">(dépassée)</span>
+                        )}
+                        {!isExpiredByDate && (() => {
+                          const days = Math.max(0, Math.ceil((new Date(subscription.end_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
+                          return days <= 7 ? <span className="ml-2 text-xs text-amber-600 font-bold">({days}j restants)</span> : null;
+                        })()}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <RefreshCw className="w-4 h-4 text-slate-400" />
+                    <div>
+                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Renouvellement</div>
+                      <div className="text-sm font-bold text-slate-700 dark:text-slate-200">
+                        {subscription.auto_renew ? 'Automatique' : 'Manuel'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* Plan Deactivated Warning */}
+          {subscription && subscription.plan && !subscription.plan.is_active && (() => {
+            const isExpired = new Date(subscription.end_date) < new Date();
+            const fmtDate = (d: string) => new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+            return (
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-6 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-in slide-in-from-top-2">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-orange-100 text-orange-600 rounded-lg">
-                    <Activity className="w-5 h-5" />
+                  <div className="p-3 bg-red-100 dark:bg-red-900/40 text-red-600 rounded-xl">
+                    <AlertCircle className="w-6 h-6" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-orange-800">
-                      Compte en mode restreint
-                    </h4>
-                    <p className="text-sm text-orange-700">
-                      Statut détecté:{" "}
-                      <strong>
-                        {profile?.subscription_status || "Non défini"}
-                      </strong>
-                      . Normalement, vous devriez être redirigé vers la page
-                      d'abonnement.
+                    <h4 className="font-black text-red-800 dark:text-red-300">Plan « {subscription.plan.name} » désactivé</h4>
+                    <p className="text-sm text-red-700 dark:text-red-400">
+                      {isExpired
+                        ? <>Votre abonnement a expiré le <strong>{fmtDate(subscription.end_date)}</strong>. Veuillez souscrire à un nouveau plan.</>
+                        : <>Votre accès reste actif jusqu'au <strong>{fmtDate(subscription.end_date)}</strong>. Basculez sur un autre plan avant cette date.</>
+                      }
                     </p>
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  <Link
-                    to="/dashboard/forwarder/subscription"
-                    className="px-4 py-2 bg-orange-600 text-white rounded-lg text-sm font-bold hover:bg-orange-700 transition-colors"
-                  >
-                    Gérer mon abonnement
-                  </Link>
-                  <button
-                    onClick={() => window.location.reload()}
-                    className="px-4 py-2 bg-white text-orange-600 border border-orange-200 rounded-lg text-sm font-bold hover:bg-orange-50 transition-colors"
-                  >
-                    Actualiser
-                  </button>
+                <Link
+                  to="/dashboard/forwarder/subscription"
+                  className="px-6 py-3 bg-red-600 text-white rounded-xl text-sm font-bold hover:bg-red-700 transition-colors shadow-lg shadow-red-500/20 whitespace-nowrap"
+                >
+                  Changer de plan
+                </Link>
+              </div>
+            );
+          })()}
+
+          {/* No subscription warning */}
+          {!loading && !subscription && profile?.role === 'forwarder' && (
+            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-2xl p-6 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-amber-100 dark:bg-amber-900/40 text-amber-600 rounded-xl">
+                  <AlertCircle className="w-6 h-6" />
+                </div>
+                <div>
+                  <h4 className="font-black text-amber-800 dark:text-amber-300">Aucun abonnement actif</h4>
+                  <p className="text-sm text-amber-700 dark:text-amber-400">Souscrivez un plan pour accéder à toutes les fonctionnalités.</p>
                 </div>
               </div>
-            )}
+              <Link
+                to="/dashboard/forwarder/subscription"
+                className="px-6 py-3 bg-amber-600 text-white rounded-xl text-sm font-bold hover:bg-amber-700 transition-colors shadow-lg shadow-amber-500/20 whitespace-nowrap"
+              >
+                Voir les plans
+              </Link>
+            </div>
+          )}
 
           <DashboardControls
             timeRange={timeRange}

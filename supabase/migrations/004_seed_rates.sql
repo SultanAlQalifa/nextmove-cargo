@@ -30,12 +30,12 @@ ALTER TABLE rates ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Public can view rates" ON rates FOR
 SELECT USING (true);
 -- Only admins and owning forwarders can manage rates
-CREATE POLICY "Forwarders can manage own rates" ON rates FOR ALL USING (auth.uid() = forwarder_id) WITH CHECK (auth.uid() = forwarder_id);
+CREATE POLICY "Forwarders can manage own rates" ON rates FOR ALL USING ((select auth.uid()) = forwarder_id) WITH CHECK ((select auth.uid()) = forwarder_id);
 CREATE POLICY "Admins can manage all rates" ON rates FOR ALL USING (
     EXISTS (
         SELECT 1
         FROM profiles
-        WHERE id = auth.uid()
+        WHERE id = (select auth.uid())
             AND role IN ('admin', 'super-admin')
     )
 );

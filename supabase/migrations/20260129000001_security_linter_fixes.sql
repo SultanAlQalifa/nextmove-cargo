@@ -21,7 +21,7 @@ CREATE POLICY "Admins manage locations" ON public.locations FOR ALL TO authentic
     EXISTS (
         SELECT 1
         FROM public.profiles
-        WHERE profiles.id = auth.uid()
+        WHERE profiles.id = (select auth.uid())
             AND profiles.role IN ('admin'::user_role, 'super-admin'::user_role)
     )
 );
@@ -36,7 +36,7 @@ CREATE POLICY "Admins manage package types" ON public.package_types FOR ALL TO a
     EXISTS (
         SELECT 1
         FROM public.profiles
-        WHERE profiles.id = auth.uid()
+        WHERE profiles.id = (select auth.uid())
             AND profiles.role IN ('admin'::user_role, 'super-admin'::user_role)
     )
 );
@@ -45,7 +45,7 @@ CREATE POLICY "Admins manage package types" ON public.package_types FOR ALL TO a
 -- Profiles: Restrict manual INSERT now that we use a server-side trigger
 DROP POLICY IF EXISTS "Profiles_Insert_Policy" ON public.profiles;
 CREATE POLICY "Users can only insert their own profile" ON public.profiles FOR
-INSERT TO authenticated WITH CHECK (auth.uid() = id);
+INSERT TO authenticated WITH CHECK ((select auth.uid()) = id);
 -- Quote Requests: Close "Always True" loophole
 DROP POLICY IF EXISTS "Public can create requests" ON public.quote_requests;
 CREATE POLICY "Users can insert quote requests" ON public.quote_requests FOR

@@ -23,7 +23,7 @@ ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Admins can view audit logs" ON public.audit_logs FOR
 SELECT USING (public.is_admin());
 CREATE POLICY "Authenticated users can insert entries" ON public.audit_logs FOR
-INSERT WITH CHECK (auth.role() = 'authenticated');
+INSERT WITH CHECK ((select auth.role()) = 'authenticated');
 -- 5. INDEXES (Safe Create)
 CREATE INDEX IF NOT EXISTS idx_audit_logs_user_id ON public.audit_logs(user_id);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_resource ON public.audit_logs(resource);

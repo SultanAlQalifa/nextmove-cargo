@@ -52,11 +52,11 @@ DROP POLICY IF EXISTS "Users can upload documents" ON documents;
 DROP POLICY IF EXISTS "Users can delete own documents" ON documents;
 CREATE POLICY "Users can view own documents" ON documents FOR
 SELECT TO authenticated USING (
-        auth.uid() = owner_id
+        (select auth.uid()) = owner_id
         OR EXISTS (
             SELECT 1
             FROM profiles
-            WHERE id = auth.uid()
+            WHERE id = (select auth.uid())
                 AND (
                     role = 'admin'
                     OR role = 'super-admin'
@@ -64,13 +64,13 @@ SELECT TO authenticated USING (
         )
     );
 CREATE POLICY "Users can upload documents" ON documents FOR
-INSERT TO authenticated WITH CHECK (auth.uid() = owner_id);
+INSERT TO authenticated WITH CHECK ((select auth.uid()) = owner_id);
 CREATE POLICY "Users can delete own documents" ON documents FOR DELETE TO authenticated USING (
-    auth.uid() = owner_id
+    (select auth.uid()) = owner_id
     OR EXISTS (
         SELECT 1
         FROM profiles
-        WHERE id = auth.uid()
+        WHERE id = (select auth.uid())
             AND (
                 role = 'admin'
                 OR role = 'super-admin'
@@ -96,12 +96,12 @@ CREATE TABLE IF NOT EXISTS invoices (
 );
 ALTER TABLE invoices ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can view own invoices" ON invoices FOR
-SELECT TO authenticated USING (auth.uid() = user_id);
+SELECT TO authenticated USING ((select auth.uid()) = user_id);
 CREATE POLICY "Admins can manage invoices" ON invoices FOR ALL TO authenticated USING (
     EXISTS (
         SELECT 1
         FROM profiles
-        WHERE id = auth.uid()
+        WHERE id = (select auth.uid())
             AND role IN ('admin', 'super-admin')
     )
 );
@@ -122,12 +122,12 @@ CREATE TABLE IF NOT EXISTS transactions (
 );
 ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can view own transactions" ON transactions FOR
-SELECT TO authenticated USING (auth.uid() = user_id);
+SELECT TO authenticated USING ((select auth.uid()) = user_id);
 CREATE POLICY "Admins can manage transactions" ON transactions FOR ALL TO authenticated USING (
     EXISTS (
         SELECT 1
         FROM profiles
-        WHERE id = auth.uid()
+        WHERE id = (select auth.uid())
             AND role IN ('admin', 'super-admin')
     )
 );
@@ -146,13 +146,13 @@ DROP POLICY IF EXISTS "Users can upload own avatar" ON storage.objects;
 CREATE POLICY "Users can upload own avatar" ON storage.objects FOR
 INSERT TO authenticated WITH CHECK (
         bucket_id = 'avatars'
-        AND (storage.foldername(name)) [1] = auth.uid()::text
+        AND (storage.foldername(name)) [1] = (select auth.uid())::text
     );
 DROP POLICY IF EXISTS "Users can update own avatar" ON storage.objects;
 CREATE POLICY "Users can update own avatar" ON storage.objects FOR
 UPDATE TO authenticated USING (
         bucket_id = 'avatars'
-        AND (storage.foldername(name)) [1] = auth.uid()::text
+        AND (storage.foldername(name)) [1] = (select auth.uid())::text
     );
 -- Branding
 DROP POLICY IF EXISTS "Public Branding" ON storage.objects;
@@ -164,7 +164,7 @@ CREATE POLICY "Admins can manage branding" ON storage.objects FOR ALL TO authent
     AND EXISTS (
         SELECT 1
         FROM profiles
-        WHERE id = auth.uid()
+        WHERE id = (select auth.uid())
             AND (
                 role = 'admin'
                 OR role = 'super-admin'
@@ -176,13 +176,13 @@ DROP POLICY IF EXISTS "Users can upload documents" ON storage.objects;
 CREATE POLICY "Users can upload documents" ON storage.objects FOR
 INSERT TO authenticated WITH CHECK (
         bucket_id = 'documents'
-        AND (storage.foldername(name)) [1] = auth.uid()::text
+        AND (storage.foldername(name)) [1] = (select auth.uid())::text
     );
 DROP POLICY IF EXISTS "Users can view own documents" ON storage.objects;
 CREATE POLICY "Users can view own documents" ON storage.objects FOR
 SELECT TO authenticated USING (
         bucket_id = 'documents'
-        AND (storage.foldername(name)) [1] = auth.uid()::text
+        AND (storage.foldername(name)) [1] = (select auth.uid())::text
     );
 DROP POLICY IF EXISTS "Admins can view all documents" ON storage.objects;
 CREATE POLICY "Admins can view all documents" ON storage.objects FOR
@@ -191,7 +191,7 @@ SELECT TO authenticated USING (
         AND EXISTS (
             SELECT 1
             FROM profiles
-            WHERE id = auth.uid()
+            WHERE id = (select auth.uid())
                 AND (
                     role = 'admin'
                     OR role = 'super-admin'
@@ -199,7 +199,7 @@ SELECT TO authenticated USING (
         )
     );
 -- 5. UPGRADE RPC & SECURITY TRIGGER
-CREATE OR REPLACE FUNCTION prevent_role_change() RETURNS TRIGGER AS $$ BEGIN IF current_setting('app.bypass_role_check', true) = 'on' THEN RETURN NEW;
+CREATE OR REPLACE FUNCTION prevent_role_change() RETURNS TRIGGER AS $$ BEGIN IF (select current_setting('app.bypass_role_check', true)) = 'on' THEN RETURN NEW;
 END IF;
 IF (
     TG_OP = 'UPDATE'
@@ -208,7 +208,7 @@ IF (
 ) THEN IF NOT EXISTS (
     SELECT 1
     FROM profiles
-    WHERE id = auth.uid()
+    WHERE id = (select auth.uid())
         AND (
             role = 'admin'
             OR role = 'super-admin'
@@ -226,7 +226,7 @@ CREATE OR REPLACE FUNCTION upgrade_to_forwarder(plan_id TEXT DEFAULT NULL) RETUR
 SET search_path = public AS $$
 DECLARE v_user_id UUID;
 v_current_role TEXT;
-BEGIN v_user_id := auth.uid();
+BEGIN v_user_id := (select auth.uid());
 IF v_user_id IS NULL THEN RAISE EXCEPTION 'Not authenticated';
 END IF;
 SELECT role INTO v_current_role

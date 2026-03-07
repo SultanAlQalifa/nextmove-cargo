@@ -10,8 +10,9 @@ import {
   Loader2,
   Tag,
   Wallet,
-  Check,
-  Banknote
+  Banknote,
+  XCircle,
+  ArrowRight
 } from "lucide-react";
 import { paymentService } from "../../services/paymentService";
 import { paymentGatewayService, PaymentGateway } from "../../services/paymentGatewayService";
@@ -397,24 +398,33 @@ export default function PaymentModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-xl flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl relative border border-indigo-100 dark:border-indigo-900/30 flex flex-col max-h-[90vh]">
+
+        {/* Top Gradient Bar */}
+        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-500 to-purple-500 z-10"></div>
+
         {/* Header */}
-        <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50">
-          <div>
-            <h3 className="font-bold text-gray-900">
-              {mode === 'topup' ? 'Recharger mon compte' : 'Paiement Sécurisé'}
-            </h3>
-            <p className="text-xs text-gray-500">
-              {mode === 'topup' ? 'Alimenter votre portefeuille' : `Paiement ${planName}`}
-            </p>
+        <div className="p-5 border-b border-slate-100 dark:border-slate-800/50 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/30 relative pt-6">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-indigo-500/30 flex items-center justify-center text-white shrink-0">
+              {mode === 'topup' ? <Wallet className="w-6 h-6" /> : <CreditCard className="w-6 h-6" />}
+            </div>
+            <div>
+              <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
+                {mode === 'topup' ? 'Recharger le compte' : 'Paiement Sécurisé'}
+              </h3>
+              <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-0.5">
+                {mode === 'topup' ? 'Alimenter votre portefeuille' : `Paiement ${planName || "Service"}`}
+              </p>
+            </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-200 rounded-full transition-colors min-h-[44px]"
+            className="absolute top-5 right-5 p-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-full text-slate-500 dark:text-slate-400 transition-colors"
             aria-label="Fermer"
           >
-            <X className="w-5 h-5 text-gray-500" />
+            <XCircle className="w-5 h-5" />
           </button>
         </div>
 
@@ -424,38 +434,40 @@ export default function PaymentModal({
             <div className="space-y-6">
               {/* TopUp Amount Input */}
               {mode === 'topup' && (
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">
-                    Montant du rechargement (XOF)
+                <div className="space-y-3">
+                  <label className="block text-sm font-black text-slate-700 dark:text-slate-300 uppercase tracking-wide">
+                    Montant du rechargement
                   </label>
                   <div className="relative group">
-                    <Banknote className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-primary transition-colors" />
                     <input
                       type="number"
                       value={editableAmount}
                       onChange={(e) => setEditableAmount(Number(e.target.value))}
-                      placeholder="Ex: 5000"
-                      className="w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-slate-100 focus:border-primary/50 focus:ring-4 focus:ring-primary/5 outline-none text-2xl font-black text-slate-900 transition-all"
+                      placeholder="0"
+                      className="w-full pl-5 pr-16 py-4 bg-slate-50 dark:bg-slate-800/50 border-2 border-slate-200 dark:border-slate-700/50 rounded-2xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none text-2xl font-black text-slate-900 dark:text-white transition-all text-center"
                     />
+                    <span className="absolute right-5 top-1/2 -translate-y-1/2 font-bold text-slate-500 dark:text-slate-400">
+                      {currency}
+                    </span>
                   </div>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest pl-1">
-                    Minimum : 500 XOF
+                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium text-center">
+                    Minimum conseillé : <span className="font-bold text-slate-700 dark:text-slate-300">500 {currency}</span>
                   </p>
                 </div>
               )}
 
               {/* Amount Breakdown */}
-              <div className="bg-gray-50 p-4 rounded-xl space-y-2">
-                <div className="flex justify-between text-sm text-gray-600">
-                  <span>{mode === 'topup' ? 'Montant' : 'Montant HT'}</span>
-                  <span>
+              <div className="bg-slate-50 dark:bg-slate-800/30 p-5 rounded-2xl space-y-3 border border-slate-100 dark:border-slate-700/30">
+                <div className="flex justify-between text-sm font-medium text-slate-600 dark:text-slate-400">
+                  <span>{mode === 'topup' ? 'Montant Saisi' : 'Montant HT'}</span>
+                  <span className="font-bold text-slate-900 dark:text-white">
                     {currentAmount.toLocaleString()} {currency}
                   </span>
                 </div>
 
                 {/* Coupon Section */}
                 {showCoupons && mode !== 'topup' && (
-                  <div className="py-2 border-y border-gray-200 my-2">
+                  <div className="py-3 border-y border-slate-200 dark:border-slate-700/50 my-3">
                     {!appliedCoupon ? (
                       <div className="space-y-2">
                         <div className="flex gap-2">
@@ -465,40 +477,41 @@ export default function PaymentModal({
                             onChange={(e) =>
                               setCouponCode(e.target.value.toUpperCase())
                             }
-                            placeholder="Code Promo"
-                            className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-primary uppercase"
+                            placeholder="CODE PROMO"
+                            className="flex-1 px-4 py-3 text-sm font-bold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 uppercase transition-all dark:text-white"
                           />
                           <button
                             onClick={handleApplyCoupon}
                             disabled={!couponCode || verifyingCoupon}
-                            className="px-3 py-2 bg-gray-900 text-white text-xs font-bold rounded-lg hover:bg-gray-800 disabled:opacity-50 min-h-[44px]"
+                            className="px-4 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-bold rounded-xl hover:bg-slate-800 dark:hover:bg-slate-100 disabled:opacity-50 transition-colors"
                           >
                             {verifyingCoupon ? (
-                              <Loader2 className="w-4 h-4 animate-spin" />
+                              <Loader2 className="w-5 h-5 animate-spin" />
                             ) : (
                               "Appliquer"
                             )}
                           </button>
                         </div>
                         {couponError && (
-                          <p className="text-xs text-red-500">{couponError}</p>
+                          <p className="text-sm font-medium text-rose-500 px-1">{couponError}</p>
                         )}
                       </div>
                     ) : (
-                      <div className="flex items-center justify-between text-sm text-green-600 bg-green-50 p-2 rounded-lg">
-                        <span className="flex items-center gap-1 font-medium">
-                          <Tag className="w-3 h-3" /> {appliedCoupon.code}
+                      <div className="flex items-center justify-between text-sm text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 p-3 rounded-xl border border-emerald-100 dark:border-emerald-500/20">
+                        <span className="flex items-center gap-2 font-black tracking-wide">
+                          <Tag className="w-4 h-4" /> {appliedCoupon.code}
                         </span>
-                        <div className="flex items-center gap-2">
-                          <span>
+                        <div className="flex items-center gap-3">
+                          <span className="font-bold">
                             -{finalDiscount.toLocaleString()} {currency}
                           </span>
                           <button
                             onClick={() => setAppliedCoupon(null)}
-                            className="text-gray-400 hover:text-red-500"
-                            aria-label="Supprimer le code promo"
+                            className="p-1 text-emerald-400 hover:text-emerald-600 dark:hover:text-emerald-300 transition-colors bg-emerald-500/10 rounded-full"
+                            title="Supprimer la réduction"
+                            aria-label="Supprimer la réduction"
                           >
-                            <X className="w-3 h-3" />
+                            <X className="w-4 h-4" />
                           </button>
                         </div>
                       </div>
@@ -507,40 +520,40 @@ export default function PaymentModal({
                 )}
 
                 {mode !== 'topup' && (
-                  <div className="flex justify-between text-sm text-gray-600">
+                  <div className="flex justify-between text-sm font-medium text-slate-600 dark:text-slate-400">
                     <span>Frais de transaction (1%)</span>
-                    <span>
+                    <span className="font-bold text-slate-900 dark:text-white">
                       {fees.toLocaleString()} {currency}
                     </span>
                   </div>
                 )}
                 {showVAT && mode !== 'topup' && (
-                  <div className="flex justify-between text-sm text-gray-600">
+                  <div className="flex justify-between text-sm font-medium text-slate-600 dark:text-slate-400">
                     <span>TVA (18%)</span>
-                    <span>
+                    <span className="font-bold text-slate-900 dark:text-white">
                       {vat.toLocaleString()} {currency}
                     </span>
                   </div>
                 )}
-                <div className="border-t border-gray-200 pt-2 flex justify-between font-bold text-lg text-primary">
-                  <span>Total à payer</span>
-                  <span>
+                <div className="border-t border-slate-200 dark:border-slate-700/50 pt-3 flex justify-between items-center">
+                  <span className="text-base font-black text-slate-900 dark:text-white uppercase tracking-wide">Total à payer</span>
+                  <span className="text-2xl font-black text-indigo-600 dark:text-indigo-400">
                     {totalAmount.toLocaleString()} {currency}
                   </span>
                 </div>
               </div>
 
-              <div className="space-y-3">
-                <p className="text-sm font-medium text-gray-700">
+              <div className="space-y-4">
+                <p className="text-sm font-black text-slate-700 dark:text-slate-300 uppercase tracking-wide">
                   Choisir un moyen de paiement
                 </p>
 
                 {loadingGateways ? (
-                  <div className="flex items-center justify-center py-4">
-                    <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+                  <div className="flex items-center justify-center py-6">
+                    <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
                   </div>
                 ) : (
-                  <>
+                  <div className="grid gap-3">
                     {isMethodActive("wallet") && (
                       <button
                         onClick={() =>
@@ -548,42 +561,42 @@ export default function PaymentModal({
                             ? setSelectedMethod("wallet")
                             : null
                         }
-                        className={`w-full p-4 rounded-xl border flex items-center gap-4 transition-all 
+                        className={`w-full p-4 rounded-2xl border-2 flex items-center gap-4 transition-all overflow-hidden relative group
                                         ${selectedMethod === "wallet"
-                            ? "border-gray-900 bg-gray-50 ring-1 ring-gray-900"
+                            ? "border-indigo-500 bg-indigo-50/50 dark:bg-indigo-500/10 ring-4 ring-indigo-500/10 shadow-sm"
                             : walletBalance >= totalAmount
-                              ? "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-                              : "border-gray-100 bg-gray-50/50 opacity-60 cursor-not-allowed"
+                              ? "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-md"
+                              : "border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 opacity-60 cursor-not-allowed"
                           }`}
                       >
-                        <div className="w-10 h-10 rounded-lg bg-gray-900 flex items-center justify-center text-white">
-                          <Wallet className="w-5 h-5" />
+                        {selectedMethod === "wallet" && (
+                          <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                        )}
+                        <div className="w-12 h-12 rounded-xl bg-slate-900 dark:bg-white flex items-center justify-center text-white dark:text-slate-900 shrink-0 shadow-inner">
+                          <Wallet className="w-6 h-6" />
                         </div>
-                        <div className="text-left flex-1">
+                        <div className="text-left flex-1 relative z-10">
                           <div className="flex items-center justify-between">
-                            <p className="font-medium text-gray-900">
+                            <p className="font-bold text-slate-900 dark:text-white text-base">
                               Mon Portefeuille
                             </p>
-                            {selectedMethod === "wallet" && (
-                              <Check className="w-4 h-4 text-gray-900" />
-                            )}
                           </div>
-                          <div className="flex flex-col">
-                            <p className="text-xs text-gray-500">
+                          <div className="flex flex-col mt-0.5">
+                            <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
                               Solde: {walletBalance.toLocaleString()} FCFA
                             </p>
                             {walletBalance < totalAmount && (
-                              <p className="text-xs text-red-500 font-medium mt-0.5">
-                                Solde insuffisant
+                              <p className="text-xs font-bold text-rose-500 mt-1 flex items-center gap-1 bg-rose-50 dark:bg-rose-500/10 w-fit px-2 py-0.5 rounded-md">
+                                <AlertCircle className="w-3 h-3" /> Solde insuffisant
                               </p>
                             )}
                           </div>
                         </div>
                         <div
-                          className={`w-5 h-5 rounded-full border flex items-center justify-center ${selectedMethod === "wallet" ? "border-gray-900 bg-gray-900" : "border-gray-300"}`}
+                          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${selectedMethod === "wallet" ? "border-indigo-500 bg-indigo-500" : "border-slate-300 dark:border-slate-600"}`}
                         >
                           {selectedMethod === "wallet" && (
-                            <div className="w-2 h-2 bg-white rounded-full" />
+                            <div className="w-2.5 h-2.5 bg-white rounded-full" />
                           )}
                         </div>
                       </button>
@@ -592,48 +605,27 @@ export default function PaymentModal({
                     {isMethodActive("wave") && (
                       <button
                         onClick={() => setSelectedMethod("wave")}
-                        className={`w-full p-4 rounded-xl border flex items-center gap-4 transition-all ${selectedMethod === "wave" ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"}`}
+                        className={`w-full p-4 rounded-2xl border-2 flex items-center gap-4 transition-all overflow-hidden relative group
+                            ${selectedMethod === "wave"
+                            ? "border-[#1dc4ff] bg-[#1dc4ff]/5 dark:bg-[#1dc4ff]/10 ring-4 ring-[#1dc4ff]/10 shadow-sm"
+                            : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-[#1dc4ff]/50 hover:shadow-md"}`}
                       >
-                        <div className="w-10 h-10 rounded-lg bg-[#1dc4ff] flex items-center justify-center text-white font-bold text-xs">
+                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#1dc4ff] to-blue-500 flex items-center justify-center text-white font-black text-sm shrink-0 shadow-lg shadow-[#1dc4ff]/30">
                           Wave
                         </div>
-                        <div className="text-left flex-1">
-                          <p className="font-medium text-gray-900">
+                        <div className="text-left flex-1 relative z-10">
+                          <p className="font-bold text-slate-900 dark:text-white text-base">
                             Wave Mobile Money
                           </p>
-                          <p className="text-xs text-gray-500">
-                            Paiement rapide via QR ou numéro
+                          <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-0.5">
+                            Paiement instantané (SN)
                           </p>
                         </div>
                         <div
-                          className={`w-5 h-5 rounded-full border flex items-center justify-center ${selectedMethod === "wave" ? "border-primary bg-primary" : "border-gray-300"}`}
+                          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${selectedMethod === "wave" ? "border-[#1dc4ff] bg-[#1dc4ff]" : "border-slate-300 dark:border-slate-600"}`}
                         >
                           {selectedMethod === "wave" && (
-                            <div className="w-2 h-2 bg-white rounded-full" />
-                          )}
-                        </div>
-                      </button>
-                    )}
-
-                    {isMethodActive("cash") && (
-                      <button
-                        onClick={() => setSelectedMethod("cash")}
-                        className={`w-full p-4 rounded-xl border flex items-center gap-4 transition-all ${selectedMethod === "cash" ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"}`}
-                      >
-                        <div className="w-10 h-10 rounded-lg bg-green-600 flex items-center justify-center text-white">
-                          <Banknote className="w-5 h-5" />
-                        </div>
-                        <div className="text-left flex-1">
-                          <p className="font-medium text-gray-900">
-                            Espèces / Agence
-                          </p>
-                          <p className="text-xs text-gray-500">Paiement au bureau</p>
-                        </div>
-                        <div
-                          className={`w-5 h-5 rounded-full border flex items-center justify-center ${selectedMethod === "cash" ? "border-primary bg-primary" : "border-gray-300"}`}
-                        >
-                          {selectedMethod === "cash" && (
-                            <div className="w-2 h-2 bg-white rounded-full" />
+                            <div className="w-2.5 h-2.5 bg-white rounded-full" />
                           )}
                         </div>
                       </button>
@@ -642,24 +634,27 @@ export default function PaymentModal({
                     {isMethodActive("cinetpay") && (
                       <button
                         onClick={() => setSelectedMethod("cinetpay")}
-                        className={`w-full p-4 rounded-xl border flex items-center gap-4 transition-all ${selectedMethod === "cinetpay" ? "border-emerald-500 bg-emerald-50 ring-1 ring-emerald-500" : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"}`}
+                        className={`w-full p-4 rounded-2xl border-2 flex items-center gap-4 transition-all overflow-hidden relative group
+                            ${selectedMethod === "cinetpay"
+                            ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 ring-4 ring-emerald-500/10 shadow-sm"
+                            : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-emerald-400 hover:shadow-md"}`}
                       >
-                        <div className="w-10 h-10 rounded-lg bg-emerald-600 flex items-center justify-center text-white font-bold text-xs">
+                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-black text-sm shrink-0 shadow-lg shadow-emerald-500/30">
                           CP
                         </div>
-                        <div className="text-left flex-1">
-                          <p className="font-medium text-gray-900">
-                            CinetPay (CB, Mobile)
+                        <div className="text-left flex-1 relative z-10">
+                          <p className="font-bold text-slate-900 dark:text-white text-base">
+                            CinetPay
                           </p>
-                          <p className="text-xs text-gray-500">
-                            Cartes Bancaires, Orange Money, MTN...
+                          <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-0.5">
+                            Cartes bancaires, Orange Money...
                           </p>
                         </div>
                         <div
-                          className={`w-5 h-5 rounded-full border flex items-center justify-center ${selectedMethod === "cinetpay" ? "border-emerald-600 bg-emerald-600" : "border-gray-300"}`}
+                          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${selectedMethod === "cinetpay" ? "border-emerald-500 bg-emerald-500" : "border-slate-300 dark:border-slate-600"}`}
                         >
                           {selectedMethod === "cinetpay" && (
-                            <div className="w-2 h-2 bg-white rounded-full" />
+                            <div className="w-2.5 h-2.5 bg-white rounded-full" />
                           )}
                         </div>
                       </button>
@@ -668,53 +663,86 @@ export default function PaymentModal({
                     {isMethodActive("paytech") && (
                       <button
                         onClick={() => setSelectedMethod("paytech")}
-                        className={`w-full p-4 rounded-xl border flex items-center gap-4 transition-all ${selectedMethod === "paytech" ? "border-blue-500 bg-blue-50 ring-1 ring-blue-500" : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"}`}
+                        className={`w-full p-4 rounded-2xl border-2 flex items-center gap-4 transition-all overflow-hidden relative group
+                            ${selectedMethod === "paytech"
+                            ? "border-blue-500 bg-blue-50 dark:bg-blue-500/10 ring-4 ring-blue-500/10 shadow-sm"
+                            : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-blue-400 hover:shadow-md"}`}
                       >
-                        <div className="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-xs">
+                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-black text-sm shrink-0 shadow-lg shadow-blue-500/30">
                           PT
                         </div>
-                        <div className="text-left flex-1">
-                          <p className="font-medium text-gray-900">
+                        <div className="text-left flex-1 relative z-10">
+                          <p className="font-bold text-slate-900 dark:text-white text-base">
                             PayTech
                           </p>
-                          <p className="text-xs text-gray-500">
-                            Agrégateur Paiement Sénégal
+                          <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-0.5">
+                            Agrégateur de paiement multi-options
                           </p>
                         </div>
                         <div
-                          className={`w-5 h-5 rounded-full border flex items-center justify-center ${selectedMethod === "paytech" ? "border-blue-600 bg-blue-600" : "border-gray-300"}`}
+                          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${selectedMethod === "paytech" ? "border-blue-500 bg-blue-500" : "border-slate-300 dark:border-slate-600"}`}
                         >
                           {selectedMethod === "paytech" && (
-                            <div className="w-2 h-2 bg-white rounded-full" />
+                            <div className="w-2.5 h-2.5 bg-white rounded-full" />
                           )}
                         </div>
                       </button>
                     )}
-                  </>
+
+                    {isMethodActive("cash") && (
+                      <button
+                        onClick={() => setSelectedMethod("cash")}
+                        className={`w-full p-4 rounded-2xl border-2 flex items-center gap-4 transition-all overflow-hidden relative group
+                            ${selectedMethod === "cash"
+                            ? "border-amber-500 bg-amber-50 dark:bg-amber-500/10 ring-4 ring-amber-500/10 shadow-sm"
+                            : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-amber-400 hover:shadow-md"}`}
+                      >
+                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-white shrink-0 shadow-lg shadow-amber-500/30">
+                          <Banknote className="w-6 h-6" />
+                        </div>
+                        <div className="text-left flex-1 relative z-10">
+                          <p className="font-bold text-slate-900 dark:text-white text-base">
+                            Espèces / Agence
+                          </p>
+                          <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-0.5">
+                            Paiement physique au bureau
+                          </p>
+                        </div>
+                        <div
+                          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${selectedMethod === "cash" ? "border-amber-500 bg-amber-500" : "border-slate-300 dark:border-slate-600"}`}
+                        >
+                          {selectedMethod === "cash" && (
+                            <div className="w-2.5 h-2.5 bg-white rounded-full" />
+                          )}
+                        </div>
+                      </button>
+                    )}
+
+                  </div>
                 )}
               </div>
 
               {(selectedMethod === "wave" || selectedMethod === "cinetpay") && (
-                <div className="animate-in slide-in-from-top-2 duration-200">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Numéro de téléphone {selectedMethod === 'wave' ? 'Wave' : 'Mobile Money'}
+                <div className="animate-in slide-in-from-top-2 duration-300 pt-2">
+                  <label className="block text-sm font-black text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-wide px-1">
+                    Numéro de téléphone
                   </label>
                   <div className="relative">
-                    <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Smartphone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                     <input
                       type="tel"
                       value={phoneNumber}
                       onChange={(e) => setPhoneNumber(e.target.value)}
                       placeholder="77 658 17 41"
-                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                      className="w-full pl-12 pr-4 py-3.5 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all font-bold text-lg dark:text-white"
                     />
                   </div>
                 </div>
               )}
 
               {error && (
-                <div className="p-3 bg-red-50 text-red-600 rounded-lg text-sm flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4" />
+                <div className="p-4 bg-rose-50 dark:bg-rose-500/10 border border-rose-100 dark:border-rose-500/20 text-rose-600 dark:text-rose-400 rounded-xl text-sm font-bold flex items-center gap-3 animate-in zoom-in duration-200">
+                  <AlertCircle className="w-5 h-5 shrink-0" />
                   {error}
                 </div>
               )}
@@ -722,93 +750,98 @@ export default function PaymentModal({
               <button
                 onClick={selectedMethod === 'cash' ? handleCashPayment : handlePayment}
                 disabled={!selectedMethod || (mode === 'topup' && editableAmount < 500)}
-                className="w-full py-4 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-primary/20 min-h-[44px]"
+                className="w-full mt-2 py-4 px-6 bg-gradient-to-r from-indigo-500 hover:from-indigo-600 to-purple-600 hover:to-purple-700 text-white font-black text-lg rounded-xl shadow-lg shadow-indigo-500/25 disabled:opacity-50 disabled:cursor-not-allowed transition-all outline-none focus:ring-2 focus:ring-indigo-500/50 flex justify-center items-center gap-2"
               >
-                {mode === 'topup' ? `Recharger ${totalAmount.toLocaleString()} ${currency}` : `Payer ${totalAmount.toLocaleString()} ${currency}`}
+                {mode === 'topup' ? `Validation: ${totalAmount.toLocaleString()} ${currency}` : `Payer ${totalAmount.toLocaleString()} ${currency}`}
+                <ArrowRight className="w-5 h-5" />
               </button>
             </div>
           )}
 
           {step === "processing" && (
-            <div className="flex flex-col items-center justify-center py-8 text-center space-y-4">
+            <div className="flex flex-col items-center justify-center py-12 text-center space-y-6">
               <div className="relative">
-                <div className="w-16 h-16 border-4 border-gray-100 border-t-primary rounded-full animate-spin"></div>
+                <div className="w-20 h-20 border-4 border-indigo-100 dark:border-indigo-900/50 border-t-indigo-500 rounded-full animate-spin"></div>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <CreditCard className="w-6 h-6 text-primary" />
+                  {mode === 'topup' ? <Wallet className="w-8 h-8 text-indigo-500" /> : <CreditCard className="w-8 h-8 text-indigo-500" />}
                 </div>
               </div>
               <div>
-                <h4 className="font-bold text-gray-900 text-lg">
-                  Traitement en cours...
+                <h4 className="font-black text-slate-900 dark:text-white text-xl tracking-tight">
+                  Traitement en cours
                 </h4>
-                <p className="text-gray-500 text-sm mt-1">
-                  Veuillez valider le paiement sur votre téléphone.
+                <p className="text-slate-500 dark:text-slate-400 font-medium mt-2 max-w-[250px] mx-auto">
+                  {selectedMethod === "wave" || selectedMethod === "cinetpay"
+                    ? "Veuillez confirmer le paiement sur votre application mobile."
+                    : "Finalisation de la transaction interne..."}
                 </p>
               </div>
             </div>
           )}
 
           {step === "error_timeout" && (
-            <div className="py-8 text-center">
-              <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Loader2 className="w-8 h-8 text-orange-600 animate-spin" />
+            <div className="py-10 text-center animate-in zoom-in duration-300">
+              <div className="w-20 h-20 bg-amber-50 dark:bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Loader2 className="w-10 h-10 text-amber-500 animate-spin" />
               </div>
-              <p className="text-gray-900 font-bold text-lg mb-2">
-                Vérification en cours...
+              <p className="text-slate-900 dark:text-white font-black text-xl mb-3 tracking-tight">
+                Vérification du réseau
               </p>
-              <p className="text-gray-500 text-sm mb-6">
-                Le paiement met plus de temps que prévu. Vérifiez si vous avez
-                bien validé sur votre téléphone.
+              <p className="text-slate-500 dark:text-slate-400 font-medium mb-8 px-4">
+                Le paiement met plus de temps que prévu à être confirmé. Avez-vous validé l'opération sur votre téléphone ?
               </p>
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-3 px-2">
                 <button
                   onClick={handleCheckStatus}
-                  className="w-full py-3 bg-[#1DA1F2] hover:bg-[#1a91da] text-white rounded-xl font-bold transition-all min-h-[44px]"
+                  className="w-full py-4 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 dark:text-slate-900 text-white rounded-xl font-bold transition-all shadow-lg"
                 >
-                  Vérifier le statut manuellement
+                  Vérifier maintenant
                 </button>
                 <button
                   onClick={() => setStep("method")}
-                  className="text-gray-500 hover:text-gray-700 text-sm font-medium"
+                  className="py-3 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 font-bold transition-colors"
                 >
-                  Réessayer
+                  Abandonner et réessayer
                 </button>
               </div>
             </div>
           )}
 
           {step === "success" && (
-            <div className="flex flex-col items-center justify-center py-8 text-center space-y-4 animate-in zoom-in duration-300">
-              <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-2">
-                <CheckCircle className="w-8 h-8" />
+            <div className="flex flex-col items-center justify-center py-12 text-center space-y-5 animate-in zoom-in duration-300 fade-in">
+              <div className="w-24 h-24 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center mb-2 mx-auto relative">
+                <div className="absolute inset-0 border-4 border-emerald-500 rounded-full animate-ping opacity-20"></div>
+                <CheckCircle className="w-12 h-12 relative z-10" />
               </div>
               <div>
-                <h4 className="font-bold text-gray-900 text-lg">
-                  Paiement Réussi !
+                <h4 className="font-black text-slate-900 dark:text-white text-2xl tracking-tight">
+                  Opération Réussie !
                 </h4>
-                <p className="text-gray-500 text-sm mt-1">
-                  Paiement enregistré avec succès.
+                <p className="text-slate-500 dark:text-slate-400 font-medium mt-2">
+                  Le paiement a bien été comptabilisé. Redirection...
                 </p>
               </div>
             </div>
           )}
 
           {step === "error" && (
-            <div className="flex flex-col items-center justify-center py-8 text-center space-y-4 animate-in zoom-in duration-300">
-              <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-2">
-                <AlertCircle className="w-8 h-8" />
+            <div className="flex flex-col items-center justify-center py-12 text-center space-y-6 animate-in zoom-in duration-300">
+              <div className="w-20 h-20 bg-rose-50 dark:bg-rose-500/10 text-rose-500 rounded-full flex items-center justify-center mb-2 mx-auto">
+                <AlertCircle className="w-10 h-10" />
               </div>
               <div>
-                <h4 className="font-bold text-gray-900 text-lg">
-                  Échec du paiement
+                <h4 className="font-black text-slate-900 dark:text-white text-xl tracking-tight">
+                  Échec de l'opération
                 </h4>
-                <p className="text-gray-500 text-sm mt-1">{error}</p>
+                <p className="text-rose-500 font-medium mt-2 px-2 border-l-2 border-rose-500 text-left bg-rose-50 dark:bg-rose-500/10 p-3 rounded-r-lg max-w-sm">
+                  {error}
+                </p>
               </div>
               <button
                 onClick={() => setStep("method")}
-                className="px-6 py-2 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors"
+                className="w-full py-4 mt-4 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl transition-colors"
               >
-                Réessayer
+                Retour au moyen de paiement
               </button>
             </div>
           )}

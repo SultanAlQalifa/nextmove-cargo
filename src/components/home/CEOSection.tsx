@@ -1,7 +1,11 @@
 import { Quote } from "lucide-react";
 import { motion } from "framer-motion";
 
+const CEO_PHOTO = "/ceo.jpg";
+
 export default function CEOSection() {
+    const avatarUrl = CEO_PHOTO;
+
     return (
         <section className="py-32 bg-slate-50 dark:bg-slate-950 relative overflow-hidden">
             {/* Soft Ambient Radiance */}
@@ -19,23 +23,31 @@ export default function CEOSection() {
                         {/* Image Side */}
                         <div className="relative h-96 md:h-auto min-h-[500px] overflow-hidden group">
                             <div className="absolute inset-0 bg-slate-900/20 group-hover:bg-transparent transition-colors duration-700 z-10"></div>
-                            <motion.img
-                                initial={{ scale: 1.1 }}
-                                whileInView={{ scale: 1 }}
-                                transition={{ duration: 1.5 }}
-                                src="/assets/ceo.jpg"
-                                alt="Cheikh Abdoul Khadre Djeylani Djitte - PDG NextMove Cargo"
-                                className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-1000 object-top"
-                                loading="lazy"
-                            />
+                            {avatarUrl ? (
+                                <motion.img
+                                    initial={{ scale: 1.1 }}
+                                    whileInView={{ scale: 1 }}
+                                    transition={{ duration: 1.5 }}
+                                    src={avatarUrl}
+                                    alt="Cheikh Abdoul Khadre Djeylani DJITTE - PDG NextMove Cargo"
+                                    className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-1000 object-top"
+                                    loading="lazy"
+                                />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center bg-gradient-to-tr from-slate-800 to-slate-900 group-hover:scale-105 transition-transform duration-1000">
+                                    <div className="w-48 h-48 rounded-full bg-gradient-to-tr from-primary to-blue-500 flex items-center justify-center text-white font-bold shadow-2xl border-4 border-white/5">
+                                        <span className="text-8xl font-black">C</span>
+                                    </div>
+                                </div>
+                            )}
                             <div className="absolute bottom-0 left-0 right-0 p-12 bg-gradient-to-t from-slate-950/90 via-slate-950/40 to-transparent z-20">
-                                <h3 className="text-3xl font-black text-white tracking-tight">C.A.K.D. Djitte</h3>
-                                <p className="text-blue-400 font-bold uppercase tracking-[0.2em] text-xs">PDG & Fondateur</p>
+                                <h3 className="text-2xl font-black text-white tracking-tight">C.A.K.D. DJITTE</h3>
+                                <p className="text-blue-400 font-bold uppercase tracking-[0.2em] text-xs">Fondateur & PDG</p>
                             </div>
                         </div>
 
                         {/* Content Side */}
-                        <div className="p-16 md:p-24 flex flex-col justify-center relative">
+                        <div className="p-16 md:p-24 flex flex-col justify-center relative bg-white dark:bg-[#050D1F]">
                             <Quote className="w-24 h-24 text-primary/5 absolute top-12 right-12" />
 
                             <div className="space-y-10 relative z-10">
@@ -52,12 +64,17 @@ export default function CEOSection() {
                                     "NextMove Cargo ne transporte pas simplement des conteneurs ; nous pilotons la connectivité du continent. En fusionnant la puissance du fret multimodal avec l'intelligence digitale, nous construisons un Nexus où chaque marchandise circule sans friction."
                                 </p>
 
-                                <div className="flex items-center gap-6 pt-6">
-                                    {/* Signature */}
-                                    <div className="text-4xl font-handwriting text-primary/80 rotate-[-3deg] select-none">
-                                        C.A.K.Djitte
+                                <div className="flex flex-col gap-2 pt-6">
+                                    <div className="text-xl font-bold text-slate-900 dark:text-white uppercase tracking-widest">
+                                        Cheikh Abdoul Khadre Djeylani DJITTE
                                     </div>
-                                    <div className="h-px w-20 bg-slate-200 dark:bg-slate-800"></div>
+                                    <div className="flex items-center gap-6">
+                                        {/* Signature */}
+                                        <div className="text-4xl font-handwriting text-primary/80 rotate-[-3deg] select-none">
+                                            C.A.K.Djitte
+                                        </div>
+                                        <div className="h-px w-20 bg-slate-200 dark:bg-slate-800"></div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

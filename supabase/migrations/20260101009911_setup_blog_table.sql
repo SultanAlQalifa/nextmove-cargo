@@ -23,7 +23,7 @@ CREATE POLICY "Admins can manage blog posts" ON public.blog_posts FOR ALL TO aut
     EXISTS (
         SELECT 1
         FROM public.profiles
-        WHERE id = auth.uid()
+        WHERE id = (select auth.uid())
             AND role IN ('admin', 'super-admin')
     )
 );

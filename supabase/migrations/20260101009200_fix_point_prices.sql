@@ -17,7 +17,7 @@ v_current_points INTEGER;
 v_wallet_id UUID;
 v_amount NUMERIC;
 v_rate NUMERIC;
-BEGIN v_user_id := auth.uid();
+BEGIN v_user_id := (select auth.uid());
 -- Fetch rate from system_settings ('loyalty')
 -- Default to 10 if setting is missing
 SELECT COALESCE((value->>'point_value')::NUMERIC, 10.0) INTO v_rate

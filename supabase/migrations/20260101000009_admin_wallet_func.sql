@@ -14,7 +14,7 @@ BEGIN -- 0. Security Check
 IF (
     SELECT role
     FROM public.profiles
-    WHERE id = auth.uid()
+    WHERE id = (select auth.uid())
 ) != 'super-admin' THEN RAISE EXCEPTION 'Accès refusé. Réservé aux Super Admins.';
 END IF;
 -- 1. Get Wallet

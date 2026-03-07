@@ -45,7 +45,7 @@ SELECT USING (
             SELECT 1
             FROM conversation_participants cp
             WHERE cp.conversation_id = conversations.id
-                AND cp.user_id = auth.uid()
+                AND cp.user_id = (select auth.uid())
         )
     );
 -- Participants: Visible if you are a participant in the SAME conversation
@@ -55,7 +55,7 @@ SELECT USING (
             SELECT 1
             FROM conversation_participants cp
             WHERE cp.conversation_id = conversation_participants.conversation_id
-                AND cp.user_id = auth.uid()
+                AND cp.user_id = (select auth.uid())
         )
     );
 -- Messages: Visible if you are a participant in the conversation
@@ -65,7 +65,7 @@ SELECT USING (
             SELECT 1
             FROM conversation_participants cp
             WHERE cp.conversation_id = messages.conversation_id
-                AND cp.user_id = auth.uid()
+                AND cp.user_id = (select auth.uid())
         )
     );
 -- Messages: Insert if you are a participant
@@ -75,7 +75,7 @@ INSERT WITH CHECK (
             SELECT 1
             FROM conversation_participants cp
             WHERE cp.conversation_id = messages.conversation_id
-                AND cp.user_id = auth.uid()
+                AND cp.user_id = (select auth.uid())
         )
     );
 -- ═══ REALTIME ═══

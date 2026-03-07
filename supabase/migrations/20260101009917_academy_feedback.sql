@@ -40,15 +40,15 @@ ALTER TABLE academy_lesson_comments ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Anyone can view reviews" ON academy_reviews FOR
 SELECT USING (true);
 CREATE POLICY "Authenticated users can review courses" ON academy_reviews FOR
-INSERT WITH CHECK (auth.uid() = user_id);
+INSERT WITH CHECK ((select auth.uid()) = user_id);
 CREATE POLICY "Users can update their own reviews" ON academy_reviews FOR
-UPDATE USING (auth.uid() = user_id);
+UPDATE USING ((select auth.uid()) = user_id);
 CREATE POLICY "Users or admins can delete reviews" ON academy_reviews FOR DELETE USING (
-    auth.uid() = user_id
+    (select auth.uid()) = user_id
     OR EXISTS (
         SELECT 1
         FROM profiles
-        WHERE id = auth.uid()
+        WHERE id = (select auth.uid())
             AND role IN ('admin', 'super-admin')
     )
 );
@@ -56,21 +56,21 @@ CREATE POLICY "Users or admins can delete reviews" ON academy_reviews FOR DELETE
 CREATE POLICY "Anyone can see likes" ON academy_lesson_likes FOR
 SELECT USING (true);
 CREATE POLICY "Authenticated users can like lessons" ON academy_lesson_likes FOR
-INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Users can unlike lessons" ON academy_lesson_likes FOR DELETE USING (auth.uid() = user_id);
+INSERT WITH CHECK ((select auth.uid()) = user_id);
+CREATE POLICY "Users can unlike lessons" ON academy_lesson_likes FOR DELETE USING ((select auth.uid()) = user_id);
 -- Policies: academy_lesson_comments
 CREATE POLICY "Anyone can see lesson comments" ON academy_lesson_comments FOR
 SELECT USING (true);
 CREATE POLICY "Authenticated users can comment" ON academy_lesson_comments FOR
-INSERT WITH CHECK (auth.uid() = user_id);
+INSERT WITH CHECK ((select auth.uid()) = user_id);
 CREATE POLICY "Users can edit their own comments" ON academy_lesson_comments FOR
-UPDATE USING (auth.uid() = user_id);
+UPDATE USING ((select auth.uid()) = user_id);
 CREATE POLICY "Users or admins can delete comments" ON academy_lesson_comments FOR DELETE USING (
-    auth.uid() = user_id
+    (select auth.uid()) = user_id
     OR EXISTS (
         SELECT 1
         FROM profiles
-        WHERE id = auth.uid()
+        WHERE id = (select auth.uid())
             AND role IN ('admin', 'super-admin', 'support')
     )
 );

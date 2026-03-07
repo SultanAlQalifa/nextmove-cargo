@@ -18,28 +18,28 @@ DROP POLICY IF EXISTS "Staff can update tickets" ON tickets;
 -- Admins/Support see ALL.
 CREATE POLICY "view_tickets_policy" ON tickets FOR
 SELECT USING (
-        user_id = auth.uid()
-        OR assigned_to = auth.uid()
+        user_id = (select auth.uid())
+        OR assigned_to = (select auth.uid())
         OR EXISTS (
             SELECT 1
             FROM profiles
-            WHERE id = auth.uid()
+            WHERE id = (select auth.uid())
                 AND role IN ('admin', 'super-admin')
         )
     );
 -- INSERT: Authenticated users can create tickets for themselves.
 CREATE POLICY "create_tickets_policy" ON tickets FOR
-INSERT WITH CHECK (auth.uid() = user_id);
+INSERT WITH CHECK ((select auth.uid()) = user_id);
 -- UPDATE: Users can update their own tickets (e.g., Close them).
 -- Admins/Support can update any ticket.
 CREATE POLICY "update_tickets_policy" ON tickets FOR
 UPDATE USING (
-        user_id = auth.uid()
-        OR assigned_to = auth.uid()
+        user_id = (select auth.uid())
+        OR assigned_to = (select auth.uid())
         OR EXISTS (
             SELECT 1
             FROM profiles
-            WHERE id = auth.uid()
+            WHERE id = (select auth.uid())
                 AND role IN ('admin', 'super-admin')
         )
     );
@@ -48,7 +48,7 @@ CREATE POLICY "delete_tickets_policy" ON tickets FOR DELETE USING (
     EXISTS (
         SELECT 1
         FROM profiles
-        WHERE id = auth.uid()
+        WHERE id = (select auth.uid())
             AND role IN ('admin', 'super-admin')
     )
 );
@@ -65,12 +65,12 @@ SELECT USING (
             FROM tickets
             WHERE id = ticket_messages.ticket_id
                 AND (
-                    user_id = auth.uid()
-                    OR assigned_to = auth.uid()
+                    user_id = (select auth.uid())
+                    OR assigned_to = (select auth.uid())
                     OR EXISTS (
                         SELECT 1
                         FROM profiles
-                        WHERE id = auth.uid()
+                        WHERE id = (select auth.uid())
                             AND role IN ('admin', 'super-admin')
                     )
                 )
@@ -80,18 +80,18 @@ SELECT USING (
 -- (Sender ID must match auth user)
 CREATE POLICY "create_messages_policy" ON ticket_messages FOR
 INSERT WITH CHECK (
-        sender_id = auth.uid()
+        sender_id = (select auth.uid())
         AND EXISTS (
             SELECT 1
             FROM tickets
             WHERE id = ticket_messages.ticket_id
                 AND (
-                    user_id = auth.uid()
-                    OR assigned_to = auth.uid()
+                    user_id = (select auth.uid())
+                    OR assigned_to = (select auth.uid())
                     OR EXISTS (
                         SELECT 1
                         FROM profiles
-                        WHERE id = auth.uid()
+                        WHERE id = (select auth.uid())
                             AND role IN ('admin', 'super-admin')
                     )
                 )

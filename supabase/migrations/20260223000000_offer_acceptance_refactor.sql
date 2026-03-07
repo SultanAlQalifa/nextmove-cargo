@@ -37,9 +37,9 @@ END IF;
 IF v_offer.status != 'pending' THEN RAISE EXCEPTION 'Offer is not in pending status';
 END IF;
 -- 2. Verify Authorization (caller must be the RFQ client)
-IF v_offer.client_id != auth.uid() THEN -- Allow if caller is service_role (handled by SECURITY DEFINER if called from backend)
--- But for RPC called from frontend, we check auth.uid()
-IF auth.role() != 'service_role' THEN RAISE EXCEPTION 'Not authorized to accept this offer';
+IF v_offer.client_id != (select auth.uid()) THEN -- Allow if caller is service_role (handled by SECURITY DEFINER if called from backend)
+-- But for RPC called from frontend, we check (select auth.uid())
+IF (select auth.role()) != 'service_role' THEN RAISE EXCEPTION 'Not authorized to accept this offer';
 END IF;
 END IF;
 -- 3. Calculate Discount from Subscription

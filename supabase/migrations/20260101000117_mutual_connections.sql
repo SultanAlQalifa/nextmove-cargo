@@ -31,19 +31,19 @@ ALTER TABLE public.user_connections ENABLE ROW LEVEL SECURITY;
 -- Users can view connections where they are requester OR recipient
 CREATE POLICY "Users can view their own connections" ON public.user_connections FOR
 SELECT USING (
-        auth.uid() = requester_id
-        OR auth.uid() = recipient_id
+        (select auth.uid()) = requester_id
+        OR (select auth.uid()) = recipient_id
     );
 -- Users can insert requests (as requester)
 CREATE POLICY "Users can send connection requests" ON public.user_connections FOR
-INSERT WITH CHECK (auth.uid() = requester_id);
+INSERT WITH CHECK ((select auth.uid()) = requester_id);
 -- Users can update status if they are the recipient (Accept/Reject) OR the requester (Cancel?)
 -- STRICT RULE: Recipient can update status. Requester can generally only insert.
 -- But for "Auto-Link" functionality, the system might need to insert as "accepted" directly?
 -- Or we handle auto-link via Service Role or robust policy.
 -- For now: Recipient can update row.
 CREATE POLICY "Recipients can update status" ON public.user_connections FOR
-UPDATE USING (auth.uid() = recipient_id);
+UPDATE USING ((select auth.uid()) = recipient_id);
 -- 7. Trigger for Notification on New Request
 CREATE OR REPLACE FUNCTION notify_connection_request() RETURNS TRIGGER AS $$
 DECLARE requester_name TEXT;

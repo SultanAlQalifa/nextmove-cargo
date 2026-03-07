@@ -10,6 +10,6 @@ create table if not exists public.user_push_tokens (
 -- Enable RLS
 alter table public.user_push_tokens enable row level security;
 -- Policies
-create policy "Users can manage their own push tokens" on public.user_push_tokens for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "Users can manage their own push tokens" on public.user_push_tokens for all using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
 -- Index for performance
 create index if not exists idx_user_push_tokens_user_id on public.user_push_tokens(user_id);

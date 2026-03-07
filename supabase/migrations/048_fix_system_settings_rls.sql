@@ -4,7 +4,7 @@ DECLARE current_role text;
 BEGIN
 SELECT role INTO current_role
 FROM profiles
-WHERE id = auth.uid();
+WHERE id = (select auth.uid());
 RETURN current_role IN ('admin', 'super-admin');
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

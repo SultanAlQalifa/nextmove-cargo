@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS public.point_history (
 ALTER TABLE public.point_history ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Users can view own point history" ON public.point_history;
 CREATE POLICY "Users can view own point history" ON public.point_history FOR
-SELECT USING (auth.uid() = user_id);
+SELECT USING ((select auth.uid()) = user_id);
 -- 2. Function to Log Point History (Helper)
 CREATE OR REPLACE FUNCTION public.log_point_transaction(
         p_user_id uuid,
@@ -42,7 +42,7 @@ v_current_points integer;
 v_point_value numeric;
 v_wallet_amount numeric;
 v_wallet_id uuid;
-BEGIN v_user_id := auth.uid();
+BEGIN v_user_id := (select auth.uid());
 -- Get system point value (default 10 FCFA)
 SELECT COALESCE((value->>'point_value')::numeric, 10) INTO v_point_value
 FROM public.system_settings
@@ -91,7 +91,7 @@ CREATE OR REPLACE FUNCTION public.transfer_points(recipient_email text, amount i
 DECLARE v_sender_id uuid;
 v_recipient_id uuid;
 v_sender_points integer;
-BEGIN v_sender_id := auth.uid();
+BEGIN v_sender_id := (select auth.uid());
 -- Validate self-transfer
 IF amount <= 0 THEN RAISE EXCEPTION 'Montant invalide';
 END IF;

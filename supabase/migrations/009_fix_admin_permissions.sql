@@ -12,10 +12,10 @@ WHERE email = 'wandifaproperties@gmail.com'
 -- This ensures that even if the role update fails or is reverted, the owner can still manage plans
 DROP POLICY IF EXISTS "Owner can always manage plans" ON subscription_plans;
 CREATE POLICY "Owner can always manage plans" ON subscription_plans FOR ALL USING (
-    auth.jwt()->>'email' = 'wandifaproperties@gmail.com'
+    (select auth.jwt())->>'email' = 'wandifaproperties@gmail.com'
 );
 -- 3. Also add failsafe for profiles to ensure they can manage users
 DROP POLICY IF EXISTS "Owner can always manage profiles" ON profiles;
 CREATE POLICY "Owner can always manage profiles" ON profiles FOR ALL USING (
-    auth.jwt()->>'email' = 'wandifaproperties@gmail.com'
+    (select auth.jwt())->>'email' = 'wandifaproperties@gmail.com'
 );

@@ -111,6 +111,25 @@ export const consolidationService = {
       .single();
 
     if (error) throw error;
+
+    // Auto-generate route & rate for the forwarder (silent, non-blocking)
+    try {
+      const { autoGenerateRouteAndRate } = await import("./routeAutoGenerator");
+      autoGenerateRouteAndRate({
+        forwarderId: user.id,
+        originPort: data.origin_port,
+        destinationPort: data.destination_port,
+        transportMode: (data.transport_mode || "sea") as "sea" | "air",
+        serviceType: "standard",
+        price: data.price_per_cbm || 0,
+        totalPrice: data.price_per_cbm || 0,
+        estimatedTransitDays: 20,
+        currency: "XOF",
+      });
+    } catch (autoGenError) {
+      console.error("[Consolidation] Auto route/rate generation failed (non-critical):", autoGenError);
+    }
+
     return newConsolidation as Consolidation;
   },
 

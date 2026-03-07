@@ -9,32 +9,32 @@ SELECT USING (bucket_id = 'avatars');
 CREATE POLICY "Users can upload their own avatar." ON storage.objects FOR
 INSERT WITH CHECK (
         bucket_id = 'avatars'
-        AND auth.uid()::text = (storage.foldername(name)) [1]
+        AND (select auth.uid())::text = (storage.foldername(name)) [1]
     );
 CREATE POLICY "Users can update their own avatar." ON storage.objects FOR
 UPDATE USING (
         bucket_id = 'avatars'
-        AND auth.uid()::text = (storage.foldername(name)) [1]
+        AND (select auth.uid())::text = (storage.foldername(name)) [1]
     );
 CREATE POLICY "Users can delete their own avatar." ON storage.objects FOR DELETE USING (
     bucket_id = 'avatars'
-    AND auth.uid()::text = (storage.foldername(name)) [1]
+    AND (select auth.uid())::text = (storage.foldername(name)) [1]
 );
 -- Policy for Documents (Private Read (Owner/Admin), Auth Upload)
 CREATE POLICY "Users can upload their own documents." ON storage.objects FOR
 INSERT WITH CHECK (
         bucket_id = 'documents'
-        AND auth.uid()::text = (storage.foldername(name)) [1]
+        AND (select auth.uid())::text = (storage.foldername(name)) [1]
     );
 CREATE POLICY "Users can view their own documents." ON storage.objects FOR
 SELECT USING (
         bucket_id = 'documents'
         AND (
-            auth.uid()::text = (storage.foldername(name)) [1]
+            (select auth.uid())::text = (storage.foldername(name)) [1]
             OR EXISTS (
                 SELECT 1
                 FROM public.profiles
-                WHERE id = auth.uid()
+                WHERE id = (select auth.uid())
                     AND role = 'admin'
             )
         )
@@ -48,7 +48,7 @@ INSERT WITH CHECK (
         AND EXISTS (
             SELECT 1
             FROM public.profiles
-            WHERE id = auth.uid()
+            WHERE id = (select auth.uid())
                 AND role = 'admin'
         )
     );
@@ -58,7 +58,7 @@ UPDATE USING (
         AND EXISTS (
             SELECT 1
             FROM public.profiles
-            WHERE id = auth.uid()
+            WHERE id = (select auth.uid())
                 AND role = 'admin'
         )
     );
@@ -67,7 +67,7 @@ CREATE POLICY "Admins can delete branding assets." ON storage.objects FOR DELETE
     AND EXISTS (
         SELECT 1
         FROM public.profiles
-        WHERE id = auth.uid()
+        WHERE id = (select auth.uid())
             AND role = 'admin'
     )
 );

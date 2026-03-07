@@ -524,7 +524,51 @@ export const shipmentService = {
         });
       }
 
-      return mapDbShipmentToApp(data);
+      // Auto-generate route & rate for the forwarder (silent, non-blocking)
+      try {
+        const { autoGenerateRouteAndRate } = await import("./routeAutoGenerator");
+        autoGenerateRouteAndRate({
+          forwarderId: user.id,
+          originPort: dataToInsert.origin_port,
+          destinationPort: dataToInsert.destination_port,
+          transportMode: (dataToInsert.transport_mode || "sea") as "sea" | "air",
+          serviceType: (dataToInsert.service_type || "standard") as "standard" | "express",
+          price: dataToInsert.price,
+          totalPrice: dataToInsert.price,
+          estimatedTransitDays: 15, // Default estimate for shipments without explicit transit days
+          currency: "XOF",
+        });
+      } catch (autoGenError) {
+        console.error("[Shipment] Auto route/rate generation failed (non-critical):", autoGenError);
+      }
+
+      const shipment = mapDbShipmentToApp(data);
+
+      // Trigger Notifications for the client
+      if (shipment.client?.phone) {
+        const trackingUrl = `${window.location.origin}/tracking?n=${shipment.tracking_number}`;
+
+        // WhatsApp
+        supabase.functions.invoke("send-whatsapp", {
+          body: {
+            shipment_id: shipment.id,
+            status: "created",
+            client_phone: shipment.client.phone,
+            client_name: shipment.client.full_name,
+            message: `Bonjour ${shipment.client.full_name || 'Client'}, votre expédition #${shipment.tracking_number} a été créée. Suivez votre colis ici : ${trackingUrl}`
+          }
+        }).catch(err => console.warn("WhatsApp creation notification failed", err));
+
+        // SMS
+        supabase.functions.invoke("send-sms", {
+          body: {
+            to: shipment.client.phone,
+            content: `NextMove: Votre expédition #${shipment.tracking_number} est créée. Suivi: ${trackingUrl}`
+          }
+        }).catch(err => console.warn("SMS creation notification failed", err));
+      }
+
+      return shipment;
     } catch (error) {
       console.error("Error creating shipment:", error);
       throw error;

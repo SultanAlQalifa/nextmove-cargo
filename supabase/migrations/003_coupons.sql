@@ -62,16 +62,16 @@ CREATE POLICY "Admins can manage coupons" ON coupons FOR ALL USING (
     EXISTS (
         SELECT 1
         FROM profiles
-        WHERE id = auth.uid()
+        WHERE id = (select auth.uid())
             AND role IN ('admin', 'super-admin')
     )
 );
 -- Clients peuvent voir leurs propres usages
 CREATE POLICY "Users can view own coupon usage" ON coupon_usages FOR
-SELECT USING (auth.uid() = user_id);
+SELECT USING ((select auth.uid()) = user_id);
 -- Système peut insérer des usages (via trigger ou service role, ici on permet aux auth users pour le MVP)
 CREATE POLICY "Users can insert own coupon usage" ON coupon_usages FOR
-INSERT WITH CHECK (auth.uid() = user_id);
+INSERT WITH CHECK ((select auth.uid()) = user_id);
 -- ═══ TRIGGERS ═══
 -- Trigger pour mettre à jour updated_at
 CREATE TRIGGER update_coupons_updated_at BEFORE

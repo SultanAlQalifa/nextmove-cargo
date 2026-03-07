@@ -3,11 +3,11 @@
 -- Permet de vérifier si quelqu'un est admin/super-admin, même si RLS est actif.
 CREATE OR REPLACE FUNCTION public.is_admin() RETURNS BOOLEAN AS $$
 DECLARE user_role text;
-BEGIN IF auth.uid() IS NULL THEN RETURN FALSE;
+BEGIN IF (select auth.uid()) IS NULL THEN RETURN FALSE;
 END IF;
 SELECT role INTO user_role
 FROM public.profiles
-WHERE id = auth.uid();
+WHERE id = (select auth.uid());
 RETURN user_role IN ('admin', 'super-admin');
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

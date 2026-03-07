@@ -30,7 +30,7 @@ CREATE POLICY "Admin full access on testimonials" ON public.testimonials FOR ALL
     EXISTS (
         SELECT 1
         FROM public.profiles
-        WHERE id = auth.uid()
+        WHERE id = (select auth.uid())
             AND (
                 role = 'admin'
                 OR role = 'super-admin'
@@ -44,7 +44,7 @@ CREATE POLICY "Admin full access on faqs" ON public.faqs FOR ALL USING (
     EXISTS (
         SELECT 1
         FROM public.profiles
-        WHERE id = auth.uid()
+        WHERE id = (select auth.uid())
             AND (
                 role = 'admin'
                 OR role = 'super-admin'

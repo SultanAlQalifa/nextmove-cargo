@@ -6,7 +6,7 @@ SELECT USING (
         EXISTS (
             SELECT 1
             FROM public.profiles
-            WHERE id = auth.uid()
+            WHERE id = (select auth.uid())
                 AND (
                     role = 'admin'
                     OR role = 'super-admin'
@@ -22,7 +22,7 @@ SELECT USING (
         EXISTS (
             SELECT 1
             FROM public.profiles
-            WHERE id = auth.uid()
+            WHERE id = (select auth.uid())
                 AND (
                     role = 'admin'
                     OR role = 'super-admin'

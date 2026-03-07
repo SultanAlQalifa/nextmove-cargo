@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS public.referrals (
 ALTER TABLE public.referrals ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Users can view their own referrals" ON public.referrals;
 CREATE POLICY "Users can view their own referrals" ON public.referrals FOR
-SELECT USING (auth.uid() = referrer_id);
+SELECT USING ((select auth.uid()) = referrer_id);
 -- 5. Indexes
 CREATE INDEX IF NOT EXISTS idx_profiles_referral_code ON public.profiles(referral_code);
 CREATE INDEX IF NOT EXISTS idx_referrals_referrer_id ON public.referrals(referrer_id);

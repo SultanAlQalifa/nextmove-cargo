@@ -9,6 +9,8 @@ import {
 } from "lucide-react";
 import ShipmentTracker from "./ShipmentTracker";
 import { generateInvoicePDF } from "../../utils/invoiceGenerator";
+import { useAuth } from "../../contexts/AuthContext";
+import { documentService } from "../../services/documentService";
 
 interface ShipmentCardProps {
   shipment: Shipment;
@@ -17,6 +19,8 @@ interface ShipmentCardProps {
 }
 
 export default function ShipmentCard({ shipment, onClick, onPay }: ShipmentCardProps) {
+  const { user } = useAuth();
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "delivered":
@@ -49,8 +53,8 @@ export default function ShipmentCard({ shipment, onClick, onPay }: ShipmentCardP
     }
   };
 
-  const handleDownloadInvoice = () => {
-    generateInvoicePDF({
+  const handleDownloadInvoice = async () => {
+    const blob = generateInvoicePDF({
       invoiceNumber: `INV-${shipment.tracking_number}`,
       date: new Date(shipment.created_at || Date.now()),
       dueDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30), // Net 30
@@ -76,7 +80,16 @@ export default function ShipmentCard({ shipment, onClick, onPay }: ShipmentCardP
       total: shipment.price + 15000,
       currency: "XOF",
       status: shipment.status === "delivered" ? "PAID" : "UNPAID",
-    });
+    }, true);
+
+    if (blob && user?.id) {
+      const file = new File([blob], `Facture_INV-${shipment.tracking_number}.pdf`, { type: 'application/pdf' });
+      try {
+        await documentService.uploadDocument(user.id, file, 'invoice', shipment.id);
+      } catch (uploadError) {
+        console.error("Failed to save invoice to document center:", uploadError);
+      }
+    }
   };
 
   const handleDownloadQR = async () => {

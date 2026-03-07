@@ -1,19 +1,12 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
-    Calculator,
-    User,
-    Package,
-    Scan,
-    Save,
+    LayoutDashboard,
+    LogOut,
+    Plus,
     X,
-    Search,
-    PlusCircle,
-    Clock,
-    Smartphone,
-    CreditCard,
-    QrCode,
-    Printer
+    FolderSync
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { QRCodeSVG } from "qrcode.react";
 import { shipmentService } from "../../../services/shipmentService";
 import { posService } from "../../../services/posService";
@@ -22,6 +15,12 @@ import { useAuth } from "../../../contexts/AuthContext";
 import BarcodeScanner from "../../../components/pos/BarcodeScanner";
 import QuickClientModal from "../../../components/pos/QuickClientModal";
 import PrinterModal from "../../../components/pos/PrinterModal";
+
+// Modular Components
+import { POSHeader } from "../../../components/pos/dashboard/POSHeader";
+import { POSInputSection } from "../../../components/pos/dashboard/POSInputSection";
+import { POSRetraitSection } from "../../../components/pos/dashboard/POSRetraitSection";
+import { POSSummarySide } from "../../../components/pos/dashboard/POSSummarySide";
 
 export default function POSDashboard() {
     const { profile } = useAuth();
@@ -45,13 +44,48 @@ export default function POSDashboard() {
         price: 0
     });
 
+    const [dimensions, setDimensions] = useState({ length: 0, width: 0, height: 0 });
+
     const [showQuickClient, setShowQuickClient] = useState(false);
     const [showPrinterSettings, setShowPrinterSettings] = useState(false);
     const [realRates, setRealRates] = useState<any[]>([]);
     const [activeSession, setActiveSession] = useState<any>(null);
     const [initialCash, setInitialCash] = useState(0);
+
+    // Cash operations & Z-Report
+    const [showCloseSession, setShowCloseSession] = useState(false);
+    const [cashCounted, setCashCounted] = useState<number | "">("");
+    const [closingNotes, setClosingNotes] = useState("");
+    const [closingReport, setClosingReport] = useState<any>(null);
+
+    const [showCashOp, setShowCashOp] = useState(false);
+    const [cashOpType, setCashOpType] = useState<"in" | "out">("out");
+    const [cashOpAmount, setCashOpAmount] = useState<number | "">("");
+    const [cashOpReason, setCashOpReason] = useState("");
+    const [cashOpLoading, setCashOpLoading] = useState(false);
+
+    // COD Lookup tab
+    const [activeTab, setActiveTab] = useState<"new" | "cod">("new");
+    const [codQuery, setCodQuery] = useState("");
+    const [codResults, setCodResults] = useState<any[]>([]);
+    const [selectedShipment, setSelectedShipment] = useState<any>(null);
+    const [recipientName, setRecipientName] = useState("");
+    const [codLoading, setCodLoading] = useState(false);
+    const [codSearching, setCodSearching] = useState(false);
     const [showOpenSession, setShowOpenSession] = useState(false);
-    const progressRef = useRef<HTMLDivElement>(null);
+    const [isFullscreen, setIsFullscreen] = useState(false);
+    const [lastShipment, setLastShipment] = useState<any>(null);
+
+    // Active rate for current mode + service
+    const currentRate = useMemo(() => {
+        return realRates.find(r =>
+            r.mode === formData.transportMode &&
+            r.type === formData.serviceType
+        );
+    }, [realRates, formData.transportMode, formData.serviceType]);
+
+    const unitLabel = formData.transportMode === "air" ? "KG" : "CBM";
+    const unitValue = formData.transportMode === "air" ? formData.weight : formData.volume;
 
     // Load session and rates
     useEffect(() => {
@@ -61,23 +95,19 @@ export default function POSDashboard() {
                 if (session) {
                     setActiveSession(session);
                 } else {
-                    // Auto-open session with 0 initial cash for faster workflow
                     const newSession = await posService.openSession(0);
                     setActiveSession(newSession);
-                    // success("Session automatique ouverte"); // Quietly open
                 }
             } catch (err: any) {
                 console.error("Auto-session failed, showing manual modal", err);
                 setShowOpenSession(true);
             }
-
             const rates = await posService.getRealRates();
             setRealRates(rates);
         };
         loadInitialData();
-    }, [success]); // Added success to dependencies just in case
+    }, [success]);
 
-    // Search clients when query changes
     useEffect(() => {
         const timer = setTimeout(async () => {
             if (searchQuery.length >= 2) {
@@ -90,44 +120,29 @@ export default function POSDashboard() {
         return () => clearTimeout(timer);
     }, [searchQuery]);
 
-    // Recalculate price logic
+    // Recalculate volume and price
     useEffect(() => {
-        // Fallback rates
-        const DEFAULT_AIR_RATE = 5500;
-        const DEFAULT_SEA_RATE = 450000;
+        if (formData.transportMode === "sea") {
+            const v = (dimensions.length * dimensions.width * dimensions.height) / 1000000;
+            setFormData(f => ({ ...f, volume: v > 0 ? Number(v.toFixed(3)) : 0 }));
+        }
+    }, [dimensions, formData.transportMode]);
 
-        const currentRate = realRates.find(r =>
-            r.mode === formData.transportMode &&
-            r.type === formData.serviceType
-        );
-
+    useEffect(() => {
+        const DEFAULT_AIR = 5500, DEFAULT_SEA = 450000;
         let total = 0;
         if (currentRate) {
             total = formData.transportMode === "air"
                 ? formData.weight * currentRate.price
                 : formData.volume * currentRate.price;
         } else {
-            // Fallback to defaults
             total = formData.transportMode === "air"
-                ? formData.weight * DEFAULT_AIR_RATE
-                : formData.volume * DEFAULT_SEA_RATE;
-
-            // Apply express surcharge if manual fallback
-            if (formData.serviceType === "express" && !currentRate) {
-                total *= 1.25;
-            }
+                ? formData.weight * DEFAULT_AIR
+                : formData.volume * DEFAULT_SEA;
+            if (formData.serviceType === "express") total *= 1.25;
         }
-
         setFormData(prev => ({ ...prev, price: Math.round(total) }));
-    }, [formData.weight, formData.volume, formData.transportMode, formData.serviceType, realRates]);
-
-    // Update progress bar without inline styles
-    useEffect(() => {
-        if (progressRef.current) {
-            const percentage = Math.min(100, ((activeSession?.sales_count || 0) / 10) * 100);
-            progressRef.current.style.width = `${percentage}%`;
-        }
-    }, [activeSession?.sales_count]);
+    }, [formData.weight, formData.volume, formData.transportMode, formData.serviceType, currentRate]);
 
     const handleOpenSession = async () => {
         try {
@@ -135,34 +150,130 @@ export default function POSDashboard() {
             setActiveSession(session);
             setShowOpenSession(false);
             success("Session ouverte");
-        } catch (err: any) {
-            error(err.message || "Erreur ouverture session");
+        } catch (err: any) { error(err.message || "Erreur ouverture session"); }
+    };
+
+    const toggleFullscreen = () => {
+        try {
+            const elem = document.documentElement as any;
+            const doc = document as any;
+            const isFull = doc.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement || doc.msFullscreenElement;
+
+            if (!isFull) {
+                if (elem.requestFullscreen) {
+                    elem.requestFullscreen().catch(() => { });
+                } else if (elem.webkitRequestFullscreen) {
+                    elem.webkitRequestFullscreen();
+                } else if (elem.mozRequestFullScreen) {
+                    elem.mozRequestFullScreen();
+                } else if (elem.msRequestFullscreen) {
+                    elem.msRequestFullscreen();
+                }
+                setIsFullscreen(true);
+            } else {
+                if (doc.exitFullscreen) {
+                    doc.exitFullscreen().catch(() => { });
+                } else if (doc.webkitExitFullscreen) {
+                    doc.webkitExitFullscreen();
+                } else if (doc.mozCancelFullScreen) {
+                    doc.mozCancelFullScreen();
+                } else if (doc.msExitFullscreen) {
+                    doc.msExitFullscreen();
+                }
+                setIsFullscreen(false);
+            }
+        } catch (err) {
+            console.error("Error toggling fullscreen:", err);
+            setIsFullscreen(!isFullscreen);
         }
     };
 
-    const handleCloseSession = async () => {
+    useEffect(() => {
+        const handleFullscreenChange = () => {
+            const doc = document as any;
+            const isFull = !!(doc.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement || doc.msFullscreenElement);
+            setIsFullscreen(isFull);
+        };
+
+        document.addEventListener("fullscreenchange", handleFullscreenChange);
+        document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
+        document.addEventListener("mozfullscreenchange", handleFullscreenChange);
+        document.addEventListener("MSFullscreenChange", handleFullscreenChange);
+
+        return () => {
+            document.removeEventListener("fullscreenchange", handleFullscreenChange);
+            document.removeEventListener("webkitfullscreenchange", handleFullscreenChange);
+            document.removeEventListener("mozfullscreenchange", handleFullscreenChange);
+            document.removeEventListener("MSFullscreenChange", handleFullscreenChange);
+        };
+    }, []);
+
+    const handlePrepareClose = async () => {
         if (!activeSession) return;
         try {
-            await posService.closeSession(activeSession.id);
+            const report = await posService.getZReport(activeSession.id);
+            setClosingReport(report);
+            setShowCloseSession(true);
+        } catch (err: any) { error(err.message || "Erreur calcul Z-Report"); }
+    };
+
+    const handleConfirmClose = async () => {
+        if (!activeSession || !closingReport) return;
+        if (cashCounted === "") { error("Veuillez saisir le montant en caisse"); return; }
+
+        setLoading(true);
+        try {
+            await posService.closeSession(activeSession.id, {
+                cashCounted: Number(cashCounted),
+                cashExpected: closingReport.totals.expected,
+                difference: Number(cashCounted) - closingReport.totals.expected,
+                notes: closingNotes
+            });
+
+            const { printService } = await import("../../../services/printService");
+            printService.printZReport({
+                ...closingReport,
+                totals: { ...closingReport.totals, counted: Number(cashCounted), difference: Number(cashCounted) - closingReport.totals.expected }
+            });
+
             setActiveSession(null);
+            setShowCloseSession(false);
             setShowOpenSession(true);
-            success("Session clôturée");
-        } catch (err: any) {
-            error(err.message || "Erreur clôture session");
-        }
+            setCashCounted("");
+            setClosingNotes("");
+            success("Session clôturée avec succès");
+        } catch (err: any) { error(err.message || "Erreur clôture session"); }
+        finally { setLoading(false); }
+    };
+
+    const handleCashOpSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!activeSession || cashOpAmount === "" || !cashOpReason.trim()) return;
+        setCashOpLoading(true);
+        try {
+            await posService.addCashOperation(activeSession.id, cashOpType, Number(cashOpAmount), cashOpReason);
+
+            const isAdminOrManager = profile?.role === 'admin' || profile?.role === 'manager';
+
+            if (cashOpType === 'out') {
+                if (isAdminOrManager) {
+                    success(`Retrait de caisse enregistré et auto-approuvé.`);
+                } else {
+                    success(`Demande de retrait enregistrée. En attente de validation.`);
+                }
+            } else {
+                success(`Opération de caisse enregistrée (Entrée)`);
+            }
+            setShowCashOp(false);
+            setCashOpAmount("");
+            setCashOpReason("");
+        } catch (err: any) { error(err.message || "Erreur lors de l'opération de caisse"); }
+        finally { setCashOpLoading(false); }
     };
 
     const handleCreateShipment = async () => {
-        if (!selectedClient) {
-            error("Veuillez sélectionner un client");
-            return;
-        }
-
-        if (paymentMethod === "mobile" && !showPaymentQR) {
-            setShowPaymentQR(true);
-            return;
-        }
-
+        if (!selectedClient) { error("Veuillez sélectionner un client"); return; }
+        if (paymentMethod === "mobile" && !showPaymentQR) { setShowPaymentQR(true); return; }
         setLoading(true);
         try {
             const shipment = await shipmentService.createShipment({
@@ -178,10 +289,7 @@ export default function POSDashboard() {
                 cargo_type: "Marchandise Générale",
                 pos_session_id: activeSession?.id
             });
-
             success("Expédition créée avec succès");
-
-            // Update session stats locally
             if (activeSession) {
                 setActiveSession({
                     ...activeSession,
@@ -189,411 +297,309 @@ export default function POSDashboard() {
                     total_sales: (activeSession.total_sales || 0) + formData.price
                 });
             }
-
-            // Generate Receipt (PDF)
             posService.generateReceipt(shipment);
-
-            // Attempt Hardware Print (Physical)
             try {
                 await posService.printToHardware(shipment);
-            } catch (printErr) {
-                console.warn("Hardware print skipped or failed:", printErr);
-                // We don't block the UI if physical print fails because PDF is generated
-            }
-
-            // Reset Form partial
+                await posService.printLabel(shipment);
+            } catch { }
+            setLastShipment(shipment);
             setFormData(prev => ({ ...prev, weight: 1, volume: 0.1, packages: 1 }));
             setSelectedClient(null);
             setSearchQuery("");
             setShowPaymentQR(false);
-
-        } catch (err: any) {
-            error(err.message || "Erreur lors de la création");
-        } finally {
-            setLoading(false);
-        }
+        } catch (err: any) { error(err.message || "Erreur lors de la création"); }
+        finally { setLoading(false); }
     };
 
     const handleBarcodeScan = (code: string) => {
-        // In a real scenario, this code would be matched against a package or a client ID
-        success(`Code scanné : ${code}`);
+        if (activeTab === "cod") {
+            setCodQuery(code);
+            handleCodSearch(code);
+        } else {
+            success(`Code scanné : ${code}`);
+        }
         setShowScanner(false);
     };
 
+    const adjustValue = (delta: number) => {
+        if (formData.transportMode === "air") {
+            setFormData(f => ({ ...f, weight: Math.max(0.5, f.weight + delta) }));
+        } else {
+            setFormData(f => ({ ...f, volume: Math.max(0.1, +(f.volume + delta * 0.1).toFixed(1)) }));
+        }
+    };
+
+    // COD Lookup
+    const handleCodSearch = async (q?: string) => {
+        const query = q || codQuery;
+        if (!query || query.length < 2) return;
+        setCodSearching(true);
+        try {
+            const results = await posService.lookupShipment(query);
+            setCodResults(results);
+            if (results.length === 1) setSelectedShipment(results[0]);
+        } catch { setCodResults([]); }
+        finally { setCodSearching(false); }
+    };
+
+    const handleCodConfirm = async (signature?: string) => {
+        if (!selectedShipment) return;
+        if (!recipientName.trim()) { error("Veuillez saisir le nom du destinataire"); return; }
+        setCodLoading(true);
+        try {
+            await posService.collectCODPayment(selectedShipment.id, activeSession?.id, recipientName, signature);
+            success(`Livraison confirmée — ${selectedShipment.tracking_number}`);
+            if (activeSession) {
+                setActiveSession({
+                    ...activeSession,
+                    sales_count: (activeSession.sales_count || 0) + 1,
+                    total_sales: (activeSession.total_sales || 0) + (selectedShipment.price || 0)
+                });
+            }
+            setSelectedShipment(null);
+            setCodResults([]);
+            setCodQuery("");
+            setRecipientName("");
+        } catch (err: any) { error(err.message || "Erreur lors de la confirmation"); }
+        finally { setCodLoading(false); }
+    };
+
     return (
-        <div className="h-[calc(100vh-120px)] flex flex-col gap-6 relative">
-            {showScanner && (
-                <BarcodeScanner onScan={handleBarcodeScan} onClose={() => setShowScanner(false)} />
-            )}
+        <div className={`flex flex-col relative font-sans transition-all duration-300 ${isFullscreen ? 'fixed inset-0 z-[100000] w-[100vw] h-[100dvh] m-0 p-4 bg-slate-50 dark:bg-slate-900 overflow-hidden' : 'h-[calc(100vh-100px)] -m-4 md:-m-6 lg:-m-8 pb-4'}`}>
+            {showScanner && <BarcodeScanner onScan={handleBarcodeScan} onClose={() => setShowScanner(false)} />}
+            <QuickClientModal isOpen={showQuickClient} onClose={() => setShowQuickClient(false)} onSuccess={(c) => { setSelectedClient(c); success("Client sélectionné"); }} />
+            <PrinterModal isOpen={showPrinterSettings} onClose={() => setShowPrinterSettings(false)} />
 
-            <QuickClientModal
-                isOpen={showQuickClient}
-                onClose={() => setShowQuickClient(false)}
-                onSuccess={(client) => {
-                    setSelectedClient(client);
-                    success("Client sélectionné");
-                }}
-            />
-
-            <PrinterModal
-                isOpen={showPrinterSettings}
-                onClose={() => setShowPrinterSettings(false)}
-            />
-
-            {showOpenSession && (
-                <div className="fixed inset-0 z-[120] bg-slate-900/90 backdrop-blur-xl flex items-center justify-center p-6">
-                    <div className="bg-white rounded-[40px] p-10 max-w-md w-full text-center space-y-8 shadow-2xl">
-                        <div className="p-4 bg-blue-100 rounded-full w-20 h-20 mx-auto flex items-center justify-center text-blue-600">
-                            <Clock className="w-10 h-10" />
-                        </div>
-                        <div className="space-y-2">
-                            <h3 className="text-3xl font-black text-slate-900">Ouvrir une Session</h3>
-                            <p className="text-slate-500">Veuillez confirmer le fonds de caisse initial.</p>
-                        </div>
-                        <div className="space-y-4">
-                            <label className="block text-left text-sm font-bold text-slate-400 uppercase tracking-widest">Montant Initial (XOF)</label>
-                            <input
-                                type="number"
-                                value={initialCash}
-                                onChange={(e) => setInitialCash(Number(e.target.value))}
-                                className="w-full p-5 bg-slate-50 rounded-2xl text-2xl font-black text-center outline-none border-2 border-transparent focus:border-blue-500 transition-all"
-                                placeholder="0"
-                            />
-                        </div>
-                        <button
-                            onClick={handleOpenSession}
-                            className="w-full py-5 bg-blue-600 text-white rounded-2xl font-black text-xl hover:bg-blue-500 transition-all shadow-xl shadow-blue-500/20 min-h-[44px]"
-                        >Démarrer la Session</button>
-                    </div>
-                </div>
-            )}
-
-            {showPaymentQR && (
-                <div className="fixed inset-0 z-[110] bg-slate-900/90 backdrop-blur-xl flex items-center justify-center p-6">
-                    <div className="bg-white rounded-[40px] p-10 max-w-md w-full text-center space-y-8 shadow-2xl animate-in zoom-in-95">
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-2xl font-black text-slate-900">Paiement Mobile</h3>
-                            <button onClick={() => setShowPaymentQR(false)} className="p-2 text-slate-400 hover:text-red-500 transition-colors" title="Fermer le paiement mobile">
-                                <X className="w-6 h-6" />
+            {/* ═══ SESSION MODAL ═══ */}
+            <AnimatePresence>
+                {showOpenSession && (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[120] bg-black/60 backdrop-blur-xl flex items-center justify-center p-6">
+                        <motion.div initial={{ scale: 0.9, y: 30 }} animate={{ scale: 1, y: 0 }} className="bg-white rounded-3xl p-8 max-w-sm w-full text-center space-y-6 shadow-2xl">
+                            <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                                <Clock className="w-7 h-7 text-white" />
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-black text-slate-900">Nouvelle Session</h3>
+                                <p className="text-slate-400 text-sm">Fonds de caisse initial</p>
+                            </div>
+                            <input type="number" value={initialCash} onChange={(e) => setInitialCash(Number(e.target.value))}
+                                className="w-full p-4 bg-slate-50 rounded-2xl text-2xl font-black text-center outline-none border-2 border-transparent focus:border-indigo-500 transition-all" placeholder="0" />
+                            <button onClick={handleOpenSession} className="w-full py-4 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-2xl font-bold text-lg hover:shadow-lg hover:shadow-indigo-500/25 transition-all min-h-[44px]">
+                                Démarrer
                             </button>
-                        </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
-                        <div className="bg-slate-50 p-8 rounded-3xl flex justify-center">
-                            <QRCodeSVG
-                                value={`wave:pay?amount=${formData.price}&ref=${activeSession.id}`}
-                                size={200}
-                                level="H"
-                                includeMargin={true}
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <p className="text-3xl font-black text-slate-900">{formData.price.toLocaleString()} XOF</p>
-                            <p className="text-slate-500 font-medium text-sm">Scannez avec Wave ou Orange Money</p>
-                        </div>
-
-                        <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                            <div className="h-full bg-blue-600 animate-[progress_10s_linear_infinite] w-full" />
-                        </div>
-
-                        <button
-                            onClick={handleCreateShipment}
-                            className="w-full py-5 bg-blue-600 text-white rounded-2xl font-black text-lg hover:bg-blue-500 transition-all flex items-center justify-center gap-3 min-h-[44px]"
-                            title="Confirmer la réception du paiement"
-                        >
-                            <Smartphone className="w-6 h-6" />
-                            Confirmer la Réception
-                        </button>
-
-                        <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Attente de confirmation réseau...</p>
-                    </div>
-                </div>
-            )}
-
-            <div className="flex justify-between items-center bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
-                <div>
-                    <h1 className="text-2xl font-black text-slate-900 leading-tight">Terminal POS Express</h1>
-                    <p className="text-slate-500 font-medium">Agence : Dakar Plateau | Station : 01</p>
-                </div>
-                <div className="flex items-center gap-4">
-                    <button
-                        onClick={() => setShowPrinterSettings(true)}
-                        title="Paramètres d'impression"
-                        className="p-3 bg-slate-50 text-slate-600 rounded-2xl hover:bg-slate-100 transition-colors"
-                    >
-                        <Printer className="w-5 h-5" />
-                    </button>
-                    <div className="text-right">
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Session Active</p>
-                        <p className="text-slate-900 font-bold">
-                            {profile?.full_name} • {activeSession ? new Date(activeSession.start_time).toLocaleTimeString() : '--:--'}
-                        </p>
-                    </div>
-                    <button
-                        title="Fermer la session"
-                        onClick={handleCloseSession}
-                        className="p-3 bg-red-50 text-red-600 rounded-2xl hover:bg-red-100 transition-colors min-h-[44px]"
-                    >
-                        <X className="w-5 h-5" />
-                    </button>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-12 gap-6 flex-1 min-h-0">
-                {/* Left Aspect: Client & Config */}
-                <div className="col-span-12 lg:col-span-4 flex flex-col gap-6 overflow-y-auto pr-2 custom-scrollbar">
-                    {/* Client Selection */}
-                    <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-4">
-                        <div className="flex items-center gap-3 mb-2">
-                            <div className="p-2 bg-blue-100 rounded-xl text-blue-600">
-                                <User className="w-5 h-5" />
+            {/* ═══ QR PAYMENT MODAL ═══ */}
+            <AnimatePresence>
+                {showPaymentQR && (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[110] bg-black/60 backdrop-blur-xl flex items-center justify-center p-6">
+                        <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="bg-white rounded-3xl p-8 max-w-sm w-full text-center space-y-5 shadow-2xl">
+                            <div className="flex justify-between items-center">
+                                <h3 className="text-lg font-black text-slate-900">Paiement Mobile</h3>
+                                <button onClick={() => setShowPaymentQR(false)} className="p-1.5 text-slate-400 hover:text-red-500" title="Fermer"><X className="w-5 h-5" /></button>
                             </div>
-                            <h3 className="font-bold text-slate-900 text-lg">Client</h3>
-                        </div>
+                            <div className="bg-slate-50 p-6 rounded-2xl inline-flex justify-center">
+                                <QRCodeSVG value={`wave:pay?amount=${formData.price}&ref=${activeSession?.id}`} size={160} level="H" includeMargin />
+                            </div>
+                            <p className="text-2xl font-black text-slate-900">{formData.price.toLocaleString()} <span className="text-slate-400 text-base">FCFA</span></p>
+                            <button onClick={handleCreateShipment} className="w-full py-4 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-2xl font-bold flex items-center justify-center gap-2 min-h-[44px]">
+                                <Smartphone className="w-5 h-5" /> Confirmer
+                            </button>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
-                        {selectedClient ? (
-                            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between animate-in fade-in slide-in-from-top-2">
-                                <div>
-                                    <p className="font-bold text-slate-900">{selectedClient.full_name}</p>
-                                    <p className="text-xs text-slate-500">{selectedClient.phone || selectedClient.email}</p>
+            {/* ═══ CASH OPERATION MODAL ═══ */}
+            <AnimatePresence>
+                {showCashOp && (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[120] bg-black/60 backdrop-blur-xl flex items-center justify-center p-6">
+                        <motion.div initial={{ scale: 0.9, y: 30 }} animate={{ scale: 1, y: 0 }} className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl">
+                            <div className="flex justify-between items-center mb-6">
+                                <h3 className="text-lg font-black text-slate-900">Opération de Caisse</h3>
+                                <button onClick={() => setShowCashOp(false)} className="p-1.5 text-slate-400 hover:text-red-500" title="Fermer" aria-label="Fermer"><X className="w-5 h-5" /></button>
+                            </div>
+                            <form onSubmit={handleCashOpSubmit} className="space-y-4">
+                                <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-xl">
+                                    <button type="button" onClick={() => setCashOpType("in")}
+                                        className={`py-2 rounded-lg text-sm font-bold transition-all ${cashOpType === "in" ? "bg-white text-emerald-600 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}>
+                                        Entrée (+)
+                                    </button>
+                                    <button type="button" onClick={() => setCashOpType("out")}
+                                        className={`py-2 rounded-lg text-sm font-bold transition-all ${cashOpType === "out" ? "bg-white text-rose-600 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}>
+                                        Sortie (-)
+                                    </button>
                                 </div>
-                                <button
-                                    title="Retirer le client"
-                                    onClick={() => setSelectedClient(null)}
-                                    className="p-2 text-slate-400 hover:text-red-500 transition-colors"
-                                >
-                                    <X className="w-5 h-5" />
-                                </button>
-                            </div>
-                        ) : (
-                            <div className="relative">
-                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                                <input
-                                    type="text"
-                                    placeholder="Rechercher un client (Nom, Tel...)"
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="w-full pl-12 pr-4 py-4 bg-slate-50 border-transparent rounded-2xl focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
-                                />
-
-                                {searchResults.length > 0 && (
-                                    <div className="absolute z-10 w-full mt-2 bg-white border border-slate-100 rounded-2xl shadow-xl overflow-hidden">
-                                        {searchResults.map(client => (
-                                            <button
-                                                key={client.id}
-                                                onClick={() => setSelectedClient(client)}
-                                                className="w-full px-4 py-3 text-left hover:bg-slate-50 flex flex-col border-b last:border-0"
-                                            >
-                                                <span className="font-bold text-slate-900">{client.full_name}</span>
-                                                <span className="text-xs text-slate-500">{client.phone || client.email}</span>
-                                            </button>
-                                        ))}
+                                {cashOpType === "out" && (!profile || (profile.role !== 'admin' && profile.role !== 'manager')) && (
+                                    <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-700 rounded-lg p-3 flex gap-2 items-start">
+                                        <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                                        <p className="text-xs text-amber-800 dark:text-amber-400 font-medium">
+                                            Les sorties de caisse nécessitent l'approbation d'un Manager. Le montant sera déduit une fois validé.
+                                        </p>
                                     </div>
                                 )}
-                            </div>
-                        )}
-
-                        <button
-                            onClick={() => setShowQuickClient(true)}
-                            className="w-full py-3 flex items-center justify-center gap-2 text-blue-600 font-bold hover:bg-blue-50 rounded-2xl transition-colors"
-                        >
-                            <PlusCircle className="w-5 h-5" />
-                            Nouveau Client
-                        </button>
-                    </div>
-
-                    {/* Transport Config */}
-                    <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-4">
-                        <div className="flex items-center gap-3 mb-2">
-                            <div className="p-2 bg-orange-100 rounded-xl text-orange-600">
-                                <Package className="w-5 h-5" />
-                            </div>
-                            <h3 className="font-bold text-slate-900 text-lg">Transport</h3>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <button
-                                onClick={() => setFormData({ ...formData, transportMode: 'sea' })}
-                                className={`p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${formData.transportMode === 'sea' ? 'border-blue-600 bg-blue-50 text-blue-600' : 'border-slate-100 text-slate-400'}`}
-                            >
-                                <Calculator className="w-6 h-6" />
-                                <span className="font-bold">Maritime</span>
-                            </button>
-                            <button
-                                onClick={() => setFormData({ ...formData, transportMode: 'air' })}
-                                className={`p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${formData.transportMode === 'air' ? 'border-blue-600 bg-blue-50 text-blue-600' : 'border-slate-100 text-slate-400'}`}
-                            >
-                                <Clock className="w-6 h-6" />
-                                <span className="font-bold">Aérien</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Service Level */}
-                    <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-4">
-                        <h3 className="font-bold text-slate-900">Service</h3>
-                        <div className="flex gap-2 p-1 bg-slate-50 rounded-[20px]">
-                            <button
-                                onClick={() => setFormData({ ...formData, serviceType: 'standard' })}
-                                className={`flex-1 py-3 rounded-[16px] font-bold text-sm transition-all ${formData.serviceType === 'standard' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500'}`}
-                            >Standard</button>
-                            <button
-                                onClick={() => setFormData({ ...formData, serviceType: 'express' })}
-                                className={`flex-1 py-3 rounded-[16px] font-bold text-sm transition-all ${formData.serviceType === 'express' ? 'bg-white shadow-sm text-blue-600' : 'text-slate-500'}`}
-                            >Express (+25%)</button>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Center: Calculations */}
-                <div className="col-span-12 lg:col-span-5 flex flex-col gap-6">
-                    <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm flex-1 space-y-8">
-                        <div className="flex items-center justify-between">
-                            <h3 className="text-xl font-black text-slate-900">Mesures</h3>
-                            <button
-                                onClick={() => setShowScanner(true)}
-                                className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl font-bold hover:scale-105 active:scale-95 transition-all"
-                            >
-                                <Scan className="w-4 h-4" />
-                                Scanner Code
-                            </button>
-                        </div>
-
-                        <div className="space-y-6">
-                            <div>
-                                <label className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3 block">
-                                    {formData.transportMode === 'sea' ? 'Volume (CBM)' : 'Poids (KG)'}
-                                </label>
-                                <div className="flex items-center gap-4">
-                                    <button
-                                        onClick={() => setFormData(f => ({ ...f, weight: Math.max(0, f.weight - 1), volume: Math.max(0, f.volume - 0.1) }))}
-                                        className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center font-black text-2xl text-slate-900 hover:bg-slate-200"
-                                    > - </button>
-                                    <input
-                                        aria-label={formData.transportMode === 'sea' ? 'Volume en CBM' : 'Poids en KG'}
-                                        type="number"
-                                        step={formData.transportMode === 'sea' ? "0.1" : "1"}
-                                        value={formData.transportMode === 'sea' ? formData.volume : formData.weight}
-                                        onChange={(e) => setFormData(f => ({ ...f, [formData.transportMode === 'sea' ? 'volume' : 'weight']: Number(e.target.value) }))}
-                                        className="flex-1 h-16 bg-slate-50 border-none rounded-2xl text-center text-3xl font-black text-slate-900 outline-none"
-                                    />
-                                    <button
-                                        onClick={() => setFormData(f => ({ ...f, weight: f.weight + 1, volume: f.volume + 0.1 }))}
-                                        className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center font-black text-2xl text-slate-900 hover:bg-slate-200"
-                                    > + </button>
+                                <div>
+                                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Montant (FCFA)</label>
+                                    <input type="number" required min="1" value={cashOpAmount} onChange={(e) => setCashOpAmount(e.target.value ? Number(e.target.value) : "")}
+                                        title="Montant (FCFA)" placeholder="0"
+                                        className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-slate-200 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/10 font-black text-xl text-center" />
                                 </div>
-                            </div>
-
-                            <div>
-                                <label className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3 block">Nombre de Colis</label>
-                                <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                                    {[1, 2, 5, 10].map(n => (
-                                        <button
-                                            key={n}
-                                            onClick={() => setFormData({ ...formData, packages: n })}
-                                            className={`py-4 rounded-2xl font-black text-xl border-2 transition-all ${formData.packages === n ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-100 text-slate-400'}`}
-                                        >
-                                            {n}
-                                        </button>
-                                    ))}
+                                <div>
+                                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Motif / Justification</label>
+                                    <input type="text" required value={cashOpReason} onChange={(e) => setCashOpReason(e.target.value)} placeholder="Ex: Achat fournitures..."
+                                        className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-slate-200 outline-none focus:border-indigo-400 text-sm" />
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Right Aspect: Total & Pay */}
-                <div className="col-span-12 lg:col-span-3 flex flex-col gap-6">
-                    <div className="bg-slate-900 p-8 rounded-3xl text-white shadow-2xl flex-1 flex flex-col justify-between">
-                        <div className="space-y-4">
-                            <div>
-                                <p className="text-slate-400 font-bold uppercase text-xs tracking-widest">Résumé</p>
-                                <div className="h-px bg-slate-800 my-4" />
-                            </div>
-
-                            <div className="space-y-3">
-                                <div className="flex justify-between font-bold">
-                                    <span className="text-slate-400">Transport</span>
-                                    <span>{formData.transportMode === 'sea' ? 'Maritime' : 'Aérien'}</span>
-                                </div>
-                                <div className="flex justify-between font-bold">
-                                    <span className="text-slate-400">Service</span>
-                                    <span className={formData.serviceType === 'express' ? 'text-blue-400' : ''}>{formData.serviceType.toUpperCase()}</span>
-                                </div>
-                                <div className="flex justify-between font-bold">
-                                    <span className="text-slate-400">Mesure</span>
-                                    <span>{formData.transportMode === 'sea' ? formData.volume.toFixed(2) + ' CBM' : formData.weight + ' KG'}</span>
-                                </div>
-                                <div className="flex justify-between font-bold">
-                                    <span className="text-slate-400">Colis</span>
-                                    <span>x{formData.packages}</span>
-                                </div>
-                            </div>
-
-                            <div className="h-px bg-slate-800 my-4" />
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                <button
-                                    onClick={() => setPaymentMethod('cash')}
-                                    className={`flex items-center justify-center gap-2 py-3 rounded-2xl border-2 transition-all ${paymentMethod === 'cash' ? 'border-white bg-white text-slate-900' : 'border-slate-800 text-slate-500'}`}
-                                >
-                                    <CreditCard className="w-4 h-4" />
-                                    <span className="text-xs font-bold">Cash</span>
+                                <button type="submit" disabled={cashOpLoading}
+                                    className={`w-full py-3.5 rounded-xl font-bold text-white shadow-lg transition-all ${cashOpType === "in" ? "bg-emerald-600 hover:bg-emerald-500 shadow-emerald-500/25" : "bg-rose-600 hover:bg-rose-500 shadow-rose-500/25"} disabled:opacity-50`}>
+                                    {cashOpLoading ? "Traitement..." : `Enregistrer ${cashOpType === "in" ? "l'entrée" : "la dépense"}`}
                                 </button>
-                                <button
-                                    onClick={() => setPaymentMethod('mobile')}
-                                    className={`flex items-center justify-center gap-2 py-3 rounded-2xl border-2 transition-all ${paymentMethod === 'mobile' ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-800 text-slate-500'}`}
-                                >
-                                    <QrCode className="w-4 h-4" />
-                                    <span className="text-xs font-bold">Mobile</span>
-                                </button>
-                            </div>
-                        </div>
+                            </form>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
-                        <div className="space-y-6">
-                            <div className="text-center">
-                                <p className="text-slate-400 font-bold uppercase text-xs tracking-widest mb-1">Total à payer</p>
-                                <h2 className="text-5xl font-black tracking-tighter">
-                                    {formData.price.toLocaleString()} <span className="text-2xl text-slate-500">XOF</span>
-                                </h2>
+            {/* ═══ Z-REPORT / CLOSE SESSION MODAL ═══ */}
+            <AnimatePresence>
+                {showCloseSession && closingReport && (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[120] bg-black/60 backdrop-blur-xl flex items-center justify-center p-6">
+                        <motion.div initial={{ scale: 0.9, y: 30 }} animate={{ scale: 1, y: 0 }} className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl flex flex-col max-h-[90vh]">
+                            <div className="flex justify-between items-center mb-4">
+                                <div>
+                                    <h3 className="text-xl font-black text-slate-900">Clôture de Caisse</h3>
+                                    <p className="text-xs text-slate-500 font-medium">Bilan & Impression Z-Report</p>
+                                </div>
+                                <button onClick={() => setShowCloseSession(false)} className="p-1.5 text-slate-400 hover:text-red-500" title="Fermer" aria-label="Fermer"><X className="w-5 h-5" /></button>
                             </div>
 
-                            <button
-                                disabled={loading || !selectedClient}
-                                onClick={handleCreateShipment}
-                                className="w-full py-6 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-800 disabled:text-slate-600 rounded-3xl font-black text-xl shadow-xl shadow-blue-500/20 active:scale-95 transition-all flex items-center justify-center gap-3 min-h-[44px]"
-                            >
-                                {loading ? (
-                                    <span className="animate-pulse">Traitement...</span>
-                                ) : (
-                                    <>
-                                        {paymentMethod === 'cash' ? <Save className="w-6 h-6" /> : <QrCode className="w-6 h-6" />}
-                                        {paymentMethod === 'cash' ? 'Valider' : 'Générer QR'} & Imprimer
-                                    </>
-                                )}
+                            <div className="flex-1 overflow-y-auto space-y-5">
+                                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-3">
+                                    <div className="flex justify-between items-center pb-2 border-b border-slate-200">
+                                        <span className="text-sm text-slate-500 font-medium">Fonds Initial</span>
+                                        <span className="text-sm font-bold text-slate-800">{closingReport.totals.initial.toLocaleString()} F</span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-sm text-slate-500 font-medium">Ventes encaissées</span>
+                                        <span className="text-sm font-bold text-indigo-600">+{closingReport.totals.sales.toLocaleString()} F</span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-sm text-slate-500 font-medium">Entrées manuelles</span>
+                                        <span className="text-sm font-bold text-emerald-600">+{closingReport.totals.cashIn.toLocaleString()} F</span>
+                                    </div>
+                                    <div className="flex justify-between items-center pb-2 border-b border-slate-200">
+                                        <span className="text-sm text-slate-500 font-medium">Sorties (Dépenses)</span>
+                                        <span className="text-sm font-bold text-rose-600">-{closingReport.totals.cashOut.toLocaleString()} F</span>
+                                    </div>
+                                    <div className="flex justify-between items-center pt-1">
+                                        <span className="text-sm font-bold text-slate-900">Total Attendu</span>
+                                        <span className="text-xl font-black text-slate-900">{closingReport.totals.expected.toLocaleString()} F</span>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1.5 flex items-center justify-between">
+                                            <span>Cash compté en caisse</span>
+                                            {cashCounted !== "" && (
+                                                <span className={`text-[10px] px-1.5 py-0.5 rounded-md ${Number(cashCounted) === closingReport.totals.expected ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
+                                                    Écart : {(Number(cashCounted) - closingReport.totals.expected).toLocaleString()} F
+                                                </span>
+                                            )}
+                                        </label>
+                                        <input type="number" required value={cashCounted} onChange={(e) => setCashCounted(e.target.value ? Number(e.target.value) : "")}
+                                            title="Cash compté en caisse" placeholder="0"
+                                            className={`w-full px-4 py-4 rounded-xl border-2 outline-none font-black text-2xl text-center transition-all ${cashCounted !== "" && Number(cashCounted) !== closingReport.totals.expected ? 'border-rose-300 bg-rose-50 text-rose-900 focus:border-rose-500 focus:ring-4 focus:ring-rose-500/20' : 'border-indigo-100 bg-indigo-50 text-indigo-900 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/20'}`} />
+                                    </div>
+                                    {(cashCounted !== "" && Number(cashCounted) !== closingReport.totals.expected) && (
+                                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>
+                                            <label className="text-xs font-bold text-rose-400 uppercase tracking-wider block mb-1.5">Note explicative de l'écart (optionnel)</label>
+                                            <input type="text" value={closingNotes} onChange={(e) => setClosingNotes(e.target.value)} placeholder="Raison de l'écart..."
+                                                className="w-full px-4 py-3 bg-rose-50/50 rounded-xl border border-rose-200 outline-none focus:border-rose-400 text-sm text-rose-900 placeholder:text-rose-300" />
+                                        </motion.div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <button onClick={handleConfirmClose} disabled={loading || cashCounted === ""}
+                                className="w-full mt-6 py-4 rounded-2xl font-bold text-white bg-slate-900 hover:bg-slate-800 shadow-xl shadow-slate-900/20 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                                {loading ? <span className="animate-pulse">Clôture...</span> : <><Printer className="w-5 h-5" /> Confirmer & Imprimer Z-Report</>}
                             </button>
-                        </div>
-                    </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
-                    <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
-                        <div className="flex items-center gap-3 mb-4">
-                            <Clock className="w-4 h-4 text-slate-400" />
-                            <span className="text-sm font-bold text-slate-500">Dernières ventes</span>
-                        </div>
-                        <div className="space-y-2">
-                            <div className="flex justify-between text-sm font-bold">
-                                <span className="text-slate-900">{(activeSession?.sales_count || 0)} ventes</span>
-                                <span className="text-blue-600">{(activeSession?.total_sales || 0).toLocaleString()} XOF</span>
-                            </div>
-                            <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                                <div
-                                    ref={progressRef}
-                                    className="h-full bg-blue-500 transition-all duration-500"
-                                />
-                            </div>
-                        </div>
-                    </div>
+            {/* ═══════════════ MAIN LAYOUT ═══════════════ */}
+            <div className="flex-1 grid grid-cols-12 gap-0 min-h-0 overflow-hidden rounded-3xl border border-white/20 shadow-2xl bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur-xl relative">
+
+                {/* ══════ LEFT PANEL: Input ══════ */}
+                <div className="col-span-12 lg:col-span-7 flex flex-col overflow-y-auto z-10">
+                    <POSHeader
+                        profile={profile}
+                        activeTab={activeTab}
+                        setActiveTab={setActiveTab}
+                        isFullscreen={isFullscreen}
+                        toggleFullscreen={toggleFullscreen}
+                        setShowScanner={setShowScanner}
+                        setShowPrinterSettings={setShowPrinterSettings}
+                        setShowCashOp={setShowCashOp}
+                        handlePrepareClose={handlePrepareClose}
+                        activeSession={activeSession}
+                    />
+
+                    {activeTab === "new" ? (
+                        <POSInputSection
+                            formData={formData}
+                            setFormData={setFormData}
+                            realRates={realRates}
+                            currentRate={currentRate}
+                            unitLabel={unitLabel}
+                            dimensions={dimensions}
+                            setDimensions={setDimensions}
+                            adjustValue={adjustValue}
+                            selectedClient={selectedClient}
+                            setSelectedClient={setSelectedClient}
+                            searchQuery={searchQuery}
+                            setSearchQuery={setSearchQuery}
+                            searchResults={searchResults}
+                            setSearchResults={setSearchResults}
+                            setShowQuickClient={setShowQuickClient}
+                        />
+                    ) : (
+                        <POSRetraitSection
+                            codQuery={codQuery}
+                            setCodQuery={setCodQuery}
+                            handleCodSearch={handleCodSearch}
+                            codSearching={codSearching}
+                            setShowScanner={setShowScanner}
+                            codResults={codResults}
+                            selectedShipment={selectedShipment}
+                            setSelectedShipment={setSelectedShipment}
+                            recipientName={recipientName}
+                            setRecipientName={setRecipientName}
+                            codLoading={codLoading}
+                            handleCodConfirm={handleCodConfirm}
+                        />
+                    )}
                 </div>
+
+                {/* ══════ RIGHT PANEL: Summary ══════ */}
+                <POSSummarySide
+                    activeSession={activeSession}
+                    formData={formData}
+                    unitLabel={unitLabel}
+                    unitValue={unitValue}
+                    currentRate={currentRate}
+                    paymentMethod={paymentMethod}
+                    setPaymentMethod={setPaymentMethod}
+                    lastShipment={lastShipment}
+                    selectedClient={selectedClient}
+                    loading={loading}
+                    handleCreateShipment={handleCreateShipment}
+                />
             </div>
         </div>
     );

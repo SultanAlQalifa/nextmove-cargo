@@ -4,7 +4,7 @@
 CREATE OR REPLACE FUNCTION public.is_admin() RETURNS boolean AS $$ BEGIN RETURN EXISTS (
         SELECT 1
         FROM public.profiles
-        WHERE id = auth.uid()
+        WHERE id = (select auth.uid())
             AND role = 'admin'
     );
 END;
@@ -15,12 +15,12 @@ DROP POLICY IF EXISTS "Forwarders can delete their own pending shipments" ON pub
 -- Recreate policies correctly without 'super_admin'
 CREATE POLICY "Forwarders can update their own shipments" ON public.shipments FOR
 UPDATE USING (
-        forwarder_id = auth.uid()
+        forwarder_id = (select auth.uid())
         OR public.is_admin()
     );
 CREATE POLICY "Forwarders can delete their own pending shipments" ON public.shipments FOR DELETE USING (
     (
-        forwarder_id = auth.uid()
+        forwarder_id = (select auth.uid())
         AND status = 'pending'
     )
     OR public.is_admin()

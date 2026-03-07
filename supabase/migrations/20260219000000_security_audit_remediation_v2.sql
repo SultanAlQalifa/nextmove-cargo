@@ -16,23 +16,23 @@ CREATE POLICY "Admins can manage whitelist" ON public.admin_whitelist FOR ALL TO
 DROP POLICY IF EXISTS "Forwarders can view assigned shipments" ON public.shipments;
 CREATE POLICY "Forwarders can view assigned shipments" ON public.shipments FOR
 SELECT TO authenticated USING (
-        auth.uid() = forwarder_id -- Master account
+        (select auth.uid()) = forwarder_id -- Master account
         OR EXISTS (
             -- Staff access
             SELECT 1
             FROM public.profiles
-            WHERE profiles.id = auth.uid()
+            WHERE profiles.id = (select auth.uid())
                 AND profiles.forwarder_id = shipments.forwarder_id
         )
     );
 DROP POLICY IF EXISTS "Forwarders can update assigned shipments" ON public.shipments;
 CREATE POLICY "Forwarders can update assigned shipments" ON public.shipments FOR
 UPDATE TO authenticated USING (
-        auth.uid() = forwarder_id
+        (select auth.uid()) = forwarder_id
         OR EXISTS (
             SELECT 1
             FROM public.profiles
-            WHERE profiles.id = auth.uid()
+            WHERE profiles.id = (select auth.uid())
                 AND profiles.forwarder_id = shipments.forwarder_id
         )
     );
@@ -44,12 +44,12 @@ SELECT TO authenticated USING (
         status IN ('published', 'offers_received', 'offer_accepted')
         AND (
             specific_forwarder_id IS NULL
-            OR specific_forwarder_id = auth.uid()
+            OR specific_forwarder_id = (select auth.uid())
             OR EXISTS (
                 -- Staff access to targeted RFQ
                 SELECT 1
                 FROM public.profiles
-                WHERE profiles.id = auth.uid()
+                WHERE profiles.id = (select auth.uid())
                     AND profiles.forwarder_id = rfq_requests.specific_forwarder_id
             )
         )
@@ -57,7 +57,7 @@ SELECT TO authenticated USING (
             -- Ensure the user is a forwarder OR staff of one
             SELECT 1
             FROM public.profiles
-            WHERE profiles.id = auth.uid()
+            WHERE profiles.id = (select auth.uid())
                 AND (
                     role = 'forwarder'::user_role
                     OR forwarder_id IS NOT NULL
@@ -69,11 +69,11 @@ SELECT TO authenticated USING (
 DROP POLICY IF EXISTS "Forwarders can view own offers" ON public.rfq_offers;
 CREATE POLICY "Forwarders can view own offers" ON public.rfq_offers FOR
 SELECT TO authenticated USING (
-        auth.uid() = forwarder_id
+        (select auth.uid()) = forwarder_id
         OR EXISTS (
             SELECT 1
             FROM public.profiles
-            WHERE profiles.id = auth.uid()
+            WHERE profiles.id = (select auth.uid())
                 AND profiles.forwarder_id = rfq_offers.forwarder_id
         )
     );
@@ -81,11 +81,11 @@ DROP POLICY IF EXISTS "Forwarders can create offers" ON public.rfq_offers;
 CREATE POLICY "Forwarders can create offers" ON public.rfq_offers FOR
 INSERT TO authenticated WITH CHECK (
         (
-            auth.uid() = forwarder_id
+            (select auth.uid()) = forwarder_id
             OR EXISTS (
                 SELECT 1
                 FROM public.profiles
-                WHERE profiles.id = auth.uid()
+                WHERE profiles.id = (select auth.uid())
                     AND profiles.forwarder_id IS NOT NULL -- Simplified staff check for insert
             )
         )
@@ -115,12 +115,12 @@ SELECT TO authenticated USING (
             FROM public.shipments s
             WHERE s.id = shipment_events.shipment_id
                 AND (
-                    s.client_id = auth.uid()
-                    OR s.forwarder_id = auth.uid()
+                    s.client_id = (select auth.uid())
+                    OR s.forwarder_id = (select auth.uid())
                     OR EXISTS (
                         SELECT 1
                         FROM public.profiles p
-                        WHERE p.id = auth.uid()
+                        WHERE p.id = (select auth.uid())
                             AND p.forwarder_id = s.forwarder_id
                     )
                 )
@@ -134,11 +134,11 @@ INSERT TO authenticated WITH CHECK (
             FROM public.shipments s
             WHERE s.id = shipment_events.shipment_id
                 AND (
-                    s.forwarder_id = auth.uid()
+                    s.forwarder_id = (select auth.uid())
                     OR EXISTS (
                         SELECT 1
                         FROM public.profiles p
-                        WHERE p.id = auth.uid()
+                        WHERE p.id = (select auth.uid())
                             AND p.forwarder_id = s.forwarder_id
                     )
                 )

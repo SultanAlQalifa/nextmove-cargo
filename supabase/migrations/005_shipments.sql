@@ -75,16 +75,16 @@ ALTER TABLE shipments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE shipment_events ENABLE ROW LEVEL SECURITY;
 -- Shipments Policies
 CREATE POLICY "Clients can view own shipments" ON shipments FOR
-SELECT USING (auth.uid() = client_id);
+SELECT USING ((select auth.uid()) = client_id);
 CREATE POLICY "Forwarders can view assigned shipments" ON shipments FOR
-SELECT USING (auth.uid() = forwarder_id);
+SELECT USING ((select auth.uid()) = forwarder_id);
 CREATE POLICY "Forwarders can update assigned shipments" ON shipments FOR
-UPDATE USING (auth.uid() = forwarder_id);
+UPDATE USING ((select auth.uid()) = forwarder_id);
 CREATE POLICY "Admins can view all shipments" ON shipments FOR ALL USING (
     EXISTS (
         SELECT 1
         FROM profiles
-        WHERE id = auth.uid()
+        WHERE id = (select auth.uid())
             AND role IN ('admin', 'super-admin')
     )
 );
@@ -96,8 +96,8 @@ SELECT USING (
             FROM shipments s
             WHERE s.id = shipment_events.shipment_id
                 AND (
-                    s.client_id = auth.uid()
-                    OR s.forwarder_id = auth.uid()
+                    s.client_id = (select auth.uid())
+                    OR s.forwarder_id = (select auth.uid())
                 )
         )
     );
@@ -107,14 +107,14 @@ INSERT WITH CHECK (
             SELECT 1
             FROM shipments s
             WHERE s.id = shipment_events.shipment_id
-                AND s.forwarder_id = auth.uid()
+                AND s.forwarder_id = (select auth.uid())
         )
     );
 CREATE POLICY "Admins can manage all events" ON shipment_events FOR ALL USING (
     EXISTS (
         SELECT 1
         FROM profiles
-        WHERE id = auth.uid()
+        WHERE id = (select auth.uid())
             AND role IN ('admin', 'super-admin')
     )
 );

@@ -8,14 +8,14 @@ CREATE OR REPLACE FUNCTION public.get_my_role() RETURNS text LANGUAGE sql SECURI
 SET search_path = public STABLE AS $$
 SELECT role
 FROM profiles
-WHERE id = auth.uid();
+WHERE id = (select auth.uid());
 $$;
 -- 2. Drop the problematic recursive policy
 DROP POLICY IF EXISTS "Strict Profile Visibility" ON profiles;
 -- 3. Recreate the policy using the safe function
 CREATE POLICY "Strict Profile Visibility" ON profiles FOR
 SELECT USING (
-        id = auth.uid() -- Self always sees self
+        id = (select auth.uid()) -- Self always sees self
         OR (
             -- Admins see all (Safe check using Security Definer)
             get_my_role() IN ('admin', 'super-admin')
@@ -34,7 +34,7 @@ SET search_path = public STABLE AS $$
 SELECT EXISTS (
         SELECT 1
         FROM profiles
-        WHERE id = auth.uid()
+        WHERE id = (select auth.uid())
             AND role IN ('admin', 'super-admin')
     );
 $$;

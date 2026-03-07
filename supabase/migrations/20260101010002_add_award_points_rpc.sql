@@ -8,7 +8,7 @@ CREATE OR REPLACE FUNCTION public.award_points(
     ) RETURNS json AS $$
 DECLARE v_new_balance integer;
 BEGIN -- 1. Validate Admin (Optional: handled by RLS but good for safety)
--- In a real scenario, you might check if auth.uid() is an admin here.
+-- In a real scenario, you might check if (select auth.uid()) is an admin here.
 -- 2. Update User Profile
 UPDATE public.profiles
 SET loyalty_points = COALESCE(loyalty_points, 0) + p_amount
@@ -21,7 +21,7 @@ PERFORM public.log_point_transaction(
     p_reason,
     null,
     -- related_id
-    jsonb_build_object('source', p_source, 'admin_id', auth.uid())
+    jsonb_build_object('source', p_source, 'admin_id', (select auth.uid()))
 );
 RETURN json_build_object('success', true, 'new_balance', v_new_balance);
 END;

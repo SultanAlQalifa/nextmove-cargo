@@ -6,7 +6,7 @@ CREATE OR REPLACE FUNCTION is_conversation_participant(conversation_uuid UUID) R
         SELECT 1
         FROM conversation_participants
         WHERE conversation_id = conversation_uuid
-            AND user_id = auth.uid()
+            AND user_id = (select auth.uid())
     );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

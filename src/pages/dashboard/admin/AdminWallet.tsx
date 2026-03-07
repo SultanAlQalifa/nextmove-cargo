@@ -4,17 +4,19 @@ import PageHeader from "../../../components/common/PageHeader";
 import {
     Wallet,
     Search,
-    MoreVertical,
     ArrowUpRight,
     ArrowDownRight,
     CreditCard,
     User,
     Download,
+    XCircle,
+    CheckCircle,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "../../../contexts/ToastContext";
 import { paymentService } from "../../../services/paymentService";
 import { exportToExcel } from "../../../utils/exportUtils";
+import { useSettings } from "../../../contexts/SettingsContext";
 
 interface WalletData {
     id: string;
@@ -32,6 +34,7 @@ interface WalletData {
 
 export default function AdminWallet() {
     const { success, error: showError } = useToast();
+    const { settings } = useSettings();
     const [wallets, setWallets] = useState<WalletData[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
@@ -44,6 +47,10 @@ export default function AdminWallet() {
     const [adjustmentType, setAdjustmentType] = useState<"deposit" | "withdrawal">("deposit");
     const [adjustmentReason, setAdjustmentReason] = useState("");
     const [processing, setProcessing] = useState(false);
+
+    // Improved Error & Success Modal State
+    const [errorModalMessage, setErrorModalMessage] = useState<string | null>(null);
+    const [successModalMessage, setSuccessModalMessage] = useState<string | null>(null);
 
     useEffect(() => {
         fetchWallets();
@@ -81,8 +88,35 @@ export default function AdminWallet() {
 
         const amount = parseFloat(adjustmentAmount);
         if (!amount || amount <= 0) {
-            showError("Montant invalide");
+            setErrorModalMessage("Montant invalide");
             return;
+        }
+
+        const limits = settings?.wallet || {
+            admin_min_deposit: 1000,
+            admin_max_deposit: 5000000,
+            admin_min_withdrawal: 1000,
+            admin_max_withdrawal: 5000000,
+        };
+
+        if (adjustmentType === 'deposit') {
+            if (amount < limits.admin_min_deposit) {
+                setErrorModalMessage(`Le montant minimum de dépôt est de ${new Intl.NumberFormat("fr-XO").format(limits.admin_min_deposit)} FCFA`);
+                return;
+            }
+            if (amount > limits.admin_max_deposit) {
+                setErrorModalMessage(`Le montant maximum de dépôt est de ${new Intl.NumberFormat("fr-XO").format(limits.admin_max_deposit)} FCFA`);
+                return;
+            }
+        } else {
+            if (amount < limits.admin_min_withdrawal) {
+                setErrorModalMessage(`Le montant minimum de retrait est de ${new Intl.NumberFormat("fr-XO").format(limits.admin_min_withdrawal)} FCFA`);
+                return;
+            }
+            if (amount > limits.admin_max_withdrawal) {
+                setErrorModalMessage(`Le montant maximum de retrait est de ${new Intl.NumberFormat("fr-XO").format(limits.admin_max_withdrawal)} FCFA`);
+                return;
+            }
         }
 
         setProcessing(true);
@@ -94,16 +128,22 @@ export default function AdminWallet() {
                 adjustmentReason || "Ajustement manuel admin"
             );
 
-            success("Portefeuille mis à jour avec succès");
+            setSuccessModalMessage("Le portefeuille a été mis à jour avec succès.");
             setIsModalOpen(false);
             fetchWallets(); // Refresh list
 
             // Reset form
             setAdjustmentAmount("");
             setAdjustmentReason("");
-        } catch (err) {
+        } catch (err: any) {
             console.error("Error adjusting wallet:", err);
-            showError("Erreur lors de la mise à jour du portefeuille");
+            // Parse explicit exception messages from the database
+            const errorMessage = err?.message || err?.details || "Erreur lors de la mise à jour du portefeuille";
+
+            // Show custom aesthetic popup instead of standard toast for DB logical errors
+            setErrorModalMessage(errorMessage);
+            // We intentionally do not close the adjustment modal here, so the user can see the error,
+            // dismiss it, and correct their input without starting over.
         } finally {
             setProcessing(false);
         }
@@ -305,58 +345,62 @@ export default function AdminWallet() {
             </motion.div>
 
             {/* Adjustment Modal */}
-            {isModalOpen && selectedWallet && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-                    <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 animate-in hover:scale-[1.01] transition-all">
-                        <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-lg font-bold text-gray-900">Ajustement de Solde</h3>
+            <AnimatePresence>
+                {isModalOpen && selectedWallet && (
+                    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                            className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl max-w-sm w-full p-6 relative overflow-hidden text-center border border-indigo-100 dark:border-indigo-900/30"
+                        >
+                            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-500 to-purple-500"></div>
+
+                            {/* Close Button Top Right */}
                             <button
+                                type="button"
                                 onClick={() => setIsModalOpen(false)}
-                                className="text-gray-400 hover:text-gray-600"
+                                className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                                title="Fermer"
+                                aria-label="Fermer"
                             >
-                                <MoreVertical className="w-5 h-5 rotate-90" /> {/* Using as close icon fallback if X not imported, though X is usually better */}
+                                <XCircle className="w-6 h-6" />
                             </button>
-                        </div>
 
-                        <div className="mb-6 p-4 bg-gray-50 rounded-xl flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center text-xl font-bold text-indigo-600">
-                                {selectedWallet.profiles?.full_name?.charAt(0)}
+                            <div className="mx-auto w-16 h-16 bg-indigo-50 dark:bg-indigo-500/10 rounded-full flex items-center justify-center mb-4 mt-2">
+                                <Wallet className="w-8 h-8 text-indigo-500" />
                             </div>
-                            <div>
-                                <p className="font-medium text-gray-900">{selectedWallet.profiles?.full_name}</p>
-                                <p className="text-sm text-gray-500">Solde actuel: {new Intl.NumberFormat("fr-XO", { style: "currency", currency: selectedWallet.currency }).format(selectedWallet.balance)}</p>
-                            </div>
-                        </div>
 
-                        <form onSubmit={handleAdjustment} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Type d'opération</label>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <h3 className="text-xl font-black text-slate-900 dark:text-white mb-2 tracking-tight">Recharge / Débit</h3>
+                            <p className="text-slate-600 dark:text-slate-400 mb-6 font-medium text-sm">
+                                Portefeuille de <span className="text-indigo-600 dark:text-indigo-400 font-bold">{selectedWallet.profiles?.full_name}</span>
+                                <br />Solde actuel: <span className="font-bold">{new Intl.NumberFormat("fr-XO", { style: "currency", currency: selectedWallet.currency }).format(selectedWallet.balance)}</span>
+                            </p>
+
+                            <form onSubmit={handleAdjustment} className="space-y-4 text-left">
+                                <div className="grid grid-cols-2 gap-3">
                                     <button
                                         type="button"
                                         onClick={() => setAdjustmentType("deposit")}
-                                        className={`p-3 rounded-xl border flex items-center justify-center gap-2 transition-all ${adjustmentType === "deposit"
-                                            ? "bg-green-50 border-green-200 text-green-700 ring-2 ring-green-500/20"
-                                            : "bg-white border-gray-200 hover:bg-gray-50 text-gray-600"
+                                        className={`py-3 rounded-xl border flex flex-col items-center gap-1 transition-all font-bold ${adjustmentType === "deposit"
+                                            ? "bg-emerald-50 border-emerald-500 text-emerald-700 dark:bg-emerald-500/10 dark:border-emerald-500/50 dark:text-emerald-400 ring-2 ring-emerald-500/20 shadow-sm"
+                                            : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-700"
                                             }`}
                                     >
-                                        <ArrowUpRight className="w-4 h-4" /> Créditer
+                                        <ArrowUpRight className="w-5 h-5" /> Créditer
                                     </button>
                                     <button
                                         type="button"
                                         onClick={() => setAdjustmentType("withdrawal")}
-                                        className={`p-3 rounded-xl border flex items-center justify-center gap-2 transition-all ${adjustmentType === "withdrawal"
-                                            ? "bg-red-50 border-red-200 text-red-700 ring-2 ring-red-500/20"
-                                            : "bg-white border-gray-200 hover:bg-gray-50 text-gray-600"
+                                        className={`py-3 rounded-xl border flex flex-col items-center gap-1 transition-all font-bold ${adjustmentType === "withdrawal"
+                                            ? "bg-rose-50 border-rose-500 text-rose-700 dark:bg-rose-500/10 dark:border-rose-500/50 dark:text-rose-400 ring-2 ring-rose-500/20 shadow-sm"
+                                            : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-700"
                                             }`}
                                     >
-                                        <ArrowDownRight className="w-4 h-4" /> Débiter
+                                        <ArrowDownRight className="w-5 h-5" /> Débiter
                                     </button>
                                 </div>
-                            </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Montant</label>
                                 <div className="relative">
                                     <input
                                         type="number"
@@ -365,48 +409,102 @@ export default function AdminWallet() {
                                         required
                                         value={adjustmentAmount}
                                         onChange={(e) => setAdjustmentAmount(e.target.value)}
-                                        className="w-full pl-4 pr-12 py-3 border rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-lg font-medium"
-                                        placeholder="0.00"
+                                        className="w-full pl-4 pr-16 py-3.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 text-center text-xl font-black text-slate-900 dark:text-white outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                                        placeholder="0"
                                     />
-                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">
-                                        {selectedWallet.currency}
+                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 font-bold">
+                                        {selectedWallet.currency || "XOF"}
                                     </span>
                                 </div>
-                            </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Motif</label>
-                                <input
-                                    type="text"
-                                    required
-                                    value={adjustmentReason}
-                                    onChange={(e) => setAdjustmentReason(e.target.value)}
-                                    className="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                                    placeholder="Ex: Correction, Bonus, Remboursement..."
-                                />
-                            </div>
+                                <div>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={adjustmentReason}
+                                        onChange={(e) => setAdjustmentReason(e.target.value)}
+                                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 font-medium text-center text-slate-900 dark:text-white outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                                        placeholder="Motif (ex: Correction)"
+                                    />
+                                </div>
 
-                            <div className="pt-2 flex gap-3">
-                                <button
-                                    type="button"
-                                    onClick={() => setIsModalOpen(false)}
-                                    className="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-gray-700 font-medium hover:bg-gray-50 transition-colors"
-                                    disabled={processing}
-                                >
-                                    Annuler
-                                </button>
                                 <button
                                     type="submit"
                                     disabled={processing}
-                                    className="flex-1 px-4 py-3 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 min-h-[44px]"
+                                    className="w-full mt-2 py-3.5 px-4 bg-gradient-to-r from-indigo-500 hover:from-indigo-600 to-purple-600 hover:to-purple-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/25 transition-all outline-none focus:ring-2 focus:ring-indigo-500/50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                 >
-                                    {processing ? "Traitement..." : "Confirmer"}
+                                    {processing ? (
+                                        <>
+                                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                            <span>Traitement...</span>
+                                        </>
+                                    ) : (
+                                        "Confirmer l'opération"
+                                    )}
                                 </button>
-                            </div>
-                        </form>
+                            </form>
+                        </motion.div>
                     </div>
-                </div>
-            )}
+                )}
+            </AnimatePresence>
+
+            {/* Error Popup Modal */}
+            <AnimatePresence>
+                {errorModalMessage && (
+                    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                            className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl max-w-sm w-full p-6 relative overflow-hidden text-center border border-red-100 dark:border-red-900/30"
+                        >
+                            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-red-500 to-rose-500"></div>
+                            <div className="mx-auto w-16 h-16 bg-red-50 dark:bg-red-500/10 rounded-full flex items-center justify-center mb-4 mt-2">
+                                <XCircle className="w-8 h-8 text-red-500" />
+                            </div>
+                            <h3 className="text-xl font-black text-slate-900 dark:text-white mb-2 tracking-tight">Opération Refusée</h3>
+                            <p className="text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
+                                {errorModalMessage}
+                            </p>
+                            <button
+                                onClick={() => setErrorModalMessage(null)}
+                                className="w-full py-3 px-4 bg-gradient-to-r from-red-500 hover:from-red-600 to-rose-500 hover:to-rose-600 text-white font-bold rounded-xl shadow-lg shadow-red-500/25 transition-all outline-none focus:ring-2 focus:ring-red-500/50"
+                            >
+                                J'ai compris
+                            </button>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Success Popup Modal */}
+            <AnimatePresence>
+                {successModalMessage && (
+                    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                            className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl max-w-sm w-full p-6 relative overflow-hidden text-center border border-emerald-100 dark:border-emerald-900/30"
+                        >
+                            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-emerald-400 to-teal-500"></div>
+                            <div className="mx-auto w-16 h-16 bg-emerald-50 dark:bg-emerald-500/10 rounded-full flex items-center justify-center mb-4 mt-2">
+                                <CheckCircle className="w-8 h-8 text-emerald-500" />
+                            </div>
+                            <h3 className="text-xl font-black text-slate-900 dark:text-white mb-2 tracking-tight">Opération Réussie</h3>
+                            <p className="text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
+                                {successModalMessage}
+                            </p>
+                            <button
+                                onClick={() => setSuccessModalMessage(null)}
+                                className="w-full py-3 px-4 bg-gradient-to-r from-emerald-500 hover:from-emerald-600 to-teal-500 hover:to-teal-600 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/25 transition-all outline-none focus:ring-2 focus:ring-emerald-500/50"
+                            >
+                                Continuer
+                            </button>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

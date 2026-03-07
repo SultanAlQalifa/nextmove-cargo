@@ -14,11 +14,11 @@ CREATE POLICY "Secure Wallet Access" ON public.wallets FOR
 SELECT USING (
         (
             -- Case 1: Owner Access (but NOT if simple admin)
-            auth.uid() = user_id
+            (select auth.uid()) = user_id
             AND EXISTS (
                 SELECT 1
                 FROM public.profiles
-                WHERE id = auth.uid()
+                WHERE id = (select auth.uid())
                     AND role != 'admin' -- Explicitly block 'admin' role even if they own the wallet (though admins shouldn't really use the platform as users usually)
             )
         )
@@ -27,7 +27,7 @@ SELECT USING (
             EXISTS (
                 SELECT 1
                 FROM public.profiles
-                WHERE id = auth.uid()
+                WHERE id = (select auth.uid())
                     AND role = 'super-admin'
             )
         )
@@ -40,12 +40,12 @@ SELECT USING (
             wallet_id IN (
                 SELECT id
                 FROM public.wallets
-                WHERE user_id = auth.uid()
+                WHERE user_id = (select auth.uid())
             )
             AND EXISTS (
                 SELECT 1
                 FROM public.profiles
-                WHERE id = auth.uid()
+                WHERE id = (select auth.uid())
                     AND role != 'admin'
             )
         )
@@ -54,7 +54,7 @@ SELECT USING (
             EXISTS (
                 SELECT 1
                 FROM public.profiles
-                WHERE id = auth.uid()
+                WHERE id = (select auth.uid())
                     AND role = 'super-admin'
             )
         )

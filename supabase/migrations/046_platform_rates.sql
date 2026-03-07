@@ -25,7 +25,7 @@ CREATE POLICY "Admins can manage platform rates" ON platform_rates FOR ALL USING
     EXISTS (
         SELECT 1
         FROM profiles
-        WHERE id = auth.uid()
+        WHERE id = (select auth.uid())
             AND role IN ('admin', 'super-admin')
     )
 );

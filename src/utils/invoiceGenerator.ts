@@ -1,5 +1,5 @@
 import jsPDF from "jspdf";
-import "jspdf-autotable";
+import autoTable from "jspdf-autotable";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
@@ -30,7 +30,7 @@ interface InvoiceData {
   status: string;
 }
 
-export const generateInvoicePDF = (data: InvoiceData) => {
+export const generateInvoicePDF = (data: InvoiceData, returnBlob: boolean = false): Blob | void => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.width;
 
@@ -111,13 +111,12 @@ export const generateInvoicePDF = (data: InvoiceData) => {
   doc.text(`Colis: ${data.shipment.packages}`, pageWidth / 2 + 10, 97);
 
   // --- TABLE ---
-  // @ts-ignore
-  doc.autoTable({
+  autoTable(doc, {
     startY: 110,
     head: [["Description", "Montant"]],
     body: data.items.map((item) => [
       item.description,
-      `${item.amount.toLocaleString("fr-FR")} ${data.currency}`,
+      `${item.amount ? item.amount.toLocaleString("fr-FR") : 0} ${data.currency}`,
     ]),
     theme: "grid",
     headStyles: { fillColor: primaryColor, textColor: 255, fontStyle: "bold" },
@@ -129,8 +128,7 @@ export const generateInvoicePDF = (data: InvoiceData) => {
   });
 
   // --- TOTALS ---
-  // @ts-ignore
-  const finalY = doc.lastAutoTable.finalY + 10;
+  const finalY = (doc as any).lastAutoTable?.finalY ? (doc as any).lastAutoTable.finalY + 10 : 150;
 
   doc.setFontSize(10);
   doc.text("Sous-total:", pageWidth - 60, finalY);
@@ -172,6 +170,12 @@ export const generateInvoicePDF = (data: InvoiceData) => {
     finalY + 45,
   );
 
-  // Save
-  doc.save(`Facture_${data.invoiceNumber}.pdf`);
+  if (returnBlob) {
+    const blob = doc.output("blob");
+    doc.save(`Facture_${data.invoiceNumber}.pdf`);
+    return blob;
+  } else {
+    // Save
+    doc.save(`Facture_${data.invoiceNumber}.pdf`);
+  }
 };

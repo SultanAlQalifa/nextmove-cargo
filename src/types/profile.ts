@@ -14,11 +14,11 @@ export interface AutomationSettings {
     // e.g. ['auto_quote', 'smart_closure']
     admin_disabled: string[];
 }
-
 export interface Profile {
     id: string;
     email: string;
     role: "client" | "forwarder" | "admin" | "driver" | "super-admin" | "support" | "manager" | "supplier";
+    is_tester?: boolean;
     full_name?: string;
     company_name?: string;
     phone?: string;

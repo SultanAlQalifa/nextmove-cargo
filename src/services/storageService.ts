@@ -148,6 +148,31 @@ export const storageService = {
   },
 
   /**
+   * Uploads a POD signature (from base64).
+   */
+  async uploadPODSignature(shipmentId: string, base64Data: string) {
+    if (!base64Data) return null;
+
+    try {
+      // Convert base64 to Blob
+      const response = await fetch(base64Data);
+      const blob = await response.blob();
+      const file = new File([blob], `signature_${Date.now()}.png`, { type: "image/png" });
+
+      const fileName = `signature_${Date.now()}.png`;
+      const filePath = `${shipmentId}/${fileName}`;
+
+      await this.uploadFile("pods", filePath, file);
+
+      const { data } = supabase.storage.from("pods").getPublicUrl(filePath);
+      return data.publicUrl;
+    } catch (err) {
+      console.error("Error in uploadPODSignature:", err);
+      return null;
+    }
+  },
+
+  /**
    * Uploads an APK or IPA file for app distribution.
    */
   async uploadMobileBinary(file: File, platform: "android" | "ios") {

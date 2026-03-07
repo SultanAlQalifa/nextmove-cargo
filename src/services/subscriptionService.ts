@@ -270,6 +270,41 @@ export const subscriptionService = {
       throw new Error("Failed to upgrade account");
     }
   },
+
+  toggleAutoRenew: async (subscriptionId: string, autoRenew: boolean): Promise<void> => {
+    try {
+      const { error } = await supabase
+        .from("user_subscriptions")
+        .update({ auto_renew: autoRenew, updated_at: new Date().toISOString() })
+        .eq("id", subscriptionId);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error("Error toggling auto-renew:", error);
+      throw error;
+    }
+  },
+
+  renewSubscription: async (userId: string, planId: string): Promise<void> => {
+    try {
+      // Deactivate old subscription(s)
+      const { error: deactivateError } = await supabase
+        .from("user_subscriptions")
+        .update({ status: "expired", updated_at: new Date().toISOString() })
+        .eq("user_id", userId)
+        .eq("status", "active");
+
+      if (deactivateError) {
+        console.error("Error deactivating old subscription:", deactivateError);
+      }
+
+      // Create new subscription via existing method
+      await subscriptionService.subscribeToPlan(userId, planId);
+    } catch (error) {
+      console.error("Error renewing subscription:", error);
+      throw error;
+    }
+  },
 };
 
 function mapDbPlanToApp(dbRecord: any): SubscriptionPlan {

@@ -1,7 +1,7 @@
 -- Secure Loyalty Points Column
 -- Prevent users from updating their own loyalty points or tier directly via API
 CREATE OR REPLACE FUNCTION public.protect_loyalty_columns() RETURNS TRIGGER AS $$ BEGIN -- Allow service_role (Edge Functions) and Admins to bypass
-    IF (auth.role() = 'service_role')
+    IF ((select auth.role()) = 'service_role')
     OR (is_admin()) THEN RETURN NEW;
 END IF;
 -- Check if restricted columns are being modified

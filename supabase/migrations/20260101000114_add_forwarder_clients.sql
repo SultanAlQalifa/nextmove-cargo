@@ -11,9 +11,9 @@ ALTER TABLE public.forwarder_clients ENABLE ROW LEVEL SECURITY;
 -- Policies
 -- Forwarders can view their own client list
 CREATE POLICY "Forwarders can view their own clients" ON public.forwarder_clients FOR
-SELECT USING (auth.uid() = forwarder_id);
+SELECT USING ((select auth.uid()) = forwarder_id);
 -- Forwarders can add clients for themselves
 CREATE POLICY "Forwarders can add clients" ON public.forwarder_clients FOR
-INSERT WITH CHECK (auth.uid() = forwarder_id);
+INSERT WITH CHECK ((select auth.uid()) = forwarder_id);
 -- Forwarders can remove clients
-CREATE POLICY "Forwarders can remove clients" ON public.forwarder_clients FOR DELETE USING (auth.uid() = forwarder_id);
+CREATE POLICY "Forwarders can remove clients" ON public.forwarder_clients FOR DELETE USING ((select auth.uid()) = forwarder_id);

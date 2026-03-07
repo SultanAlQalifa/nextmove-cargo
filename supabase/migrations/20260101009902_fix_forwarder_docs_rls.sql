@@ -74,20 +74,20 @@ DROP POLICY IF EXISTS "Admins can manage all documents" ON forwarder_documents;
 -- Create Policies
 -- Policy for Forwarders (View Own)
 CREATE POLICY "Forwarders can view own documents" ON forwarder_documents FOR
-SELECT TO authenticated USING (auth.uid() = forwarder_id);
+SELECT TO authenticated USING ((select auth.uid()) = forwarder_id);
 -- Policy for Forwarders (Insert Own)
 CREATE POLICY "Forwarders can upload own documents" ON forwarder_documents FOR
-INSERT TO authenticated WITH CHECK (auth.uid() = forwarder_id);
+INSERT TO authenticated WITH CHECK ((select auth.uid()) = forwarder_id);
 -- Policy for Forwarders (Update Own - e.g. re-upload)
 CREATE POLICY "Forwarders can update own documents" ON forwarder_documents FOR
-UPDATE TO authenticated USING (auth.uid() = forwarder_id);
+UPDATE TO authenticated USING ((select auth.uid()) = forwarder_id);
 -- Policy for Admins (View ALL) - Critical for Admin Dashboard
 CREATE POLICY "Admins can view all documents" ON forwarder_documents FOR
 SELECT TO authenticated USING (
         EXISTS (
             SELECT 1
             FROM profiles
-            WHERE profiles.id = auth.uid()
+            WHERE profiles.id = (select auth.uid())
                 AND profiles.role IN ('admin', 'super-admin')
         )
     );
@@ -96,7 +96,7 @@ CREATE POLICY "Admins can manage all documents" ON forwarder_documents FOR ALL T
     EXISTS (
         SELECT 1
         FROM profiles
-        WHERE profiles.id = auth.uid()
+        WHERE profiles.id = (select auth.uid())
             AND profiles.role IN ('admin', 'super-admin')
     )
 );

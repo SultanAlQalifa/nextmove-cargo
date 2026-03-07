@@ -16,7 +16,7 @@ CREATE POLICY "Admins can manage secrets" ON public.system_secrets FOR ALL TO au
     EXISTS (
         SELECT 1
         FROM profiles
-        WHERE profiles.id = auth.uid()
+        WHERE profiles.id = (select auth.uid())
             AND profiles.role IN ('admin', 'super-admin')
     )
 );

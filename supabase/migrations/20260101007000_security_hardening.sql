@@ -27,7 +27,7 @@ SELECT USING (
         EXISTS (
             SELECT 1
             FROM public.profiles
-            WHERE id = auth.uid()
+            WHERE id = (select auth.uid())
                 AND role = 'admin'
         )
     );
@@ -38,7 +38,7 @@ END $$;
 -- ───────────────────────────────────────────────────────────────
 CREATE OR REPLACE FUNCTION public.log_security_action() RETURNS TRIGGER AS $$
 DECLARE v_actor_id UUID;
-BEGIN v_actor_id := auth.uid();
+BEGIN v_actor_id := (select auth.uid());
 -- If no authenticated user (e.g. system event), actor_id remains NULL
 INSERT INTO public.security_audit_logs (
         actor_id,
@@ -93,7 +93,7 @@ CREATE TABLE IF NOT EXISTS public.rate_limits (
 ALTER TABLE public.rate_limits ENABLE ROW LEVEL SECURITY;
 -- Helper to check rate limit
 -- Returns TRUE if allowed, FALSE if limited.
--- Usage: IF NOT public.check_rate_limit(auth.uid(), 'create_ticket', 5, 60) THEN RAISE EXCEPTION 'Rate Limit'; END IF;
+-- Usage: IF NOT public.check_rate_limit((select auth.uid()), 'create_ticket', 5, 60) THEN RAISE EXCEPTION 'Rate Limit'; END IF;
 CREATE OR REPLACE FUNCTION public.check_rate_limit(
         p_user_id UUID,
         p_action TEXT,
@@ -127,7 +127,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- 4. ENFORCE RATE LIMITS (TRIGGERS)
 -- ───────────────────────────────────────────────────────────────
 -- Prevent Ticket Spam (Max 5 tickets per 10 minutes)
-CREATE OR REPLACE FUNCTION public.enforce_ticket_rate_limit() RETURNS TRIGGER AS $$ BEGIN IF NOT public.check_rate_limit(auth.uid(), 'create_ticket', 5, 600) THEN RAISE EXCEPTION 'Rate limit exceeded: You are creating tickets too fast. Please wait.';
+CREATE OR REPLACE FUNCTION public.enforce_ticket_rate_limit() RETURNS TRIGGER AS $$ BEGIN IF NOT public.check_rate_limit((select auth.uid()), 'create_ticket', 5, 600) THEN RAISE EXCEPTION 'Rate limit exceeded: You are creating tickets too fast. Please wait.';
 END IF;
 RETURN NEW;
 END;
@@ -136,7 +136,7 @@ DROP TRIGGER IF EXISTS tr_rate_limit_tickets ON public.tickets;
 CREATE TRIGGER tr_rate_limit_tickets BEFORE
 INSERT ON public.tickets FOR EACH ROW EXECUTE FUNCTION public.enforce_ticket_rate_limit();
 -- Prevent RFQ Spam (Max 10 per hour)
-CREATE OR REPLACE FUNCTION public.enforce_rfq_rate_limit() RETURNS TRIGGER AS $$ BEGIN IF NOT public.check_rate_limit(auth.uid(), 'create_rfq', 10, 3600) THEN RAISE EXCEPTION 'Rate limit exceeded: Too many RFQs created recently.';
+CREATE OR REPLACE FUNCTION public.enforce_rfq_rate_limit() RETURNS TRIGGER AS $$ BEGIN IF NOT public.check_rate_limit((select auth.uid()), 'create_rfq', 10, 3600) THEN RAISE EXCEPTION 'Rate limit exceeded: Too many RFQs created recently.';
 END IF;
 RETURN NEW;
 END;

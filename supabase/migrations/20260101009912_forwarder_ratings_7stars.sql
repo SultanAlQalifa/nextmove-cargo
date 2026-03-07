@@ -43,17 +43,17 @@ CREATE POLICY "Reviews are viewable by everyone" ON forwarder_reviews FOR
 SELECT USING (true);
 CREATE POLICY "Clients can create reviews for their shipments" ON forwarder_reviews FOR
 INSERT WITH CHECK (
-        auth.uid() = client_id
+        (select auth.uid()) = client_id
         AND EXISTS (
             SELECT 1
             FROM shipments s
             WHERE s.id = shipment_id
-                AND s.client_id = auth.uid()
+                AND s.client_id = (select auth.uid())
                 AND s.status = 'delivered'
         )
     );
 CREATE POLICY "Clients can update their own reviews" ON forwarder_reviews FOR
-UPDATE USING (auth.uid() = client_id);
+UPDATE USING ((select auth.uid()) = client_id);
 -- 4. Automatic Rating Aggregate Trigger
 CREATE OR REPLACE FUNCTION update_forwarder_rating() RETURNS TRIGGER AS $$ BEGIN -- Update the average rating and count on the forwarder's profile
 UPDATE profiles

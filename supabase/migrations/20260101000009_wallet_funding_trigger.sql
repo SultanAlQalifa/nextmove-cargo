@@ -1,14 +1,17 @@
 -- Trigger to automatically update wallet balance when a DEPOSIT transaction is COMPLETED
 -- This handles deposits via Mobile Money or other gateways
-CREATE OR REPLACE FUNCTION public.update_wallet_balance() RETURNS TRIGGER AS $$ BEGIN -- Only check for COMPLETED transactions that are DEPOSIT (deposits)
-    -- The ENUM value is 'deposit', not 'credit'
-    IF NEW.status = 'completed'
-    AND NEW.type = 'deposit' THEN -- If it's a new record OR status just changed to completed from something else
-    IF (TG_OP = 'INSERT')
-    OR (
-        TG_OP = 'UPDATE'
-        AND OLD.status != 'completed'
-    ) THEN -- Calculate new balance (Add amount)
+CREATE OR REPLACE FUNCTION public.update_wallet_balance() RETURNS TRIGGER AS $$ BEGIN -- Skip if manual transaction from admin (balance is already adjusted by the RPC)
+    IF NEW.method = 'manual' THEN RETURN NEW;
+END IF;
+-- Only check for COMPLETED transactions that are DEPOSIT
+-- The ENUM value is 'deposit', not 'credit'
+IF NEW.status = 'completed'
+AND NEW.type = 'deposit' THEN -- If it's a new record OR status just changed to completed from something else
+IF (TG_OP = 'INSERT')
+OR (
+    TG_OP = 'UPDATE'
+    AND OLD.status != 'completed'
+) THEN -- Calculate new balance (Add amount)
 UPDATE public.wallets
 SET balance = balance + NEW.amount,
     updated_at = now()

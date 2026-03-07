@@ -34,10 +34,10 @@ CREATE INDEX idx_notif_created ON notifications(created_at DESC);
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 -- Users can view their own notifications
 CREATE POLICY "Users can view own notifications" ON notifications FOR
-SELECT USING (auth.uid() = user_id);
+SELECT USING ((select auth.uid()) = user_id);
 -- Users can update their own notifications (mark as read)
 CREATE POLICY "Users can update own notifications" ON notifications FOR
-UPDATE USING (auth.uid() = user_id);
+UPDATE USING ((select auth.uid()) = user_id);
 -- ═══ FUNCTIONS & TRIGGERS ═══
 -- 1. Notify Forwarders on New RFQ
 CREATE OR REPLACE FUNCTION notify_new_rfq() RETURNS TRIGGER AS $$

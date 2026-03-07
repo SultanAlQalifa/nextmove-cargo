@@ -59,7 +59,7 @@ CREATE POLICY "Admins can manage all courses" ON academy_courses FOR ALL USING (
     EXISTS (
         SELECT 1
         FROM profiles
-        WHERE id = auth.uid()
+        WHERE id = (select auth.uid())
             AND role IN ('admin', 'super-admin', 'support', 'manager')
     )
 );
@@ -69,13 +69,13 @@ SELECT USING (
         EXISTS (
             SELECT 1
             FROM academy_enrollments
-            WHERE user_id = auth.uid()
+            WHERE user_id = (select auth.uid())
                 AND course_id = academy_lessons.course_id
         )
         OR EXISTS (
             SELECT 1
             FROM profiles
-            WHERE id = auth.uid()
+            WHERE id = (select auth.uid())
                 AND role IN ('admin', 'super-admin', 'support', 'manager')
         )
     );
@@ -83,18 +83,18 @@ CREATE POLICY "Admins can manage all lessons" ON academy_lessons FOR ALL USING (
     EXISTS (
         SELECT 1
         FROM profiles
-        WHERE id = auth.uid()
+        WHERE id = (select auth.uid())
             AND role IN ('admin', 'super-admin', 'support', 'manager')
     )
 );
 -- Policies for academy_enrollments
 CREATE POLICY "Users can view own enrollments" ON academy_enrollments FOR
-SELECT USING (auth.uid() = user_id);
+SELECT USING ((select auth.uid()) = user_id);
 CREATE POLICY "Admins can manage all enrollments" ON academy_enrollments FOR ALL USING (
     EXISTS (
         SELECT 1
         FROM profiles
-        WHERE id = auth.uid()
+        WHERE id = (select auth.uid())
             AND role IN ('admin', 'super-admin', 'support', 'manager')
     )
 );
@@ -121,7 +121,7 @@ CREATE POLICY "Admin Upload for Academy Content" ON storage.objects FOR ALL TO a
     AND EXISTS (
         SELECT 1
         FROM profiles
-        WHERE id = auth.uid()
+        WHERE id = (select auth.uid())
             AND role IN ('admin', 'super-admin', 'support', 'manager')
     )
 );
@@ -135,7 +135,7 @@ BEGIN -- Get enrollment details
 SELECT p.email,
     p.full_name,
     c.title,
-    auth.uid() INTO v_user_email,
+    (select auth.uid()) INTO v_user_email,
     v_user_name,
     v_course_title,
     v_admin_id

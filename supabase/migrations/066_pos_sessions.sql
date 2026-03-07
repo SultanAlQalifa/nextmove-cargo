@@ -27,5 +27,5 @@ SET NULL;
 ALTER TABLE pos_stations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE pos_sessions ENABLE ROW LEVEL SECURITY;
 -- Policies
-CREATE POLICY "Forwarders can manage their own stations" ON pos_stations FOR ALL USING (forwarder_id = auth.uid());
-CREATE POLICY "Agents can manage their own sessions" ON pos_sessions FOR ALL USING (agent_id = auth.uid());
+CREATE POLICY "Forwarders can manage their own stations" ON pos_stations FOR ALL USING (forwarder_id = (select auth.uid()));
+CREATE POLICY "Agents can manage their own sessions" ON pos_sessions FOR ALL USING (agent_id = (select auth.uid()));

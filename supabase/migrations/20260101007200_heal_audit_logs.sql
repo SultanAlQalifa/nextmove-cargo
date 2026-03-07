@@ -77,7 +77,7 @@ END $$;
 -- 4. Ensure RLS allows insertion for authenticated users
 DROP POLICY IF EXISTS "Authenticated users can insert entries" ON public.audit_logs;
 CREATE POLICY "Authenticated users can insert entries" ON public.audit_logs FOR
-INSERT WITH CHECK (auth.role() = 'authenticated');
+INSERT WITH CHECK ((select auth.role()) = 'authenticated');
 -- 5. Force schema cache refresh (PostgREST)
 -- Typically, any DDL change should trigger a refresh, but 
 -- Supabase might need a explicit reload if it persists.

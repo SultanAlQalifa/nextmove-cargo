@@ -15,19 +15,19 @@ DROP POLICY IF EXISTS "Forwarders can view published RFQs" ON rfq_requests;
 -- 3. Re-create Policies
 -- A. INSERT: Clients can create RFQs where they are the client
 CREATE POLICY "Clients can create RFQs" ON rfq_requests FOR
-INSERT WITH CHECK (auth.uid() = client_id);
+INSERT WITH CHECK ((select auth.uid()) = client_id);
 -- B. SELECT: Clients can view their own RFQs
 CREATE POLICY "Clients can view own RFQs" ON rfq_requests FOR
-SELECT USING (auth.uid() = client_id);
+SELECT USING ((select auth.uid()) = client_id);
 -- C. UPDATE: Clients can update their own DRAFT RFQs
 CREATE POLICY "Clients can update own draft RFQs" ON rfq_requests FOR
 UPDATE USING (
-        auth.uid() = client_id
+        (select auth.uid()) = client_id
         AND status = 'draft'
-    ) WITH CHECK (auth.uid() = client_id);
+    ) WITH CHECK ((select auth.uid()) = client_id);
 -- D. DELETE: Clients can delete their own DRAFT RFQs
 CREATE POLICY "Clients can delete own draft RFQs" ON rfq_requests FOR DELETE USING (
-    auth.uid() = client_id
+    (select auth.uid()) = client_id
     AND status = 'draft'
 );
 -- E. ADMINS: Full access
@@ -43,12 +43,12 @@ SELECT USING (
         status IN ('published', 'offers_received', 'offer_accepted')
         AND (
             specific_forwarder_id IS NULL
-            OR specific_forwarder_id = auth.uid()
+            OR specific_forwarder_id = (select auth.uid())
         )
         AND EXISTS (
             SELECT 1
             FROM profiles
-            WHERE id = auth.uid()
+            WHERE id = (select auth.uid())
                 AND role = 'forwarder'
         )
     );

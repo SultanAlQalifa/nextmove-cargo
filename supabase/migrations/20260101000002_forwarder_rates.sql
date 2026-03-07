@@ -37,7 +37,7 @@ IF NOT EXISTS (
 ALTER TABLE forwarder_rates ENABLE ROW LEVEL SECURITY;
 -- Policies
 -- Forwarders can manage their own rates
-CREATE POLICY "Forwarders manage own rates" ON forwarder_rates KEY (forwarder_id = auth.uid()) WITH CHECK (forwarder_id = auth.uid());
+CREATE POLICY "Forwarders manage own rates" ON forwarder_rates KEY (forwarder_id = (select auth.uid())) WITH CHECK (forwarder_id = (select auth.uid()));
 -- Everyone (logged in) can read rates (for calculation purposes)
 CREATE POLICY "Authenticated users can read" ON forwarder_rates FOR
 SELECT TO authenticated USING (true);

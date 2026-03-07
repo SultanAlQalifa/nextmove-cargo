@@ -29,7 +29,7 @@ CREATE INDEX IF NOT EXISTS idx_tickets_assigned ON tickets(assigned_to);
 ALTER TABLE tickets ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Users can view own tickets" ON tickets;
 CREATE POLICY "Users can view own tickets" ON tickets FOR
-SELECT USING (auth.uid() = user_id);
+SELECT USING ((select auth.uid()) = user_id);
 DROP POLICY IF EXISTS "Staff can view assigned tickets" ON tickets;
 -- FIXED: Removed 'support' from role IN check because profiles.role is an enum with fixed values
 -- Instead, we just check against 'admin' and 'super-admin'
@@ -38,11 +38,11 @@ DROP POLICY IF EXISTS "Staff can view assigned tickets" ON tickets;
 -- For now, allowing 'admin' and 'super-admin' covers the base need.
 CREATE POLICY "Staff can view assigned tickets" ON tickets FOR
 SELECT USING (
-        auth.uid() = assigned_to
+        (select auth.uid()) = assigned_to
         OR EXISTS (
             SELECT 1
             FROM profiles
-            WHERE id = auth.uid()
+            WHERE id = (select auth.uid())
                 AND role IN ('admin', 'super-admin')
         )
     );
@@ -55,14 +55,14 @@ SELECT USING (
             FROM tickets
             WHERE id = ticket_messages.ticket_id
                 AND (
-                    user_id = auth.uid()
-                    OR assigned_to = auth.uid()
+                    user_id = (select auth.uid())
+                    OR assigned_to = (select auth.uid())
                 )
         )
         OR EXISTS (
             SELECT 1
             FROM profiles
-            WHERE id = auth.uid()
+            WHERE id = (select auth.uid())
                 AND role IN ('admin', 'super-admin')
         )
     );

@@ -200,6 +200,9 @@ const AdminPOD = lazy(() => import("./pages/dashboard/admin/AdminPOD"));
 const AdminPersonnel = lazy(
   () => import("./pages/dashboard/admin/AdminPersonnel"),
 );
+const AdminTreeBuilder = lazy(
+  () => import("./pages/dashboard/admin/AdminTreeBuilder"),
+);
 const AdminClients = lazy(() => import("./pages/dashboard/admin/AdminClients"));
 const AdminFees = lazy(() => import("./pages/dashboard/admin/AdminFees"));
 const AdminPlatformRates = lazy(
@@ -238,6 +241,9 @@ const AdminWallet = lazy(
 const PendingCashPayments = lazy(
   () => import("./pages/dashboard/admin/PendingCashPayments"),
 );
+const AdminPOSCashApprovals = lazy(
+  () => import("./pages/dashboard/admin/AdminPOSCashApprovals"),
+);
 const AdminInvoices = lazy(
   () => import("./pages/dashboard/admin/AdminInvoices"),
 );
@@ -252,6 +258,15 @@ const AdminForwarderKYC = lazy(
 );
 const AdminAcademy = lazy(
   () => import("./pages/dashboard/admin/AdminAcademy"),
+);
+const AdminAnalytics = lazy(
+  () => import("./pages/dashboard/admin/AdminAnalytics"),
+);
+const AdminExpenses = lazy(
+  () => import("./pages/dashboard/admin/AdminExpenses"),
+);
+const TesterDashboard = lazy(
+  () => import("./pages/dashboard/tester/TesterDashboard"),
 );
 
 import "./i18n";
@@ -595,6 +610,14 @@ function App() {
                                           element={<AdminLeads />}
                                         />
                                         <Route
+                                          path="admin/analytics"
+                                          element={<AdminAnalytics />}
+                                        />
+                                        <Route
+                                          path="admin/tree"
+                                          element={<AdminTreeBuilder />}
+                                        />
+                                        <Route
                                           path="admin/rfq"
                                           element={<AdminRFQList />}
                                         />
@@ -707,6 +730,10 @@ function App() {
                                           element={<PendingCashPayments />}
                                         />
                                         <Route
+                                          path="admin/cash-approvals"
+                                          element={<AdminPOSCashApprovals />}
+                                        />
+                                        <Route
                                           path="admin/invoices"
                                           element={<AdminInvoices />}
                                         />
@@ -730,7 +757,17 @@ function App() {
                                           path="admin/academy"
                                           element={<AdminAcademy />}
                                         />
+                                        <Route
+                                          path="admin/expenses"
+                                          element={<AdminExpenses />}
+                                        />
                                       </Route>
+
+                                      {/* Tester routes */}
+                                      <Route
+                                        path="tester/dashboard"
+                                        element={<TesterDashboard />}
+                                      />
 
                                       {/* Driver routes */}
                                       <Route

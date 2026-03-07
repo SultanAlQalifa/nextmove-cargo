@@ -12,7 +12,7 @@ CREATE POLICY "Admins can view all events" ON public.shipment_events FOR ALL TO 
     EXISTS (
         SELECT 1
         FROM profiles
-        WHERE profiles.id = auth.uid()
+        WHERE profiles.id = (select auth.uid())
             AND profiles.role IN ('admin', 'super-admin')
     )
 );
@@ -29,7 +29,7 @@ SELECT TO authenticated USING (
             SELECT 1
             FROM public.shipments
             WHERE shipments.id = shipment_events.shipment_id
-                AND shipments.client_id = auth.uid()
+                AND shipments.client_id = (select auth.uid())
         )
     );
 DROP POLICY IF EXISTS "Forwarders can view events for assigned shipments" ON public.shipment_events;
@@ -39,7 +39,7 @@ SELECT TO authenticated USING (
             SELECT 1
             FROM public.shipments
             WHERE shipments.id = shipment_events.shipment_id
-                AND shipments.forwarder_id = auth.uid()
+                AND shipments.forwarder_id = (select auth.uid())
         )
     );
 -- 3. Public Tracking?
@@ -56,7 +56,7 @@ CREATE POLICY "Admins can view all PODs" ON public.proof_of_delivery FOR ALL TO 
     EXISTS (
         SELECT 1
         FROM profiles
-        WHERE profiles.id = auth.uid()
+        WHERE profiles.id = (select auth.uid())
             AND profiles.role IN ('admin', 'super-admin')
     )
 );
@@ -67,7 +67,7 @@ SELECT TO authenticated USING (
             SELECT 1
             FROM public.shipments
             WHERE shipments.id = proof_of_delivery.shipment_id
-                AND shipments.client_id = auth.uid()
+                AND shipments.client_id = (select auth.uid())
         )
     );
 DROP POLICY IF EXISTS "Forwarders can manage PODs for assigned shipments" ON public.proof_of_delivery;
@@ -76,6 +76,6 @@ CREATE POLICY "Forwarders can manage PODs for assigned shipments" ON public.proo
         SELECT 1
         FROM public.shipments
         WHERE shipments.id = proof_of_delivery.shipment_id
-            AND shipments.forwarder_id = auth.uid()
+            AND shipments.forwarder_id = (select auth.uid())
     )
 );

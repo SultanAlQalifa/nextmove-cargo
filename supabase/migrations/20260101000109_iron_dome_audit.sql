@@ -19,7 +19,7 @@ SELECT TO authenticated USING (
         EXISTS (
             SELECT 1
             FROM profiles
-            WHERE profiles.id = auth.uid()
+            WHERE profiles.id = (select auth.uid())
                 AND profiles.role IN ('admin', 'super-admin')
         )
     );
@@ -57,7 +57,7 @@ VALUES (
         TG_OP,
         v_old_data,
         v_new_data,
-        auth.uid() -- Captures the user ID from the current session
+        (select auth.uid()) -- Captures the user ID from the current session
     );
 RETURN NULL;
 -- Result is ignored for AFTER triggers
