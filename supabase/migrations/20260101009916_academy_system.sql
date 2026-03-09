@@ -53,51 +53,104 @@ ALTER TABLE academy_courses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE academy_lessons ENABLE ROW LEVEL SECURITY;
 ALTER TABLE academy_enrollments ENABLE ROW LEVEL SECURITY;
 -- Policies for academy_courses
-CREATE POLICY "Anyone can view published courses" ON academy_courses FOR
+DO $$ BEGIN IF NOT EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE tablename = 'academy_courses'
+        AND policyname = 'Anyone can view published courses'
+) THEN CREATE POLICY "Anyone can view published courses" ON academy_courses FOR
 SELECT USING (status = 'published');
-CREATE POLICY "Admins can manage all courses" ON academy_courses FOR ALL USING (
+END IF;
+IF NOT EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE tablename = 'academy_courses'
+        AND policyname = 'Admins can manage all courses'
+) THEN CREATE POLICY "Admins can manage all courses" ON academy_courses FOR ALL USING (
     EXISTS (
         SELECT 1
         FROM profiles
-        WHERE id = (select auth.uid())
+        WHERE id = (
+                select auth.uid()
+            )
             AND role IN ('admin', 'super-admin', 'support', 'manager')
     )
 );
+END IF;
+END $$;
 -- Policies for academy_lessons
-CREATE POLICY "Students can view lessons of enrolled courses" ON academy_lessons FOR
+DO $$ BEGIN IF NOT EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE tablename = 'academy_lessons'
+        AND policyname = 'Students can view lessons of enrolled courses'
+) THEN CREATE POLICY "Students can view lessons of enrolled courses" ON academy_lessons FOR
 SELECT USING (
         EXISTS (
             SELECT 1
             FROM academy_enrollments
-            WHERE user_id = (select auth.uid())
+            WHERE user_id = (
+                    select auth.uid()
+                )
                 AND course_id = academy_lessons.course_id
         )
         OR EXISTS (
             SELECT 1
             FROM profiles
-            WHERE id = (select auth.uid())
+            WHERE id = (
+                    select auth.uid()
+                )
                 AND role IN ('admin', 'super-admin', 'support', 'manager')
         )
     );
-CREATE POLICY "Admins can manage all lessons" ON academy_lessons FOR ALL USING (
+END IF;
+IF NOT EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE tablename = 'academy_lessons'
+        AND policyname = 'Admins can manage all lessons'
+) THEN CREATE POLICY "Admins can manage all lessons" ON academy_lessons FOR ALL USING (
     EXISTS (
         SELECT 1
         FROM profiles
-        WHERE id = (select auth.uid())
+        WHERE id = (
+                select auth.uid()
+            )
             AND role IN ('admin', 'super-admin', 'support', 'manager')
     )
 );
+END IF;
+END $$;
 -- Policies for academy_enrollments
-CREATE POLICY "Users can view own enrollments" ON academy_enrollments FOR
-SELECT USING ((select auth.uid()) = user_id);
-CREATE POLICY "Admins can manage all enrollments" ON academy_enrollments FOR ALL USING (
+DO $$ BEGIN IF NOT EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE tablename = 'academy_enrollments'
+        AND policyname = 'Users can view own enrollments'
+) THEN CREATE POLICY "Users can view own enrollments" ON academy_enrollments FOR
+SELECT USING (
+        (
+            select auth.uid()
+        ) = user_id
+    );
+END IF;
+IF NOT EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE tablename = 'academy_enrollments'
+        AND policyname = 'Admins can manage all enrollments'
+) THEN CREATE POLICY "Admins can manage all enrollments" ON academy_enrollments FOR ALL USING (
     EXISTS (
         SELECT 1
         FROM profiles
-        WHERE id = (select auth.uid())
+        WHERE id = (
+                select auth.uid()
+            )
             AND role IN ('admin', 'super-admin', 'support', 'manager')
     )
 );
+END IF;
+END $$;
 -- ═══ UPDATED_AT TRIGGER ═══
 CREATE OR REPLACE FUNCTION update_updated_at_column() RETURNS TRIGGER AS $$ BEGIN NEW.updated_at = NOW();
 RETURN NEW;
@@ -114,17 +167,34 @@ UPDATE ON academy_lessons FOR EACH ROW EXECUTE FUNCTION update_updated_at_column
 INSERT INTO storage.buckets (id, name, public)
 VALUES ('academy-content', 'academy-content', true) ON CONFLICT (id) DO NOTHING;
 -- RLS for Storage (simplified for mvp)
-CREATE POLICY "Public Access for Academy Content" ON storage.objects FOR
+DO $$ BEGIN IF NOT EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE tablename = 'objects'
+        AND schemaname = 'storage'
+        AND policyname = 'Public Access for Academy Content'
+) THEN CREATE POLICY "Public Access for Academy Content" ON storage.objects FOR
 SELECT TO public USING (bucket_id = 'academy-content');
-CREATE POLICY "Admin Upload for Academy Content" ON storage.objects FOR ALL TO authenticated USING (
+END IF;
+IF NOT EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE tablename = 'objects'
+        AND schemaname = 'storage'
+        AND policyname = 'Admin Upload for Academy Content'
+) THEN CREATE POLICY "Admin Upload for Academy Content" ON storage.objects FOR ALL TO authenticated USING (
     bucket_id = 'academy-content'
     AND EXISTS (
         SELECT 1
         FROM profiles
-        WHERE id = (select auth.uid())
+        WHERE id = (
+                select auth.uid()
+            )
             AND role IN ('admin', 'super-admin', 'support', 'manager')
     )
 );
+END IF;
+END $$;
 -- ═══ RPC: trigger_academy_reminder ═══
 CREATE OR REPLACE FUNCTION trigger_academy_reminder(enrollment_id UUID) RETURNS VOID AS $$
 DECLARE v_user_email TEXT;
@@ -135,7 +205,9 @@ BEGIN -- Get enrollment details
 SELECT p.email,
     p.full_name,
     c.title,
-    (select auth.uid()) INTO v_user_email,
+    (
+        select auth.uid()
+    ) INTO v_user_email,
     v_user_name,
     v_course_title,
     v_admin_id

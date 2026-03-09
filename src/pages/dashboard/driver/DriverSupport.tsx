@@ -1,15 +1,12 @@
 import { useState } from "react";
 import {
   HelpCircle,
-  MessageSquare,
   Plus,
-  ChevronDown,
-  ChevronUp,
 } from "lucide-react";
 
 export default function DriverSupport() {
   const [activeTab, setActiveTab] = useState<"faq" | "tickets">("faq");
-  const [tickets, setTickets] = useState([
+  const [tickets] = useState([
     {
       id: 1,
       subject: "Problème application GPS",

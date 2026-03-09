@@ -1,14 +1,12 @@
 import { useState, useEffect } from "react";
 import PageHeader from "../../../components/common/PageHeader";
 import {
-  MapPin,
   Plus,
   Search,
   Check,
   X,
   Trash2,
   Globe,
-  AlertCircle,
 } from "lucide-react";
 import { locationService, Location } from "../../../services/locationService";
 import ConfirmationModal from "../../../components/common/ConfirmationModal";

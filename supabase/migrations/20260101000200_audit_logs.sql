@@ -20,12 +20,15 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 );
 -- RLS: Read-only for admins. NO ONE can delete/update logs.
 ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Admins can view audit logs" ON audit_logs;
 CREATE POLICY "Admins can view audit logs" ON audit_logs FOR
 SELECT USING (
         EXISTS (
             SELECT 1
             FROM profiles
-            WHERE id = (select auth.uid())
+            WHERE id = (
+                    select auth.uid()
+                )
                 AND role IN ('admin', 'super-admin')
         )
     );
@@ -35,7 +38,9 @@ DECLARE v_old_data JSONB;
 v_new_data JSONB;
 v_changed_by UUID;
 BEGIN -- Determine User
-v_changed_by := (select auth.uid());
+v_changed_by := (
+    select auth.uid()
+);
 -- Capture Data
 IF (TG_OP = 'UPDATE') THEN v_old_data := to_jsonb(OLD);
 v_new_data := to_jsonb(NEW);
@@ -73,18 +78,12 @@ CREATE TRIGGER audit_profiles_changes
 AFTER
 INSERT
     OR
-UPDATE OF role,
-    staff_role_id,
-    account_status,
-    loyalty_points,
-    tier,
-    wallet_balance ON profiles FOR EACH ROW EXECUTE FUNCTION log_audit_event();
+UPDATE ON profiles FOR EACH ROW EXECUTE FUNCTION log_audit_event();
 -- B. Wallets (Watch the Money 💰)
 DROP TRIGGER IF EXISTS audit_wallets_changes ON wallets;
 CREATE TRIGGER audit_wallets_changes
 AFTER
-UPDATE OF balance,
-    frozen_balance ON wallets FOR EACH ROW EXECUTE FUNCTION log_audit_event();
+UPDATE ON wallets FOR EACH ROW EXECUTE FUNCTION log_audit_event();
 -- C. System Settings (Watch Config Changes)
 DROP TRIGGER IF EXISTS audit_settings_changes ON system_settings;
 CREATE TRIGGER audit_settings_changes

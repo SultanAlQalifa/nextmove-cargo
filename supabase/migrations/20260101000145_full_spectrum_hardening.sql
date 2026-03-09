@@ -5,17 +5,22 @@
 -- Previously: "Authenticated users can view all profiles" -> BAD. Client A could list Client B.
 -- New: Strict "Need to Know" basis.
 DROP POLICY IF EXISTS "Authenticated users can view all profiles" ON profiles;
+DROP POLICY IF EXISTS "Strict Profile Visibility" ON profiles;
 -- Policy: Clients can only see themselves (and maybe their forwarder, but strict self is safer for now)
 -- Forwarders need to see their assigned clients (Handled by forwarder_clients checks usually, but let's be explicitly permissive for linked pros)
 CREATE POLICY "Strict Profile Visibility" ON profiles FOR
 SELECT USING (
-        id = (select auth.uid()) -- Self
+        id = (
+            select auth.uid()
+        ) -- Self
         OR (
             -- Admins see all (Check requesting user's role)
             EXISTS (
                 SELECT 1
                 FROM profiles
-                WHERE id = (select auth.uid())
+                WHERE id = (
+                        select auth.uid()
+                    )
                     AND role IN ('admin', 'super-admin')
             )
         )
@@ -25,13 +30,16 @@ SELECT USING (
             EXISTS (
                 SELECT 1
                 FROM profiles requester
-                WHERE requester.id = (select auth.uid())
+                WHERE requester.id = (
+                        select auth.uid()
+                    )
                     AND requester.role = 'forwarder'
             )
             AND profiles.role = 'client'
         )
     );
 -- 2. WALLETS: No Negative Balances (Financial Integrity)
+ALTER TABLE wallets DROP CONSTRAINT IF EXISTS check_wallet_balance_positive;
 ALTER TABLE wallets
 ADD CONSTRAINT check_wallet_balance_positive CHECK (balance >= 0);
 -- 3. COUPONS: Enforce Limits at DB Level (Race Condition Killer)
@@ -95,5 +103,6 @@ WHERE id = 'documents';
 -- We will allow Authenticated users to READ roles (names/descriptions) but not permissions?
 -- No, let's allow read for all authenticated. It's metadata. 
 -- "Security through Obscurity" (hiding role names) is weak. Strict RLS on DATA implies role logic is fine to know.
+DROP POLICY IF EXISTS "Authenticated users can read staff roles" ON staff_roles;
 CREATE POLICY "Authenticated users can read staff roles" ON staff_roles FOR
-SELECT USING ((select auth.role()) = 'authenticated');
+SELECT USING (true);

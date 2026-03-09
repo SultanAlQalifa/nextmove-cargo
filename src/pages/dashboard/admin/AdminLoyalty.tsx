@@ -10,8 +10,6 @@ import {
   Gift,
   Sliders,
   Activity,
-  ArrowUpRight,
-  ArrowDownRight,
   Star,
   Settings
 } from "lucide-react";

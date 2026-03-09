@@ -1,4 +1,4 @@
-import { Mail, MapPin, Phone, Send } from "lucide-react";
+import { Mail, MapPin, Phone, Send, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useBranding } from "../contexts/BrandingContext";
 import { useToast } from "../contexts/ToastContext";
@@ -247,17 +247,22 @@ export default function Contact() {
                 <div className="pt-6">
                   <button
                     type="submit"
-                    className="w-full flex items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-blue-600 to-blue-700 px-8 py-5 text-center text-lg font-bold text-white shadow-xl shadow-blue-600/30 hover:from-blue-500 hover:to-blue-600 hover:-translate-y-1 hover:shadow-blue-600/40 transition-all duration-300 min-h-[44px]"
+                    disabled={loading}
+                    className="w-full flex items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-blue-600 to-blue-700 px-8 py-5 text-center text-lg font-bold text-white shadow-xl shadow-blue-600/30 hover:from-blue-500 hover:to-blue-600 hover:-translate-y-1 hover:shadow-blue-600/40 transition-all duration-300 min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <Send className="w-6 h-6" />
-                    Envoyer le message
+                    {loading ? (
+                      <Loader2 className="w-6 h-6 animate-spin" />
+                    ) : (
+                      <Send className="w-6 h-6" />
+                    )}
+                    {loading ? "Envoi en cours..." : "Envoyer le message"}
                   </button>
                 </div>
               </form>
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 }

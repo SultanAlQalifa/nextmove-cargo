@@ -83,20 +83,24 @@ INSERT INTO public.tester_missions (title, description, link, points_reward)
 VALUES (
         'Première Connexion',
         'Explorez votre nouveau dashboard de testeur.',
-        '/dashboard'
+        '/dashboard',
+        100
     ),
     (
         'Simuler une Expédition',
         'Utilisez le formulaire pour créer une expédition fictive.',
-        '/dashboard/client/create-shipment'
+        '/dashboard/client/create-shipment',
+        200
     ),
     (
         'Vérifier vos Points',
         'Consultez votre centre de test pour voir vos points earnés.',
-        '/dashboard/tester/dashboard'
+        '/dashboard/tester/dashboard',
+        50
     ),
     (
         'Laisser un Avis',
         'Envoyez un feedback via le centre de test.',
-        '/dashboard/tester/dashboard'
+        '/dashboard/tester/dashboard',
+        150
     ) ON CONFLICT DO NOTHING;

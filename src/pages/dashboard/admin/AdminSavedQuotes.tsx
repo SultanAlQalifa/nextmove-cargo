@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { savedQuotesService, SavedQuote } from "../../../services/savedQuotesService";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
-import { Search, Filter, Trash2, Eye, Truck, Ship, Plane } from "lucide-react";
+import { Search, Trash2, Truck, Ship, Plane } from "lucide-react";
 import { showNotification } from "../../../components/common/NotificationToast";
 import LoadingSpinner from "../../../components/common/LoadingSpinner";
 

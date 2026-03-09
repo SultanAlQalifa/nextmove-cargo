@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X, Save, AlertCircle } from "lucide-react";
+import { X, Save } from "lucide-react";
 import { shipmentService, Shipment } from "../../services/shipmentService";
 import { useToast } from "../../contexts/ToastContext";
 import { useCurrency } from "../../contexts/CurrencyContext";
@@ -120,7 +120,7 @@ export default function EditShipmentModal({
               <select
                 value={formData.status}
                 onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, status: e.target.value }))
+                  setFormData((prev: any) => ({ ...prev, status: e.target.value }))
                 }
                 className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-primary/20 outline-none"
                 aria-label="Statut de l'expédition"
@@ -142,7 +142,7 @@ export default function EditShipmentModal({
                 type="text"
                 value={formData.carrier_name}
                 onChange={(e) =>
-                  setFormData((prev) => ({
+                  setFormData((prev: any) => ({
                     ...prev,
                     carrier_name: e.target.value,
                   }))
@@ -165,7 +165,7 @@ export default function EditShipmentModal({
                 type="date"
                 value={formData.departure_date}
                 onChange={(e) =>
-                  setFormData((prev) => ({
+                  setFormData((prev: any) => ({
                     ...prev,
                     departure_date: e.target.value,
                   }))
@@ -183,7 +183,7 @@ export default function EditShipmentModal({
                 type="date"
                 value={formData.arrival_estimated_date}
                 onChange={(e) =>
-                  setFormData((prev) => ({
+                  setFormData((prev: any) => ({
                     ...prev,
                     arrival_estimated_date: e.target.value,
                   }))
@@ -201,7 +201,7 @@ export default function EditShipmentModal({
                 type="date"
                 value={formData.arrival_actual_date}
                 onChange={(e) =>
-                  setFormData((prev) => ({
+                  setFormData((prev: any) => ({
                     ...prev,
                     arrival_actual_date: e.target.value,
                   }))
@@ -259,7 +259,7 @@ export default function EditShipmentModal({
                   type="number"
                   value={formData.cargo_packages}
                   onChange={(e) =>
-                    setFormData((prev) => ({
+                    setFormData((prev: any) => ({
                       ...prev,
                       cargo_packages: e.target.value,
                     }))
@@ -277,7 +277,7 @@ export default function EditShipmentModal({
                   type="text"
                   value={formData.cargo_type}
                   onChange={(e) =>
-                    setFormData((prev) => ({
+                    setFormData((prev: any) => ({
                       ...prev,
                       cargo_type: e.target.value,
                     }))
@@ -299,7 +299,7 @@ export default function EditShipmentModal({
               type="number"
               value={formData.price}
               onChange={(e) =>
-                setFormData((prev) => ({ ...prev, price: e.target.value }))
+                setFormData((prev: any) => ({ ...prev, price: e.target.value }))
               }
               className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-primary/20 outline-none"
               aria-label="Prix total de l'expédition"

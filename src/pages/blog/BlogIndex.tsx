@@ -1,9 +1,10 @@
 import { Newspaper, Calendar, ArrowRight, Tag } from "lucide-react";
 import PageHeader from "../../components/common/PageHeader";
 import { Link } from "react-router-dom";
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { blogService, BlogPost } from "../../services/blogService";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
+import NewsletterModal from "../../components/marketing/NewsletterModal";
 
 export default function BlogIndex() {
     const [isNewsletterOpen, setIsNewsletterOpen] = useState(false);

@@ -184,7 +184,7 @@ export default function AdminFundCalls() {
     setActiveMenu(null);
   };
 
-  const handleApproveConfirm = async (id: string, details: ApprovalDetails) => {
+  const handleApproveConfirm = async (id: string, _details: ApprovalDetails) => {
     try {
       // Validate High Value Security
       const call = fundCalls.find(c => c.id === id);

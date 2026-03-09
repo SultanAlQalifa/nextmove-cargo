@@ -2,15 +2,12 @@ import { useState, useEffect } from "react";
 import PageHeader from "../../../components/common/PageHeader";
 import {
   FileCheck,
-  CheckCircle,
-  XCircle,
   Eye,
   Download,
   Search,
   Calendar,
   X,
   Filter,
-  Upload,
 } from "lucide-react";
 import { podService, POD } from "../../../services/podService";
 import PODDetailsModal from "../../../components/admin/PODDetailsModal";
@@ -174,11 +171,10 @@ export default function ForwarderPOD() {
               onClick={() => setTimeRange(period.id as any)}
               className={`
                                 px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2
-                                ${
-                                  timeRange === period.id
-                                    ? "bg-white text-gray-900 shadow-sm"
-                                    : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
-                                }
+                                ${timeRange === period.id
+                  ? "bg-white text-gray-900 shadow-sm"
+                  : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+                }
                             `}
               title={
                 period.id === "custom" ? "Période personnalisée" : undefined
@@ -202,6 +198,8 @@ export default function ForwarderPOD() {
                 })
               }
               className="pl-2 pr-1 py-1 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary w-28"
+              aria-label="Date de début"
+              title="Date de début"
             />
             <span className="text-gray-400">-</span>
             <input
@@ -211,6 +209,8 @@ export default function ForwarderPOD() {
                 setCustomDateRange({ ...customDateRange, end: e.target.value })
               }
               className="pl-2 pr-1 py-1 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary w-28"
+              aria-label="Date de fin"
+              title="Date de fin"
             />
           </div>
         )}
@@ -224,6 +224,8 @@ export default function ForwarderPOD() {
             value={filter}
             onChange={(e) => setFilter(e.target.value as any)}
             className="pl-9 pr-8 py-2 bg-gray-50 border border-transparent hover:bg-white hover:border-gray-200 rounded-xl text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all appearance-none cursor-pointer min-w-[140px]"
+            aria-label="Filtrer par statut"
+            title="Filtrer par statut"
           >
             <option value="all">Tous les statuts</option>
             <option value="pending">En attente</option>
@@ -263,6 +265,7 @@ export default function ForwarderPOD() {
             <button
               onClick={() => setSearchTerm("")}
               className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
+              title="Effacer la recherche"
             >
               <X className="w-3 h-3" />
             </button>
@@ -371,8 +374,8 @@ export default function ForwarderPOD() {
         pod={selectedPOD}
         // Forwarders cannot verify/reject, so we pass no-op or hide buttons in modal via props if supported
         // Assuming modal handles missing onVerify/onReject gracefully or we pass dummy functions that alert
-        onVerify={() => {}}
-        onReject={() => {}}
+        onVerify={async (_id: string) => { }}
+        onReject={async (_id: string) => { }}
         isReadOnly={true} // Assuming we might need to add this prop to the modal to hide actions
       />
     </div>

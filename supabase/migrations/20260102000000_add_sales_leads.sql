@@ -17,13 +17,19 @@ SELECT USING (
         EXISTS (
             SELECT 1
             FROM public.profiles
-            WHERE profiles.id = (select auth.uid())
+            WHERE profiles.id = (
+                    select auth.uid()
+                )
                 AND profiles.role = 'admin'
         )
     );
 -- Users can only see their own (though they usually won't see this table directly)
 CREATE POLICY "Users can view their own leads" ON public.sales_leads FOR
-SELECT USING ((select auth.uid()) = user_id);
+SELECT USING (
+        (
+            select auth.uid()
+        ) = user_id
+    );
 -- Anyone (authenticated or not) can create a lead via RPC
 CREATE OR REPLACE FUNCTION public.create_sales_lead(
         p_query TEXT,
@@ -32,7 +38,13 @@ CREATE OR REPLACE FUNCTION public.create_sales_lead(
 DECLARE v_lead_id UUID;
 BEGIN
 INSERT INTO public.sales_leads (user_id, query, metadata)
-VALUES ((select auth.uid()), p_query, p_metadata)
+VALUES (
+        (
+            select auth.uid()
+        ),
+        p_query,
+        p_metadata
+    )
 RETURNING id INTO v_lead_id;
 RETURN v_lead_id;
 END;
@@ -40,6 +52,12 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- Grant access to RPC
 GRANT EXECUTE ON FUNCTION public.create_sales_lead(TEXT, JSONB) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.create_sales_lead(TEXT, JSONB) TO anon;
+-- Ensure the projection's standard update function exists
+CREATE OR REPLACE FUNCTION public.update_updated_at_column() RETURNS TRIGGER AS $$ BEGIN NEW.updated_at = NOW();
+RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 -- Trigger updated_at
+DROP TRIGGER IF EXISTS handle_updated_at_sales_leads ON public.sales_leads;
 CREATE TRIGGER handle_updated_at_sales_leads BEFORE
-UPDATE ON public.sales_leads FOR EACH ROW EXECUTE FUNCTION moddatetime (updated_at);
+UPDATE ON public.sales_leads FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();

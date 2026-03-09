@@ -6,8 +6,10 @@
 CREATE OR REPLACE FUNCTION public.is_admin() RETURNS boolean AS $$ BEGIN RETURN EXISTS (
         SELECT 1
         FROM public.users
-        WHERE id = (select auth.uid())
-            AND role IN ('admin', 'super_admin')
+        WHERE id = (
+                select auth.uid()
+            )
+            AND role IN ('admin', 'super-admin')
     );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -16,19 +18,25 @@ ALTER TABLE public.tickets ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Users can view their own tickets" ON public.tickets;
 CREATE POLICY "Users can view their own tickets" ON public.tickets FOR
 SELECT USING (
-        user_id = (select auth.uid())
+        user_id = (
+            select auth.uid()
+        )
         OR public.is_admin()
     );
 DROP POLICY IF EXISTS "Users can create tickets" ON public.tickets;
 CREATE POLICY "Users can create tickets" ON public.tickets FOR
 INSERT WITH CHECK (
-        user_id = (select auth.uid())
+        user_id = (
+            select auth.uid()
+        )
         OR public.is_admin()
     );
 DROP POLICY IF EXISTS "Users can update their own tickets" ON public.tickets;
 CREATE POLICY "Users can update their own tickets" ON public.tickets FOR
 UPDATE USING (
-        user_id = (select auth.uid())
+        user_id = (
+            select auth.uid()
+        )
         OR public.is_admin()
     );
 -- 2. TICKET MESSAGES
@@ -40,7 +48,9 @@ SELECT USING (
             SELECT 1
             FROM public.tickets
             WHERE id = ticket_messages.ticket_id
-                AND user_id = (select auth.uid())
+                AND user_id = (
+                    select auth.uid()
+                )
         )
         OR public.is_admin()
     );
@@ -51,7 +61,9 @@ INSERT WITH CHECK (
             SELECT 1
             FROM public.tickets
             WHERE id = ticket_messages.ticket_id
-                AND user_id = (select auth.uid())
+                AND user_id = (
+                    select auth.uid()
+                )
         )
         OR public.is_admin()
     );
@@ -60,7 +72,9 @@ ALTER TABLE public.invoices ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Users can view their own invoices" ON public.invoices;
 CREATE POLICY "Users can view their own invoices" ON public.invoices FOR
 SELECT USING (
-        user_id = (select auth.uid())
+        user_id = (
+            select auth.uid()
+        )
         OR public.is_admin()
     );
 DROP POLICY IF EXISTS "Admins can manage invoices" ON public.invoices;
@@ -74,7 +88,9 @@ SELECT USING (
             SELECT 1
             FROM public.wallets
             WHERE id = transactions.wallet_id
-                AND user_id = (select auth.uid())
+                AND user_id = (
+                    select auth.uid()
+                )
         )
         OR public.is_admin()
     );
@@ -91,13 +107,17 @@ ALTER TABLE public.coupon_usages ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Users can view their own coupon usages" ON public.coupon_usages;
 CREATE POLICY "Users can view their own coupon usages" ON public.coupon_usages FOR
 SELECT USING (
-        user_id = (select auth.uid())
+        user_id = (
+            select auth.uid()
+        )
         OR public.is_admin()
     );
 DROP POLICY IF EXISTS "Users can create coupon usages" ON public.coupon_usages;
 CREATE POLICY "Users can create coupon usages" ON public.coupon_usages FOR
 INSERT WITH CHECK (
-        user_id = (select auth.uid())
+        user_id = (
+            select auth.uid()
+        )
         OR public.is_admin()
     );
 -- 6. SYSTEM PLATFORM CONFIGS
@@ -130,13 +150,17 @@ ALTER TABLE public.shipment_documents ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Users can view documents" ON public.shipment_documents;
 CREATE POLICY "Users can view documents" ON public.shipment_documents FOR
 SELECT USING (
-        uploaded_by = (select auth.uid())
+        uploaded_by = (
+            select auth.uid()
+        )
         OR public.is_admin()
     );
 DROP POLICY IF EXISTS "Users can upload documents" ON public.shipment_documents;
 CREATE POLICY "Users can upload documents" ON public.shipment_documents FOR
 INSERT WITH CHECK (
-        uploaded_by = (select auth.uid())
+        uploaded_by = (
+            select auth.uid()
+        )
         OR public.is_admin()
     );
 -- 8. SAVED QUOTES (Modified to not clash with 20251222000002_create_saved_quotes.sql)
@@ -146,7 +170,9 @@ ALTER TABLE public.saved_quotes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.forwarder_rates ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Forwarders manage their own rates" ON public.forwarder_rates;
 CREATE POLICY "Forwarders manage their own rates" ON public.forwarder_rates FOR ALL USING (
-    forwarder_id = (select auth.uid())
+    forwarder_id = (
+        select auth.uid()
+    )
     OR public.is_admin()
 );
 DROP POLICY IF EXISTS "Users can view active forwarder rates" ON public.forwarder_rates;
@@ -173,7 +199,9 @@ ALTER TABLE public.user_subscriptions ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Users view own subscriptions" ON public.user_subscriptions;
 CREATE POLICY "Users view own subscriptions" ON public.user_subscriptions FOR
 SELECT USING (
-        user_id = (select auth.uid())
+        user_id = (
+            select auth.uid()
+        )
         OR public.is_admin()
     );
 DROP POLICY IF EXISTS "Admins manage subscriptions" ON public.user_subscriptions;
@@ -196,7 +224,9 @@ CREATE POLICY "Forwarders manage their pods" ON public.pods FOR ALL USING (
         SELECT 1
         FROM shipments
         WHERE id = pods.shipment_id
-            AND forwarder_id = (select auth.uid())
+            AND forwarder_id = (
+                select auth.uid()
+            )
     )
     OR public.is_admin()
 );
@@ -207,7 +237,9 @@ SELECT USING (
             SELECT 1
             FROM shipments
             WHERE id = pods.shipment_id
-                AND client_id = (select auth.uid())
+                AND client_id = (
+                    select auth.uid()
+                )
         )
         OR public.is_admin()
     );
@@ -219,18 +251,24 @@ ALTER TABLE public.pos_sessions ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Agents view their own POS sessions" ON public.pos_sessions;
 CREATE POLICY "Agents view their own POS sessions" ON public.pos_sessions FOR
 SELECT USING (
-        agent_id = (select auth.uid())
+        agent_id = (
+            select auth.uid()
+        )
         OR public.is_admin()
     );
 DROP POLICY IF EXISTS "Agents create POS sessions" ON public.pos_sessions;
 CREATE POLICY "Agents create POS sessions" ON public.pos_sessions FOR
 INSERT WITH CHECK (
-        agent_id = (select auth.uid())
+        agent_id = (
+            select auth.uid()
+        )
         OR public.is_admin()
     );
 DROP POLICY IF EXISTS "Agents update their own POS sessions" ON public.pos_sessions;
 CREATE POLICY "Agents update their own POS sessions" ON public.pos_sessions FOR
 UPDATE USING (
-        agent_id = (select auth.uid())
+        agent_id = (
+            select auth.uid()
+        )
         OR public.is_admin()
     );

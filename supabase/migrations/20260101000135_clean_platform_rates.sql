@@ -50,4 +50,5 @@ VALUES -- Sea Standard: 52,500 FCFA (approx 80 EUR)
     ),
     -- Air Express: 10,000 FCFA (approx 15 EUR)
     ('air', 'express', 10000, 'XOF', 1, 3, 0.10, 'kg');
-RAISE NOTICE '✅ Clean Platform Rates inserted (XOF Standards).';
+DO $$ BEGIN RAISE NOTICE '✅ Clean Platform Rates inserted (XOF Standards).';
+END $$;

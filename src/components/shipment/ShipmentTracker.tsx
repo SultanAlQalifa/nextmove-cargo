@@ -10,12 +10,12 @@ import {
 
 interface ShipmentTrackerProps {
   status:
-    | "pending"
-    | "picked_up"
-    | "in_transit"
-    | "customs"
-    | "delivered"
-    | "cancelled";
+  | "pending"
+  | "picked_up"
+  | "in_transit"
+  | "customs"
+  | "delivered"
+  | "cancelled";
   className?: string;
 }
 
@@ -79,7 +79,7 @@ export default function ShipmentTracker({
           className={`absolute top-5 left-0 h-1 bg-green-500 rounded-full -z-10 transition-all duration-1000 ${getProgressWidthClass()}`}
         />
 
-        {steps.map((step, index) => {
+        {steps.map((step, _index) => {
           const stepStatus = getStepStatus(step.id);
           const Icon = step.icon;
           const isCompleted = stepStatus === "completed";
@@ -103,13 +103,12 @@ export default function ShipmentTracker({
               </div>
               <div className="mt-3 text-center">
                 <p
-                  className={`text-xs font-bold transition-colors duration-300 ${
-                    isCurrent
+                  className={`text-xs font-bold transition-colors duration-300 ${isCurrent
                       ? "text-blue-600"
                       : isCompleted
                         ? "text-green-600"
                         : "text-gray-400"
-                  }`}
+                    }`}
                 >
                   {step.label}
                 </p>

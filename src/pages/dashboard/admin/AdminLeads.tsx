@@ -9,7 +9,6 @@ import {
     Send,
     MessageSquare,
     Zap,
-    ArrowRight,
     Heart
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -125,6 +124,7 @@ export default function AdminLeads() {
             case 'contacted': return 'bg-amber-50 text-amber-600 border-amber-100';
             case 'converted': return 'bg-emerald-50 text-emerald-600 border-emerald-100';
             case 'closed': return 'bg-slate-50 text-slate-600 border-slate-100';
+            default: return 'bg-gray-50 text-gray-600 border-gray-100';
         }
     };
 
@@ -134,6 +134,7 @@ export default function AdminLeads() {
             case 'contacted': return 'Contacté';
             case 'converted': return 'Converti';
             case 'closed': return 'Fermé';
+            default: return 'Inconnu';
         }
     };
 

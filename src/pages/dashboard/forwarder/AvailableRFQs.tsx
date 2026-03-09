@@ -13,7 +13,7 @@ import {
   Eye, // Added Icon
 } from "lucide-react";
 import { useDataSync } from "../../../contexts/DataSyncContext";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 export default function AvailableRFQs() {
   const navigate = useNavigate();

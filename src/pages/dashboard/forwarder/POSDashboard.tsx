@@ -1,10 +1,10 @@
 import { useState, useEffect, useMemo } from "react";
 import {
-    LayoutDashboard,
-    LogOut,
-    Plus,
     X,
-    FolderSync
+    Clock,
+    Smartphone,
+    AlertCircle,
+    Printer
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { QRCodeSVG } from "qrcode.react";

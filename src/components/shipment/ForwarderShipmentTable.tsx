@@ -1,7 +1,5 @@
 import { Shipment } from "../../services/shipmentService";
 import {
-  MoreHorizontal,
-  MapPin,
   Calendar,
   Package,
   ArrowRight,

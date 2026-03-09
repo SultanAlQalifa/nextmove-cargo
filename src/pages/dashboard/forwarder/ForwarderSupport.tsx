@@ -2,8 +2,6 @@ import { useState, useEffect } from "react";
 import PageHeader from "../../../components/common/PageHeader";
 import {
   MessageSquare,
-  Search,
-  Filter,
   MoreVertical,
   Eye,
   CheckCircle,
@@ -295,6 +293,7 @@ export default function ForwarderSupport() {
                             );
                           }}
                           className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                          title="Menu d'actions"
                         >
                           <MoreVertical className="w-4 h-4 text-gray-400" />
                         </button>

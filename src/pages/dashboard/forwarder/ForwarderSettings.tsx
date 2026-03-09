@@ -19,7 +19,6 @@ import {
   Clock,
   Eye,
   CreditCard,
-  Star,
   Check,
   Anchor,
   Send,
@@ -35,6 +34,7 @@ import {
 import PaymentModal from "../../../components/payment/PaymentModal";
 import KYCBadge from "../../../components/common/KYCBadge";
 import TransportBadge from "../../../components/common/TransportBadge";
+import { formatCurrency } from "../../../utils/currencyFormatter";
 
 
 type SettingsTab =
@@ -185,7 +185,12 @@ export default function ForwarderSettings() {
         }
       } else if (activeTab === "notifications") {
         if (!user) return;
-        const currentSettings = userProfile?.automation_settings || { admin_disabled: [] };
+        const currentSettings = userProfile?.automation_settings || {
+          auto_quote_enabled: false,
+          smart_closure_enabled: false,
+          delivery_feedback_enabled: false,
+          admin_disabled: [] as string[]
+        };
         await profileService.updateAutomationSettings(user.id, {
           ...currentSettings,
           email_enabled: notifications.email_enabled,
@@ -900,7 +905,7 @@ export default function ForwarderSettings() {
                         </span>
                         {currentSubscription?.plan && (
                           <span className="text-gray-400 text-sm">
-                            Expire le {new Date(currentSubscription.current_period_end).toLocaleDateString()}
+                            Expire le {new Date(currentSubscription.end_date).toLocaleDateString()}
                           </span>
                         )}
                       </div>
@@ -909,7 +914,7 @@ export default function ForwarderSettings() {
                       </h3>
                       <p className="text-gray-400">
                         {currentSubscription?.plan
-                          ? `Plan ${currentSubscription.plan.interval === 'month' ? 'Mensuel' : 'Annuel'}`
+                          ? `Plan ${currentSubscription.plan.billing_cycle === 'monthly' ? 'Mensuel' : 'Annuel'}`
                           : "Souscrivez à un plan pour accéder aux fonctionnalités avancées."}
                       </p>
                     </div>
@@ -967,14 +972,14 @@ export default function ForwarderSettings() {
                               <h5 className="font-bold text-lg text-gray-900 mb-2">{plan.name}</h5>
                               <div className="flex items-baseline gap-1 mb-4">
                                 <span className="text-2xl font-bold text-gray-900">{formatCurrency(plan.price, plan.currency)}</span>
-                                <span className="text-gray-500 text-sm">/{plan.interval === 'month' ? 'mois' : 'an'}</span>
+                                <span className="text-gray-500 text-sm">/{plan.billing_cycle === 'monthly' ? 'mois' : 'an'}</span>
                               </div>
 
                               <ul className="space-y-3 mb-6">
-                                {(plan.features || []).map((feature: string, idx: number) => (
+                                {(plan.features || []).map((feature, idx: number) => (
                                   <li key={idx} className="flex items-start gap-2 text-sm text-gray-600">
                                     <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
-                                    <span>{feature}</span>
+                                    <span>{typeof feature === 'string' ? feature : feature.name}</span>
                                   </li>
                                 ))}
                               </ul>

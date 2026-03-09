@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { invoiceService, Invoice } from '../../../services/invoiceService';
 import { Download, CreditCard, Search, FileText, CheckCircle, AlertCircle, Clock } from 'lucide-react';
 import { toast } from 'react-toastify';

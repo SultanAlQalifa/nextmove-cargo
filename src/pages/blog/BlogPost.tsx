@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import PageHeader from "../../components/common/PageHeader";
-import { ArrowLeft, Calendar, Tag, User, Share2 } from "lucide-react";
+import { ArrowLeft, Calendar, User, Share2 } from "lucide-react";
 import { blogService, BlogPost as IBlogPost } from "../../services/blogService";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 

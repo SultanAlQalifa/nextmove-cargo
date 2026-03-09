@@ -4,7 +4,6 @@ import PageHeader from "../../../components/common/PageHeader";
 import {
   Truck,
   Search,
-  Filter,
   RefreshCw,
   AlertCircle,
   CheckCircle2,
@@ -19,7 +18,7 @@ import AddShipmentModal from "../../../components/dashboard/AddShipmentModal";
 import BulkUploadModal from "../../../components/dashboard/BulkUploadModal";
 import ConfirmationModal from "../../../components/common/ConfirmationModal";
 import EditShipmentModal from "../../../components/dashboard/EditShipmentModal";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 export default function ForwarderShipments() {
   const { success, error: toastError } = useToast();

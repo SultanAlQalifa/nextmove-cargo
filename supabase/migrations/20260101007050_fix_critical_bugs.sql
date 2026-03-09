@@ -26,7 +26,7 @@ IF NOT EXISTS (
     SELECT 1
     FROM pg_indexes
     WHERE indexname = 'idx_shipments_consolidation'
-) THEN CREATE INDEX idx_shipments_consolidation ON public.shipments(consolidation_id);
+) THEN CREATE INDEX IF NOT EXISTS idx_shipments_consolidation ON public.shipments(consolidation_id);
 END IF;
 END $$;
 -- 3. Reload schema cache to fix API errors

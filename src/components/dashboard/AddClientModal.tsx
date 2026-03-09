@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X, Search, User, UserPlus, Check, AlertCircle } from "lucide-react";
+import { X, Search, User, UserPlus, AlertCircle } from "lucide-react";
 import { profileService, UserProfile } from "../../services/profileService";
 import { connectionService } from "../../services/connectionService";
 

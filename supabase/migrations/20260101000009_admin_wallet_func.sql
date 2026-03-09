@@ -1,4 +1,6 @@
 -- Function for admins to manually credit/debit a wallet
+-- Drop first to handle any return type changes
+DROP FUNCTION IF EXISTS public.admin_adjust_wallet(UUID, NUMERIC, TEXT, TEXT);
 CREATE OR REPLACE FUNCTION public.admin_adjust_wallet(
         p_user_id UUID,
         p_amount NUMERIC,
@@ -14,7 +16,9 @@ BEGIN -- 0. Security Check
 IF (
     SELECT role
     FROM public.profiles
-    WHERE id = (select auth.uid())
+    WHERE id = (
+            select auth.uid()
+        )
 ) != 'super-admin' THEN RAISE EXCEPTION 'Accès refusé. Réservé aux Super Admins.';
 END IF;
 -- 1. Get Wallet
@@ -59,7 +63,7 @@ VALUES (
         p_user_id,
         v_amount_adjusted,
         p_type::public.transaction_type,
-        -- Cast to enum
+        -- Cast to enum                                                                  
         'completed',
         p_description,
         'ADMIN-' || floor(

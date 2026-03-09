@@ -393,10 +393,10 @@ export const paymentService = {
         }),
       );
 
-      if (!data || !data.data || !data.data.payment_url) throw new Error("No redirect URL received from CinetPay");
+      if (!data || !data.payment_url) throw new Error("No redirect URL received from CinetPay");
 
       return {
-        redirect_url: data.data.payment_url,
+        redirect_url: data.payment_url,
         transaction_id: client_reference,
       };
     } catch (error) {
@@ -506,6 +506,7 @@ export const paymentService = {
       });
 
       if (error) throw error;
+      const result = data as { success: boolean, transaction_id?: string };
 
       // Handle Coupon Usage Record
       if (couponId) {
@@ -530,7 +531,7 @@ export const paymentService = {
         { severity: "medium" }
       );
 
-      return data as { success: boolean; transaction_id: string };
+      return { success: result.success, transaction_id: result.transaction_id || '' };
     } catch (error) {
       console.error("Error confirming payment:", error);
       throw error;

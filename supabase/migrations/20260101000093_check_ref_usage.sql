@@ -1,11 +1,3 @@
--- CHECK COLUMN USAGE
--- See which column is being used: reference or reference_id
-SELECT created_at,
-    amount,
-    status,
-    reference,
-    reference_id,
-    metadata
-FROM transactions
-ORDER BY created_at DESC
-LIMIT 5;
+-- CHECK COLUMN USAGE (Hollowed out to prevent sync errors)
+-- This was a diagnostic script that is no longer needed during push.
+SELECT 'Diagnostic check skipped' as status;

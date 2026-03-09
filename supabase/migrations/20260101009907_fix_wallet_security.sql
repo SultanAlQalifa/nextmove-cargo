@@ -1,6 +1,7 @@
 -- Security Patch: Fix IDOR vulnerabilities in Wallet functions
 -- Enforce that users can only operate on their own wallets
 -- 1. Secure convert_points_to_wallet
+DROP FUNCTION IF EXISTS public.convert_points_to_wallet(uuid, integer, numeric);
 CREATE OR REPLACE FUNCTION public.convert_points_to_wallet(
         p_user_id uuid,
         p_points integer,
@@ -10,7 +11,9 @@ DECLARE v_wallet_id uuid;
 v_current_points integer;
 v_amount numeric;
 BEGIN -- SECURITY CHECK
-IF p_user_id != (select auth.uid()) THEN RAISE EXCEPTION 'Unauthorized: You can only convert your own points';
+IF p_user_id != (
+    select auth.uid()
+) THEN RAISE EXCEPTION 'Unauthorized: You can only convert your own points';
 END IF;
 SELECT referral_points INTO v_current_points
 FROM public.profiles
@@ -54,6 +57,7 @@ RETURN json_build_object(
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- 2. Secure pay_with_wallet
+DROP FUNCTION IF EXISTS public.pay_with_wallet(uuid, numeric, text, text);
 CREATE OR REPLACE FUNCTION public.pay_with_wallet(
         p_user_id uuid,
         p_amount numeric,
@@ -63,7 +67,9 @@ CREATE OR REPLACE FUNCTION public.pay_with_wallet(
 DECLARE v_wallet_id uuid;
 v_current_balance numeric;
 BEGIN -- SECURITY CHECK
-IF p_user_id != (select auth.uid()) THEN RAISE EXCEPTION 'Unauthorized: You can only pay with your own wallet';
+IF p_user_id != (
+    select auth.uid()
+) THEN RAISE EXCEPTION 'Unauthorized: You can only pay with your own wallet';
 END IF;
 SELECT id,
     balance INTO v_wallet_id,

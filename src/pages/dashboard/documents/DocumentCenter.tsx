@@ -6,10 +6,8 @@ import {
   Download,
   Trash2,
   Search,
-  Filter,
   File,
   Loader2,
-  Eye,
 } from "lucide-react";
 import { documentService, Document } from "../../../services/documentService";
 import { useAuth } from "../../../contexts/AuthContext";

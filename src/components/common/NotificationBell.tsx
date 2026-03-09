@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Bell, Check, Trash2, ExternalLink } from "lucide-react";
+import { Bell, Check } from "lucide-react";
 import { useToast } from "../../contexts/ToastContext";
 import { notificationService, Notification } from "../../services/notificationService";
 import { useNavigate } from "react-router-dom";
@@ -54,7 +54,7 @@ export default function NotificationBell() {
       setLoading(true);
       const data = await notificationService.getNotifications();
       setNotifications(data);
-      const unread = data.filter((n) => !n.is_read).length;
+      const unread = data.filter((n) => !n.read_at).length;
       setUnreadCount(unread);
     } catch (error) {
       console.error("Error fetching notifications", error);
@@ -67,7 +67,7 @@ export default function NotificationBell() {
     try {
       await notificationService.markAsRead(id);
       setNotifications((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, is_read: true } : n))
+        prev.map((n) => (n.id === id ? { ...n, read_at: new Date().toISOString() } : n))
       );
       setUnreadCount((prev) => Math.max(0, prev - 1));
     } catch (error) {
@@ -78,7 +78,7 @@ export default function NotificationBell() {
   const handleMarkAllAsRead = async () => {
     try {
       await notificationService.markAllAsRead();
-      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+      setNotifications((prev) => prev.map((n) => ({ ...n, read_at: new Date().toISOString() })));
       setUnreadCount(0);
       success("Toutes les notifications marquées comme lues");
     } catch (error) {
@@ -87,7 +87,7 @@ export default function NotificationBell() {
   };
 
   const handleNotificationClick = async (notification: Notification) => {
-    if (!notification.is_read) {
+    if (!notification.read_at) {
       handleMarkAsRead(notification.id);
     }
     setIsOpen(false);
@@ -143,14 +143,14 @@ export default function NotificationBell() {
                 {notifications.map((notif) => (
                   <div
                     key={notif.id}
-                    className={`p-4 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors cursor-pointer group relative ${!notif.is_read ? "bg-blue-50/30 dark:bg-blue-900/10" : ""}`}
+                    className={`p-4 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors cursor-pointer group relative ${!notif.read_at ? "bg-blue-50/30 dark:bg-blue-900/10" : ""}`}
                     onClick={() => handleNotificationClick(notif)}
                   >
 
                     <div className="flex gap-3">
-                      <div className={`mt-1 w-2 h-2 rounded-full flex-shrink-0 ${!notif.is_read ? 'bg-primary' : 'bg-transparent'}`}></div>
+                      <div className={`mt-1 w-2 h-2 rounded-full flex-shrink-0 ${!notif.read_at ? 'bg-primary' : 'bg-transparent'}`}></div>
                       <div className="flex-1">
-                        <p className={`text-sm ${!notif.is_read ? 'font-semibold text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-300'}`}>
+                        <p className={`text-sm ${!notif.read_at ? 'font-semibold text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-300'}`}>
                           {notif.title}
                         </p>
                         <p className="text-xs text-gray-500 mt-1 line-clamp-2">

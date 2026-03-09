@@ -1,10 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 
-interface FeatureFlag {
-    key: string;
-    is_enabled: boolean;
-}
 
 interface FeatureFlagContextType {
     flags: Record<string, boolean>;

@@ -1,4 +1,4 @@
-import { supabase } from "./supabase";
+
 import { logger } from "../utils/logger";
 
 export const supabaseWrapper = {

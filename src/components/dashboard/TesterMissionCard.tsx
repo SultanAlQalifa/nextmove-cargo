@@ -4,7 +4,6 @@ import {
     FlaskConical,
     ArrowRight,
     Trophy,
-    CheckCircle2,
     X
 } from "lucide-react";
 import { testerService, TesterMission } from "../../services/testerService";
@@ -51,26 +50,34 @@ export default function TesterMissionCard() {
                 <div className="p-2 bg-primary/10 rounded-xl text-primary">
                     <FlaskConical className="w-5 h-5 shadow-sm" />
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                        <span className="text-[10px] font-bold text-primary uppercase tracking-wider">Mission du jour</span>
-                        <div className="h-1 w-1 rounded-full bg-gray-300" />
-                        <span className="text-[10px] font-bold text-yellow-500 flex items-center gap-1">
-                            <Trophy className="w-2.5 h-2.5" /> +{mission.points_reward} pts
+                        <span className="px-2 py-0.5 bg-primary/10 text-primary text-[10px] font-bold rounded-full uppercase tracking-wider">
+                            Mission Testeur
                         </span>
+                        <div className="flex items-center gap-1 text-orange-500 font-bold text-[10px]">
+                            <Trophy className="w-3 h-3" />
+                            +{mission.points_reward} Pts
+                        </div>
                     </div>
-                    <h4 className="font-bold text-gray-900 text-sm mb-1">{mission.title}</h4>
-                    <p className="text-[11px] text-gray-500 line-clamp-2 mb-3 leading-relaxed">
+                    <h3 className="font-bold text-gray-900 text-sm truncate">
+                        {mission.title}
+                    </h3>
+                    <p className="text-xs text-gray-500 line-clamp-2 mt-0.5">
                         {mission.description}
                     </p>
+
                     <button
-                        onClick={() => navigate('/dashboard/tester/dashboard')}
-                        className="w-full py-2 bg-gray-900 text-white text-[11px] font-bold rounded-lg hover:bg-black transition-all flex items-center justify-center gap-2 group/btn"
+                        onClick={() => navigate(mission.link)}
+                        className="mt-3 w-full flex items-center justify-center gap-2 py-2 bg-gray-900 text-white rounded-lg text-xs font-bold hover:bg-gray-800 transition-all border border-white/10 group/btn"
                     >
-                        Relevez le défi <ArrowRight className="w-3 h-3 group-hover/btn:translate-x-1 transition-transform" />
+                        Commencer
+                        <ArrowRight className="w-3 h-3 group-hover/btn:translate-x-1 transition-transform" />
                     </button>
                 </div>
             </div>
+
+            <div className="absolute -bottom-2 -right-2 w-16 h-16 bg-primary/5 rounded-full blur-2xl" />
         </div>
     );
 }

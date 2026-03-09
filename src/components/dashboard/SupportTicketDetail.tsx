@@ -3,7 +3,6 @@ import { useAuth } from "../../contexts/AuthContext";
 import {
   ticketService,
   Ticket,
-  TicketMessage,
 } from "../../services/ticketService";
 import { Send, ArrowLeft } from "lucide-react";
 
@@ -63,6 +62,8 @@ export default function SupportTicketDetail({
           <button
             onClick={onBack}
             className="text-gray-500 hover:text-gray-700 min-h-[44px]"
+            aria-label="Retour"
+            title="Retour"
           >
             <ArrowLeft size={20} />
           </button>
@@ -75,13 +76,12 @@ export default function SupportTicketDetail({
         </div>
         <span
           className={`px-2 py-1 text-xs font-semibold rounded-full 
-          ${
-            ticket.status === "open"
+          ${ticket.status === "open"
               ? "bg-blue-100 text-blue-800"
               : ticket.status === "closed"
                 ? "bg-gray-100 text-gray-800"
                 : "bg-purple-100 text-purple-800"
-          }`}
+            }`}
         >
           {ticket.status}
         </span>
@@ -94,11 +94,10 @@ export default function SupportTicketDetail({
             className={`flex ${msg.sender_id === user?.id ? "justify-end" : "justify-start"}`}
           >
             <div
-              className={`max-w-[70%] px-4 py-2 rounded-lg text-sm ${
-                msg.sender_id === user?.id
-                  ? "bg-blue-600 text-white rounded-br-none"
-                  : "bg-gray-100 text-gray-900 rounded-bl-none"
-              }`}
+              className={`max-w-[70%] px-4 py-2 rounded-lg text-sm ${msg.sender_id === user?.id
+                ? "bg-blue-600 text-white rounded-br-none"
+                : "bg-gray-100 text-gray-900 rounded-bl-none"
+                }`}
             >
               <p className="font-bold text-xs mb-1 opacity-75">
                 {msg.sender?.full_name || "User"}
@@ -128,6 +127,8 @@ export default function SupportTicketDetail({
           type="submit"
           disabled={!newMessage.trim()}
           className="bg-primary text-white p-2 rounded-md hover:bg-blue-700 disabled:opacity-50 min-h-[44px]"
+          aria-label="Envoyer"
+          title="Envoyer"
         >
           <Send size={20} />
         </button>

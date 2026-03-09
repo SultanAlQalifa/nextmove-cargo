@@ -96,6 +96,7 @@ export interface Shipment {
     created_at?: string;
   }[];
   children?: Shipment[];
+  currency?: string;
 }
 
 // ... (rest of the file remains same until mapDbShipmentToApp)

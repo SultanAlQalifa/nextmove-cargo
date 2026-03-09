@@ -48,39 +48,93 @@ ALTER TABLE public.academy_quiz_questions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.academy_quiz_options ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.academy_quiz_attempts ENABLE ROW LEVEL SECURITY;
 -- Select policies
-CREATE POLICY "Anyone can see quizzes" ON public.academy_quizzes FOR
+DO $$ BEGIN IF NOT EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE tablename = 'academy_quizzes'
+        AND policyname = 'Anyone can see quizzes'
+) THEN CREATE POLICY "Anyone can see quizzes" ON public.academy_quizzes FOR
 SELECT USING (true);
-CREATE POLICY "Anyone can see questions" ON public.academy_quiz_questions FOR
+END IF;
+IF NOT EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE tablename = 'academy_quiz_questions'
+        AND policyname = 'Anyone can see questions'
+) THEN CREATE POLICY "Anyone can see questions" ON public.academy_quiz_questions FOR
 SELECT USING (true);
-CREATE POLICY "Anyone can see options" ON public.academy_quiz_options FOR
+END IF;
+IF NOT EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE tablename = 'academy_quiz_options'
+        AND policyname = 'Anyone can see options'
+) THEN CREATE POLICY "Anyone can see options" ON public.academy_quiz_options FOR
 SELECT USING (true);
-CREATE POLICY "Users can see own attempts" ON public.academy_quiz_attempts FOR
-SELECT USING ((select auth.uid()) = user_id);
+END IF;
+IF NOT EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE tablename = 'academy_quiz_attempts'
+        AND policyname = 'Users can see own attempts'
+) THEN CREATE POLICY "Users can see own attempts" ON public.academy_quiz_attempts FOR
+SELECT USING (
+        (
+            select auth.uid()
+        ) = user_id
+    );
+END IF;
+END $$;
 -- Admin policies
-CREATE POLICY "Admins can manage quizzes" ON public.academy_quizzes FOR ALL USING (
+DO $$ BEGIN IF NOT EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE tablename = 'academy_quizzes'
+        AND policyname = 'Admins can manage quizzes'
+) THEN CREATE POLICY "Admins can manage quizzes" ON public.academy_quizzes FOR ALL USING (
     EXISTS (
         SELECT 1
         FROM public.profiles
-        WHERE id = (select auth.uid())
+        WHERE id = (
+                select auth.uid()
+            )
             AND role IN ('admin', 'super-admin')
     )
 );
-CREATE POLICY "Admins can manage quiz questions" ON public.academy_quiz_questions FOR ALL USING (
+END IF;
+IF NOT EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE tablename = 'academy_quiz_questions'
+        AND policyname = 'Admins can manage quiz questions'
+) THEN CREATE POLICY "Admins can manage quiz questions" ON public.academy_quiz_questions FOR ALL USING (
     EXISTS (
         SELECT 1
         FROM public.profiles
-        WHERE id = (select auth.uid())
+        WHERE id = (
+                select auth.uid()
+            )
             AND role IN ('admin', 'super-admin')
     )
 );
-CREATE POLICY "Admins can manage quiz options" ON public.academy_quiz_options FOR ALL USING (
+END IF;
+IF NOT EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE tablename = 'academy_quiz_options'
+        AND policyname = 'Admins can manage quiz options'
+) THEN CREATE POLICY "Admins can manage quiz options" ON public.academy_quiz_options FOR ALL USING (
     EXISTS (
         SELECT 1
         FROM public.profiles
-        WHERE id = (select auth.uid())
+        WHERE id = (
+                select auth.uid()
+            )
             AND role IN ('admin', 'super-admin')
     )
 );
+END IF;
+END $$;
 -- 7. Initialize Email Templates in system_settings if not exist
 INSERT INTO public.system_settings (key, value, description)
 VALUES (
@@ -94,5 +148,6 @@ VALUES (
         'Template pour le rappel d''inactivité'
     ) ON CONFLICT (key) DO NOTHING;
 -- Triggers for updated_at
+DROP TRIGGER IF EXISTS tr_academy_quizzes_updated_at ON public.academy_quizzes;
 CREATE TRIGGER tr_academy_quizzes_updated_at BEFORE
 UPDATE ON public.academy_quizzes FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

@@ -24,7 +24,7 @@ import { useToast } from "../../../contexts/ToastContext";
 export default function AdminPayments() {
   const { success } = useToast();
   const [transactions, setTransactions] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
 
   // Filter State
   const [timeRange, setTimeRange] = useState<

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
     Users, Globe, TrendingUp, UserCheck,
-    Map as MapIcon, ChevronRight, Activity, Filter, Download
+    Map as MapIcon, Activity
 } from "lucide-react";
 import {
     ComposableMap,
@@ -200,8 +200,7 @@ const AdminCommunity = () => {
                                     {({ geographies }) =>
                                         geographies.map((geo) => {
                                             const geoName = geo.properties.name || "";
-                                            const isoA2 = geo.properties.iso_a2 || "";
-                                            const isoA3 = geo.id || "";
+                                            // isoNumeric mapping
 
                                             const d = distribution.find((s) => {
                                                 const countryName = s.country || '';

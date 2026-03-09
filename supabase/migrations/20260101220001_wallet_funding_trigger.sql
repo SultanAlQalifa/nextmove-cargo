@@ -1,0 +1,32 @@
+-- Trigger to automatically update wallet balance when a DEPOSIT transaction is COMPLETED
+-- This handles deposits via Mobile Money or other gateways
+-- Drop trigger first to avoid dependency errors during function drop
+DROP TRIGGER IF EXISTS tr_update_wallet_balance ON public.transactions;
+-- Drop function to handle any return type changes
+DROP FUNCTION IF EXISTS public.update_wallet_balance();
+CREATE OR REPLACE FUNCTION public.update_wallet_balance() RETURNS TRIGGER AS $$ BEGIN -- Skip if manual transaction from admin (balance is already adjusted by the RPC)
+    IF NEW.method = 'manual' THEN RETURN NEW;
+END IF;
+-- Only check for COMPLETED transactions that are DEPOSIT
+-- The ENUM value is 'deposit', not 'credit'
+IF NEW.status = 'completed'
+AND NEW.type = 'deposit' THEN -- If it's a new record OR status just changed to completed from something else
+IF (TG_OP = 'INSERT')
+OR (
+    TG_OP = 'UPDATE'
+    AND OLD.status != 'completed'
+) THEN -- Calculate new balance (Add amount)
+UPDATE public.wallets
+SET balance = balance + NEW.amount,
+    updated_at = now()
+WHERE id = NEW.wallet_id;
+END IF;
+END IF;
+RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+CREATE TRIGGER tr_update_wallet_balance
+AFTER
+INSERT
+    OR
+UPDATE ON public.transactions FOR EACH ROW EXECUTE FUNCTION public.update_wallet_balance();

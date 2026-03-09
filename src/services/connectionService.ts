@@ -30,17 +30,6 @@ export const connectionService = {
     } = await supabase.auth.getUser();
     if (!user) throw new Error("Not authenticated");
 
-    // Check if connection already exists (any status)
-    const { data: existing } = await supabase
-      .from("user_connections")
-      .select("*")
-      .or(`requester_id.eq.${user.id},recipient_id.eq.${user.id}`)
-      .or(`requester_id.eq.${recipientId},recipient_id.eq.${recipientId}`)
-      .maybeSingle(); // Use maybeSingle to avoid 406 if multiple rows (shouldn't happen due to constraints but safe)
-
-    // Note: The OR logic above is a bit complex for single query,
-    // simpler: (req=me AND rec=them) OR (req=them AND rec=me)
-
     const { data: check } = await supabase
       .from("user_connections")
       .select("*")

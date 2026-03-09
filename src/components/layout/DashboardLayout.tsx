@@ -78,7 +78,6 @@ import {
   Network,
   FlaskConical
 } from "lucide-react";
-import NewsTicker from "../common/NewsTicker";
 import { supabase } from "../../lib/supabase";
 import { isAdmin, isInFamily } from "../../utils/authUtils";
 
@@ -243,11 +242,24 @@ export default function DashboardLayout() {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
+    // 3. Security Check: Role Discrepancy Detection (Draconian)
+    const authRole = user?.user_metadata?.role;
+    const dbRole = profile?.role;
+
+    if (authRole && dbRole && authRole !== dbRole) {
+      console.error("DRACONIAN SECURITY ALERT: Role drift detected!", { authRole, dbRole });
+      showNotification(
+        "🔓 Alerte Sécurité : Désynchronisation de Rôle",
+        "Une anomalie a été détectée sur votre compte. Veuillez vous déconnecter et vous reconnecter.",
+        'warning'
+      );
+    }
+
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, []);
+  }, [user, profile]);
 
   // Logic for Trial Banner
   const trialEndDate = profile?.trial_ends_at ? new Date(profile.trial_ends_at) : null;
@@ -260,8 +272,9 @@ export default function DashboardLayout() {
   const getNavSections = (): NavSection[] => {
     const role = profile?.role;
 
+    let sections: NavSection[] = [];
     if (role === "client") {
-      return [
+      sections = [
         {
           title: t("dashboard.menu.main"),
           items: [
@@ -375,16 +388,14 @@ export default function DashboardLayout() {
           ],
         },
       ];
-    }
-
-    if (role === "forwarder") {
+    } else if (role === "forwarder") {
       const hasPermission = (permission: string) => {
         if (!profile?.staff_role_id) return true; // Master Account has full access
         const staffPermissions = profile.staff_role?.permissions || [];
         return staffPermissions.includes(permission) || staffPermissions.includes("all");
       };
 
-      const sections: NavSection[] = [
+      sections = [
         {
           title: t("dashboard.menu.main"),
           items: [
@@ -476,10 +487,8 @@ export default function DashboardLayout() {
       sections.push({ title: t("dashboard.menu.support"), items: supportItems });
 
       return sections;
-    }
-
-    if (isInFamily(role as any, 'ADMIN')) {
-      return [
+    } else if (isInFamily(role as any, 'ADMIN')) {
+      sections = [
         {
           title: t("dashboard.menu.main"),
           items: [
@@ -722,10 +731,8 @@ export default function DashboardLayout() {
           ],
         },
       ];
-    }
-
-    if (role === "driver") {
-      return [
+    } else if (role === "driver") {
+      sections = [
         {
           title: t("dashboard.menu.main"),
           items: [

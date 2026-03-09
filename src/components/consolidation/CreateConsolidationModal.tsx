@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { useTranslation } from "react-i18next";
+// import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import {
   X,
@@ -13,7 +13,6 @@ import {
   Zap,
   Box,
   ClipboardCheck,
-  FileCheck,
   Truck,
   Warehouse,
   Globe,
@@ -47,7 +46,7 @@ export default function CreateConsolidationModal({
   initialData,
   defaultType = "forwarder_offer",
 }: CreateConsolidationModalProps) {
-  const { t } = useTranslation();
+  // const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const {
     register,

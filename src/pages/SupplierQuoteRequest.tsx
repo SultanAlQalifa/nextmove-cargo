@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { quoteService, QuoteRequest } from "../services/quoteService";
+import { quoteService } from "../services/quoteService";
 import { Link } from "react-router-dom";
 import { Ship, Plane, Check, Clock } from "lucide-react";
 

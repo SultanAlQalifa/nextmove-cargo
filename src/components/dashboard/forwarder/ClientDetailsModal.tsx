@@ -6,11 +6,9 @@ import {
     Phone,
     MapPin,
     Package,
-    Calendar,
     DollarSign,
     TrendingUp,
     Clock,
-    ExternalLink
 } from "lucide-react";
 import { supabase } from "../../../lib/supabase";
 

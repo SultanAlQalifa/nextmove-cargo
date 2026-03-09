@@ -7,7 +7,6 @@ import {
   Maximize2,
   Search,
   ChevronLeft,
-  Trash2,
   Bot,
   Mic,
   Paperclip,
@@ -31,7 +30,6 @@ export default function ChatWidget() {
     setIsOpen,
     selectedConversation,
     setSelectedConversation,
-    recipientDetails,
     // isAIConversation, // REMOVED
     // setIsAIConversation, // REMOVED
   } = useChat();
@@ -48,10 +46,6 @@ export default function ChatWidget() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null); // NEW for OCR
   const fileInputRef = useRef<HTMLInputElement>(null); // NEW for file upload
 
-  // Helper functions defined BEFORE useEffect
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
 
   const loadConversations = async () => {
     try {
@@ -188,7 +182,6 @@ export default function ChatWidget() {
           userContext,
           selectedImage || undefined,
           {
-            apiKey: aiConfig?.enabled ? aiConfig.api_key : undefined,
             systemPrompt: aiConfig?.enabled ? aiConfig.system_prompt : undefined
           }
         );

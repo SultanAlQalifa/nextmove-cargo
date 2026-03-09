@@ -12,11 +12,9 @@ import {
   X,
   Truck,
   CheckCircle,
-  Clock,
   MoreVertical,
   ArrowUpRight,
   ArrowDownRight,
-  MapPin,
   FileText,
 } from "lucide-react";
 import { shipmentService } from "../../../services/shipmentService";
@@ -25,7 +23,7 @@ import { useToast } from "../../../contexts/ToastContext";
 export default function AdminShipments() {
   const { error: toastError } = useToast();
   const [shipments, setShipments] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
 
   // Filter State
   const [timeRange, setTimeRange] = useState<

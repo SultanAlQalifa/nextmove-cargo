@@ -131,8 +131,9 @@ export default function AdminPOD() {
   };
 
   const handleRejectConfirm = async (id: string, reason: string) => {
+    if (!selectedPOD) return;
     try {
-      await podService.reviewPOD(selectedPOD.id, 'rejected', reason);
+      await podService.reviewPOD(selectedPOD.id, "rejected", reason);
 
       // Refresh data
       const updatedData = await podService.getPODs();

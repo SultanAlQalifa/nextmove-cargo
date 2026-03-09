@@ -7,7 +7,6 @@ import {
   CheckCircle,
   Plus,
   Edit2,
-  Trash2,
   Check,
   Search,
   Filter,
@@ -187,9 +186,6 @@ export default function AdminSubscriptions() {
 
   // ... (fetchData and effects)
 
-  const handleDeletePlan = (id: string) => {
-    setConfirmation({ isOpen: true, id });
-  };
 
   const confirmDeletePlan = async () => {
     if (confirmation.id) {

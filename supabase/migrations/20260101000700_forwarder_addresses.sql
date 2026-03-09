@@ -29,5 +29,5 @@ CREATE POLICY "Forwarders can manage their own addresses" ON forwarder_addresses
 CREATE POLICY "Authenticated users can view addresses" ON forwarder_addresses FOR
 SELECT TO authenticated USING (true);
 -- Index for performance
-CREATE INDEX idx_forwarder_addresses_forwarder ON forwarder_addresses(forwarder_id);
-CREATE INDEX idx_forwarder_addresses_country ON forwarder_addresses(country);
+CREATE INDEX IF NOT EXISTS idx_forwarder_addresses_forwarder ON forwarder_addresses(forwarder_id);
+CREATE INDEX IF NOT EXISTS idx_forwarder_addresses_country ON forwarder_addresses(country);

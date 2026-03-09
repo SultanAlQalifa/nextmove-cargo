@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { quoteService, QuoteRequest, Quote } from "../../services/quoteService";
+import { quoteService, QuoteRequest } from "../../services/quoteService";
 import { useAuth } from "../../contexts/AuthContext";
 import { useToast } from "../../contexts/ToastContext";
 import { useForm } from "react-hook-form";
@@ -100,7 +100,7 @@ export default function ForwarderQuoteRequests() {
 
               <button
                 onClick={() => setSelectedRequest(request)}
-                className="bg-primary text-white px-4 py-2 rounded-md hover:bg-blue-700"
+                className="bg-primary text-white px-4 py-2 rounded-md hover:bg-blue-700 font-bold"
               >
                 Send Quote
               </button>
@@ -124,7 +124,7 @@ export default function ForwarderQuoteRequests() {
                       step="0.01"
                       required
                       {...register("amount")}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary text-base"
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary text-base px-3 py-2"
                     />
                   </div>
                   <div>
@@ -133,7 +133,7 @@ export default function ForwarderQuoteRequests() {
                     </label>
                     <select
                       {...register("currency")}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary text-base"
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary text-base px-3 py-2"
                     >
                       <option value="XOF">XOF</option>
                       <option value="EUR">EUR</option>
@@ -147,20 +147,20 @@ export default function ForwarderQuoteRequests() {
                     <input
                       type="date"
                       {...register("valid_until")}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary text-base"
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary text-base px-3 py-2"
                     />
                   </div>
                   <div className="flex gap-2">
                     <button
                       type="button"
                       onClick={() => setSelectedRequest(null)}
-                      className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                      className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 font-medium"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
-                      className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 min-h-[44px]"
+                      className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 min-h-[44px] font-bold"
                     >
                       Submit
                     </button>

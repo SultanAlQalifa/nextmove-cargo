@@ -23,7 +23,7 @@ export default function CreateUserModal({
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
-    role: "client",
+    role: "client", // Keep "client" as a safe common default but ensure it's validated
     phone: "",
   });
   const [loading, setLoading] = useState(false);
@@ -46,7 +46,7 @@ export default function CreateUserModal({
       setFormData({
         fullName: user.name,
         email: user.email,
-        role: user.role === "Prestataire" ? "forwarder" : (user.role === "Client" ? "client" : user.role),
+        role: (user as any).staff_role_id || (user as any).raw_role || (user.role === "Prestataire" ? "forwarder" : (user.role === "Client" ? "client" : user.role)),
         phone: (user as any).phone || "",
       });
     }

@@ -8,67 +8,67 @@ export interface Rate {
   type: "standard" | "express";
   min_weight?: number;
   max_weight?: number;
-  price_per_unit: number;
+  min_volume?: number;
+  max_volume?: number;
   currency: string;
+  price_per_unit: number; // For rate_per_kg or rate_per_m3
   transit_time_min: number;
   transit_time_max: number;
-  origin_id?: string;
-  destination_id?: string;
+  is_active: boolean;
+  notes?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export const rateService = {
   async getRates(forwarderId: string) {
     const data = await supabaseWrapper.query(async () => {
-      return await supabase
-        .from("forwarder_rates")
-        .select("*")
-        .eq("forwarder_id", forwarderId);
+      const query = supabase.from("forwarder_rates").select("*");
+      if (forwarderId) query.eq("forwarder_id", forwarderId);
+      return await query.order("created_at", { ascending: false });
     });
 
-    // Map DB Schema to Frontend Interface
     return (data || []).map((r: any) => ({
       ...r,
-      price_per_unit: r.price,
-      transit_time_min: r.min_days,
-      transit_time_max: r.max_days,
+      price_per_unit: r.price || 0,
+      transit_time_min: r.min_days || 0,
+      transit_time_max: r.max_days || 0,
     })) as Rate[];
   },
 
-  async createRate(rate: Rate) {
-    // Map Frontend Interface to DB Schema
-    const dbPayload = {
+  async createRate(rate: Omit<Rate, "id">) {
+    const dbRate: any = {
       forwarder_id: rate.forwarder_id,
       mode: rate.mode,
       type: rate.type,
       min_weight: rate.min_weight,
       max_weight: rate.max_weight,
-      origin_id: rate.origin_id,
-      destination_id: rate.destination_id,
-
-      // Mappings
-      price: rate.price_per_unit,
+      min_volume: rate.min_volume,
+      max_volume: rate.max_volume,
       currency: rate.currency,
+      price: rate.price_per_unit,
       min_days: rate.transit_time_min,
       max_days: rate.transit_time_max,
-      unit: "kg", // Default or based on mode?
+      is_active: rate.is_active,
+      notes: rate.notes,
     };
 
     const data = await supabaseWrapper.query(async () => {
       return await supabase
         .from("forwarder_rates")
-        .insert([dbPayload])
+        .insert(dbRate)
         .select()
         .single();
     });
 
     if (!data) throw new Error("Failed to create rate");
 
-    // Map back to Frontend
+    const rateData = data as any;
     return {
-      ...data,
-      price_per_unit: data.price,
-      transit_time_min: data.min_days,
-      transit_time_max: data.max_days,
+      ...rateData,
+      price_per_unit: rateData?.price || 0,
+      transit_time_min: rateData?.min_days || 0,
+      transit_time_max: rateData?.max_days || 0,
     } as Rate;
   },
 
@@ -100,11 +100,12 @@ export const rateService = {
 
     if (!data) throw new Error("Failed to update rate");
 
+    const rateData = data as any;
     return {
-      ...data,
-      price_per_unit: data.price,
-      transit_time_min: data.min_days,
-      transit_time_max: data.max_days,
+      ...rateData,
+      price_per_unit: rateData?.price || 0,
+      transit_time_min: rateData?.min_days || 0,
+      transit_time_max: rateData?.max_days || 0,
     } as Rate;
   },
 
@@ -114,77 +115,69 @@ export const rateService = {
     });
   },
 
-  async findBestMatch(
-    forwarderId: string,
-    criteria: {
-      mode: string;
-      type: string;
-      originCountry: string;
-      destCountry: string;
-      weight: number;
-      originId?: string; // Optional direct ID
-      destId?: string; // Optional direct ID
-    },
-  ): Promise<Rate | null> {
-    try {
-      let originId = criteria.originId;
-      let destId = criteria.destId;
+  async getGlobalRates(mode?: "sea" | "air") {
+    const { data, error } = await supabase
+      .from("forwarder_rates")
+      .select(`
+        *,
+        forwarder:profiles(full_name, avatar_url)
+      `)
+      .eq("is_active", true)
+      .filter("mode", mode ? "eq" : "neq", mode || "none"); // simplified filter
 
-      // 1. Resolve Location IDs only if not provided
-      if (!originId || !destId) {
-        const { data: locations } = await supabase
-          .from("locations")
-          .select("id, name")
-          .in("name", [criteria.originCountry, criteria.destCountry]);
+    if (error) throw error;
 
-        if (!originId)
-          originId = locations?.find(
-            (l) => l.name === criteria.originCountry,
-          )?.id;
-        if (!destId)
-          destId = locations?.find((l) => l.name === criteria.destCountry)?.id;
-      }
+    return (data || []).map((r: any) => ({
+      ...r,
+      price_per_unit: r.price || 0,
+      transit_time_min: r.min_days || 0,
+      transit_time_max: r.max_days || 0,
+    }));
+  },
 
-      // 2. Fetch all rates for this forwarder (filtered by mode/type for efficiency)
-      const { data: rawRates, error } = await supabase
-        .from("forwarder_rates")
-        .select("*")
-        .eq("forwarder_id", forwarderId)
-        .eq("mode", criteria.mode)
-        .eq("type", criteria.type);
+  async getRateForShipment(params: {
+    origin: string;
+    destination: string;
+    mode: "sea" | "air";
+    weight?: number;
+    volume?: number;
+  }) {
+    // This logic is usually quite complex in a real app (checking specific ports, lanes, etc.)
+    // For NextMove MVP, we'll fetch rates for the mode and filter broadly or return all relevant.
 
-      if (error || !rawRates) return null;
+    const { data, error } = await supabase
+      .from("forwarder_rates")
+      .select(`
+        *,
+        forwarder:profiles(full_name, avatar_url)
+      `)
+      .eq("mode", params.mode)
+      .eq("is_active", true);
 
-      // Map forwarder_rates schema (price, min_days, max_days) to Rate interface (price_per_unit, transit_time_min, transit_time_max)
-      const rates: Rate[] = rawRates.map((r) => ({
-        ...r,
-        price_per_unit: r.price,
-        transit_time_min: r.min_days,
-        transit_time_max: r.max_days,
-      }));
+    if (error) throw error;
 
-      // 4. Strict Route Matching (Prioritize exact match bypassing weight/volume limits initially)
-      if (originId && destId) {
-        const exactMatch = rates.find(
-          (r) => r.origin_id === originId && r.destination_id === destId,
-        );
-        if (exactMatch) return exactMatch;
-      }
-
-      // 3. Filter by weight (for Air) logic for general lookup
-      const validRates = rates.filter((r) => {
-        if (criteria.mode !== "air") return true;
-        return (
-          (!r.min_weight || criteria.weight >= r.min_weight) &&
-          (!r.max_weight || criteria.weight <= r.max_weight)
-        );
-      });
-
-      // Return first match if any
-      return validRates.length > 0 ? validRates[0] : null;
-    } catch (error) {
-      console.error("Error finding matching rate:", error);
-      return null;
+    // Filter by weight/volume if provided (broad match)
+    let filtered = data || [];
+    if (params.weight) {
+      filtered = filtered.filter(
+        (r) =>
+          (!r.min_weight || params.weight! >= r.min_weight) &&
+          (!r.max_weight || params.weight! <= r.max_weight)
+      );
     }
+    if (params.volume) {
+      filtered = filtered.filter(
+        (r) =>
+          (!r.min_volume || params.volume! >= r.min_volume) &&
+          (!r.max_volume || params.volume! <= r.max_volume)
+      );
+    }
+
+    return filtered.map((r: any) => ({
+      ...r,
+      price_per_unit: r.price || 0,
+      transit_time_min: r.min_days || 0,
+      transit_time_max: r.max_days || 0,
+    }));
   },
 };

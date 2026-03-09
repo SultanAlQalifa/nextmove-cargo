@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "../../../lib/supabase";
 import {
-    Clock, CheckCircle, XCircle, AlertCircle, RefreshCw,
+    Clock, CheckCircle, RefreshCw,
     Banknote, User, FileText, Check, X
 } from "lucide-react";
 import { useToast } from "../../../contexts/ToastContext";

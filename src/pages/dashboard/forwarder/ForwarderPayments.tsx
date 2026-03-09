@@ -5,7 +5,6 @@ import {
   Download,
   Search,
   Filter,
-  Calendar,
   X,
   Wallet,
   ArrowUpRight,
@@ -254,7 +253,7 @@ export default function ForwarderPayments() {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(trx.date).toLocaleDateString()}
+                      {new Date(trx.created_at).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="relative">

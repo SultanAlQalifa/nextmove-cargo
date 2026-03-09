@@ -4,11 +4,8 @@ import {
   MessageSquare,
   Search,
   Send,
-  User,
   Mail,
   Clock,
-  Check,
-  CheckCheck,
 } from "lucide-react";
 import { useAuth } from "../../../contexts/AuthContext";
 import { messageService, Message } from "../../../services/messageService";
@@ -47,20 +44,10 @@ export default function AdminMessages() {
     if (!user || !selectedMessage || !replyContent.trim()) return;
 
     try {
-      await messageService.sendMessage({
-        sender_id: user.id,
-        receiver_id:
-          selectedMessage.sender_id === user.id
-            ? (selectedMessage as any).receiver_id
-            : selectedMessage.sender_id,
-        subject: `Re: ${(selectedMessage as any).subject || "Message"}`,
-        content: replyContent,
-        sender_email: user.email,
-        receiver_email:
-          selectedMessage.sender_id === user.id
-            ? (selectedMessage as any).receiver_email
-            : selectedMessage.sender?.email,
-      } as any); // Casting to any because sendMessage signature in service is different (takes conversationId, content)
+      await messageService.sendMessage(
+        selectedMessage.conversation_id,
+        replyContent
+      );
       setReplyContent("");
       loadMessages();
       success("Réponse envoyée !");
@@ -127,8 +114,8 @@ export default function AdminMessages() {
                     key={msg.id}
                     onClick={() => setSelectedMessage(msg)}
                     className={`w-full p-4 text-left transition-all relative overflow-hidden group ${selectedMessage?.id === msg.id
-                        ? "bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm"
-                        : "hover:bg-slate-50/80 dark:hover:bg-slate-800/40"
+                      ? "bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm"
+                      : "hover:bg-slate-50/80 dark:hover:bg-slate-800/40"
                       }`}
                   >
                     {selectedMessage?.id === msg.id && (

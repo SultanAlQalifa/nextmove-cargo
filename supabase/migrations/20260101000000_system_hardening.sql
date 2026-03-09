@@ -4,11 +4,12 @@
 -- ═══════════════════════════════════════════════════════════════
 -- 1. TRANSACTIONS INTEGRITY
 -- Enforce positive amounts and valid statuses
+ALTER TABLE transactions DROP CONSTRAINT IF EXISTS check_transaction_amount_positive,
+    DROP CONSTRAINT IF EXISTS transactions_status_check,
+    DROP CONSTRAINT IF EXISTS check_transaction_status_valid;
 ALTER TABLE transactions
 ADD CONSTRAINT check_transaction_amount_positive CHECK (amount >= 0),
-    DROP CONSTRAINT IF EXISTS transactions_status_check,
-    -- Drop if exists to be safe/update
-ADD CONSTRAINT check_transaction_status_valid CHECK (
+    ADD CONSTRAINT check_transaction_status_valid CHECK (
         status IN (
             'pending',
             'completed',
@@ -19,7 +20,9 @@ ADD CONSTRAINT check_transaction_status_valid CHECK (
     );
 -- 2. SUBSCRIPTIONS INTEGRITY
 -- Enforce logical dates and valid statuses
-ALTER TABLE user_subscriptions -- Allow status to be loosely standard but prevent nonsense
+ALTER TABLE user_subscriptions DROP CONSTRAINT IF EXISTS check_subscription_status_valid,
+    DROP CONSTRAINT IF EXISTS check_subscription_dates_logical;
+ALTER TABLE user_subscriptions
 ADD CONSTRAINT check_subscription_status_valid CHECK (
         status IN (
             'active',
@@ -68,7 +71,8 @@ INSERT
 UPDATE ON profiles FOR EACH ROW EXECUTE FUNCTION check_role_integrity();
 -- 4. ENSURE INTEGRITY ON ROLES TABLE
 -- Prevent creation of new roles with garbage families
-ALTER TABLE staff_roles DROP CONSTRAINT IF EXISTS check_role_family_values,
-    ADD CONSTRAINT check_role_family_values CHECK (
+ALTER TABLE staff_roles DROP CONSTRAINT IF EXISTS check_role_family_values;
+ALTER TABLE staff_roles
+ADD CONSTRAINT check_role_family_values CHECK (
         role_family IN ('admin', 'forwarder', 'client')
     );

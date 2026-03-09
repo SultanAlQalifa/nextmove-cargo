@@ -1,5 +1,5 @@
 import React from 'react';
-import { Smartphone, Download, ExternalLink } from 'lucide-react';
+import { Smartphone } from 'lucide-react';
 
 interface AppDownloadLinksProps {
     className?: string;
@@ -11,7 +11,7 @@ const AppDownloadLinks: React.FC<AppDownloadLinksProps> = ({ className = "", isC
     // For now, providing direct links or placeholders
     // Points to the Supabase storage bucket we just configured
     const androidUrl = "https://dkbnmnpxoesvkbnwuyle.supabase.co/storage/v1/object/public/apks/latest/nextmove-cargo.apk";
-    const iosUrl = "#";    // To be updated after iOS build
+    // const iosUrl = "#";    // To be updated after iOS build
 
     if (isCollapsed) {
         return (

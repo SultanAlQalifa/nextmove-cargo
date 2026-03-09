@@ -3,8 +3,6 @@ import { storageService } from "../../services/storageService";
 import { useToast } from "../../contexts/ToastContext";
 import {
   X,
-  User,
-  Mail,
   Shield,
   Calendar,
   Activity,
@@ -140,7 +138,7 @@ export default function UserProfileModal({
                 </div>
                 <div>
                   <p className="text-xs text-gray-400">Rôle</p>
-                  <p className="font-medium capitalize">{user.role}</p>
+                  <p className="font-medium capitalize">{(user as any).raw_role || user.role || "⚠️ NON DÉFINI"}</p>
                 </div>
               </div>
 

@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { Html5QrcodeScanner } from "html5-qrcode";
-import { X, Camera, AlertCircle } from "lucide-react";
+import { X, Camera } from "lucide-react";
 
 interface QRScannerModalProps {
   isOpen: boolean;
@@ -13,7 +13,6 @@ export default function QRScannerModal({
   onClose,
   onScan,
 }: QRScannerModalProps) {
-  const [scanError, setScanError] = useState<string | null>(null);
   const scannerRef = useRef<Html5QrcodeScanner | null>(null);
 
   useEffect(() => {
@@ -36,7 +35,7 @@ export default function QRScannerModal({
           onScan(decodedText);
           onClose();
         },
-        (errorMessage) => {
+        () => {
           // Error callback (called frequently when no QR is found)
           // We typically ignore this to avoid spamming logs or UI
           // console.warn(errorMessage);
@@ -84,12 +83,6 @@ export default function QRScannerModal({
             Pointez la caméra vers un QR Code valide
           </div>
 
-          {scanError && (
-            <div className="mt-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm flex items-center gap-2">
-              <AlertCircle size={16} />
-              {scanError}
-            </div>
-          )}
         </div>
       </div>
     </div>

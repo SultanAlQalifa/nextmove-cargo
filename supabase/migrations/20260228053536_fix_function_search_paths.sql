@@ -1,6 +1,9 @@
 -- Fix: Adding search_path to functions to resolve Supabase linter warnings (0011_function_search_path_mutable)
 -- Date: 2026-02-28
 -- 1. update_user_loyalty_tier
+-- Drop trigger first to avoid dependency errors during function drop
+DROP TRIGGER IF EXISTS tr_update_loyalty_tier ON public.profiles;
+DROP FUNCTION IF EXISTS public.update_user_loyalty_tier();
 CREATE OR REPLACE FUNCTION public.update_user_loyalty_tier() RETURNS TRIGGER LANGUAGE plpgsql
 SET search_path = public,
     pg_temp AS $$ BEGIN
@@ -16,7 +19,21 @@ WHERE p.id = NEW.id;
 RETURN NEW;
 END;
 $$;
+-- Ensure trigger exists
+CREATE TRIGGER tr_update_loyalty_tier
+AFTER
+UPDATE OF loyalty_points ON public.profiles FOR EACH ROW EXECUTE FUNCTION public.update_user_loyalty_tier();
 -- 2. calculate_shipping_quote
+DROP FUNCTION IF EXISTS public.calculate_shipping_quote(
+    UUID,
+    UUID,
+    TEXT,
+    TEXT,
+    NUMERIC,
+    NUMERIC,
+    UUID,
+    TEXT []
+);
 CREATE OR REPLACE FUNCTION public.calculate_shipping_quote(
         p_origin_id uuid,
         p_dest_id uuid,
@@ -162,11 +179,17 @@ END IF;
 END;
 $$;
 -- 4. check_wallet_update_permission
+-- Drop triggers first to avoid dependency errors during function drop
+DROP TRIGGER IF EXISTS tr_check_wallet_update ON public.wallets;
+DROP TRIGGER IF EXISTS tr_lock_wallet_balance ON public.wallets;
+DROP FUNCTION IF EXISTS public.check_wallet_update_permission();
 CREATE OR REPLACE FUNCTION public.check_wallet_update_permission() RETURNS TRIGGER LANGUAGE plpgsql
 SET search_path = public,
     pg_temp AS $$ BEGIN -- Only allow update if it's coming from an internal system call (SECURITY DEFINER)
     -- or if the user is an admin making a manual adjustment.
-    IF (select current_setting('role')) != 'service_role'
+    IF (
+        select current_setting('role')
+    ) != 'service_role'
     AND NOT public.is_admin() THEN -- Allow ONLY if we can prove it's an authorized internal function.
     -- Since we use SECURITY DEFINER for system functions, they run as the owner (usually postgres).
     IF session_user = 'postgres' THEN RETURN NEW;
@@ -176,7 +199,11 @@ END IF;
 RETURN NEW;
 END;
 $$;
+-- Ensure trigger exists
+CREATE TRIGGER tr_check_wallet_update BEFORE
+UPDATE ON public.wallets FOR EACH ROW EXECUTE FUNCTION public.check_wallet_update_permission();
 -- 5. accept_rfq_offer
+DROP FUNCTION IF EXISTS public.accept_rfq_offer(UUID);
 CREATE OR REPLACE FUNCTION public.accept_rfq_offer(p_offer_id UUID) RETURNS JSONB LANGUAGE plpgsql SECURITY DEFINER
 SET search_path = public,
     pg_temp AS $$
@@ -216,9 +243,13 @@ END IF;
 IF v_offer.status != 'pending' THEN RAISE EXCEPTION 'Offer is not in pending status';
 END IF;
 -- 2. Verify Authorization (caller must be the RFQ client)
-IF v_offer.client_id != (select auth.uid()) THEN -- Allow if caller is service_role (handled by SECURITY DEFINER if called from backend)
+IF v_offer.client_id != (
+    select auth.uid()
+) THEN -- Allow if caller is service_role (handled by SECURITY DEFINER if called from backend)
 -- But for RPC called from frontend, we check (select auth.uid())
-IF (select auth.role()) != 'service_role' THEN RAISE EXCEPTION 'Not authorized to accept this offer';
+IF (
+    select auth.role()
+) != 'service_role' THEN RAISE EXCEPTION 'Not authorized to accept this offer';
 END IF;
 END IF;
 -- 3. Calculate Discount from Subscription
@@ -365,6 +396,7 @@ RETURN jsonb_build_object(
 END;
 $$;
 -- 6. check_kyc_required
+DROP FUNCTION IF EXISTS public.check_kyc_required(UUID, NUMERIC);
 CREATE OR REPLACE FUNCTION public.check_kyc_required(p_user_id uuid, p_pending_amount numeric) RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER
 SET search_path = public,
     pg_temp AS $$
@@ -388,6 +420,7 @@ RETURN false;
 END;
 $$;
 -- 7. get_monthly_transaction_volume
+DROP FUNCTION IF EXISTS public.get_monthly_transaction_volume(UUID);
 CREATE OR REPLACE FUNCTION public.get_monthly_transaction_volume(p_user_id uuid) RETURNS numeric LANGUAGE plpgsql SECURITY DEFINER
 SET search_path = public,
     pg_temp AS $$
@@ -404,6 +437,7 @@ RETURN v_total;
 END;
 $$;
 -- 8. get_plan_limit
+DROP FUNCTION IF EXISTS public.get_plan_limit(UUID, TEXT);
 CREATE OR REPLACE FUNCTION public.get_plan_limit(p_user_id UUID, p_feature_key TEXT) RETURNS INTEGER LANGUAGE plpgsql SECURITY DEFINER
 SET search_path = public,
     pg_temp AS $$

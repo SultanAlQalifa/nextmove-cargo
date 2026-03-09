@@ -31,7 +31,7 @@ export default function PaymentModal({
   onSuccess,
 }: PaymentModalProps) {
   const { success, error: toastError } = useToast();
-  const { isPro, isElite } = useSubscription(); // Add Hook Call
+  const { isPro, isElite } = useSubscription();
 
   const [loading, setLoading] = useState(false);
   const [gateways, setGateways] = useState<PaymentGateway[]>([]);
@@ -44,7 +44,6 @@ export default function PaymentModal({
   const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
   const [walletBalance, setWalletBalance] = useState(0);
 
-  // Discount Calculation
   const subDiscountPercent = isElite ? 10 : (isPro ? 5 : 0);
   const amount = shipment.quotes?.[0]?.amount || 0;
   const subDiscountAmount = (amount * subDiscountPercent) / 100;
@@ -80,7 +79,6 @@ export default function PaymentModal({
       );
       setGateways(active);
 
-      // Default to Wave if available, otherwise first one
       const wave = active.find((g) => g.provider === "wave");
       if (wave) {
         setSelectedGateway(wave.id);
@@ -96,25 +94,17 @@ export default function PaymentModal({
     if (!selectedGateway) return;
     setLoading(true);
     try {
-      // Use pre-calculated finalTotal
       const finalAmount = finalTotal;
-
-      // Handle Wallet Payment
       const selectedGatewayObj = gateways.find((g) => g.id === selectedGateway);
       const isWalletPayment =
         selectedGateway === "wallet" ||
         selectedGatewayObj?.provider === "wallet";
 
       if (isWalletPayment) {
-        // Direct execution via Escrow RPC (handled by confirmPayment)
-        // We skip payWithWallet because confirmPayment's RPC (process_shipment_payment_escrow) 
-        // already performs the deduction from the wallet.
-
         await paymentService.confirmPayment(shipment.id, {
           amount: finalAmount,
-          currency: shipment.quotes?.[0]?.currency || "XOF",
-          method: 'wallet',
-          transactionId: `WALLET-${Date.now()}`
+          paymentMethod: 'wallet',
+          transactionReference: `WALLET-${Date.now()}`
         }, discount?.couponId);
 
         success("Paiement réussi via Portefeuille !");
@@ -122,7 +112,6 @@ export default function PaymentModal({
         return;
       }
 
-      // Handle CinetPay Payment
       if (selectedGatewayObj?.provider === "cinetpay") {
         const { redirect_url } = await paymentService.initializeCinetPayPayment(finalAmount, shipment.quotes?.[0]?.currency || "XOF", {
           item_name: `Shipment ${shipment.number}`,
@@ -132,7 +121,6 @@ export default function PaymentModal({
         return;
       }
 
-      // Handle PayTech Payment
       if (selectedGatewayObj?.provider === "paytech") {
         const { redirect_url } = await paymentService.initializePayTechPayment(finalAmount, shipment.quotes?.[0]?.currency || "XOF", {
           item_name: `Shipment ${shipment.number}`,
@@ -141,14 +129,12 @@ export default function PaymentModal({
         return;
       }
 
-      // Handle Bank Transfer
       if (selectedGatewayObj?.provider === "bank_transfer") {
         await paymentService.confirmPayment(
           shipment.id,
           {
             amount: finalAmount,
-            currency: shipment.quotes?.[0]?.currency || "XOF",
-            method: 'bank_transfer',
+            paymentMethod: 'bank_transfer',
             transactionReference: `VIRE-${Date.now()}`
           },
           discount?.couponId,
@@ -160,23 +146,19 @@ export default function PaymentModal({
 
       const isOffline = selectedGateway === "offline" || selectedGatewayObj?.provider === "offline";
 
-      // 1. Initialize (Calculate fees)
       const details = await paymentService.initializePayment(
         shipment.id,
         finalAmount,
         shipment.quotes?.[0]?.currency || "EUR",
       );
 
-      // 2. Simulate User Paying (Mock Delay)
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
-      // 3. Confirm Payment in Backend
       await paymentService.confirmPayment(
         shipment.id,
         {
           ...details,
-          discountAmount: discount?.amount,
-          method: isOffline ? "offline" : "gateway",
+          paymentMethod: isOffline ? "offline" : "gateway",
         },
         discount?.couponId,
       );
@@ -202,13 +184,11 @@ export default function PaymentModal({
     setIsValidatingCoupon(true);
     try {
       const amount = shipment.quotes?.[0]?.amount || 0;
-      // Use couponService directly with service scope
       const coupon = await couponService.validateCoupon(promoCode, {
         type: "service",
         forwarderId: shipment.forwarder_id || shipment.forwarder?.id,
       });
 
-      // Calculate discount
       let discountAmount = 0;
       if (coupon.discount_type === "percentage") {
         discountAmount = (amount * coupon.discount_value) / 100;
@@ -221,7 +201,7 @@ export default function PaymentModal({
 
       setDiscount({ amount: discountAmount, couponId: coupon.id });
       success(
-        `Coupon appliqué ! Vous avez économisé ${discountAmount} ${shipment.quotes?.[0]?.currency || "XOF"}`,
+        `Coupon appliqué ! Vous avez économisé ${discountAmount} ${shipment.quotes?.[0]?.currency || "XOF"}`
       );
     } catch (error: any) {
       console.error("Coupon error:", error);
@@ -247,6 +227,8 @@ export default function PaymentModal({
     }
   };
 
+  const selectedGatewayObj = gateways.find((g) => g.id === selectedGateway);
+
   return (
     <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden">
@@ -265,7 +247,6 @@ export default function PaymentModal({
         </div>
 
         <div className="p-6 space-y-6">
-          {/* Amount Display */}
           <div className="flex flex-col gap-2 p-4 bg-gray-50 rounded-xl border border-gray-100">
             <div className="flex justify-between items-center text-sm">
               <span className="text-gray-600 font-medium">Montant de base</span>
@@ -274,7 +255,6 @@ export default function PaymentModal({
               </span>
             </div>
 
-            {/* Subscription Discount */}
             {subDiscountPercent > 0 && (
               <div className="flex justify-between items-center text-blue-600 text-sm">
                 <span className="font-medium flex items-center gap-1">
@@ -287,7 +267,6 @@ export default function PaymentModal({
               </div>
             )}
 
-            {/* Promo Code Discount */}
             {discount && (
               <div className="flex justify-between items-center text-green-600 text-sm">
                 <span className="font-medium">Code Promo</span>
@@ -306,7 +285,6 @@ export default function PaymentModal({
               </span>
             </div>
 
-            {/* Starter Upsell */}
             {subDiscountPercent === 0 && (
               <div className="mt-2 bg-blue-50 border border-blue-100 rounded-lg p-2 text-xs text-blue-700">
                 <p>💡 Économisez 5% avec le plan <span className="font-bold">Pro</span>.</p>
@@ -314,7 +292,6 @@ export default function PaymentModal({
             )}
           </div>
 
-          {/* Promo Code */}
           <div className="flex gap-2">
             <input
               type="text"
@@ -332,7 +309,6 @@ export default function PaymentModal({
             </button>
           </div>
 
-          {/* Gateway Selection */}
           <div className="space-y-3">
             {gateways.map((gateway) => {
               const isWave = gateway.provider === "wave";
@@ -423,7 +399,6 @@ export default function PaymentModal({
               );
             })}
 
-            {/* Offline Payment Option */}
             <div
               onClick={() => setSelectedGateway("offline")}
               className={`
@@ -461,29 +436,28 @@ export default function PaymentModal({
             </div>
           </div>
 
-          {/* Bank Transfer Instructions */}
           {selectedGatewayObj?.provider === "bank_transfer" && (
             <div className="p-4 bg-blue-50 border border-blue-100 rounded-xl space-y-3">
               <div className="flex items-center gap-2 text-blue-800 font-bold text-sm">
                 <Info className="w-4 h-4" />
-                Coordonnées de Virement ({selectedGatewayObj.config.bank_name || "Banque Agricole"})
+                Coordonnées de Virement ({selectedGatewayObj.config?.bank_name || "Banque Agricole"})
               </div>
               <div className="space-y-2 text-xs text-blue-700">
                 <div className="flex justify-between">
                   <span className="opacity-70">Banque:</span>
-                  <span className="font-bold">{selectedGatewayObj.config.bank_name}</span>
+                  <span className="font-bold">{selectedGatewayObj.config?.bank_name}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="opacity-70">Titulaire:</span>
-                  <span className="font-bold">{selectedGatewayObj.config.account_name || "NextMove Cargo Business"}</span>
+                  <span className="font-bold">{selectedGatewayObj.config?.account_name || "NextMove Cargo Business"}</span>
                 </div>
-                {selectedGatewayObj.config.iban && (
+                {selectedGatewayObj.config?.iban && (
                   <div className="pt-1 border-t border-blue-200">
                     <span className="opacity-70 block mb-0.5">IBAN / RIB:</span>
                     <span className="font-mono font-bold break-all">{selectedGatewayObj.config.iban}</span>
                   </div>
                 )}
-                {selectedGatewayObj.config.swift && (
+                {selectedGatewayObj.config?.swift && (
                   <div className="pt-1 border-t border-blue-200">
                     <span className="opacity-70">SWIFT / BIC:</span>
                     <span className="font-mono font-bold">{selectedGatewayObj.config.swift}</span>
@@ -491,12 +465,11 @@ export default function PaymentModal({
                 )}
               </div>
               <p className="text-[10px] text-blue-600 italic">
-                {selectedGatewayObj.config.instructions || "Veuillez préciser votre nom et numéro d'expédition dans le libellé du virement."}
+                {selectedGatewayObj.config?.instructions || "Veuillez préciser votre nom et numéro d'expédition dans le libellé du virement."}
               </p>
             </div>
           )}
 
-          {/* Offline Disclaimer */}
           {selectedGateway === "offline" && (
             <div className="p-4 bg-orange-50 border border-orange-100 rounded-xl text-sm text-orange-800">
               <p className="font-medium mb-1 flex items-center gap-2">
@@ -544,10 +517,10 @@ export default function PaymentModal({
                     gateways.find((g) => g.id === selectedGateway)
                       ?.provider === "wallet"
                     ? "Payer avec mon Solde"
-                    : selectedGateway
-                      ? `Payer avec ${gateways.find((g) => g.id === selectedGateway)?.name}`
-                      : selectedGatewayObj?.provider === "bank_transfer"
-                        ? "Confirmer le virement"
+                    : selectedGatewayObj?.provider === "bank_transfer"
+                      ? "Confirmer le virement"
+                      : selectedGateway
+                        ? `Payer avec ${gateways.find((g) => g.id === selectedGateway)?.name}`
                         : "Choisir un moyen de paiement"}
               </>
             )}

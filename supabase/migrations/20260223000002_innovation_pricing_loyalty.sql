@@ -55,6 +55,10 @@ SET min_points = EXCLUDED.min_points,
 ALTER TABLE public.profiles
 ADD COLUMN IF NOT EXISTS loyalty_tier_id uuid REFERENCES public.loyalty_tiers(id);
 -- Trigger to update tier based on points
+-- Drop trigger first to avoid dependency errors during function drop
+DROP TRIGGER IF EXISTS tr_update_loyalty_tier ON public.profiles;
+-- Drop function to handle any return type changes
+DROP FUNCTION IF EXISTS public.update_user_loyalty_tier();
 CREATE OR REPLACE FUNCTION public.update_user_loyalty_tier() RETURNS TRIGGER AS $$ BEGIN
 UPDATE public.profiles p
 SET loyalty_tier_id = (
@@ -68,11 +72,21 @@ WHERE p.id = NEW.id;
 RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
-DROP TRIGGER IF EXISTS tr_update_loyalty_tier ON public.profiles;
 CREATE TRIGGER tr_update_loyalty_tier
 AFTER
 UPDATE OF loyalty_points ON public.profiles FOR EACH ROW EXECUTE FUNCTION public.update_user_loyalty_tier();
 -- 3. UNIFIED PRICING ENGINE FUNCTION
+-- Drop first to handle any return type changes
+DROP FUNCTION IF EXISTS public.calculate_shipping_quote(
+    UUID,
+    UUID,
+    TEXT,
+    TEXT,
+    NUMERIC,
+    NUMERIC,
+    UUID,
+    TEXT []
+);
 CREATE OR REPLACE FUNCTION public.calculate_shipping_quote(
         p_origin_id uuid,
         p_dest_id uuid,

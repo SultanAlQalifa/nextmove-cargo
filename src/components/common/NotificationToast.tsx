@@ -1,6 +1,6 @@
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { Bell, CheckCircle, AlertTriangle, Info } from 'lucide-react';
+import { Bell, CheckCircle, AlertTriangle } from 'lucide-react';
 
 export const CustomToast = () => {
     return (

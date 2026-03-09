@@ -12,29 +12,45 @@ CREATE INDEX IF NOT EXISTS idx_shipments_driver ON public.shipments(driver_id);
 -- Ensure 'picked_up' is commonly used for driver intake.
 -- 4. RLS Policies for Drivers
 -- Allow drivers to view shipments assigned to them
+DROP POLICY IF EXISTS "Drivers can view assigned shipments" ON public.shipments;
 CREATE POLICY "Drivers can view assigned shipments" ON public.shipments FOR
-SELECT USING ((select auth.uid()) = driver_id);
+SELECT USING (
+        (
+            select auth.uid()
+        ) = driver_id
+    );
 -- Allow drivers to update status of assigned shipments (e.g., to 'delivered')
+DROP POLICY IF EXISTS "Drivers can update status of assigned shipments" ON public.shipments;
 CREATE POLICY "Drivers can update status of assigned shipments" ON public.shipments FOR
-UPDATE USING ((select auth.uid()) = driver_id);
+UPDATE USING (
+        (
+            select auth.uid()
+        ) = driver_id
+    );
 -- Allow drivers to view events for their shipments
+DROP POLICY IF EXISTS "Drivers can view events for assigned shipments" ON public.shipment_events;
 CREATE POLICY "Drivers can view events for assigned shipments" ON public.shipment_events FOR
 SELECT USING (
         EXISTS (
             SELECT 1
             FROM public.shipments s
             WHERE s.id = shipment_events.shipment_id
-                AND s.driver_id = (select auth.uid())
+                AND s.driver_id = (
+                    select auth.uid()
+                )
         )
     );
 -- Allow drivers to create events for their shipments (e.g., picking up, arriving)
+DROP POLICY IF EXISTS "Drivers can create events for assigned shipments" ON public.shipment_events;
 CREATE POLICY "Drivers can create events for assigned shipments" ON public.shipment_events FOR
 INSERT WITH CHECK (
         EXISTS (
             SELECT 1
             FROM public.shipments s
             WHERE s.id = shipment_events.shipment_id
-                AND s.driver_id = (select auth.uid())
+                AND s.driver_id = (
+                    select auth.uid()
+                )
         )
     );
 -- 5. POD System Integration (Event-based or Dedicated table)
@@ -54,23 +70,34 @@ CREATE TABLE IF NOT EXISTS public.shipment_pods (
 );
 -- RLS for PODs
 ALTER TABLE public.shipment_pods ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Drivers can manage own PODs" ON public.shipment_pods FOR ALL USING ((select auth.uid()) = driver_id);
+DROP POLICY IF EXISTS "Drivers can manage own PODs" ON public.shipment_pods;
+CREATE POLICY "Drivers can manage own PODs" ON public.shipment_pods FOR ALL USING (
+    (
+        select auth.uid()
+    ) = driver_id
+);
+DROP POLICY IF EXISTS "Forwarders can view PODs for their shipments" ON public.shipment_pods;
 CREATE POLICY "Forwarders can view PODs for their shipments" ON public.shipment_pods FOR
 SELECT USING (
         EXISTS (
             SELECT 1
             FROM public.shipments s
             WHERE s.id = shipment_pods.shipment_id
-                AND s.forwarder_id = (select auth.uid())
+                AND s.forwarder_id = (
+                    select auth.uid()
+                )
         )
     );
+DROP POLICY IF EXISTS "Clients can view PODs for their shipments" ON public.shipment_pods;
 CREATE POLICY "Clients can view PODs for their shipments" ON public.shipment_pods FOR
 SELECT USING (
         EXISTS (
             SELECT 1
             FROM public.shipments s
             WHERE s.id = shipment_pods.shipment_id
-                AND s.client_id = (select auth.uid())
+                AND s.client_id = (
+                    select auth.uid()
+                )
         )
     );
 -- 6. Grant Permissions (Assuming standard schema)

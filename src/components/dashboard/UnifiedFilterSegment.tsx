@@ -15,6 +15,8 @@ interface UnifiedFilterSegmentProps {
   showFilters?: boolean;
   setShowFilters?: (show: boolean) => void;
   tabs?: Tab[];
+  customDateRange?: { start: string; end: string };
+  setCustomDateRange?: (range: { start: string; end: string }) => void;
   statusFilter?: string;
   setStatusFilter?: (status: string) => void;
   statusOptions?: { value: string; label: string }[];
@@ -48,11 +50,10 @@ export default function UnifiedFilterSegment({
                 onClick={() => setActiveTab(tab.id)}
                 className={`
                                     px-3 py-1.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap
-                                    ${
-                                      activeTab === tab.id
-                                        ? "bg-white text-gray-900 shadow-sm"
-                                        : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
-                                    }
+                                    ${activeTab === tab.id
+                    ? "bg-white text-gray-900 shadow-sm"
+                    : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+                  }
                                 `}
               >
                 {tab.label}
@@ -78,11 +79,10 @@ export default function UnifiedFilterSegment({
             onClick={() => setTimeRange(period.id)}
             className={`
                             px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 whitespace-nowrap
-                            ${
-                              timeRange === period.id
-                                ? "bg-white text-gray-900 shadow-sm"
-                                : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
-                            }
+                            ${timeRange === period.id
+                ? "bg-white text-gray-900 shadow-sm"
+                : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+              }
                         `}
             title={period.id === "custom" ? "Période personnalisée" : undefined}
           >
@@ -98,6 +98,7 @@ export default function UnifiedFilterSegment({
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
+            aria-label="Filtrer par statut"
             className="pl-9 pr-8 py-2 bg-gray-50 border border-transparent hover:bg-white hover:border-gray-200 rounded-xl text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all appearance-none cursor-pointer min-w-[140px]"
           >
             {statusOptions.map((option) => (
@@ -133,6 +134,8 @@ export default function UnifiedFilterSegment({
             onChange={(e) =>
               setCustomDateRange({ ...customDateRange, start: e.target.value })
             }
+            aria-label="Date de début"
+            title="Date de début"
             className="pl-2 pr-1 py-1 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary w-28"
           />
           <span className="text-gray-400">-</span>
@@ -142,6 +145,8 @@ export default function UnifiedFilterSegment({
             onChange={(e) =>
               setCustomDateRange({ ...customDateRange, end: e.target.value })
             }
+            aria-label="Date de fin"
+            title="Date de fin"
             className="pl-2 pr-1 py-1 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary w-28"
           />
         </div>
@@ -163,6 +168,7 @@ export default function UnifiedFilterSegment({
           <button
             onClick={() => setSearchQuery("")}
             className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
+            title="Effacer la recherche"
           >
             <X className="w-3 h-3" />
           </button>
@@ -173,6 +179,7 @@ export default function UnifiedFilterSegment({
         <button
           onClick={() => setShowFilters(!showFilters)}
           className={`p-2 rounded-xl border transition-colors ${showFilters ? "bg-primary/10 border-primary text-primary" : "border-gray-200 text-gray-500 hover:bg-gray-50"}`}
+          title="Afficher les filtres avancés"
         >
           <Filter className="w-4 h-4" />
         </button>

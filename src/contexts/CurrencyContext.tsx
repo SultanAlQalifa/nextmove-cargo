@@ -6,10 +6,8 @@ import {
   ReactNode,
 } from "react";
 import {
-  detectUserLocale,
   getUserLocale,
   setUserLocale,
-  LocaleConfig,
 } from "../utils/localeDetection";
 import { useTranslation } from "react-i18next";
 import { useSettings } from "./SettingsContext";

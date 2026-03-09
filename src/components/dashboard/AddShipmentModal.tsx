@@ -383,23 +383,17 @@ export default function AddShipmentModal({
       if (selectedRateIds.length > 1) return;
 
       // Prioritize IDs from Data if available (e.g. from Rate creation), otherwise resolve from Name
-      const originId =
-        formData.origin_id ||
-        locations.find((l) => l.name === formData.origin_country)?.id;
-      const destId =
-        formData.destination_id ||
-        locations.find((l) => l.name === formData.destination_country)?.id;
+      setSearchTermDest(formData.destination_country);
 
       try {
-        const matchedRate = await rateService.findBestMatch(user.id, {
+        const matchedRates = await rateService.getRateForShipment({
           mode: formData.transport_mode,
-          type: formData.service_type,
-          originCountry: formData.origin_country,
-          destCountry: formData.destination_country,
           weight: formData.cargo_weight,
-          originId, // Pass resolved IDs
-          destId,
+          origin: formData.origin_country,
+          destination: formData.destination_country,
         });
+
+        const matchedRate = matchedRates && matchedRates.length > 0 ? matchedRates[0] : null;
 
         if (matchedRate) {
           let finalPrice = matchedRate.price_per_unit;

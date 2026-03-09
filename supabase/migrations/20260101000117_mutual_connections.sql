@@ -14,9 +14,9 @@ CREATE TABLE IF NOT EXISTS public.user_connections (
     UNIQUE(requester_id, recipient_id)
 );
 -- 3. Add Indexes
-CREATE INDEX idx_connections_requester ON public.user_connections(requester_id);
-CREATE INDEX idx_connections_recipient ON public.user_connections(recipient_id);
-CREATE INDEX idx_connections_status ON public.user_connections(status);
+CREATE INDEX IF NOT EXISTS idx_connections_requester ON public.user_connections(requester_id);
+CREATE INDEX IF NOT EXISTS idx_connections_recipient ON public.user_connections(recipient_id);
+CREATE INDEX IF NOT EXISTS idx_connections_status ON public.user_connections(status);
 -- 4. Migrate Data from forwarder_clients (Treat as Accepted)
 INSERT INTO public.user_connections (requester_id, recipient_id, status)
 SELECT forwarder_id,
@@ -24,26 +24,55 @@ SELECT forwarder_id,
     'accepted'
 FROM public.forwarder_clients ON CONFLICT (requester_id, recipient_id) DO NOTHING;
 -- 5. Drop old table (Optional: keep for safety or drop? Plan says drop, but let's rename to backup just in case)
+DO $$ BEGIN IF EXISTS (
+    SELECT 1
+    FROM information_schema.tables
+    WHERE table_schema = 'public'
+        AND table_name = 'forwarder_clients'
+) THEN IF EXISTS (
+    SELECT 1
+    FROM information_schema.tables
+    WHERE table_schema = 'public'
+        AND table_name = 'forwarder_clients_backup'
+) THEN DROP TABLE public.forwarder_clients_backup;
+END IF;
 ALTER TABLE public.forwarder_clients
     RENAME TO forwarder_clients_backup;
+END IF;
+END $$;
 -- 6. RLS Policies
 ALTER TABLE public.user_connections ENABLE ROW LEVEL SECURITY;
 -- Users can view connections where they are requester OR recipient
+DROP POLICY IF EXISTS "Users can view their own connections" ON public.user_connections;
 CREATE POLICY "Users can view their own connections" ON public.user_connections FOR
 SELECT USING (
-        (select auth.uid()) = requester_id
-        OR (select auth.uid()) = recipient_id
+        (
+            select auth.uid()
+        ) = requester_id
+        OR (
+            select auth.uid()
+        ) = recipient_id
     );
 -- Users can insert requests (as requester)
+DROP POLICY IF EXISTS "Users can send connection requests" ON public.user_connections;
 CREATE POLICY "Users can send connection requests" ON public.user_connections FOR
-INSERT WITH CHECK ((select auth.uid()) = requester_id);
+INSERT WITH CHECK (
+        (
+            select auth.uid()
+        ) = requester_id
+    );
 -- Users can update status if they are the recipient (Accept/Reject) OR the requester (Cancel?)
 -- STRICT RULE: Recipient can update status. Requester can generally only insert.
 -- But for "Auto-Link" functionality, the system might need to insert as "accepted" directly?
 -- Or we handle auto-link via Service Role or robust policy.
 -- For now: Recipient can update row.
+DROP POLICY IF EXISTS "Recipients can update status" ON public.user_connections;
 CREATE POLICY "Recipients can update status" ON public.user_connections FOR
-UPDATE USING ((select auth.uid()) = recipient_id);
+UPDATE USING (
+        (
+            select auth.uid()
+        ) = recipient_id
+    );
 -- 7. Trigger for Notification on New Request
 CREATE OR REPLACE FUNCTION notify_connection_request() RETURNS TRIGGER AS $$
 DECLARE requester_name TEXT;
@@ -80,6 +109,7 @@ END IF;
 RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+DROP TRIGGER IF EXISTS on_connection_created_or_updated ON public.user_connections;
 CREATE TRIGGER on_connection_created_or_updated
 AFTER
 INSERT

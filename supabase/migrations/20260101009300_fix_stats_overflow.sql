@@ -1,6 +1,8 @@
 -- Fix numeric field overflow in get_dashboard_stats
 -- The previous DECIMAL(5, 2) was too small for high growth rates (max 999.99%)
-CREATE OR REPLACE FUNCTION get_dashboard_stats() RETURNS jsonb SECURITY DEFINER
+-- Drop first to handle any return type changes
+DROP FUNCTION IF EXISTS public.get_dashboard_stats();
+CREATE OR REPLACE FUNCTION public.get_dashboard_stats() RETURNS jsonb SECURITY DEFINER
 SET search_path = public AS $$
 DECLARE -- Current Counts
     total_users int;

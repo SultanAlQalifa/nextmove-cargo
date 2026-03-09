@@ -1,6 +1,6 @@
 declare module "react-simple-maps" {
   import * as React from "react";
-  
+
   export interface ComposableMapProps extends React.SVGAttributes<SVGSVGElement> {
     projection?: string | Function;
     projectionConfig?: {
@@ -50,4 +50,19 @@ declare module "react-simple-maps" {
     opacity?: number;
   }
   export const Geography: React.FC<GeographyProps>;
+
+  export interface MarkerProps extends React.SVGAttributes<SVGGElement> {
+    coordinates: [number, number];
+    children?: React.ReactNode;
+  }
+  export const Marker: React.FC<MarkerProps>;
+
+  export interface LineProps extends React.SVGAttributes<SVGPathElement> {
+    from?: [number, number];
+    to?: [number, number];
+    coordinates?: [number, number][];
+    stroke?: string;
+    strokeWidth?: number;
+  }
+  export const Line: React.FC<LineProps>;
 }

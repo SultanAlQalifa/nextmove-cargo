@@ -1,4 +1,6 @@
 -- Function to pay with wallet balance
+-- Drop first to handle return type changes
+DROP FUNCTION IF EXISTS public.pay_with_wallet(UUID, NUMERIC, TEXT, TEXT);
 CREATE OR REPLACE FUNCTION public.pay_with_wallet(
         p_user_id UUID,
         p_amount NUMERIC,

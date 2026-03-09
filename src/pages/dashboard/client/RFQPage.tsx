@@ -3,7 +3,7 @@
 // Page wrapper for RFQ list in client dashboard
 // ═══════════════════════════════════════════════════════════════
 
-import ClientRFQList from "../../components/rfq/ClientRFQList";
+import ClientRFQList from "../../../components/rfq/ClientRFQList";
 
 export default function ClientRFQPage() {
   return (

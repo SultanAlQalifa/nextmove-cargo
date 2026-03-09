@@ -12,6 +12,8 @@ import {
   Edit,
   Trash2,
   Plus,
+  Zap,
+  Anchor,
 } from "lucide-react";
 import TrackingMap from "../../../components/shipment/TrackingMap";
 import { shipmentService, Shipment, ShipmentDocument } from "../../../services/shipmentService";
@@ -21,7 +23,7 @@ import EditShipmentModal from "../../../components/dashboard/EditShipmentModal";
 import AddShipmentModal from "../../../components/dashboard/AddShipmentModal";
 import ConfirmationModal from "../../../components/common/ConfirmationModal";
 import PODUploadModal from "./PODUploadModal";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 export default function ShipmentDetail() {
   const { id } = useParams<{ id: string }>();
@@ -322,7 +324,7 @@ export default function ShipmentDetail() {
               </motion.button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {shipment.transport_mode === "air" && (
                 <div className="p-5 bg-white/60 dark:bg-slate-800/40 backdrop-blur-md rounded-[1.5rem] border border-white/50 dark:border-white/5 transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/10 hover:border-blue-200 dark:hover:border-blue-800 group relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-blue-100 to-transparent dark:from-blue-900/40 rounded-bl-[2rem] opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -348,7 +350,7 @@ export default function ShipmentDetail() {
               )}
 
               {/* Current Load Progress */}
-              <div className="col-span-2 p-5 bg-slate-50/50 dark:bg-slate-800/30 backdrop-blur-md border border-slate-200 dark:border-white/5 rounded-[1.5rem] space-y-3 relative overflow-hidden">
+              <div className="md:col-span-2 p-5 bg-slate-50/50 dark:bg-slate-800/30 backdrop-blur-md border border-slate-200 dark:border-white/5 rounded-[1.5rem] space-y-3 relative overflow-hidden">
                 <div className="flex justify-between items-center mb-1 relative z-10">
                   <span className="text-[10px] text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest shadow-sm">
                     Remplissage Actuel

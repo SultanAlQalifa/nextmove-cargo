@@ -18,11 +18,7 @@ const completeProfileSchema = z.object({
     phone: z.string().min(8, "Numéro de téléphone invalide"),
 });
 
-interface CompleteProfileForm {
-    firstName: string;
-    lastName: string;
-    phone: string;
-}
+
 
 export default function CompleteProfile() {
     const { user, profile, refreshProfile, loading: authLoading } = useAuth();
@@ -47,8 +43,6 @@ export default function CompleteProfile() {
     });
 
     const phoneValue = watch("phone");
-    const firstName = watch("firstName");
-    const lastName = watch("lastName");
     const usage = watch("usage");
 
     // Skip for admins and internal staff

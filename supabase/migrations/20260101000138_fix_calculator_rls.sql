@@ -23,4 +23,5 @@ SELECT USING (true);
 -- Simple public access.
 -- Note: We only select id/company_name in the frontend query, so this is safe enough for now.
 -- Strict security would verify role='forwarder', but let's just make it work first.
-RAISE NOTICE '✅ Calculator Data is now PUBLICLY visible.';
+DO $$ BEGIN RAISE NOTICE '✅ Calculator Data is now PUBLICLY visible.';
+END $$;

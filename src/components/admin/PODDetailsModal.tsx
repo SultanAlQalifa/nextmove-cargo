@@ -19,6 +19,7 @@ interface PODDetailsModalProps {
   pod: POD | null;
   onVerify: (id: string) => Promise<void>;
   onReject: (id: string) => Promise<void>;
+  isReadOnly?: boolean;
 }
 
 export default function PODDetailsModal({
@@ -27,6 +28,7 @@ export default function PODDetailsModal({
   pod,
   onVerify,
   onReject,
+  isReadOnly = false,
 }: PODDetailsModalProps) {
   if (!isOpen || !pod) return null;
 
@@ -190,7 +192,7 @@ export default function PODDetailsModal({
           </div>
 
           {/* Footer Actions */}
-          {pod.status === "pending" && (
+          {!isReadOnly && pod.status === "pending" && (
             <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
               <button
                 onClick={() => onReject(pod.id)}

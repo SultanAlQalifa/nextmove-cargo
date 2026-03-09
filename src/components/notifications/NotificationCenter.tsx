@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from "react";
-import { Bell, Check, ExternalLink, Info, CheckCircle, AlertTriangle, XCircle, Trash2 } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Bell, Check, ExternalLink, Info, CheckCircle, AlertTriangle, XCircle } from "lucide-react";
 import { useNotifications } from "../../contexts/NotificationContext";
 import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
@@ -7,7 +7,7 @@ import { fr } from "date-fns/locale";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function NotificationCenter() {
-    const { notifications, unreadCount, markAsRead, markAllRead, loading } = useNotifications();
+    const { notifications, unreadCount, markAsRead, markAllAsRead, loading } = useNotifications();
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -69,7 +69,7 @@ export default function NotificationCenter() {
                             </h3>
                             {unreadCount > 0 && (
                                 <button
-                                    onClick={() => markAllRead()}
+                                    onClick={() => markAllAsRead()}
                                     className="text-[10px] font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/30 px-2 py-1 rounded-lg transition-all flex items-center gap-1"
                                 >
                                     <Check className="w-3 h-3" /> Tout lu

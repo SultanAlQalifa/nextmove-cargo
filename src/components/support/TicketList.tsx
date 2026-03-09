@@ -1,9 +1,6 @@
 import { Ticket } from "../../services/supportService";
 import {
   MessageCircle,
-  Clock,
-  CheckCircle2,
-  AlertCircle,
   ChevronRight,
   Package,
 } from "lucide-react";

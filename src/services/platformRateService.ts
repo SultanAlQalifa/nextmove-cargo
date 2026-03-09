@@ -56,23 +56,9 @@ export const platformRateService = {
       const originId = locations?.find((l) => l.name === originCountry)?.id;
       const destId = locations?.find((l) => l.name === destCountry)?.id;
 
-      let query = supabase
-        .from("platform_rates")
-        .select("*")
-        .eq("mode", mode)
-        .eq("type", type);
-
       if (originId && destId) {
-        // Try specific route
-        const specificQuery = query
-          .eq("origin_id", originId)
-          .eq("destination_id", destId)
-          .maybeSingle(); // Use specific query object if separating logic, but here chaining
-
-        // For simplicity in this step, let's fetch matching rates and filter in code
-        // to handle the "Global" fallback logic correctly
         // Fetch potentially matching rates (Global or Specific)
-        const { data: rates, error: rateError } = await supabase
+        const { data: rates, error: _rateError } = await supabase
           .from("platform_rates")
           .select("*")
           .eq("mode", mode)
@@ -94,7 +80,7 @@ export const platformRateService = {
         }
       } else {
         // Return Global Rate if no specific route matches potential locations
-        const { data: globalRate, error: globalError } = await supabase
+        const { data: globalRate, error: _globalError } = await supabase
           .from("platform_rates")
           .select("*")
           .eq("mode", mode)

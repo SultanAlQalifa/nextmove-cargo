@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Search,
@@ -194,8 +194,8 @@ export default function CommandPalette() {
                                                         onClick={() => handleAction(cmd)}
                                                         onMouseEnter={() => setActiveIndex(idx)}
                                                         className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all group ${activeIndex === idx
-                                                                ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-[1.02]'
-                                                                : 'hover:bg-slate-50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400'
+                                                            ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-[1.02]'
+                                                            : 'hover:bg-slate-50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-400'
                                                             }`}
                                                     >
                                                         <div className="flex items-center gap-4 text-left">

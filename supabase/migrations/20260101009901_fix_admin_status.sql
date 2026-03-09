@@ -14,6 +14,10 @@ WHERE (
         OR account_status = 'pending'
     );
 -- 2. Update the handle_new_user trigger to ensure account_status defaults to 'active' if not provided
+-- Drop trigger first to avoid dependency errors during function drop
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+-- Drop function to handle any return type changes
+DROP FUNCTION IF EXISTS public.handle_new_user();
 CREATE OR REPLACE FUNCTION public.handle_new_user() RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER
 SET search_path = public AS $$
 DECLARE v_referred_by UUID;
@@ -44,13 +48,8 @@ INSERT INTO public.profiles (
 VALUES (
         NEW.id,
         NEW.email,
-        v_role::user_role,
-        -- Try explicit cast to enum if possible, or let implicit handle it if v_role matches enum label perfectly.
-        -- But wait, v_role is dynamic. If v_role is 'Admin' and enum is 'admin', precise match needed? 
-        -- Usually PG enums are case sensitive. Let's assume input is correct or implicit cast works best without ::type unless sure.
-        -- Actually, for INSERT, just passing string usually works IF it matches exactly.
-        -- The error was about ILIKE operator.
-        v_role,
+        COALESCE(v_role, 'client'),
+        -- Handle enum or string
         COALESCE(
             NEW.raw_user_meta_data->>'full_name',
             'Utilisateur'
@@ -112,3 +111,7 @@ VALUES (
 RETURN NEW;
 END;
 $$;
+-- Ensure trigger exists
+CREATE TRIGGER on_auth_user_created
+AFTER
+INSERT ON auth.users FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();

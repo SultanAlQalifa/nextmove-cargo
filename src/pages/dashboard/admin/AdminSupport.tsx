@@ -4,7 +4,6 @@ import { supportService, Ticket, GlobalSearchResult } from "../../../services/su
 import {
   MessageSquare,
   Search,
-  Filter,
   MoreVertical,
   Eye,
   CheckCircle,
@@ -15,7 +14,6 @@ import {
   FileText,
   User,
   ExternalLink,
-  ChevronRight,
   Loader2
 } from "lucide-react";
 import { useToast } from "../../../contexts/ToastContext";
@@ -113,7 +111,7 @@ export default function AdminSupport() {
             id: profile.id,
             name: profile.full_name || 'Utilisateur',
             email: profile.email,
-            role: profile.role || 'client',
+            role: profile.role,
             status: (profile as any).account_status === 'suspended' ? 'Suspendu' : ((profile as any).account_status === 'inactive' ? 'Inactif' : 'Actif'),
             joined_at: (profile as any).created_at || new Date().toISOString(),
             phone: (profile as any).phone,

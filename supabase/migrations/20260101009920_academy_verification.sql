@@ -6,6 +6,7 @@ ALTER TABLE public.academy_enrollments
 ADD COLUMN IF NOT EXISTS verification_code TEXT UNIQUE DEFAULT substring(gen_random_uuid()::text, 1, 8);
 -- Ensure anyone can select enrollment with verification_code (public check)
 -- Policy check: we only allow public select if verification_code is provided and it matches
+DROP POLICY IF EXISTS "Public certificate verification" ON public.academy_enrollments;
 CREATE POLICY "Public certificate verification" ON public.academy_enrollments FOR
 SELECT USING (true);
 -- Note: In a real app, we might want to restrict columns returned for public, 

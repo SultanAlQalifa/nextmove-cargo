@@ -3,11 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   Check,
-  Shield,
-  Globe,
-  TrendingUp,
-  Truck,
-  Hash,
   X,
   Loader2,
   ArrowLeft,
@@ -19,7 +14,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { useToast } from "../contexts/ToastContext";
 
 export default function UpgradeToPro() {
-  const { t } = useTranslation();
+  const { t: _t } = useTranslation();
   const navigate = useNavigate();
   const { refreshProfile } = useAuth();
   const { success, error: showError } = useToast();

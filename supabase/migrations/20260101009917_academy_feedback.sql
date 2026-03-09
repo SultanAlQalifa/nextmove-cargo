@@ -37,45 +37,148 @@ ALTER TABLE academy_reviews ENABLE ROW LEVEL SECURITY;
 ALTER TABLE academy_lesson_likes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE academy_lesson_comments ENABLE ROW LEVEL SECURITY;
 -- Policies: academy_reviews
-CREATE POLICY "Anyone can view reviews" ON academy_reviews FOR
+DO $$ BEGIN IF NOT EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE tablename = 'academy_reviews'
+        AND policyname = 'Anyone can view reviews'
+) THEN CREATE POLICY "Anyone can view reviews" ON academy_reviews FOR
 SELECT USING (true);
-CREATE POLICY "Authenticated users can review courses" ON academy_reviews FOR
-INSERT WITH CHECK ((select auth.uid()) = user_id);
-CREATE POLICY "Users can update their own reviews" ON academy_reviews FOR
-UPDATE USING ((select auth.uid()) = user_id);
-CREATE POLICY "Users or admins can delete reviews" ON academy_reviews FOR DELETE USING (
-    (select auth.uid()) = user_id
+END IF;
+IF NOT EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE tablename = 'academy_reviews'
+        AND policyname = 'Authenticated users can review courses'
+) THEN CREATE POLICY "Authenticated users can review courses" ON academy_reviews FOR
+INSERT WITH CHECK (
+        (
+            select auth.uid()
+        ) = user_id
+    );
+END IF;
+IF NOT EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE tablename = 'academy_reviews'
+        AND policyname = 'Users can update their own reviews'
+) THEN CREATE POLICY "Users can update their own reviews" ON academy_reviews FOR
+UPDATE USING (
+        (
+            select auth.uid()
+        ) = user_id
+    );
+END IF;
+IF NOT EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE tablename = 'academy_reviews'
+        AND policyname = 'Users or admins can delete reviews'
+) THEN CREATE POLICY "Users or admins can delete reviews" ON academy_reviews FOR DELETE USING (
+    (
+        select auth.uid()
+    ) = user_id
     OR EXISTS (
         SELECT 1
         FROM profiles
-        WHERE id = (select auth.uid())
+        WHERE id = (
+                select auth.uid()
+            )
             AND role IN ('admin', 'super-admin')
     )
 );
+END IF;
+END $$;
 -- Policies: academy_lesson_likes
-CREATE POLICY "Anyone can see likes" ON academy_lesson_likes FOR
+DO $$ BEGIN IF NOT EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE tablename = 'academy_lesson_likes'
+        AND policyname = 'Anyone can see likes'
+) THEN CREATE POLICY "Anyone can see likes" ON academy_lesson_likes FOR
 SELECT USING (true);
-CREATE POLICY "Authenticated users can like lessons" ON academy_lesson_likes FOR
-INSERT WITH CHECK ((select auth.uid()) = user_id);
-CREATE POLICY "Users can unlike lessons" ON academy_lesson_likes FOR DELETE USING ((select auth.uid()) = user_id);
+END IF;
+IF NOT EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE tablename = 'academy_lesson_likes'
+        AND policyname = 'Authenticated users can like lessons'
+) THEN CREATE POLICY "Authenticated users can like lessons" ON academy_lesson_likes FOR
+INSERT WITH CHECK (
+        (
+            select auth.uid()
+        ) = user_id
+    );
+END IF;
+IF NOT EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE tablename = 'academy_lesson_likes'
+        AND policyname = 'Users can unlike lessons'
+) THEN CREATE POLICY "Users can unlike lessons" ON academy_lesson_likes FOR DELETE USING (
+    (
+        select auth.uid()
+    ) = user_id
+);
+END IF;
+END $$;
 -- Policies: academy_lesson_comments
-CREATE POLICY "Anyone can see lesson comments" ON academy_lesson_comments FOR
+DO $$ BEGIN IF NOT EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE tablename = 'academy_lesson_comments'
+        AND policyname = 'Anyone can see lesson comments'
+) THEN CREATE POLICY "Anyone can see lesson comments" ON academy_lesson_comments FOR
 SELECT USING (true);
-CREATE POLICY "Authenticated users can comment" ON academy_lesson_comments FOR
-INSERT WITH CHECK ((select auth.uid()) = user_id);
-CREATE POLICY "Users can edit their own comments" ON academy_lesson_comments FOR
-UPDATE USING ((select auth.uid()) = user_id);
-CREATE POLICY "Users or admins can delete comments" ON academy_lesson_comments FOR DELETE USING (
-    (select auth.uid()) = user_id
+END IF;
+IF NOT EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE tablename = 'academy_lesson_comments'
+        AND policyname = 'Authenticated users can comment'
+) THEN CREATE POLICY "Authenticated users can comment" ON academy_lesson_comments FOR
+INSERT WITH CHECK (
+        (
+            select auth.uid()
+        ) = user_id
+    );
+END IF;
+IF NOT EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE tablename = 'academy_lesson_comments'
+        AND policyname = 'Users can edit their own comments'
+) THEN CREATE POLICY "Users can edit their own comments" ON academy_lesson_comments FOR
+UPDATE USING (
+        (
+            select auth.uid()
+        ) = user_id
+    );
+END IF;
+IF NOT EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE tablename = 'academy_lesson_comments'
+        AND policyname = 'Users or admins can delete comments'
+) THEN CREATE POLICY "Users or admins can delete comments" ON academy_lesson_comments FOR DELETE USING (
+    (
+        select auth.uid()
+    ) = user_id
     OR EXISTS (
         SELECT 1
         FROM profiles
-        WHERE id = (select auth.uid())
+        WHERE id = (
+                select auth.uid()
+            )
             AND role IN ('admin', 'super-admin', 'support')
     )
 );
+END IF;
+END $$;
 -- Triggers for updated_at
+DROP TRIGGER IF EXISTS tr_academy_reviews_updated_at ON academy_reviews;
 CREATE TRIGGER tr_academy_reviews_updated_at BEFORE
 UPDATE ON academy_reviews FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+DROP TRIGGER IF EXISTS tr_academy_lesson_comments_updated_at ON academy_lesson_comments;
 CREATE TRIGGER tr_academy_lesson_comments_updated_at BEFORE
 UPDATE ON academy_lesson_comments FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

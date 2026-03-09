@@ -28,7 +28,7 @@ export default function AssignForwarderModal({
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedId, setSelectedId] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState(false);
-    const { error } = useToast();
+    const { } = useToast();
 
     useEffect(() => {
         if (isOpen) {

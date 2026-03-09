@@ -18,13 +18,16 @@ CREATE POLICY "Admins can manage feature flags" ON public.feature_flags FOR ALL 
     EXISTS (
         SELECT 1
         FROM public.profiles
-        WHERE profiles.id = (select auth.uid())
+        WHERE profiles.id = (
+                select auth.uid()
+            )
             AND profiles.role IN ('admin', 'super-admin')
     )
 );
 -- Trigger for updated_at
+DROP TRIGGER IF EXISTS handle_updated_at_feature_flags ON public.feature_flags;
 CREATE TRIGGER handle_updated_at_feature_flags BEFORE
-UPDATE ON public.feature_flags FOR EACH ROW EXECUTE FUNCTION extensions.moddatetime (updated_at);
+UPDATE ON public.feature_flags FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 -- Seed initial flags
 INSERT INTO public.feature_flags (key, is_enabled, description)
 VALUES (

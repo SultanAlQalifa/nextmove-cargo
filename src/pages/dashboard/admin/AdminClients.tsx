@@ -7,7 +7,6 @@ import {
   Phone,
   MapPin,
   MoreVertical,
-  Eye,
   Building,
 } from "lucide-react";
 import { personnelService } from "../../../services/personnelService";
@@ -146,7 +145,10 @@ export default function AdminClients() {
                       {new Date(c.created_at).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors min-h-[44px]">
+                      <button
+                        className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors min-h-[44px]"
+                        title="Plus d'options"
+                      >
                         <MoreVertical className="w-5 h-5" />
                       </button>
                     </td>

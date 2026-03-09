@@ -6,7 +6,7 @@ DROP INDEX IF EXISTS public.idx_audit_logs_action;
 DROP INDEX IF EXISTS public.idx_audit_logs_created_at;
 DROP TABLE IF EXISTS public.audit_logs CASCADE;
 -- 2. CREATE TABLE
-CREATE TABLE public.audit_logs (
+CREATE TABLE IF NOT EXISTS public.audit_logs (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     user_id UUID REFERENCES public.profiles(id) ON DELETE

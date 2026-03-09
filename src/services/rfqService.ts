@@ -15,8 +15,8 @@ import type {
   OfferWithRFQ,
   OfferWithForwarder,
   RFQWithClient,
+  RFQWithOffers as _RFQWithOffers, // ensure no collision if needed, but here just cleanup
 } from "../types/rfq";
-import { automationService } from "./automationService";
 
 // ═══ CLIENT FUNCTIONS ═══
 

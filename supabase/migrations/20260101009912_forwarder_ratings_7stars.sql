@@ -2,16 +2,8 @@
 -- NextMove Cargo - Forwarder Rating System (7 Stars)
 -- ═══════════════════════════════════════════════════════════════
 -- 1. Update Profile Constraints & Columns
--- Remove old 5-star constraint if it exists
-DO $$ BEGIN IF EXISTS (
-    SELECT 1
-    FROM information_schema.constraint_column_usage
-    WHERE table_name = 'profiles'
-        AND constraint_name = 'profiles_rating_check'
-) THEN
-ALTER TABLE profiles DROP CONSTRAINT profiles_rating_check;
-END IF;
-END $$;
+-- Remove old 5-star constraint if it exists (or the new 7-star one, for re-runs)
+ALTER TABLE profiles DROP CONSTRAINT IF EXISTS profiles_rating_check;
 -- Apply new 7-star constraint
 ALTER TABLE profiles
 ADD CONSTRAINT profiles_rating_check CHECK (
@@ -39,21 +31,32 @@ CREATE TABLE IF NOT EXISTS forwarder_reviews (
 );
 -- 3. RLS Policies
 ALTER TABLE forwarder_reviews ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Reviews are viewable by everyone" ON forwarder_reviews;
 CREATE POLICY "Reviews are viewable by everyone" ON forwarder_reviews FOR
 SELECT USING (true);
+DROP POLICY IF EXISTS "Clients can create reviews for their shipments" ON forwarder_reviews;
 CREATE POLICY "Clients can create reviews for their shipments" ON forwarder_reviews FOR
 INSERT WITH CHECK (
-        (select auth.uid()) = client_id
+        (
+            select auth.uid()
+        ) = client_id
         AND EXISTS (
             SELECT 1
             FROM shipments s
             WHERE s.id = shipment_id
-                AND s.client_id = (select auth.uid())
+                AND s.client_id = (
+                    select auth.uid()
+                )
                 AND s.status = 'delivered'
         )
     );
+DROP POLICY IF EXISTS "Clients can update their own reviews" ON forwarder_reviews;
 CREATE POLICY "Clients can update their own reviews" ON forwarder_reviews FOR
-UPDATE USING ((select auth.uid()) = client_id);
+UPDATE USING (
+        (
+            select auth.uid()
+        ) = client_id
+    );
 -- 4. Automatic Rating Aggregate Trigger
 CREATE OR REPLACE FUNCTION update_forwarder_rating() RETURNS TRIGGER AS $$ BEGIN -- Update the average rating and count on the forwarder's profile
 UPDATE profiles
@@ -71,6 +74,7 @@ WHERE id = COALESCE(NEW.forwarder_id, OLD.forwarder_id);
 RETURN NULL;
 END;
 $$ LANGUAGE plpgsql;
+DROP TRIGGER IF EXISTS on_review_changed ON forwarder_reviews;
 CREATE TRIGGER on_review_changed
 AFTER
 INSERT

@@ -7,7 +7,6 @@ import {
   Clock,
   Eye,
   AlertTriangle,
-  Save,
 } from "lucide-react";
 import PageHeader from "../../../components/common/PageHeader";
 import { useAuth } from "../../../contexts/AuthContext";
@@ -140,12 +139,12 @@ export default function ForwarderKYC() {
                   <div className="flex items-start gap-4">
                     <div
                       className={`p-3 rounded-xl ${status === "verified"
-                          ? "bg-green-50 text-green-600"
-                          : status === "rejected"
-                            ? "bg-red-50 text-red-600"
-                            : status === "pending"
-                              ? "bg-orange-50 text-orange-600"
-                              : "bg-gray-50 text-gray-400"
+                        ? "bg-green-50 text-green-600"
+                        : status === "rejected"
+                          ? "bg-red-50 text-red-600"
+                          : status === "pending"
+                            ? "bg-orange-50 text-orange-600"
+                            : "bg-gray-50 text-gray-400"
                         }`}
                     >
                       <FileText className="w-6 h-6" />

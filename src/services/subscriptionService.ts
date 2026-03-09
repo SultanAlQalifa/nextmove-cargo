@@ -8,7 +8,6 @@ import {
 } from "../types/subscription";
 import { profileService } from "./profileService";
 import {
-  generateSubscriptionContract,
   generateSubscriptionInvoice,
 } from "../utils/pdfGenerator";
 import { emailService } from "./emailService";

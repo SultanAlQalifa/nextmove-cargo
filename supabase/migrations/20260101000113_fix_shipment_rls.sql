@@ -6,28 +6,34 @@ DROP POLICY IF EXISTS "Forwarders can update their own shipments" ON shipments;
 CREATE POLICY "Forwarders can update their own shipments" ON shipments FOR
 UPDATE USING (
         -- Forwarder owns the shipment
-        forwarder_id = (select auth.uid())
+        forwarder_id = (
+            select auth.uid()
+        )
         OR -- Or user is an admin (standard admin check)
         EXISTS (
             SELECT 1
-            FROM user_roles ur
-                JOIN roles r ON ur.role_id = r.id
-            WHERE ur.user_id = (select auth.uid())
-                AND r.name IN ('admin', 'super_admin')
+            FROM public.profiles
+            WHERE id = (
+                    select auth.uid()
+                )
+                AND role IN ('admin', 'super-admin')
         )
     );
 -- Ensure DELETE is also allowed for forwarders (as per recent feature request)
 DROP POLICY IF EXISTS "Forwarders can delete their own pending shipments" ON shipments;
 CREATE POLICY "Forwarders can delete their own pending shipments" ON shipments FOR DELETE USING (
     (
-        forwarder_id = (select auth.uid())
+        forwarder_id = (
+            select auth.uid()
+        )
         AND status = 'pending'
     )
     OR EXISTS (
         SELECT 1
-        FROM user_roles ur
-            JOIN roles r ON ur.role_id = r.id
-        WHERE ur.user_id = (select auth.uid())
-            AND r.name IN ('admin', 'super_admin')
+        FROM public.profiles
+        WHERE id = (
+                select auth.uid()
+            )
+            AND role IN ('admin', 'super-admin')
     )
 );

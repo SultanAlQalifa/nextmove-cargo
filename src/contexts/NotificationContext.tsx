@@ -73,10 +73,10 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
             return () => {
                 supabase.removeChannel(channel);
             };
-        } else {
-            setNotifications([]);
-            setUnreadCount(0);
         }
+        setNotifications([]);
+        setUnreadCount(0);
+        return undefined;
     }, [user]);
 
     const markAsRead = async (id: string) => {

@@ -25,6 +25,7 @@ interface POSRetraitSectionProps {
     selectedShipment: any;
     setSelectedShipment: (s: any) => void;
     recipientName: string;
+    setRecipientName: (s: string) => void;
     codLoading: boolean;
     handleCodConfirm: (signature?: string) => void;
 }
@@ -39,6 +40,7 @@ export const POSRetraitSection: React.FC<POSRetraitSectionProps> = ({
     selectedShipment,
     setSelectedShipment,
     recipientName,
+    setRecipientName,
     codLoading,
     handleCodConfirm
 }) => {
@@ -168,6 +170,18 @@ export const POSRetraitSection: React.FC<POSRetraitSectionProps> = ({
                             <div className="p-4 bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-900/30 dark:to-green-900/30 rounded-xl border border-emerald-200/50 dark:border-emerald-800/50 text-center">
                                 <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-wider mb-1">Montant à encaisser</p>
                                 <p className="text-2xl font-black text-emerald-800 dark:text-emerald-200">{(selectedShipment.price || 0).toLocaleString()} <span className="text-sm text-emerald-500">FCFA</span></p>
+                            </div>
+
+                            {/* Recipient Name Input */}
+                            <div className="pt-2">
+                                <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 block">Nom du réceptionnaire (Requis)</label>
+                                <input
+                                    type="text"
+                                    placeholder="Nom complet du destinataire..."
+                                    value={recipientName}
+                                    onChange={(e) => setRecipientName(e.target.value)}
+                                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 outline-none focus:border-indigo-400 text-sm"
+                                />
                             </div>
 
                             {/* Signature Capture */}

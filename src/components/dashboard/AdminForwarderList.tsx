@@ -14,7 +14,6 @@ interface Forwarder {
 
 export default function AdminForwarderList() {
   const [forwarders, setForwarders] = useState<Forwarder[]>([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadForwarders();
@@ -33,7 +32,6 @@ export default function AdminForwarderList() {
 
     if (error) console.error("Error loading forwarders:", error);
     else setForwarders(data as any);
-    setLoading(false);
   };
 
   const toggleVerification = async (id: string, currentStatus: boolean) => {

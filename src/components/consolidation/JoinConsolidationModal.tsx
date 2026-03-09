@@ -7,8 +7,6 @@ import {
     Package,
     Scale,
     DollarSign,
-    FileText,
-    AlertCircle,
 } from "lucide-react";
 import { Consolidation, ConsolidationBookingData } from "../../types/consolidation";
 import { consolidationService } from "../../services/consolidationService";

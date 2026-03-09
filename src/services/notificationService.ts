@@ -48,7 +48,7 @@ export const notificationService = {
       console.error('Error on registration: ' + JSON.stringify(error));
     });
 
-    PushNotifications.addListener('pushNotificationReceived', (notification) => {
+    PushNotifications.addListener('pushNotificationReceived', (_notification) => {
       // Trace silently
 
     });

@@ -95,6 +95,7 @@ export interface AcademyQuiz {
     description?: string;
     passing_score: number;
     academy_quiz_questions?: AcademyQuizQuestion[];
+    questions?: AcademyQuizQuestion[]; // Alias for frontend usage
 }
 
 export interface AcademyQuizQuestion {
@@ -103,6 +104,7 @@ export interface AcademyQuizQuestion {
     question_text: string;
     order_index: number;
     academy_quiz_options?: AcademyQuizOption[];
+    options?: AcademyQuizOption[]; // Alias for frontend usage
 }
 
 export interface AcademyQuizOption {

@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useNavigate, Link } from "react-router-dom";
-import { BookOpen, CheckCircle, Smartphone, Globe, TrendingUp, ArrowRight, Star, Play, Coins, Rocket, Package, ShieldCheck, Zap } from "lucide-react";
+import { BookOpen, CheckCircle, Smartphone, Globe, TrendingUp, ArrowRight, Star, Play, Coins, Rocket, ShieldCheck, Zap } from "lucide-react";
 
 
 import { useState, useEffect, lazy, Suspense } from "react";
@@ -212,7 +212,7 @@ export default function Academy() {
                                         i === 1 ? "md:col-span-12 lg:col-span-5" :
                                             i === 2 ? "md:col-span-12 lg:col-span-5" :
                                                 "md:col-span-12 lg:col-span-7"
-                                    }`}
+                                    } `}
                             >
                                 <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-orange-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                                 <div className="absolute -right-20 -top-20 w-64 h-64 bg-slate-200/20 dark:bg-white/5 blur-[80px] rounded-full group-hover:bg-orange-500/10 transition-all duration-700" />

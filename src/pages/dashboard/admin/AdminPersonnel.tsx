@@ -377,7 +377,7 @@ export default function AdminPersonnel() {
                                       return 5;
                                     };
 
-                                    const currentRank = getRoleRank(profile?.role || 'client');
+                                    const currentRank = getRoleRank(profile?.role as any);
                                     const targetRank = getRoleRank(member.role_details?.name || member.role);
 
 

@@ -16,7 +16,7 @@ import {
     MapPin as MapPinIcon,
     Box
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { shipmentService, Shipment } from "../../../services/shipmentService";
 import { useToast } from "../../../contexts/ToastContext";
 import { useCurrency } from "../../../contexts/CurrencyContext";

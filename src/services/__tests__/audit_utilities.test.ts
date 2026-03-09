@@ -1,5 +1,5 @@
+// @ts-ignore
 import { describe, test, expect } from "vitest";
-import { calculatorService } from "../calculatorService";
 import { getCountryCode } from "../../constants/countries";
 
 // Mock dependencies if needed, but these functions might be pure enough or we mock the service internal helper

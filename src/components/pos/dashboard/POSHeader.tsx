@@ -22,7 +22,7 @@ interface POSHeaderProps {
     setShowPrinterSettings: (show: boolean) => void;
     setShowCashOp: (show: boolean) => void;
     handlePrepareClose: () => void;
-    activeSession: any;
+    activeSession?: any;
 }
 
 export const POSHeader: React.FC<POSHeaderProps> = ({
@@ -35,7 +35,7 @@ export const POSHeader: React.FC<POSHeaderProps> = ({
     setShowPrinterSettings,
     setShowCashOp,
     handlePrepareClose,
-    activeSession
+    activeSession: _activeSession
 }) => {
     return (
         <div className="flex items-center justify-between px-5 py-3 bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl border-b border-slate-200/50 dark:border-slate-700/50 sticky top-0 z-20">

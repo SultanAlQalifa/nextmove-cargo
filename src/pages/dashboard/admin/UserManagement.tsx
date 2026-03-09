@@ -33,6 +33,8 @@ interface UserListItem {
   name: string;
   email: string;
   role: string;
+  raw_role: string;
+  staff_role_id?: string;
   status: string;
   joined_at: string;
   phone: string;
@@ -106,11 +108,15 @@ export default function UserManagement() {
         friendly_id: p.friendly_id,
         name: p.full_name || p.email.split("@")[0],
         email: p.email,
+        raw_role: p.role,
+        staff_role_id: p.staff_role_id,
         role: p.role === "forwarder"
           ? "Prestataire"
-          : p.role
+          : (p.role === "admin" || p.role === "super-admin")
             ? p.role.charAt(0).toUpperCase() + p.role.slice(1)
-            : "Client",
+            : p.role === "client"
+              ? "Client"
+              : "⚠️ RÔLE INVALIDE",
         status:
           p.account_status === "active"
             ? "Actif"
@@ -601,7 +607,9 @@ export default function UserManagement() {
                             ? "bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-400 shadow-purple-500/10"
                             : user.role === "Prestataire"
                               ? "bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400 shadow-orange-500/10"
-                              : "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400 shadow-blue-500/10"
+                              : user.role === "Client"
+                                ? "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400 shadow-blue-500/10"
+                                : "bg-red-500 text-white animate-pulse"
                           }`}
                       >
                         {user.role}
@@ -664,7 +672,7 @@ export default function UserManagement() {
                                   return 4; // Client
                                 };
 
-                                const currentRank = getRoleRank(profile?.role || 'client');
+                                const currentRank = getRoleRank(profile?.role as any);
                                 // user.role in this component is formatted (Admin, Client etc), so we lower case it
                                 const targetRank = getRoleRank(user.role);
                                 const canManage = currentRank === 1 || (currentRank < targetRank);

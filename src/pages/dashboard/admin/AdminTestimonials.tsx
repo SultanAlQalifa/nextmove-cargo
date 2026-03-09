@@ -4,13 +4,11 @@ import {
     Star,
     Plus,
     Search,
-    MoreVertical,
     Edit2,
     Trash2,
     CheckCircle,
     XCircle,
     User,
-    ExternalLink,
 } from "lucide-react";
 import {
     testimonialService,
@@ -36,6 +34,7 @@ export default function AdminTestimonials() {
         rating: 5,
         is_active: true,
         display_order: 0,
+        avatar_url: null as string | null,
     });
 
     const { success, error: toastError } = useToast();
@@ -72,6 +71,7 @@ export default function AdminTestimonials() {
                 rating: testimonial.rating,
                 is_active: testimonial.is_active,
                 display_order: testimonial.display_order,
+                avatar_url: testimonial.avatar_url,
             });
         } else {
             setEditingTestimonial(null);
@@ -82,6 +82,7 @@ export default function AdminTestimonials() {
                 rating: 5,
                 is_active: true,
                 display_order: testimonials.length + 1,
+                avatar_url: null as string | null,
             });
         }
         setIsModalOpen(true);

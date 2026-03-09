@@ -14,7 +14,7 @@ IF NOT EXISTS (
     SELECT 1
     FROM information_schema.tables
     WHERE table_name = 'forwarder_rates'
-) THEN CREATE TABLE forwarder_rates (
+) THEN CREATE TABLE IF NOT EXISTS forwarder_rates (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     forwarder_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
     origin_id UUID REFERENCES locations(id) ON DELETE CASCADE,
@@ -35,13 +35,21 @@ IF NOT EXISTS (
 );
 -- Security: Enable RLS
 ALTER TABLE forwarder_rates ENABLE ROW LEVEL SECURITY;
--- Policies
--- Forwarders can manage their own rates
-CREATE POLICY "Forwarders manage own rates" ON forwarder_rates KEY (forwarder_id = (select auth.uid())) WITH CHECK (forwarder_id = (select auth.uid()));
--- Everyone (logged in) can read rates (for calculation purposes)
+END IF;
+-- Policies (Always refresh/ensure)
+DROP POLICY IF EXISTS "Forwarders manage own rates" ON forwarder_rates;
+CREATE POLICY "Forwarders manage own rates" ON forwarder_rates FOR ALL USING (
+    forwarder_id = (
+        select auth.uid()
+    )
+) WITH CHECK (
+    forwarder_id = (
+        select auth.uid()
+    )
+);
+DROP POLICY IF EXISTS "Authenticated users can read" ON forwarder_rates;
 CREATE POLICY "Authenticated users can read" ON forwarder_rates FOR
 SELECT TO authenticated USING (true);
-END IF;
 -- 3. Unique Index for Route Specificity per Forwarder
 -- Ensure one rate per (Forwarder, Mode, Type, Origin, Destination)
 -- Using COALESCE for Global rates (where origin/dest are NULL)

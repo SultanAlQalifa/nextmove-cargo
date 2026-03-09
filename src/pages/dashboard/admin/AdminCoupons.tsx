@@ -2,11 +2,9 @@ import { useState, useEffect } from "react";
 import { supabase } from "../../../lib/supabase";
 import {
   Plus,
-  Search,
   Tag,
   Trash2,
   CheckCircle,
-  XCircle,
   PauseCircle,
   PlayCircle,
 } from "lucide-react";
@@ -28,7 +26,7 @@ interface Coupon {
 export default function AdminCoupons() {
   const { error: toastError } = useToast();
   const [coupons, setCoupons] = useState<Coupon[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
     code: "",
@@ -183,11 +181,10 @@ export default function AdminCoupons() {
                   <td className="px-6 py-4">
                     <button
                       onClick={() => toggleStatus(coupon.id, coupon.is_active)}
-                      className={`px-3 py-1 rounded-full text-xs font-medium border flex items-center gap-1 ${
-                        coupon.is_active
-                          ? "bg-green-50 text-green-700 border-green-200"
-                          : "bg-yellow-50 text-yellow-700 border-yellow-200"
-                      }`}
+                      className={`px-3 py-1 rounded-full text-xs font-medium border flex items-center gap-1 ${coupon.is_active
+                        ? "bg-green-50 text-green-700 border-green-200"
+                        : "bg-yellow-50 text-yellow-700 border-yellow-200"
+                        }`}
                     >
                       {coupon.is_active ? (
                         <>
@@ -206,11 +203,10 @@ export default function AdminCoupons() {
                         onClick={() =>
                           toggleStatus(coupon.id, coupon.is_active)
                         }
-                        className={`p-1 rounded-lg transition-colors ${
-                          coupon.is_active
-                            ? "text-yellow-600 hover:bg-yellow-50"
-                            : "text-green-600 hover:bg-green-50"
-                        }`}
+                        className={`p-1 rounded-lg transition-colors ${coupon.is_active
+                          ? "text-yellow-600 hover:bg-yellow-50"
+                          : "text-green-600 hover:bg-green-50"
+                          }`}
                         title={coupon.is_active ? "Mettre en pause" : "Activer"}
                       >
                         {coupon.is_active ? (
@@ -219,7 +215,10 @@ export default function AdminCoupons() {
                           <PlayCircle className="w-4 h-4" />
                         )}
                       </button>
-                      <button className="text-gray-400 hover:text-red-600 transition-colors p-1 hover:bg-red-50 rounded-lg min-h-[44px]">
+                      <button
+                        className="text-gray-400 hover:text-red-600 transition-colors p-1 hover:bg-red-50 rounded-lg min-h-[44px]"
+                        title="Supprimer le coupon"
+                      >
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -276,6 +275,7 @@ export default function AdminCoupons() {
                   </label>
                   <select
                     value={formData.discount_type}
+                    title="Type de réduction"
                     onChange={(e) =>
                       setFormData({
                         ...formData,
@@ -329,6 +329,8 @@ export default function AdminCoupons() {
                   <input
                     type="date"
                     value={formData.end_date}
+                    title="Date d'expiration"
+                    placeholder="Date d'expiration"
                     onChange={(e) =>
                       setFormData({ ...formData, end_date: e.target.value })
                     }

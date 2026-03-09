@@ -37,28 +37,38 @@ CREATE POLICY "Admin full access to all settings" ON public.system_settings FOR 
 -- 3. CLEANUP SYSTEM_SETTINGS
 -- Now that integrations are in secrets, we can remove them from the public table (or at least their keys)
 -- For safety, we keep the structure but clear the tokens/keys.
+-- We use ::text explicitly to avoid "operator is not unique" errors in some Postgres versions.
 UPDATE public.system_settings
-SET value = value - 'integrations' || jsonb_build_object(
+SET value = value - 'integrations'::text || jsonb_build_object(
         'integrations',
         jsonb_build_object(
             'whatsapp',
             jsonb_build_object(
                 'enabled',
-                (value->'integrations'->'whatsapp'->>'enabled')::boolean,
+                COALESCE(
+                    (value->'integrations'->'whatsapp'->>'enabled')::boolean,
+                    false
+                ),
                 'api_key',
                 '***HIDDEN***'
             ),
             'twilio',
             jsonb_build_object(
                 'enabled',
-                (value->'integrations'->'twilio'->>'enabled')::boolean,
+                COALESCE(
+                    (value->'integrations'->'twilio'->>'enabled')::boolean,
+                    false
+                ),
                 'auth_token',
                 '***HIDDEN***'
             ),
             'intech_sms',
             jsonb_build_object(
                 'enabled',
-                (value->'integrations'->'intech_sms'->>'enabled')::boolean,
+                COALESCE(
+                    (value->'integrations'->'intech_sms'->>'enabled')::boolean,
+                    false
+                ),
                 'app_key',
                 '***HIDDEN***'
             )
@@ -67,6 +77,6 @@ SET value = value - 'integrations' || jsonb_build_object(
 WHERE key = 'integrations';
 -- Also clear OpenAI key if it was in ai_chat
 UPDATE public.system_settings
-SET value = value - 'ai_chat' || jsonb_build_object('ai_chat', value->'ai_chat' - 'api_key')
+SET value = value - 'ai_chat'::text || jsonb_build_object('ai_chat', (value->'ai_chat') - 'api_key'::text)
 WHERE key = 'integrations'
     AND value ? 'ai_chat';

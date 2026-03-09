@@ -16,14 +16,18 @@ CREATE TABLE IF NOT EXISTS public.blog_posts (
 ALTER TABLE public.blog_posts ENABLE ROW LEVEL SECURITY;
 -- Policies
 -- Everyone can read published posts
+DROP POLICY IF EXISTS "Public can read published blog posts" ON public.blog_posts;
 CREATE POLICY "Public can read published blog posts" ON public.blog_posts FOR
 SELECT USING (true);
 -- Only admins can manage posts
+DROP POLICY IF EXISTS "Admins can manage blog posts" ON public.blog_posts;
 CREATE POLICY "Admins can manage blog posts" ON public.blog_posts FOR ALL TO authenticated USING (
     EXISTS (
         SELECT 1
         FROM public.profiles
-        WHERE id = (select auth.uid())
+        WHERE id = (
+                select auth.uid()
+            )
             AND role IN ('admin', 'super-admin')
     )
 );

@@ -6,22 +6,17 @@ import {
     Package,
     Users,
     Activity,
-    ArrowUpRight,
     BarChart3,
     PieChart as PieChartIcon,
-    Filter,
-    Calendar,
     Download,
     Building2,
     Scale,
     Box
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
     AreaChart,
     Area,
-    BarChart,
-    Bar,
     XAxis,
     YAxis,
     CartesianGrid,
@@ -36,7 +31,6 @@ import { analyticsService, AgencyStats, BusinessKPIs } from "../../../services/a
 import { useCurrency } from "../../../contexts/CurrencyContext";
 import { formatCurrency } from "../../../utils/currencyFormatter";
 import PageHeader from "../../../components/common/PageHeader";
-import { ChartGuard } from "../../../components/common/ChartGuard";
 
 const COLORS = ["#6366F1", "#8B5CF6", "#EC4899", "#10B981", "#F59E0B", "#3B82F6"];
 
@@ -209,7 +203,7 @@ export default function AdminAnalytics() {
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
                                 <Pie
-                                    data={agencyPerformance}
+                                    data={agencyPerformance as any[]}
                                     cx="50%"
                                     cy="50%"
                                     innerRadius={60}
@@ -218,8 +212,8 @@ export default function AdminAnalytics() {
                                     dataKey="total_revenue"
                                     nameKey="agency_name"
                                 >
-                                    {agencyPerformance.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} cornerRadius={10} />
+                                    {agencyPerformance.map((_, index) => (
+                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                     ))}
                                 </Pie>
                                 <Tooltip

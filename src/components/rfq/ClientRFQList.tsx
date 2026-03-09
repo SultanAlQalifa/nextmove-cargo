@@ -72,7 +72,7 @@ export default function ClientRFQList() {
       await rfqService.publishRFQ(id);
       loadRFQs();
     } catch (error) {
-      console.error("Error publishing RFQ:", error?.message || error);
+      console.error("Error publishing RFQ:", error instanceof Error ? error.message : error);
     }
   };
 

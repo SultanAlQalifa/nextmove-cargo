@@ -13,21 +13,18 @@ import {
   Check,
   Clock,
   UserCheck,
-  AlertCircle,
 } from "lucide-react";
 import {
   connectionService,
   UserConnection,
 } from "../../../services/connectionService";
 import AddClientModal from "../../../components/dashboard/AddClientModal";
-import { useAuth } from "../../../contexts/AuthContext";
 import { useToast } from "../../../contexts/ToastContext";
 
 import ClientDetailsModal from "../../../components/dashboard/forwarder/ClientDetailsModal";
 import ConfirmationModal from "../../../components/common/ConfirmationModal";
 
 export default function ForwarderClients() {
-  const { user } = useAuth();
   const { success, error } = useToast();
   const [activeTab, setActiveTab] = useState<"clients" | "pending">("clients");
 

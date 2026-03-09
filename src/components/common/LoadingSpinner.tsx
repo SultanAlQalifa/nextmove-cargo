@@ -3,11 +3,13 @@ import React from "react";
 interface LoadingSpinnerProps {
   size?: "sm" | "md" | "lg" | "xl";
   className?: string;
+  fullPage?: boolean;
 }
 
 const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   size = "md",
   className = "",
+  fullPage = false,
 }) => {
   const sizeClasses = {
     sm: "w-4 h-4",
@@ -16,7 +18,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
     xl: "w-16 h-16",
   };
 
-  return (
+  const spinner = (
     <div className={`flex justify-center items-center ${className}`}>
       <div
         className={`${sizeClasses[size]} animate-spin rounded-full border-4 border-gray-200 border-t-primary`}
@@ -27,6 +29,16 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
       </div>
     </div>
   );
+
+  if (fullPage) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/50 backdrop-blur-sm">
+        {spinner}
+      </div>
+    );
+  }
+
+  return spinner;
 };
 
 export default LoadingSpinner;

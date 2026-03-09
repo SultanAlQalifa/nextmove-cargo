@@ -11,15 +11,80 @@ CREATE TABLE IF NOT EXISTS public.audit_logs (
     changed_at timestamptz DEFAULT now(),
     ip_address text -- Optional, if we can capture it via context
 );
+-- Ensure columns exist if table already existed with old schema
+DO $$ BEGIN IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+        AND table_name = 'audit_logs'
+        AND column_name = 'table_name'
+) THEN
+ALTER TABLE public.audit_logs
+ADD COLUMN table_name TEXT;
+END IF;
+IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+        AND table_name = 'audit_logs'
+        AND column_name = 'record_id'
+) THEN
+ALTER TABLE public.audit_logs
+ADD COLUMN record_id TEXT;
+END IF;
+IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+        AND table_name = 'audit_logs'
+        AND column_name = 'operation'
+) THEN
+ALTER TABLE public.audit_logs
+ADD COLUMN operation TEXT;
+END IF;
+IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+        AND table_name = 'audit_logs'
+        AND column_name = 'old_data'
+) THEN
+ALTER TABLE public.audit_logs
+ADD COLUMN old_data JSONB;
+END IF;
+IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+        AND table_name = 'audit_logs'
+        AND column_name = 'new_data'
+) THEN
+ALTER TABLE public.audit_logs
+ADD COLUMN new_data JSONB;
+END IF;
+IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+        AND table_name = 'audit_logs'
+        AND column_name = 'changed_by'
+) THEN
+ALTER TABLE public.audit_logs
+ADD COLUMN changed_by UUID REFERENCES auth.users(id);
+END IF;
+END $$;
 -- 2. Secure the Table (Immutable)
 ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
 -- Policy: Admins can VIEW logs
+DROP POLICY IF EXISTS "Admins can view audit logs" ON public.audit_logs;
 CREATE POLICY "Admins can view audit logs" ON public.audit_logs FOR
 SELECT TO authenticated USING (
         EXISTS (
             SELECT 1
             FROM profiles
-            WHERE profiles.id = (select auth.uid())
+            WHERE profiles.id = (
+                    select auth.uid()
+                )
                 AND profiles.role IN ('admin', 'super-admin')
         )
     );
@@ -57,7 +122,9 @@ VALUES (
         TG_OP,
         v_old_data,
         v_new_data,
-        (select auth.uid()) -- Captures the user ID from the current session
+        (
+            select auth.uid()
+        ) -- Captures the user ID from the current session
     );
 RETURN NULL;
 -- Result is ignored for AFTER triggers

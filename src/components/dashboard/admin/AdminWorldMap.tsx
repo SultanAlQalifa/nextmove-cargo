@@ -1,5 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useState, useMemo } from "react";
 import { Globe, MapPin, Zap, ChevronRight, Activity } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -48,8 +47,6 @@ const RoutingComet = ({
     start,
     end,
     color,
-    duration = 3,
-    delay = 0
 }: {
     start: [number, number];
     end: [number, number];

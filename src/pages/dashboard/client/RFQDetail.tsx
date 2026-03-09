@@ -149,7 +149,7 @@ export default function RFQDetail() {
             loadRFQ(id);
           }
         } catch (error) {
-          console.error("Error cancelling RFQ:", error?.message || error);
+          console.error("Error cancelling RFQ:", (error as any)?.message || error);
           toastError("Erreur lors de l'annulation de la demande.");
         }
       },

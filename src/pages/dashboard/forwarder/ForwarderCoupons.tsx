@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import PageHeader from "../../../components/common/PageHeader";
-import { Plus, Search, Tag, Trash2, CheckCircle, XCircle } from "lucide-react";
+import { Plus, Tag, Trash2 } from "lucide-react";
 import { couponService, Coupon } from "../../../services/couponService";
 import { useToast } from "../../../contexts/ToastContext";
 import ConfirmationModal from "../../../components/common/ConfirmationModal";
@@ -207,8 +207,8 @@ export default function ForwarderCoupons() {
                           toggleStatus(coupon.id, coupon.is_active)
                         }
                         className={`px-3 py-1 rounded-full text-xs font-medium border ${coupon.is_active
-                            ? "bg-green-50 text-green-700 border-green-200"
-                            : "bg-gray-50 text-gray-600 border-gray-200"
+                          ? "bg-green-50 text-green-700 border-green-200"
+                          : "bg-gray-50 text-gray-600 border-gray-200"
                           }`}
                       >
                         {coupon.is_active ? "Actif" : "Inactif"}

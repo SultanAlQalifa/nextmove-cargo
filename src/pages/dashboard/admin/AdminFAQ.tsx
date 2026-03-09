@@ -6,10 +6,7 @@ import {
     Search,
     Edit2,
     Trash2,
-    CheckCircle,
     XCircle,
-    ChevronDown,
-    ChevronUp,
 } from "lucide-react";
 import { faqService, FAQ } from "../../../services/faqService";
 import { useToast } from "../../../contexts/ToastContext";

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, MapPin, Edit2, Trash2, Globe, Phone, User, Info, Building2, Package, Truck, ArrowRight } from "lucide-react";
+import { Plus, MapPin, Edit2, Trash2, User, Info, Building2, Package, Truck } from "lucide-react";
 import { addressService, ForwarderAddress } from "../../services/addressService";
 import { useToast } from "../../contexts/ToastContext";
 import { useAuth } from "../../contexts/AuthContext";

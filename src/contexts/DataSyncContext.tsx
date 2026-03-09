@@ -178,6 +178,7 @@ export const useDataSync = (table?: SyncTable, onSync?: () => void) => {
         if (table && onSync) {
             return context.subscribe(table, onSync);
         }
+        return undefined;
     }, [table, onSync, context]);
 
     return context;

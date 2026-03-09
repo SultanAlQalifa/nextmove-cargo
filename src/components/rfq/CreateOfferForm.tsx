@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useTranslation } from "react-i18next";
 import { useAuth } from "../../contexts/AuthContext";
 import { useToast } from "../../contexts/ToastContext";
 import { rfqService } from "../../services/rfqService";
@@ -9,19 +8,16 @@ import type { RFQRequest, CreateOfferData } from "../../types/rfq";
 import {
   ArrowLeft,
   DollarSign,
-  Calendar,
   Clock,
   Shield,
   FileText,
   CheckCircle,
-  AlertCircle,
   Calculator,
 } from "lucide-react";
 
 export default function CreateOfferForm() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { t } = useTranslation();
   const { profile } = useAuth();
   const { success, error: toastError } = useToast();
   const [rfq, setRfq] = useState<RFQRequest | null>(null);

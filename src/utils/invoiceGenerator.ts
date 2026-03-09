@@ -119,11 +119,11 @@ export const generateInvoicePDF = (data: InvoiceData, returnBlob: boolean = fals
       `${item.amount ? item.amount.toLocaleString("fr-FR") : 0} ${data.currency}`,
     ]),
     theme: "grid",
-    headStyles: { fillColor: primaryColor, textColor: 255, fontStyle: "bold" },
+    headStyles: { fillColor: primaryColor as [number, number, number], textColor: 255, fontStyle: "bold" },
     styles: { fontSize: 10, cellPadding: 5 },
     columnStyles: {
       0: { cellWidth: "auto" },
-      1: { cellWidth: 50, ha: "right" },
+      1: { cellWidth: 50, halign: "right" },
     },
   });
 

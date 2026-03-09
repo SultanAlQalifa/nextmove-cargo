@@ -136,7 +136,7 @@ export const AdminAlerts = () => {
                 }
             });
 
-            setAlerts(newAlerts.sort((a, b) => b.severity === 'critical' ? 1 : -1));
+            setAlerts(newAlerts.sort((_, b) => b.severity === 'critical' ? 1 : -1));
         } catch (error) {
             console.error("Failed to fetch admin alerts:", error);
         } finally {
@@ -191,21 +191,21 @@ export const AdminAlerts = () => {
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.9 }}
                             className={`group p-4 bg-white dark:bg-slate-900 border ${alert.severity === 'critical' ? 'border-rose-100 dark:border-rose-900/30 bg-rose-50/50' :
-                                    alert.severity === 'warning' ? 'border-amber-100 dark:border-amber-900/30 bg-amber-50/50' :
-                                        'border-slate-100 dark:border-white/5'
+                                alert.severity === 'warning' ? 'border-amber-100 dark:border-amber-900/30 bg-amber-50/50' :
+                                    'border-slate-100 dark:border-white/5'
                                 } rounded-[2rem] shadow-sm hover:shadow-xl transition-all duration-500 relative overflow-hidden`}
                         >
                             <div className="flex items-start gap-3 relative z-10">
                                 <div className={`p-2 rounded-2xl ${alert.severity === 'critical' ? 'bg-rose-500/10' :
-                                        alert.severity === 'warning' ? 'bg-amber-500/10' :
-                                            'bg-slate-100 dark:bg-slate-800'
+                                    alert.severity === 'warning' ? 'bg-amber-500/10' :
+                                        'bg-slate-100 dark:bg-slate-800'
                                     }`}>
                                     {getIcon(alert.type, alert.severity)}
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <p className={`text-[10px] font-black uppercase tracking-tight ${alert.severity === 'critical' ? 'text-rose-600' :
-                                            alert.severity === 'warning' ? 'text-amber-600' :
-                                                'text-slate-500'
+                                        alert.severity === 'warning' ? 'text-amber-600' :
+                                            'text-slate-500'
                                         }`}>
                                         {alert.title}
                                     </p>
@@ -223,8 +223,8 @@ export const AdminAlerts = () => {
 
                             {/* Decorative side accent */}
                             <div className={`absolute top-0 left-0 bottom-0 w-1 transition-all group-hover:w-1.5 ${alert.severity === 'critical' ? 'bg-rose-500' :
-                                    alert.severity === 'warning' ? 'bg-amber-500' :
-                                        'bg-slate-300'
+                                alert.severity === 'warning' ? 'bg-amber-500' :
+                                    'bg-slate-300'
                                 }`} />
                         </motion.div>
                     ))}
