@@ -578,14 +578,14 @@ export default function AdminSubscriptions() {
                   </div>
                 </div>
 
-                <div className="p-4 bg-gray-50 border-t border-gray-100 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+                <div className="p-4 bg-gray-50 border-t border-gray-100 grid grid-cols-2 gap-2">
                   <button
                     onClick={() => openEditModal(plan)}
                     className="flex items-center justify-center gap-2 py-2 px-3 bg-white border border-gray-200 text-gray-700 font-medium rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all text-sm"
                     title="Modifier"
                   >
                     <Edit2 className="w-4 h-4" />
-                    <span className="sm:hidden lg:inline">Modifier</span>
+                    <span className="inline">Modifier</span>
                   </button>
                   <button
                     onClick={() => {
@@ -598,7 +598,7 @@ export default function AdminSubscriptions() {
                     title="Voir les abonnés"
                   >
                     <Users className="w-4 h-4" />
-                    <span className="sm:hidden lg:inline">Abonnés</span>
+                    <span className="inline">Abonnés</span>
                   </button>
                   <button
                     onClick={() => handleTogglePlanStatus(plan)}
@@ -613,7 +613,7 @@ export default function AdminSubscriptions() {
                     ) : (
                       <Eye className="w-4 h-4" />
                     )}
-                    <span className="sm:hidden lg:inline">
+                    <span className="inline">
                       {plan.is_active ? "Désactiver" : "Activer"}
                     </span>
                   </button>
@@ -623,7 +623,7 @@ export default function AdminSubscriptions() {
                     title="Supprimer"
                   >
                     <Trash2 className="w-4 h-4" />
-                    <span className="sm:hidden lg:inline">Supprimer</span>
+                    <span className="inline">Supprimer</span>
                   </button>
                 </div>
               </div>
