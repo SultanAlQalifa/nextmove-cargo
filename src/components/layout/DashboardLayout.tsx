@@ -182,11 +182,11 @@ export default function DashboardLayout() {
           .neq('status', 'completed')
           .eq('client_id', user.id);
 
-        // Fetch pending RFQs count
+        // Fetch pending RFQs count (those that waiting for offers)
         const { count: rfqCount } = await supabase
           .from('rfq_requests')
           .select('*', { count: 'exact', head: true })
-          .eq('status', 'pending')
+          .in('status', ['published', 'offers_received'])
           .eq('client_id', user.id);
 
         // Fetch unread messages (simulation or real if table exists)

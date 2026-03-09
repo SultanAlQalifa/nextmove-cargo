@@ -20,6 +20,7 @@ import {
   Zap,
   Hash,
   Layers,
+  Trash2,
 } from "lucide-react";
 import { FEATURE_DEFINITIONS } from "../../../constants/subscriptionFeatures";
 import { subscriptionService } from "../../../services/subscriptionService";
@@ -562,12 +563,14 @@ export default function AdminSubscriptions() {
                   </div>
                 </div>
 
-                <div className="p-4 bg-gray-50 border-t border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="p-4 bg-gray-50 border-t border-gray-100 grid grid-cols-1 sm:grid-cols-3 gap-2">
                   <button
                     onClick={() => openEditModal(plan)}
-                    className="flex items-center justify-center gap-2 py-2 px-4 bg-white border border-gray-200 text-gray-700 font-medium rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all text-sm"
+                    className="flex items-center justify-center gap-2 py-2 px-3 bg-white border border-gray-200 text-gray-700 font-medium rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all text-sm"
+                    title="Modifier"
                   >
-                    <Edit2 className="w-4 h-4" /> Modifier
+                    <Edit2 className="w-4 h-4" />
+                    <span className="sm:hidden lg:inline">Modifier</span>
                   </button>
                   <button
                     onClick={() => {
@@ -576,9 +579,19 @@ export default function AdminSubscriptions() {
                         document.getElementById("subscribers-list");
                       element?.scrollIntoView({ behavior: "smooth" });
                     }}
-                    className="flex items-center justify-center gap-2 py-2 px-4 bg-white border border-gray-200 text-gray-700 font-medium rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all text-sm"
+                    className="flex items-center justify-center gap-2 py-2 px-3 bg-white border border-gray-200 text-gray-700 font-medium rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all text-sm"
+                    title="Voir les abonnés"
                   >
-                    <Users className="w-4 h-4" /> Abonnés
+                    <Users className="w-4 h-4" />
+                    <span className="sm:hidden lg:inline">Abonnés</span>
+                  </button>
+                  <button
+                    onClick={() => setConfirmation({ isOpen: true, id: plan.id })}
+                    className="flex items-center justify-center gap-2 py-2 px-3 bg-white border border-red-100 text-red-600 font-medium rounded-xl hover:bg-red-50 hover:border-red-200 transition-all text-sm"
+                    title="Supprimer"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    <span className="sm:hidden lg:inline">Supprimer</span>
                   </button>
                 </div>
               </div>
