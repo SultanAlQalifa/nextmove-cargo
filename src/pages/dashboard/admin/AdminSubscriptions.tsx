@@ -21,6 +21,8 @@ import {
   Hash,
   Layers,
   Trash2,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { FEATURE_DEFINITIONS } from "../../../constants/subscriptionFeatures";
 import { subscriptionService } from "../../../services/subscriptionService";
@@ -120,7 +122,7 @@ export default function AdminSubscriptions() {
     // Time range filtering (using startDate)
     if (timeRange !== "all") {
       const now = new Date();
-      let limitDate = new Date();
+      const limitDate = new Date();
 
       if (timeRange === "7d") limitDate.setDate(now.getDate() - 7);
       else if (timeRange === "30d") limitDate.setDate(now.getDate() - 30);
@@ -205,6 +207,19 @@ export default function AdminSubscriptions() {
   const openCreateModal = () => {
     setEditingPlan(undefined);
     setIsModalOpen(true);
+  };
+
+  const handleTogglePlanStatus = async (plan: SubscriptionPlan) => {
+    try {
+      await subscriptionService.updatePlan(plan.id, {
+        is_active: !plan.is_active,
+      });
+      success(`Plan ${!plan.is_active ? "activé" : "désactivé"} avec succès`);
+      await fetchData();
+    } catch (error: any) {
+      console.error("Error toggling plan status:", error);
+      toastError("Erreur lors de la modification du statut");
+    }
   };
 
   const formatCurrency = (amount: number) => {
@@ -563,7 +578,7 @@ export default function AdminSubscriptions() {
                   </div>
                 </div>
 
-                <div className="p-4 bg-gray-50 border-t border-gray-100 grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <div className="p-4 bg-gray-50 border-t border-gray-100 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
                   <button
                     onClick={() => openEditModal(plan)}
                     className="flex items-center justify-center gap-2 py-2 px-3 bg-white border border-gray-200 text-gray-700 font-medium rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all text-sm"
@@ -584,6 +599,23 @@ export default function AdminSubscriptions() {
                   >
                     <Users className="w-4 h-4" />
                     <span className="sm:hidden lg:inline">Abonnés</span>
+                  </button>
+                  <button
+                    onClick={() => handleTogglePlanStatus(plan)}
+                    className={`flex items-center justify-center gap-2 py-2 px-3 border font-medium rounded-xl transition-all text-sm ${plan.is_active
+                      ? "bg-white border-orange-100 text-orange-600 hover:bg-orange-50 hover:border-orange-200"
+                      : "bg-white border-green-100 text-green-600 hover:bg-green-50 hover:border-green-200"
+                      }`}
+                    title={plan.is_active ? "Désactiver" : "Activer"}
+                  >
+                    {plan.is_active ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
+                    <span className="sm:hidden lg:inline">
+                      {plan.is_active ? "Désactiver" : "Activer"}
+                    </span>
                   </button>
                   <button
                     onClick={() => setConfirmation({ isOpen: true, id: plan.id })}
