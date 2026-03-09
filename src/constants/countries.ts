@@ -43,8 +43,11 @@ export const COUNTRY_MAPPINGS: Record<string, CountryMapping> = {
   AE: {
     code: "AE",
     names: {
-      en: "Dubai",
-      fr: "Dubaï",
+      en: "United Arab Emirates",
+      fr: "Émirats Arabes Unis",
+      ar: "الإمارات العربية المتحدة",
+      dubai_en: "Dubai",
+      dubai_fr: "Dubaï",
     },
   },
   US: {

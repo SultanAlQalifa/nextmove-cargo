@@ -25,6 +25,27 @@ interface RichEditorProps {
   className?: string;
 }
 
+const ToolbarButton = ({
+  icon: Icon,
+  command,
+  arg,
+  title,
+  active = false,
+  onExec,
+}: any) => (
+  <button
+    type="button"
+    onClick={(e) => {
+      e.preventDefault();
+      onExec(command, arg);
+    }}
+    className={`p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-600 dark:text-gray-300 ${active ? "bg-gray-200 dark:bg-gray-600" : ""}`}
+    title={title}
+  >
+    <Icon className="w-4 h-4" />
+  </button>
+);
+
 export default function RichEditor({
   value,
   onChange,
@@ -35,7 +56,6 @@ export default function RichEditor({
   const isLocked = useRef(false);
 
   useEffect(() => {
-    // Initial sync or specific external updates (careful not to loop)
     if (
       editorRef.current &&
       value !== editorRef.current.innerHTML &&
@@ -59,26 +79,6 @@ export default function RichEditor({
       editorRef.current.focus();
     }
   };
-
-  const ToolbarButton = ({
-    icon: Icon,
-    command,
-    arg,
-    title,
-    active = false,
-  }: any) => (
-    <button
-      type="button"
-      onClick={(e) => {
-        e.preventDefault();
-        exec(command, arg);
-      }}
-      className={`p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-600 dark:text-gray-300 ${active ? "bg-gray-200 dark:bg-gray-600" : ""}`}
-      title={title}
-    >
-      <Icon className="w-4 h-4" />
-    </button>
-  );
 
   const [inputMode, setInputMode] = React.useState<{ type: 'link' | 'image', value: string } | null>(null);
 
@@ -118,8 +118,8 @@ export default function RichEditor({
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-1 p-2 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50">
         <div className="flex items-center gap-0.5 border-r border-gray-200 dark:border-gray-700 pr-2 mr-1">
-          <ToolbarButton icon={Undo} command="undo" title="Annuler" />
-          <ToolbarButton icon={Redo} command="redo" title="Rétablir" />
+          <ToolbarButton icon={Undo} command="undo" title="Annuler" onExec={exec} />
+          <ToolbarButton icon={Redo} command="redo" title="Rétablir" onExec={exec} />
         </div>
 
         <div className="flex items-center gap-0.5 border-r border-gray-200 dark:border-gray-700 pr-2 mr-1">
@@ -128,28 +128,32 @@ export default function RichEditor({
             command="formatBlock"
             arg="H2"
             title="Grand Titre"
+            onExec={exec}
           />
           <ToolbarButton
             icon={Heading2}
             command="formatBlock"
             arg="H3"
             title="Petit Titre"
+            onExec={exec}
           />
           <ToolbarButton
             icon={Type}
             command="formatBlock"
             arg="P"
             title="Paragraphe"
+            onExec={exec}
           />
         </div>
 
         <div className="flex items-center gap-0.5 border-r border-gray-200 dark:border-gray-700 pr-2 mr-1">
-          <ToolbarButton icon={Bold} command="bold" title="Gras" />
-          <ToolbarButton icon={Italic} command="italic" title="Italique" />
+          <ToolbarButton icon={Bold} command="bold" title="Gras" onExec={exec} />
+          <ToolbarButton icon={Italic} command="italic" title="Italique" onExec={exec} />
           <ToolbarButton
             icon={Underline}
             command="underline"
             title="Souligné"
+            onExec={exec}
           />
         </div>
 
@@ -158,16 +162,19 @@ export default function RichEditor({
             icon={AlignLeft}
             command="justifyLeft"
             title="Aligner à gauche"
+            onExec={exec}
           />
           <ToolbarButton
             icon={AlignCenter}
             command="justifyCenter"
             title="Centrer"
+            onExec={exec}
           />
           <ToolbarButton
             icon={AlignRight}
             command="justifyRight"
             title="Aligner à droite"
+            onExec={exec}
           />
         </div>
 
@@ -176,11 +183,13 @@ export default function RichEditor({
             icon={List}
             command="insertUnorderedList"
             title="Liste à puces"
+            onExec={exec}
           />
           <ToolbarButton
             icon={ListOrdered}
             command="insertOrderedList"
             title="Liste numérotée"
+            onExec={exec}
           />
         </div>
 

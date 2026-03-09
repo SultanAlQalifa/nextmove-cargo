@@ -367,7 +367,8 @@ export default function AdminPersonnel() {
                                 ></div>
                                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 z-50 py-1 animate-in fade-in zoom-in duration-200">
                                   {(() => {
-                                    const getRoleRank = (roleName: string) => {
+                                    const getRoleRank = (roleName?: string) => {
+                                      if (!roleName) return 5;
                                       const r = roleName.toLowerCase();
                                       if (r === 'super admin' || r === 'super-admin') return 1;
                                       // Admin, Support, etc are Rank 2 (System)
@@ -377,7 +378,7 @@ export default function AdminPersonnel() {
                                       return 5;
                                     };
 
-                                    const currentRank = getRoleRank(profile?.role as any);
+                                    const currentRank = getRoleRank(profile?.role);
                                     const targetRank = getRoleRank(member.role_details?.name || member.role);
 
 

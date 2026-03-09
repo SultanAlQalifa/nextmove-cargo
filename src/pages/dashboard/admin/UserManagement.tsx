@@ -664,7 +664,8 @@ export default function UserManagement() {
 
                               {(() => {
                                 // RBAC Logic
-                                const getRoleRank = (roleName: string) => {
+                                const getRoleRank = (roleName?: string) => {
+                                  if (!roleName) return 5;
                                   const r = roleName.toLowerCase();
                                   if (r === 'super admin' || r === 'super-admin') return 1;
                                   if (r === 'admin' || r === 'support' || r === 'support manager') return 2;
@@ -672,7 +673,7 @@ export default function UserManagement() {
                                   return 4; // Client
                                 };
 
-                                const currentRank = getRoleRank(profile?.role as any);
+                                const currentRank = getRoleRank(profile?.role);
                                 // user.role in this component is formatted (Admin, Client etc), so we lower case it
                                 const targetRank = getRoleRank(user.role);
                                 const canManage = currentRank === 1 || (currentRank < targetRank);

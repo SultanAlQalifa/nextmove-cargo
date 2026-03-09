@@ -120,8 +120,7 @@ export default function CompleteProfile() {
                     .from('profiles')
                     .update({
                         full_name: fullName,
-                        phone: data.phone,
-                        metadata: { usage_type: data.usage }
+                        phone: data.phone
                     })
                     .eq('id', user.id);
 
@@ -135,8 +134,7 @@ export default function CompleteProfile() {
                         role: 'client',
                         full_name: fullName,
                         phone: data.phone,
-                        account_status: 'active',
-                        metadata: { usage_type: data.usage }
+                        account_status: 'active'
                     });
 
                 if (createError) throw createError;
