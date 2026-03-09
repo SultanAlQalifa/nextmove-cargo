@@ -107,7 +107,6 @@ export default function AddShipmentModal({
 
   // If rate_id is provided, we lock the selection to that rate
   // If rate_id is provided, we lock the selection to that rate
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isRateContext, setIsRateContext] = useState(!!initialData?.rate_id);
 
   useEffect(() => {
@@ -120,14 +119,9 @@ export default function AddShipmentModal({
     if (isOpen && initialData?.rate_id) {
       setSelectedRateIds([initialData.rate_id]);
     } else if (isOpen && !initialData?.rate_id) {
-      // If opening fresh without context, ensure empty selection
-      // (Do nothing or reset if needed, but be careful not to wipe user selection if they just opened it)
-      // However, selectedRateIds is state, persisting unless reset.
-      // Best to reset on open if not context?
-      // Or assumes reset on close?
       if (!selectedRateIds.length) setSelectedRateIds([]);
     }
-  }, [isOpen, initialData]);
+  }, [isOpen, initialData, selectedRateIds.length]);
 
   const loadRates = async () => {
     try {
@@ -291,7 +285,7 @@ export default function AddShipmentModal({
         cargo_types: packageTypes.map((t) => t.value),
       }));
     }
-  }, [isOpen, initialData, parentShipment, packageTypes]); // Depend on packageTypes loading
+  }, [isOpen, initialData, parentShipment, packageTypes, formData.cargo_types.length]); // Depend on packageTypes loading
 
   const loadLocations = async () => {
     const data = await locationService.getLocations();
@@ -589,14 +583,13 @@ export default function AddShipmentModal({
         await Promise.all(promises);
       } else {
         // SINGLE SUBMISSION (Classic)
-        const submissionData = {
-          ...formData,
-          tracking_number: undefined, // Let service generate it
-          cargo_type: formData.cargo_types.join(", "),
+        const { cargo_types, ...restFormData } = formData;
+        const finalData = {
+          ...restFormData,
+          cargo_type: cargo_types.join(", "),
           origin_port: "",
           destination_port: "",
         };
-        const { cargo_types, ...finalData } = submissionData;
         await shipmentService.createShipment(finalData);
       }
 
@@ -907,7 +900,7 @@ export default function AddShipmentModal({
                                 const today = new Date();
                                 const departureDate = today.toISOString().split("T")[0];
 
-                                let arrivalDate = new Date();
+                                const arrivalDate = new Date();
                                 if (newMode === "air") {
                                   arrivalDate.setDate(today.getDate() + 5); // Default 5 days
                                 } else {

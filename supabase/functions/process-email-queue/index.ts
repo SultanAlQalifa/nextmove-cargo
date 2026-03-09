@@ -1,6 +1,6 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.7";
-import { createTransport } from "https://esm.sh/nodemailer@6.9.10";
+import { serve } from "std/http/server.ts";
+import { createClient } from "supabase-js";
+import { createTransport } from "nodemailer";
 import { Buffer } from "node:buffer";
 
 // Buffer is needed for nodemailer

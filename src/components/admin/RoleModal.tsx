@@ -106,6 +106,7 @@ export default function RoleModal({
     });
   };
 
+  const { profile } = useAuth();
   const { success, error: toastError } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -144,8 +145,6 @@ export default function RoleModal({
     settings: "Paramètres",
     operations: "Opérations",
   };
-
-  const { profile } = useAuth();
   const isSuperAdmin = profile?.role === "super-admin";
   const isReadOnly = initialData?.is_system && !isSuperAdmin;
 

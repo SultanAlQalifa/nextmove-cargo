@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Consolidation,
@@ -76,11 +76,7 @@ export default function ConsolidationList({
     setFilters((prev) => ({ ...prev, type }));
   }, [type]);
 
-  useEffect(() => {
-    loadConsolidations();
-  }, [filters]);
-
-  const loadConsolidations = async () => {
+  const loadConsolidations = useCallback(async () => {
     setLoading(true);
     try {
       const data = await consolidationService.getConsolidations(filters);
@@ -90,7 +86,11 @@ export default function ConsolidationList({
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters]);
+
+  useEffect(() => {
+    loadConsolidations();
+  }, [loadConsolidations]);
 
   useDataSync("consolidations", () => loadConsolidations());
 

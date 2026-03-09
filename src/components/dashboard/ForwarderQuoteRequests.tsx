@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { quoteService, QuoteRequest } from "../../services/quoteService";
 import { useAuth } from "../../contexts/AuthContext";
 import { useToast } from "../../contexts/ToastContext";
@@ -24,18 +24,32 @@ export default function ForwarderQuoteRequests() {
     },
   });
 
-  useEffect(() => {
-    loadRequests();
-  }, []);
-
-  const loadRequests = async () => {
+  const loadRequests = useCallback(async () => {
     try {
       const data = await quoteService.getPendingRequestsForForwarder();
       setRequests(data);
     } catch (error) {
       console.error("Error loading requests:", error);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    let ignore = false;
+    const loadData = async () => {
+      try {
+        const data = await quoteService.getPendingRequestsForForwarder();
+        if (!ignore) {
+          setRequests(data);
+        }
+      } catch (error) {
+        if (!ignore) console.error("Error loading requests:", error);
+      }
+    };
+    loadData();
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   const onSubmit = async (data: QuoteFormData) => {
     if (!user || !selectedRequest) return;

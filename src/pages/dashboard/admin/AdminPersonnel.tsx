@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import PageHeader from "../../../components/common/PageHeader";
 import {
   Users,
@@ -52,11 +52,7 @@ export default function AdminPersonnel() {
   const { success, error: toastError } = useToast();
   const { profile } = useAuth();
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const [staffData, rolesData] = await Promise.all([
         personnelService.getStaff(),
@@ -68,7 +64,32 @@ export default function AdminPersonnel() {
       console.error("Error fetching data:", error);
       toastError("Erreur lors du chargement des données");
     }
-  };
+  }, [toastError]);
+
+  useEffect(() => {
+    let ignore = false;
+    const fetchAllData = async () => {
+      try {
+        const [staffData, rolesData] = await Promise.all([
+          personnelService.getStaff(),
+          personnelService.getAssignableRoles("admin"),
+        ]);
+        if (!ignore) {
+          setStaff(staffData);
+          setRoles(rolesData);
+        }
+      } catch (error) {
+        if (!ignore) {
+          console.error("Error fetching data:", error);
+          toastError("Erreur lors du chargement des données");
+        }
+      }
+    };
+    fetchAllData();
+    return () => {
+      ignore = true;
+    };
+  }, [toastError]);
 
   const handleAddStaff = async (data: any) => {
     try {
@@ -95,7 +116,7 @@ export default function AdminPersonnel() {
         `Membre ${newStatus === "active" ? "activé" : "désactivé"} avec succès`,
       );
       fetchData();
-    } catch (error: any) {
+    } catch {
       toastError("Erreur lors du changement de statut");
     }
   };
