@@ -104,17 +104,27 @@ export default function ForwarderSubscription() {
     }
   };
 
-  // Group plans by name (assuming distinct names for tiers)
-  // We expect canonical names: "Starter", "Pro", "Enterprise"
+  // Flexible Plan Matching: handle name variations (e.g., "Pro Mensuel" vs "Pro")
   const getPlanForTier = (tierName: string) => {
+    const normalizedTier = tierName.toLowerCase();
     return plans.find(
-      (p) =>
-        (p.name === tierName || p.name === `${tierName} Annuel`) &&
-        p.billing_cycle === billingCycle,
+      (p) => {
+        const name = p.name.toLowerCase();
+        // Exact match or matches with common suffixes
+        const matchesName = name === normalizedTier ||
+          name === `${normalizedTier} annuel` ||
+          name === `${normalizedTier} mensuel` ||
+          name === `${normalizedTier} trimestriel` ||
+          name === `${normalizedTier} semestriel` ||
+          name.startsWith(normalizedTier); // Fallback for names like "Pro Plus"
+
+        return matchesName && p.billing_cycle === billingCycle;
+      }
     );
   };
 
-  const tiers = ["Starter", "Pro", "Elite"];
+  // Canonical tiers to display
+  const tiers = ["Starter", "Pro", "Elite", "Enterprise"];
 
   const formatDate = (dateStr: string) => {
     try {
