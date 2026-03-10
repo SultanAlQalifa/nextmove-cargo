@@ -578,14 +578,14 @@ export default function AdminSubscriptions() {
                   </div>
                 </div>
 
-                <div className="p-4 bg-gray-50 border-t border-gray-100 grid grid-cols-2 gap-2">
+                <div className="p-2 bg-gray-50 border-t border-gray-100 grid grid-cols-2 gap-2">
                   <button
                     onClick={() => openEditModal(plan)}
                     className="flex items-center justify-center gap-2 py-2 px-3 bg-white border border-gray-200 text-gray-700 font-medium rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all text-sm"
                     title="Modifier"
                   >
-                    <Edit2 className="w-4 h-4" />
-                    <span className="inline">Modifier</span>
+                    <Edit2 className="w-3.5 h-3.5" />
+                    <span className="text-xs lg:text-sm">Modifier</span>
                   </button>
                   <button
                     onClick={() => {
@@ -597,8 +597,8 @@ export default function AdminSubscriptions() {
                     className="flex items-center justify-center gap-2 py-2 px-3 bg-white border border-gray-200 text-gray-700 font-medium rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all text-sm"
                     title="Voir les abonnés"
                   >
-                    <Users className="w-4 h-4" />
-                    <span className="inline">Abonnés</span>
+                    <Users className="w-3.5 h-3.5" />
+                    <span className="text-xs lg:text-sm">Abonnés</span>
                   </button>
                   <button
                     onClick={() => handleTogglePlanStatus(plan)}
@@ -611,9 +611,9 @@ export default function AdminSubscriptions() {
                     {plan.is_active ? (
                       <EyeOff className="w-4 h-4" />
                     ) : (
-                      <Eye className="w-4 h-4" />
+                      <Eye className="w-3.5 h-3.5" />
                     )}
-                    <span className="inline">
+                    <span className="text-xs lg:text-sm">
                       {plan.is_active ? "Désactiver" : "Activer"}
                     </span>
                   </button>
@@ -622,8 +622,8 @@ export default function AdminSubscriptions() {
                     className="flex items-center justify-center gap-2 py-2 px-3 bg-white border border-red-100 text-red-600 font-medium rounded-xl hover:bg-red-50 hover:border-red-200 transition-all text-sm"
                     title="Supprimer"
                   >
-                    <Trash2 className="w-4 h-4" />
-                    <span className="inline">Supprimer</span>
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span className="text-xs lg:text-sm">Supprimer</span>
                   </button>
                 </div>
               </div>
