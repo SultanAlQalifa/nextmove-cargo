@@ -641,7 +641,7 @@ export const paymentService = {
       if (transactionError) throw transactionError;
 
       // 2. Si c'est lié à une expédition, la créer ou la mettre à jour
-      let finalShipmentId = shipmentId;
+      const finalShipmentId = shipmentId;
 
       if (shipmentId) {
         // Mettre à jour l'expédition existante (si elle existe déjà, ex: créée par RFQ)

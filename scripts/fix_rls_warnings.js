@@ -6,7 +6,7 @@ const migrationsDir = path.join(__dirname, '../supabase/migrations');
 
 function processFile(filePath) {
     let content = fs.readFileSync(filePath, 'utf8');
-    let original = content;
+    const original = content;
 
     // Use negative lookbehind to ensure we don't wrap things twice
     // e.g. replacing 'auth.uid()' but not '(select auth.uid())' or '(SELECT auth.uid())'

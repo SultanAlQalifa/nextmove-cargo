@@ -337,7 +337,7 @@ export default function AdminAcademy() {
 
     const handleSmartSave = async () => {
         // If there is a draft lesson (title AND content present), add it first
-        let currentLessons = [...(activeCourseData.lessonsList || [])];
+        const currentLessons = [...(activeCourseData.lessonsList || [])];
 
         if (newLessonTitle.trim() && newLessonUrl.trim()) {
             const newLesson = {

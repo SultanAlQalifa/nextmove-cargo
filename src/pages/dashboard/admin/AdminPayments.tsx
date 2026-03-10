@@ -117,7 +117,7 @@ export default function AdminPayments() {
     // Time range filtering
     if (timeRange !== "all") {
       const now = new Date();
-      let limitDate = new Date();
+      const limitDate = new Date();
 
       if (timeRange === "7d") limitDate.setDate(now.getDate() - 7);
       else if (timeRange === "30d") limitDate.setDate(now.getDate() - 30);

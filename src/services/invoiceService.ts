@@ -108,7 +108,7 @@ export const invoiceService = {
      * Generate PDF for an Invoice
      */
     generatePdf(invoice: any) {
-        // eslint-disable-next-line new-cap
+         
         const doc = new jsPDF();
 
         // -- Header --

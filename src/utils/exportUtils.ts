@@ -94,7 +94,7 @@ export const exportToExcel = (data: any[], fileName: string) => {
  */
 export const exportToPDF = (title: string, head: string[][], body: (string | number)[][], fileName: string) => {
   try {
-    // eslint-disable-next-line new-cap
+     
     const doc = new jsPDF();
 
     // Header

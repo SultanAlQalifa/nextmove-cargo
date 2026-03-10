@@ -82,6 +82,12 @@ export default defineConfig({
             if (id.includes('lucide-react')) return 'icons';
             if (id.includes('@supabase')) return 'supabase';
             if (id.includes('i18next')) return 'i18n';
+            if (id.includes('recharts')) return 'charts';
+            if (id.includes('framer-motion')) return 'animation';
+            if (id.includes('@hookform')) return 'forms';
+            if (id.includes('react-router')) return 'router';
+            if (id.includes('leaflet') || id.includes('react-leaflet')) return 'maps';
+            if (id.includes('date-fns')) return 'dates';
           }
         }
       }
